@@ -13,17 +13,18 @@ npm run dev        # http://localhost:5196
 
 The first load builds the demo data (a second or two), then keeps it in the browser (IndexedDB). Refreshing keeps your changes; **Reset demo** in the presenter panel restores the seed. Two tabs of the same browser stay in sync, so you can show the front desk and the owner side by side.
 
-Other scripts: `npm run typecheck`, `npm run lint`, `npm test` (Vitest), `npm run build`, `npm run e2e` (Playwright; run `npx playwright install chromium` once first).
+Other scripts: `npm run typecheck`, `npm run lint`, `npm test` (Vitest), `npm run build`, `npm run e2e` (Playwright; run `npx playwright install chromium` once first). The e2e suite runs the golden path (online booking → arrived → checkout → Daily sales, Sales, Reports and the client profile), loads every page, and walks every menu link.
 
 ## Demo logins
 
 | Role | Email | Password | Sees |
 |---|---|---|---|
 | Owner | `owner@demo.app` | `demo1234` | Everything |
-| Receptionist (staff) | `staff@demo.app` | `demo1234` | Calendar, Sales, Clients, Online presence, Team. No Reports, Marketing or Settings |
-| Team member | `stylist@demo.app` | `demo1234` | Calendar and Sales |
+| Receptionist (staff, Low role) | `staff@demo.app` | `demo1234` | Calendar, Sales, Clients, Online presence, Team. No Reports, Marketing or Settings |
+| Team member (Basic role) | `stylist@demo.app` | `demo1234` | Calendar and Sales |
+| Other team members | `rui@`, `sofia@`, `beatriz@studioaliados.example.com` | `demo1234` | Their permission role (Basic / Low) |
 
-The login screen has buttons that fill in the owner and front-desk accounts. **Forgot password** sends the reset link to the demo outbox.
+The login screen has buttons that fill in the owner and front-desk accounts. **Forgot password** sends the reset link to the demo outbox. What each role can open comes from **Settings › Team › Permission roles**: switch an area on or off there and the menu changes for everyone in that role.
 
 ## Presenter tools (`Ctrl+Shift+D`)
 

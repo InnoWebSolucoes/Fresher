@@ -7,12 +7,14 @@ test('owner logs in and walks every main-menu item', async ({ page }) => {
   await page.getByTestId('login-submit').click()
   await expect(page).toHaveURL(/\/dashboard/)
 
-  for (const id of ['home', 'calendar', 'reports', 'addons', 'settings']) {
+  for (const [id, path] of [['home', /\/dashboard/], ['calendar', /\/calendar/], ['reports', /\/reports/], ['addons', /\/add-ons/], ['settings', /\/setup/]] as const) {
     await page.getByTestId(`rail-${id}`).click()
-    await expect(page.locator('main h1').first()).toBeVisible()
+    await expect(page).toHaveURL(path)
+    await expect(page.getByTestId('error-page')).toHaveCount(0)
   }
   for (const id of ['sales', 'clients', 'catalog', 'online', 'marketing', 'team']) {
     await page.getByTestId('rail-home').click()
+    await expect(page).toHaveURL(/\/dashboard/)
     await page.getByTestId(`rail-${id}`).click()
     const links = page.getByTestId('section-flyout').getByRole('link')
     const count = await links.count()

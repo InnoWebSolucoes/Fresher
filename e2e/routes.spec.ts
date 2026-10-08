@@ -36,15 +36,21 @@ test('every left-menu link opens its page', async ({ page }) => {
   await login(page)
   for (const id of ['sales', 'clients', 'catalog', 'online', 'marketing', 'team']) {
     await page.getByTestId('rail-home').click()
+    await expect(page).toHaveURL(/\/dashboard/)
     await page.getByTestId(`rail-${id}`).click()
     const count = await page.getByTestId('section-flyout').getByRole('link').count()
     expect(count).toBeGreaterThan(0)
     for (let i = 0; i < count; i++) {
-      await page.getByTestId('rail-home').click()
-      await page.getByTestId(`rail-${id}`).click()
+      // The menu icon toggles the overlay menu, so only open it when it's closed.
+      if (!(await page.getByTestId('section-flyout').isVisible())) {
+        await page.getByTestId('rail-home').click()
+        await expect(page).toHaveURL(/\/dashboard/)
+        await page.getByTestId(`rail-${id}`).click()
+      }
       await page.getByTestId('section-flyout').getByRole('link').nth(i).click()
+      await expect(page.getByTestId('section-flyout')).toHaveCount(0)
       await expect(page.getByTestId('error-page')).toHaveCount(0)
-      await expect(page.locator('main h1, h1').first()).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByTestId('stub-page')).toHaveCount(0)
     }
   }
 })

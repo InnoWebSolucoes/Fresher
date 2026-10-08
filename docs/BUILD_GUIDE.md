@@ -22,7 +22,7 @@ Each `src/sections/<name>/` has four registries, collected automatically:
 | `pages.tsx` | `pages: Record<pageId, ComponentType>` | Replaces the stub for a page id from `src/app/routeRegistry.ts` (or your `routes.ts`). |
 | `drawers.tsx` | `drawers: Record<name, DrawerDef>` | Right-hand drawers opened anywhere with `useDrawer().open(name, params)`. `DrawerDef = { component, width?, bare? }`; component gets `{ id, params, close }`. |
 | `routes.ts` | `routes: PageDef[]` | Extra routes you need. Layout `'shell' | 'settings' | 'full' | 'account'`. |
-| `en.json` | strings | Available as `t('<name>.…')` (e.g. file `clients/en.json` with `{ "list": { "title": "Clients list" } }` → `t('clients.list.title')`). |
+| `en*.json` (temporary) | strings | Section strings during parallel work, merged into `locales/en.json` with `scripts/merge-locales.mjs`. Available as `t('<name>.…')`. |
 
 Page ids, paths and layouts are in `src/app/routeRegistry.ts`. Layouts: `public` (no login needed), `shell` (top bar + rail + docked left menu), `settings` (settings category card on the left; render only the right-hand content), `full` (full-screen; render your own header with `FullscreenFrame`), `account` (account area).
 
@@ -77,7 +77,7 @@ Tailwind token classes: `bg-canvas|surface|raised|sunken`, `text-ink|muted|subtl
 - **Modal** keeps `onClose` in a ref, so inline arrow functions no longer steal focus; workarounds like a custom SettingsModal are unnecessary.
 - **Checkout API:** `CartItem.redeem = { clientPackageId, benefitId }` uses a package session; `CartItem.rewardId` marks a client reward redeemed; `availablePackageBenefits(clientId, serviceId)` and `availableRewards(clientId)` list what a client can apply. Paying an existing sale can change its client.
 - **Exports:** `exportCsv(name, tables, { trailingBlank: false })` for report CSVs (no trailing `""` line, as captured); `exportXlsx(name, tables, { sheetName })` names the sheet.
-- **i18n:** a section may split strings into `en.<part>.json`; all are deep-merged under the section key.
+- **i18n:** every UI string lives in `locales/en.json`, grouped under the section key (`t('clients.list.title')` → `clients.list.title`). During parallel work a section may temporarily add `src/sections/<name>/en*.json` (deep-merged under the section key at runtime); run `node scripts/merge-locales.mjs` afterwards to fold them into `locales/en.json`. `src/i18n/locale.test.ts` fails if a literal `t('…')` key is missing.
 
 ## Checks before you finish
 

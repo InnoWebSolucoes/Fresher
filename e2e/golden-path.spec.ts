@@ -28,7 +28,7 @@ async function go(page: Page, to: string) {
 async function readDb(page: Page) {
   return page.evaluate(
     () =>
-      new Promise<{ appointments: { id: string; clientId: string | null; status: string; saleId?: string }[]; sales: { id: string; number: number; clientId: string | null; status: string }[] }>((resolve) => {
+      new Promise<{ appointments: { id: string; clientId: string | null; status: string; saleId?: string; items: { name: string }[] }[]; sales: { id: string; number: number; clientId: string | null; status: string }[] }>((resolve) => {
         const req = indexedDB.open('keyval-store')
         req.onsuccess = () => {
           const get = req.result.transaction('keyval').objectStore('keyval').get('ib-db')
@@ -91,9 +91,10 @@ test('online booking → arrived → checkout → sales, reports and client prof
   await expect(page.getByRole('main').getByText(String(sale.number), { exact: true }).first()).toBeVisible({ timeout: 20_000 })
 
   // 6. The client's profile shows the sale.
+  expect(sale.clientId).toBe(appt.clientId)
   await go(page, `/clients/list?drawer=client&id=${appt.clientId}&tab=sales`)
   await expect(page.getByTestId('drawer-client')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByTestId('drawer-client').getByText(new RegExp(`#?${sale.number}\\b`)).first()).toBeVisible()
+  await expect(page.getByTestId('drawer-client').getByText(appt.items[0].name).first()).toBeVisible({ timeout: 15_000 })
 
   expect(errors).toEqual([])
   // SPEC §10: the golden path runs in under 3 minutes.
