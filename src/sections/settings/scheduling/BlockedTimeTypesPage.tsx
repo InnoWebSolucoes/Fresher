@@ -6,12 +6,12 @@ import { blockedTimeTypesApi } from '@/api/settings'
 import { useDb } from '@/store/db'
 import { durationLong } from '@/lib/time'
 import type { BlockedTimeType } from '@/types'
-import { ActionsPill, SettingsPage } from '../components/ui'
+import { ActionsPill, FormCard, ListCard, ListRow, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { EmojiPicker } from '../components/pickers'
 import { useAction, useDraft } from '../components/useAction'
 import { BLOCK_DURATIONS, durationOption, withValue } from './options'
-import { FormCard, OverlayOptions, RowCard, RowStack, deleteItem, rowActions } from './shared'
+import { OverlayOptions, deleteItem, rowActions } from './shared'
 
 const K = 'settings.sched.btt'
 const DEFAULT_EMOJI = '🕒'
@@ -35,7 +35,7 @@ export function BlockedTimeTypesPage() {
       description={t(`${K}.description`)}
       learnMore="Blocked time types"
       actions={
-        <Button variant="primary" className="rounded-full px-5" onClick={() => setEditing('new')} data-testid="add-blocked-time-type">
+        <Button variant="primary" onClick={() => setEditing('new')} data-testid="add-blocked-time-type">
           {t('settings.common.add')}
         </Button>
       }
@@ -54,9 +54,9 @@ export function BlockedTimeTypesPage() {
           />
         </div>
       ) : (
-        <RowStack testId="blocked-time-types">
+        <ListCard testId="blocked-time-types">
           {types.map((type) => (
-            <RowCard
+            <ListRow
               key={type.id}
               testId={`btt-${type.id}`}
               leading={<span aria-hidden>{type.emoji || DEFAULT_EMOJI}</span>}
@@ -66,7 +66,7 @@ export function BlockedTimeTypesPage() {
               trailing={<ActionsPill groups={rowActions(t, { onEdit: () => setEditing(type), onDelete: () => void remove(type) })} />}
             />
           ))}
-        </RowStack>
+        </ListCard>
       )}
       {editing && <BlockedTimeTypeModal type={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={remove} />}
     </SettingsPage>

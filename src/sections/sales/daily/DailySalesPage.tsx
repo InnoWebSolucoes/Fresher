@@ -114,7 +114,7 @@ export function DailySalesPage() {
     const name = exportedFileName()
     const tables = exportTables(summary, t, fmt)
     if (fmt === 'csv') exportCsv(name, tables)
-    else if (fmt === 'xlsx') await exportXlsx(name, tables)
+    else if (fmt === 'xlsx') await exportXlsx(name, tables, { sheetName: t('sales.daily.title') })
     else await exportPdf(name, { title: t('sales.daily.export.pdfTitle', { date: dayLabel }), tables })
   }
 

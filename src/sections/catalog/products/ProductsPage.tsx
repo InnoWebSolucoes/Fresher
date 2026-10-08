@@ -2,7 +2,7 @@ import { Package, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Button, Checkbox, DataTable, EmptyState, IntroPage, LearnMore, Menu, MenuButton, Modal, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, confirm, toast, usePageLoading, type Column } from '@/components/ui'
+import { Button, Checkbox, DataTable, EmptyState, IntroPage, LearnMore, Menu, MenuButton, Modal, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { exportCsv, exportXlsx, exportedFileName, type ExportTable } from '@/lib/export'
@@ -10,7 +10,7 @@ import { money } from '@/lib/format'
 import type { Product } from '@/types'
 import { deleteProducts } from '@/api/catalog'
 import { stockState } from '../lib'
-import { FiltersButton, ProductThumb, SortButton, ToolbarCard } from '../ui'
+import { FiltersButton, ProductThumb, SortButton, useIntroProps } from '../ui'
 import { ImportProductsModal, ManageNamesModal } from './parts'
 
 const P = 'catalog.products2'
@@ -33,6 +33,7 @@ export function ProductsPage() {
   const navigate = useNavigate()
   const drawer = useDrawer()
   const loading = usePageLoading()
+  const intro = useIntroProps('Products')
   const products = useDb((s) => s.products)
   const brands = useDb((s) => s.brands)
   const categories = useDb((s) => s.productCategories)
@@ -153,6 +154,7 @@ export function ProductsPage() {
     return (
       <Page wide>
         <IntroPage
+          {...intro}
           title={t(`${P}.intro.title`)}
           body={t(`${P}.intro.body`)}
           bullets={[t(`${P}.intro.b1`), t(`${P}.intro.b2`), t(`${P}.intro.b3`), t(`${P}.intro.b4`)]}
@@ -221,7 +223,7 @@ export function ProductsPage() {
           </>
         }
       />
-      <ToolbarCard>
+      <Toolbar>
         <SearchInput value={query} onChange={setQuery} placeholder={t(`${P}.search`)} className="w-full max-w-[300px]" />
         <FiltersButton count={filterCount} onClick={() => setFiltersOpen(true)} />
         {visibleSelected.size > 0 && (
@@ -235,7 +237,7 @@ export function ProductsPage() {
         <div className="ml-auto">
           <SortButton options={SORTS.map((s) => ({ value: s, label: t(`${P}.sort.${s}`) }))} value={sort} onChange={setSort} />
         </div>
-      </ToolbarCard>
+      </Toolbar>
       <DataTable
         columns={columns}
         rows={shown}

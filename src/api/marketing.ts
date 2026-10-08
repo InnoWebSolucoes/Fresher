@@ -1,6 +1,5 @@
 import { format } from 'date-fns'
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { useMemo } from 'react'
 import { commit, db, useDb } from '@/store/db'
 import type { AddOnState, Automation, Campaign, Client, DbData, Deal, ID, MessageLog, SmartPricing } from '@/types'
 import { uid } from '@/lib/ids'
@@ -8,11 +7,19 @@ import { now, nowISO } from '@/lib/time'
 import { round2 } from '@/lib/format'
 import { clientStats, clientsInSegment } from '@/lib/segments'
 import { ApiError, actorName, latency } from './client'
+import { readExt, useExt, writeExt } from './ext'
 
 /**
  * Marketing domain operations: blast campaigns (with review + delivery),
  * automations, communication balance, deals and smart pricing.
  */
+
+/** Leftover copy of the section-local store this data used to live in. */
+try {
+  localStorage.removeItem('ib-marketing-local')
+} catch {
+  /* storage can be blocked; nothing to clean up then */
+}
 
 // ─── Rates ─────────────────────────────────────────────────────────────────
 
@@ -74,40 +81,59 @@ function queueMany(records: Omit<MessageLog, 'id' | 'at'>[]) {
   })
 }
 
-// ─── Section-local settings (no field for these in DbData) ────────────────
+// ─── Settings without a shared field ──────────────────────────────────────
+//
+// Advanced messaging options live in db.ext.marketing; the auto top-up rule
+// is the config of the 'auto-top-up' add-on; the card used for messaging is
+// the workspace's card on file (workspace.plan.card).
 
-interface MarketingLocal {
-  seededAt: string | null
-  autoTopUp: { threshold: number; amount: number }
-  advanced: { senderName: string; quietHours: boolean; quietFrom: string; quietTo: string }
+export const MARKETING_NS = 'marketing'
+const AUTO_TOP_UP = 'auto-top-up'
+
+export interface AutoTopUpConfig {
+  threshold: number
+  amount: number
+}
+
+export interface AdvancedMessaging {
+  senderName: string
+  quietHours: boolean
+  quietFrom: string
+  quietTo: string
+}
+
+export const DEFAULT_AUTO_TOP_UP: AutoTopUpConfig = Object.freeze({ threshold: 10, amount: 50 })
+export const DEFAULT_ADVANCED: AdvancedMessaging = Object.freeze({ senderName: 'StudioAliad', quietHours: true, quietFrom: '21:00', quietTo: '08:00' })
+
+function autoTopUpOf(addOns: AddOnState[] | undefined): { enabled: boolean; config: AutoTopUpConfig } {
+  const a = addOns?.find((x) => x.slug === AUTO_TOP_UP)
+  const c = a?.config as Partial<AutoTopUpConfig> | undefined
+  return { enabled: a?.status === 'active', config: c && typeof c.threshold === 'number' && typeof c.amount === 'number' ? { threshold: c.threshold, amount: c.amount } : DEFAULT_AUTO_TOP_UP }
+}
+
+export interface MarketingSettings {
+  autoTopUp: AutoTopUpConfig
+  autoTopUpEnabled: boolean
+  advanced: AdvancedMessaging
   billingCard: { brand: string; last4: string } | null
 }
 
-const MARKETING_DEFAULTS: MarketingLocal = {
-  seededAt: null,
-  autoTopUp: { threshold: 10, amount: 50 },
-  advanced: { senderName: 'StudioAliad', quietHours: true, quietFrom: '21:00', quietTo: '08:00' },
-  billingCard: null,
+/** Synchronous read (api functions and non-React code). */
+export function marketingSettings(): MarketingSettings {
+  const data = db()
+  const auto = autoTopUpOf(data.addOns)
+  return { autoTopUp: auto.config, autoTopUpEnabled: auto.enabled, advanced: readExt(MARKETING_NS, 'advanced', DEFAULT_ADVANCED), billingCard: data.workspace.plan.card ?? null }
 }
 
-export const useMarketingLocal = create<MarketingLocal>()(persist(() => ({ ...MARKETING_DEFAULTS }), { name: 'ib-marketing-local', version: 1 }))
-
-/** Local settings, reset automatically when the demo is reset (new seed). */
-export function marketingLocal(): MarketingLocal {
-  const seededAt = db().meta?.seededAt ?? null
-  const state = useMarketingLocal.getState()
-  if (state.seededAt !== seededAt) {
-    useMarketingLocal.setState({ ...MARKETING_DEFAULTS, seededAt })
-    return { ...MARKETING_DEFAULTS, seededAt }
-  }
-  return state
-}
-
-/** React hook: local settings for the current seed. */
-export function useMarketingSettings(): MarketingLocal {
-  const seededAt = useDb((s) => s.meta?.seededAt ?? null)
-  const state = useMarketingLocal()
-  return state.seededAt === seededAt ? state : { ...MARKETING_DEFAULTS, seededAt }
+/** React hook: messaging settings (sender name, quiet hours, auto top-up, card on file). */
+export function useMarketingSettings(): MarketingSettings {
+  const addOns = useDb((s) => s.addOns)
+  const card = useDb((s) => s.workspace.plan.card)
+  const advanced = useExt(MARKETING_NS, 'advanced', DEFAULT_ADVANCED)
+  return useMemo(() => {
+    const auto = autoTopUpOf(addOns)
+    return { autoTopUp: auto.config, autoTopUpEnabled: auto.enabled, advanced, billingCard: card ?? null }
+  }, [addOns, card, advanced])
 }
 
 // ─── Blast campaigns ───────────────────────────────────────────────────────
@@ -339,9 +365,8 @@ export async function saveBlastBilling(input: BlastBillingInput): Promise<void> 
       address: input.address,
       vatNumber: input.vatNumber || undefined,
     }
+    d.workspace.plan.card = { brand: /^5[1-5]|^2[2-7]/.test(digits) ? 'Mastercard' : /^3[47]/.test(digits) ? 'Amex' : 'Visa', last4: digits.slice(-4), expiry: input.expiry.replace(/\s+/g, '') }
   })
-  marketingLocal()
-  useMarketingLocal.setState({ billingCard: { brand: digits.startsWith('5') ? 'Mastercard' : 'Visa', last4: digits.slice(-4) } })
 }
 
 // ─── Automations ───────────────────────────────────────────────────────────
@@ -447,15 +472,17 @@ export async function topUpBalance(amount: number): Promise<number> {
 
 export async function setAutoTopUp(enabled: boolean, config?: { threshold: number; amount: number }): Promise<void> {
   await latency()
-  commit((d) => upsertAddOn(d, 'auto-top-up', enabled ? 'active' : 'inactive'))
-  marketingLocal()
-  if (config) useMarketingLocal.setState({ autoTopUp: config })
+  commit((d) => {
+    upsertAddOn(d, AUTO_TOP_UP, enabled ? 'active' : 'inactive')
+    const a = d.addOns.find((x) => x.slug === AUTO_TOP_UP)!
+    if (config) a.config = { ...config }
+    a.disabledAt = enabled ? undefined : nowISO()
+  })
 }
 
-export async function saveAdvancedOptions(advanced: MarketingLocal['advanced']): Promise<void> {
+export async function saveAdvancedOptions(advanced: AdvancedMessaging): Promise<void> {
   await latency()
-  marketingLocal()
-  useMarketingLocal.setState({ advanced })
+  writeExt(MARKETING_NS, 'advanced', advanced)
 }
 
 // ─── Deals ─────────────────────────────────────────────────────────────────

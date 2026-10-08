@@ -36,3 +36,28 @@ export function useDraft<T>(source: T): [T, (patch: Partial<T> | ((d: T) => T)) 
   }, [])
   return [draft, patch, setDraft]
 }
+
+/**
+ * Instant toggles (switches and checkboxes that save on change): shows the
+ * new value while the save runs, then falls back to the stored value.
+ *
+ *   const [shown, toggle] = usePending<string>()
+ *   <Checkbox checked={shown('a', stored.a)} onChange={(v) => void toggle('a', v, () => save(v))} />
+ */
+export function usePending<K extends string>(): [(key: K, stored: boolean) => boolean, (key: K, value: boolean, save: () => Promise<unknown>) => Promise<void>] {
+  const [pending, setPending] = useState<Partial<Record<K, boolean>>>({})
+  const shown = useCallback((key: K, stored: boolean) => pending[key] ?? stored, [pending])
+  const toggle = useCallback(async (key: K, value: boolean, save: () => Promise<unknown>) => {
+    setPending((p) => ({ ...p, [key]: value }))
+    try {
+      await save()
+    } finally {
+      setPending((p) => {
+        const next = { ...p }
+        delete next[key]
+        return next
+      })
+    }
+  }, [])
+  return [shown, toggle]
+}

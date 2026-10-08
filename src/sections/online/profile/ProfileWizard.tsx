@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, Check, ImagePlus, Loader2, MapPin, Sparkles } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, CalendarCheck, Check, Image as ImageIcon, ImagePlus, Loader2, MapPin, Store } from 'lucide-react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button, Field, Menu, Modal, Select, Switch, TextArea, TextInput, toast } from '@/components/ui'
@@ -8,6 +8,7 @@ import { useDb } from '@/store/db'
 import { generateDescription, saveProfile, setProfileListed, type ProfilePatch } from '@/api/online'
 import { toClock } from '@/lib/time'
 import type { Address, Location, OpeningHours, Weekday } from '@/types'
+import { ChapterScreen } from '@/sections/marketing/components/kit'
 import { readImage, sampleImage, WEEKDAYS } from '../shared'
 import { ProfilePreviewModal } from './ProfilePreview'
 
@@ -27,7 +28,7 @@ export const VALUES = ['Organic products only', 'Vegan products only', 'Environm
 const TIMES = Array.from({ length: 288 }, (_, i) => toClock(i * 5))
 const MAX_IMAGES = 10
 
-interface Draft {
+export interface Draft {
   name: string
   phone: string
   email: string
@@ -41,7 +42,7 @@ interface Draft {
   description: string
 }
 
-const toDraft = (l: Location): Draft => ({
+export const toDraft = (l: Location): Draft => ({
   name: l.name,
   phone: l.phone,
   email: l.email,
@@ -55,7 +56,7 @@ const toDraft = (l: Location): Draft => ({
   description: l.marketplace.description,
 })
 
-function patchFor(step: ProfileStep, d: Draft): { patch: ProfilePatch; title?: string } {
+export function patchFor(step: ProfileStep, d: Draft): { patch: ProfilePatch; title?: string } {
   switch (step) {
     case 'essentials':
       return { patch: { name: d.name.trim(), phone: d.phone.trim(), email: d.email.trim() }, title: 'online.activity.essentials' }
@@ -104,20 +105,11 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
   const dashboardUrl = (tab?: string) => `/online-presence/profile/dashboard/${location.id}${tab ? `/${tab}` : ''}`
   const go = (s: ProfileStep) => navigate(`/online-presence/profile/edit/${location.id}/${s}${fromDashboard ? '?from=dashboard' : ''}`)
 
-  const validate = (): string | null => {
-    if (step === 'essentials') {
-      if (!draft.name.trim()) return t('online.wizard.errors.name')
-      if (!draft.phone.trim()) return t('online.wizard.errors.phone')
-    }
-    if (step === 'location' && (!draft.address.line1.trim() || !draft.address.city.trim())) return t('online.wizard.errors.address')
-    if (step === 'images' && draft.images.length < 3) return t('online.wizard.errors.images')
-    if (step === 'about' && draft.description.trim().length < 200) return t('online.wizard.errors.description')
-    return null
-  }
+  const validate = () => validateStep(step, draft, t)
 
-  const persist = async (nextStep?: ProfileStep) => {
+  const saveStep = async (nextStep?: ProfileStep) => {
     const { patch, title } = patchFor(step, draft)
-    await saveProfile(location.id, { ...patch, marketplace: { ...patch.marketplace, ...(location.marketplace.listed ? {} : { step: nextStep ?? step }) } }, title ? t(title) : undefined)
+    await saveProfile(location.id, { ...patch, marketplace: { ...patch.marketplace, ...(location.marketplace.listed ? {} : { step: nextStep ?? step }) } }, title)
   }
 
   const onContinue = async () => {
@@ -140,13 +132,13 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
     setBusy('continue')
     try {
       if (fromDashboard && STEP_TAB[step]) {
-        await persist()
+        await saveStep()
         toast(t('online.wizard.savedToast'))
         navigate(dashboardUrl(STEP_TAB[step]))
         return
       }
       const next = PROFILE_STEPS[index + 1]
-      await persist(next)
+      await saveStep(next)
       go(next)
     } finally {
       setBusy(null)
@@ -156,7 +148,7 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
   const onSaveExit = async () => {
     setBusy('exit')
     try {
-      if (!validate()) await persist()
+      if (!validate()) await saveStep()
       toast(t('online.wizard.savedToast'))
       navigate(fromDashboard ? dashboardUrl(STEP_TAB[step]) : '/online-presence/locations')
     } finally {
@@ -176,6 +168,8 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
     return (s.indexOf(step) + 1) / s.length
   }
   const overall = Math.round(((index + 1) / PROFILE_STEPS.length) * 100)
+  /** Overview and "Step N" screens only offer Close / Continue. */
+  const chapter = step === 'overview' || step.endsWith('-overview')
   const continueLabel = step === 'enable' ? (location.marketplace.listed ? t('online.common.done') : t('online.wizard.enable')) : fromDashboard && STEP_TAB[step] ? t('online.common.save') : t('online.common.continue')
 
   return (
@@ -187,24 +181,30 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
           </div>
         ))}
       </div>
-      <header className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
-        <button type="button" className="icon-btn h-10 w-10" aria-label={t('online.common.back')} onClick={onBack}>
+      <header className="flex h-[72px] shrink-0 items-center justify-between gap-3 px-6">
+        <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink hover:bg-sunken" aria-label={t('online.common.back')} onClick={onBack}>
           <ArrowLeft size={20} aria-hidden />
         </button>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setPreview(true)} disabled={draft.images.length === 0 && !draft.description}>
-            {t('online.wizard.preview')}
-          </Button>
-          <Button onClick={onSaveExit} loading={busy === 'exit'}>
-            {fromDashboard ? t('online.common.close') : t('online.wizard.saveExit')}
-          </Button>
+          {chapter ? (
+            <Button onClick={() => navigate(fromDashboard ? dashboardUrl(STEP_TAB[step]) : '/online-presence/locations')}>{t('online.common.close')}</Button>
+          ) : (
+            <>
+              <Button onClick={() => setPreview(true)} disabled={draft.images.length === 0 && !draft.description}>
+                {t('online.wizard.preview')}
+              </Button>
+              <Button onClick={onSaveExit} loading={busy === 'exit'}>
+                {fromDashboard ? t('online.common.close') : t('online.wizard.saveExit')}
+              </Button>
+            </>
+          )}
           <Button variant="primary" onClick={onContinue} loading={busy === 'continue'} iconRight={step === 'enable' ? <Check size={16} aria-hidden /> : <ArrowRight size={16} aria-hidden />}>
             {continueLabel}
           </Button>
         </div>
       </header>
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[680px] px-6 pb-16 pt-6">
+        <div className={clsx('mx-auto w-full px-6 pb-16 pt-6', chapter && step !== 'overview' ? 'max-w-[1000px]' : 'max-w-[680px]')}>
           <StepBody step={step} draft={draft} set={set} error={error} location={location} />
         </div>
       </main>
@@ -213,7 +213,24 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
   )
 }
 
+/** Validation for one wizard step (also used by the dashboard's edit modals). */
+export function validateStep(step: ProfileStep, draft: Draft, t: (key: string) => string): string | null {
+  if (step === 'essentials') {
+    if (!draft.name.trim()) return t('online.wizard.errors.name')
+    if (!draft.phone.trim()) return t('online.wizard.errors.phone')
+  }
+  if (step === 'location' && (!draft.address.line1.trim() || !draft.address.city.trim())) return t('online.wizard.errors.address')
+  if (step === 'images' && draft.images.length < 3) return t('online.wizard.errors.images')
+  if (step === 'about' && draft.description.trim().length < 200) return t('online.wizard.errors.description')
+  return null
+}
+
+/** True when a step is rendered inside the dashboard's edit modal (the modal shows the title). */
+export const InModal = createContext(false)
+
 function Heading({ eyebrow, title, body }: { eyebrow?: string; title: string; body?: ReactNode }) {
+  const inModal = useContext(InModal)
+  if (inModal) return body ? <p className="mb-6 text-body text-muted">{body}</p> : null
   return (
     <div className="mb-8">
       {eyebrow && <p className="mb-2 text-body-strong text-primary">{eyebrow}</p>}
@@ -232,7 +249,7 @@ function ErrorLine({ error }: { error: string | null }) {
   )
 }
 
-function StepBody({ step, draft, set, error, location }: { step: ProfileStep; draft: Draft; set: (p: Partial<Draft>) => void; error: string | null; location: Location }) {
+export function StepBody({ step, draft, set, error, location }: { step: ProfileStep; draft: Draft; set: (p: Partial<Draft>) => void; error: string | null; location: Location }) {
   const { t } = useTranslation()
   switch (step) {
     case 'overview':
@@ -257,11 +274,8 @@ function StepBody({ step, draft, set, error, location }: { step: ProfileStep; dr
     case 'bookings-overview': {
       const key = step.replace('-overview', '')
       const n = key === 'essentials' ? 1 : key === 'showcase' ? 2 : 3
-      return (
-        <div className="py-10">
-          <Heading eyebrow={t('online.wizard.stepN', { n })} title={t(`online.wizard.${key}Overview.title`)} body={t(`online.wizard.${key}Overview.body`)} />
-        </div>
-      )
+      const Icon = n === 1 ? Store : n === 2 ? ImageIcon : CalendarCheck
+      return <ChapterScreen step={t('online.wizard.stepN', { n })} title={t(`online.wizard.${key}Overview.title`)} body={t(`online.wizard.${key}Overview.body`)} icon={<Icon size={64} strokeWidth={1.5} aria-hidden />} />
     }
     case 'essentials':
       return (
@@ -596,7 +610,7 @@ function AboutStep({ draft, set, error, locationId }: { draft: Draft; set: (p: P
         {(id) => <TextArea id={id} rows={9} maxLength={1200} value={draft.description} onChange={(e) => set({ description: e.target.value })} invalid={!!error} />}
       </Field>
       {short && !error && <p className="mt-2 text-small text-muted">{t('online.wizard.errors.description')}</p>}
-      <Button className="mt-4" icon={<Sparkles size={16} aria-hidden />} onClick={generate} loading={generating}>
+      <Button className="mt-4" onClick={generate} loading={generating}>
         {t('online.wizard.about.generate')}
       </Button>
     </>

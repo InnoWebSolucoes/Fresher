@@ -6,7 +6,7 @@ import type { PermissionLevel } from '@/types'
  * (reference/settings-team.md §8 and the settings-team-01-…-x05-medium-*
  * screenshots): area → groups → items, with nested children.
  *
- * Labels live in strings/tm.json:
+ * Labels live in en.json (settings.tm.perm):
  *   settings.tm.perm.<area>.title / .description
  *   settings.tm.perm.<area>.groups.<groupKey>
  *   settings.tm.perm.<area>.items.<itemKey>

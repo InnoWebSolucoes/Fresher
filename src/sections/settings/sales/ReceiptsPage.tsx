@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, SearchInput, TextInput } from '@/components/ui'
 import { updateLocation, updateSettings } from '@/api/settings'
 import type { ID, Settings } from '@/types'
-import { AddLink, EditCard, InfoGrid, SettingsPage } from '../components/ui'
+import { AddLink, CardButton, EditCard, FormCard, InfoGrid, Rule, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction, useDraft } from '../components/useAction'
 import { useLocations, useSettings } from '../hooks'
-import { FormCard, Rule } from './shared'
 
 type Receipts = Settings['receipts']
 
@@ -40,9 +39,9 @@ export function ReceiptsPage() {
         title={t('settings.sale.receipts.sequencingTitle')}
         description={t('settings.sale.receipts.sequencingDescription')}
         action={
-          <Button size="sm" className="rounded-full px-4" onClick={() => setSeqOpen(true)} data-testid="receipt-sequencing-manage">
+          <CardButton onClick={() => setSeqOpen(true)} testId="receipt-sequencing-manage">
             {t('settings.common.manage')}
-          </Button>
+          </CardButton>
         }
       />
       <ReceiptSettingsModal open={editOpen} onClose={() => setEditOpen(false)} value={receipts} />
@@ -104,7 +103,7 @@ function ReceiptSettingsModal({ open, onClose, value }: { open: boolean; onClose
           <Checkbox label={t('settings.sale.receipts.showAddress')} checked={draft.showAddress} onChange={(showAddress) => patch({ showAddress })} />
           <Checkbox label={t('settings.sale.receipts.showTeam')} checked={draft.showTeam} onChange={(showTeam) => patch({ showTeam })} />
         </div>
-        <div className="mt-6 flex flex-col gap-5">
+        <div className="flex flex-col gap-5">
           {textField('title', t('settings.sale.receipts.receiptTitle'))}
           {textField('line1', t('settings.sale.receipts.line1'))}
           {textField('line2', t('settings.sale.receipts.line2'))}
@@ -205,7 +204,7 @@ function SequencingModal({ open, onClose }: { open: boolean; onClose: () => void
       {selected.size > 0 && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface px-4 py-3">
           <span className="text-body-strong text-ink">{t('settings.sale.receipts.selected', { count: selected.size })}</span>
-          <Button size="sm" className="rounded-full" onClick={restartSelected} data-testid="restart-numbering">
+          <Button size="sm" onClick={restartSelected} data-testid="restart-numbering">
             {t('settings.sale.receipts.restartNumbering')}
           </Button>
         </div>

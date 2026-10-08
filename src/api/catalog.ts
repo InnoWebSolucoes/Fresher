@@ -1,8 +1,11 @@
 import { format, parseISO } from 'date-fns'
+import type { Draft } from 'immer'
 import { commit, db } from '@/store/db'
 import type {
   Brand,
   Bundle,
+  DbData,
+  ExtraTime,
   ID,
   Membership,
   PackageDef,
@@ -34,6 +37,66 @@ const find = <T extends { id: ID }>(list: T[], id: ID, what: string): T => {
   return item
 }
 
+// ─── Catalog data without a shared collection (db.ext.catalog) ─────────────
+
+/** Namespace in `db.ext` for catalog settings the shared model has no field for. */
+export const CATALOG_EXT = 'catalog'
+
+/** Per-service upselling switches (service editor › Online booking › Upselling). */
+export interface Upselling {
+  service: boolean
+  membership: boolean
+  package: boolean
+}
+export const DEFAULT_UPSELLING: Upselling = { service: false, membership: true, package: true }
+
+/** Per-bundle extra time overrides (by service id) and portfolio images. */
+export interface BundleExtras {
+  extraTime: Record<ID, ExtraTime[]>
+  images: string[]
+}
+
+/**
+ * Keys in `db.ext.catalog`:
+ * - `bookingSequence`: service ids in booking order (Set booking sequence)
+ * - `bundleOrder`: bundle id → position inside its category (Set menu order)
+ * - `upselling`: service id → Upselling
+ * - `bundleExtras`: bundle id → BundleExtras
+ */
+export interface CatalogExt {
+  bookingSequence: ID[]
+  bundleOrder: Record<ID, number>
+  upselling: Record<ID, Upselling>
+  bundleExtras: Record<ID, BundleExtras>
+}
+
+function catalogExt(d: Draft<DbData>): Partial<CatalogExt> {
+  if (!d.ext) d.ext = {}
+  if (!d.ext[CATALOG_EXT]) d.ext[CATALOG_EXT] = {}
+  return d.ext[CATALOG_EXT] as Partial<CatalogExt>
+}
+
+/** Drop catalog ext entries that point at deleted services or bundles. */
+function forgetCatalogItems(d: Draft<DbData>, serviceIds: ID[], bundleIds: ID[]) {
+  const ext = catalogExt(d)
+  if (ext.bookingSequence) ext.bookingSequence = ext.bookingSequence.filter((sid) => !serviceIds.includes(sid))
+  serviceIds.forEach((sid) => {
+    if (ext.upselling) delete ext.upselling[sid]
+  })
+  bundleIds.forEach((bid) => {
+    if (ext.bundleOrder) delete ext.bundleOrder[bid]
+    if (ext.bundleExtras) delete ext.bundleExtras[bid]
+  })
+}
+
+/** Set booking sequence (catalog.md §1.4). */
+export async function saveBookingSequence(ids: ID[]): Promise<void> {
+  await latency()
+  commit((d) => {
+    catalogExt(d).bookingSequence = [...ids]
+  })
+}
+
 // ─── Service categories ────────────────────────────────────────────────────
 
 export type CategoryInput = Pick<ServiceCategory, 'name' | 'color' | 'description'>
@@ -54,24 +117,29 @@ export async function saveCategory(id: ID | null, input: CategoryInput): Promise
   return saved
 }
 
-/** Archive every service and bundle in a category (category Actions → Archive). */
-export async function archiveCategory(id: ID): Promise<void> {
+/**
+ * Archive or unarchive a category (category Actions → Archive). The category
+ * and everything in it leave the active menu; services and bundles keep their
+ * own archived flag, so unarchiving brings back exactly what was there.
+ */
+export async function setCategoryArchived(id: ID, archived: boolean): Promise<void> {
   await latency()
   commit((d) => {
-    d.services.forEach((s) => {
-      if (s.categoryId === id) s.archived = true
-    })
-    d.bundles.forEach((b) => {
-      if (b.categoryId === id) b.archived = true
-    })
+    const cat = find(d.serviceCategories, id, 'category')
+    if (archived) cat.archived = true
+    else delete cat.archived
   })
 }
+
+/** A service or bundle is off the menu when it, or its category, is archived. */
+export const isOffMenu = (item: { archived: boolean; categoryId: ID }, categories: ServiceCategory[]) => item.archived || Boolean(categories.find((c) => c.id === item.categoryId)?.archived)
 
 /** Permanently delete a category together with its services and bundles. */
 export async function deleteCategory(id: ID): Promise<void> {
   await latency()
   commit((d) => {
     const removed = new Set(d.services.filter((s) => s.categoryId === id).map((s) => s.id))
+    forgetCatalogItems(d, [...removed], d.bundles.filter((b) => b.categoryId === id).map((b) => b.id))
     d.services = d.services.filter((s) => s.categoryId !== id)
     d.bundles = d.bundles.filter((b) => b.categoryId !== id)
     d.bundles.forEach((b) => {
@@ -88,7 +156,7 @@ export async function deleteCategory(id: ID): Promise<void> {
 
 export type ServiceInput = Omit<Service, 'id' | 'order'>
 
-export async function saveService(id: ID | null, input: ServiceInput): Promise<Service> {
+export async function saveService(id: ID | null, input: ServiceInput, upselling?: Upselling): Promise<Service> {
   await latency()
   let saved!: Service
   commit((d) => {
@@ -101,6 +169,10 @@ export async function saveService(id: ID | null, input: ServiceInput): Promise<S
     } else {
       saved = { ...input, id: uid('svc'), order: nextServiceOrder(d.services, input.categoryId) }
       d.services.push(saved)
+    }
+    if (upselling) {
+      const ext = catalogExt(d)
+      ext.upselling = { ...(ext.upselling ?? {}), [saved.id]: { ...upselling } }
     }
   })
   return saved
@@ -118,6 +190,7 @@ export async function setServiceArchived(id: ID, archived: boolean): Promise<voi
 export async function deleteService(id: ID): Promise<void> {
   await latency()
   commit((d) => {
+    forgetCatalogItems(d, [id], [])
     d.services = d.services.filter((s) => s.id !== id)
     d.bundles.forEach((b) => {
       b.serviceIds = b.serviceIds.filter((sid) => sid !== id)
@@ -136,23 +209,32 @@ export async function bulkUpdateServices(updated: Service[]): Promise<void> {
   })
 }
 
-/** Set menu order: categories in order, and services (ids) in order inside each category. */
-export async function saveMenuOrder(categoryIds: ID[], servicesByCategory: Record<ID, ID[]>): Promise<void> {
+/** Set menu order: categories in order, and services and bundles (ids) in order inside each category. */
+export async function saveMenuOrder(categoryIds: ID[], itemsByCategory: Record<ID, ID[]>): Promise<void> {
   await latency()
   commit((d) => {
     categoryIds.forEach((cid, i) => {
       const cat = d.serviceCategories.find((c) => c.id === cid)
       if (cat) cat.order = i
     })
-    Object.entries(servicesByCategory).forEach(([cid, ids]) =>
-      ids.forEach((sid, i) => {
-        const svc = d.services.find((s) => s.id === sid)
+    const ext = catalogExt(d)
+    const bundleOrder = { ...(ext.bundleOrder ?? {}) }
+    Object.entries(itemsByCategory).forEach(([cid, ids]) =>
+      ids.forEach((itemId, i) => {
+        const svc = d.services.find((s) => s.id === itemId)
         if (svc) {
           svc.order = i
           svc.categoryId = cid
+          return
+        }
+        const bundle = d.bundles.find((b) => b.id === itemId)
+        if (bundle) {
+          bundle.categoryId = cid
+          bundleOrder[itemId] = i
         }
       }),
     )
+    ext.bundleOrder = bundleOrder
   })
 }
 
@@ -160,7 +242,7 @@ export async function saveMenuOrder(categoryIds: ID[], servicesByCategory: Recor
 
 export type BundleInput = Omit<Bundle, 'id'>
 
-export async function saveBundle(id: ID | null, input: BundleInput): Promise<Bundle> {
+export async function saveBundle(id: ID | null, input: BundleInput, extras?: BundleExtras): Promise<Bundle> {
   await latency()
   let saved!: Bundle
   commit((d) => {
@@ -172,6 +254,10 @@ export async function saveBundle(id: ID | null, input: BundleInput): Promise<Bun
     } else {
       saved = { ...input, id: uid('bun') }
       d.bundles.push(saved)
+    }
+    if (extras) {
+      const ext = catalogExt(d)
+      ext.bundleExtras = { ...(ext.bundleExtras ?? {}), [saved.id]: { extraTime: { ...extras.extraTime }, images: [...extras.images] } }
     }
   })
   return saved
@@ -187,6 +273,7 @@ export async function setBundleArchived(id: ID, archived: boolean): Promise<void
 export async function deleteBundle(id: ID): Promise<void> {
   await latency()
   commit((d) => {
+    forgetCatalogItems(d, [], [id])
     d.bundles = d.bundles.filter((b) => b.id !== id)
   })
 }

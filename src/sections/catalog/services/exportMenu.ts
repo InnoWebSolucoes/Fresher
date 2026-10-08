@@ -2,7 +2,8 @@ import { format } from 'date-fns'
 import type { Bundle, DbData, Service } from '@/types'
 import { downloadBlob, exportCsv, exportXlsx, type Cell, type ExportTable } from '@/lib/export'
 import { now } from '@/lib/time'
-import { bundleDuration, bundlePrice, durationShort, numericId, totalExtra } from '../lib'
+import { isOffMenu } from '@/api/catalog'
+import { bundleBasePrice, bundleDuration, durationShort, numericId, totalExtra } from '../lib'
 
 /**
  * Service menu export, matching
@@ -22,8 +23,8 @@ export function serviceMenuRows(data: Data): Cell[][] {
   const tax = (id: string | null) => (id ? (data.settings.taxRates.find((r) => r.id === id)?.name ?? 'No tax') : 'No tax')
   const catOrder = (id: string) => data.serviceCategories.find((c) => c.id === id)?.order ?? 99
   const rows: Cell[][] = []
-  const services = data.services.filter((s) => !s.archived).sort((a, b) => catOrder(a.categoryId) - catOrder(b.categoryId) || a.order - b.order)
-  const bundles = data.bundles.filter((b) => !b.archived)
+  const services = data.services.filter((s) => !isOffMenu(s, data.serviceCategories)).sort((a, b) => catOrder(a.categoryId) - catOrder(b.categoryId) || a.order - b.order)
+  const bundles = data.bundles.filter((b) => !isOffMenu(b, data.serviceCategories))
   const serviceRow = (s: Service, name: string, price: number, duration: number, sku?: string): Cell[] => [
     name,
     euros(price),
@@ -41,8 +42,8 @@ export function serviceMenuRows(data: Data): Cell[][] {
     numericId(s.id),
     sku ?? s.sku ?? '',
   ]
-  const bundleRow = (b: Bundle): Cell[] => [b.name, euros(bundlePrice(b, data.services)), durationShort(bundleDuration(b, data.services)), '', 'Inherited from services', b.description, category(b.categoryId), 'Inherited from services', '', b.onlineBooking ? 'Enabled' : 'Disabled', availableFor(b.availableFor), 'Disabled', '', '', '']
-  ;[...new Set([...data.serviceCategories].sort((a, b) => a.order - b.order).map((c) => c.id))].forEach((cid) => {
+  const bundleRow = (b: Bundle): Cell[] => [b.name, euros(bundleBasePrice(b, data.services)), durationShort(bundleDuration(b, data.services)), '', 'Inherited from services', b.description, category(b.categoryId), 'Inherited from services', '', b.onlineBooking ? 'Enabled' : 'Disabled', availableFor(b.availableFor), 'Disabled', '', '', '']
+  ;[...data.serviceCategories].filter((c) => !c.archived).sort((a, b) => a.order - b.order).forEach(({ id: cid }) => {
     bundles.filter((b) => b.categoryId === cid).forEach((b) => rows.push(bundleRow(b)))
     services
       .filter((s) => s.categoryId === cid)
@@ -66,7 +67,7 @@ export function exportServiceMenu(kind: 'csv' | 'xlsx', data: Data): Promise<voi
 export async function exportServiceMenuPdf(data: Data): Promise<void> {
   const { jsPDF } = await import('jspdf')
   const autoTable = (await import('jspdf-autotable')).default
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(20)
   doc.setTextColor(20)

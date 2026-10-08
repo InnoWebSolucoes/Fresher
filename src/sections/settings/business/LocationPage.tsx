@@ -7,7 +7,7 @@ import { Button, Checkbox, EmptyState, Field, LearnMore, TextInput, confirm } fr
 import { deleteLocation, locationUsage, updateLocation } from '@/api/settings'
 import { now, weekdayOf } from '@/lib/time'
 import type { Location, OpeningHours } from '@/types'
-import { ActionsPill, EditCard, InfoGrid, PillMenu, SettingsPage } from '../components/ui'
+import { ActionsPill, EditCard, FormCard, FormStack, InfoGrid, PillMenu, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction } from '../components/useAction'
 import { useLocations } from '../hooks'
@@ -213,8 +213,8 @@ function EditBusinessModal({ location, open, onClose }: { location: Location; op
     )
   }
   return (
-    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} title={t('settings.biz.location.editBusiness')}>
-      <div className="flex flex-col gap-5">
+    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} title={t('settings.biz.location.editBusiness')} testId="edit-business-modal">
+      <FormCard>
         <Field label={t('settings.biz.location.displayName')} counter={{ value: draft.name.length, max: 60 }} hint={t('settings.biz.new.nameHint')} error={e.name}>
           {(id) => <TextInput id={id} maxLength={60} value={draft.name} invalid={Boolean(e.name)} onChange={(ev) => setDraft({ ...draft, name: ev.target.value })} />}
         </Field>
@@ -227,7 +227,7 @@ function EditBusinessModal({ location, open, onClose }: { location: Location; op
         <Field label={t('settings.biz.new.email')} error={e.email}>
           {(id) => <TextInput id={id} type="email" value={draft.email} invalid={Boolean(e.email)} onChange={(ev) => setDraft({ ...draft, email: ev.target.value })} />}
         </Field>
-      </div>
+      </FormCard>
     </FullModal>
   )
 }
@@ -260,7 +260,7 @@ function BusinessTypesModal({ location, open, onClose }: { location: Location; o
     )
   }
   return (
-    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} title={t('settings.biz.types.title')} subtitle={t('settings.biz.types.subtitle')} width="max-w-[1040px]">
+    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} title={t('settings.biz.types.title')} subtitle={t('settings.biz.types.subtitle')} width="max-w-[1040px]" testId="business-types-modal">
       <BusinessTypeTiles
         value={types}
         onChange={(v) => {
@@ -339,40 +339,42 @@ function EditLocationModal({ location, open, onClose }: { location: Location; op
   }
   const summary = [address.line2 ? `${address.line2}, ${address.line1}` : address.line1, address.city, [address.postcode, address.district].filter(Boolean).join(', '), address.region, address.country].filter(Boolean)
   return (
-    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} title={t('settings.biz.location.editLocation')} width="max-w-[860px]">
-      <Checkbox checked={noAddress} onChange={setNoAddress} label={t('settings.biz.location.noAddressLabel')} />
-      {!noAddress && (
-        <>
-          <div className="mt-6 flex items-start justify-between gap-4 border-t border-line pt-6">
-            <div>
-              <h2 className="font-display text-title-3 text-ink">{t('settings.biz.location.businessLocation')}</h2>
-              <div className="mt-1 text-body-lg text-ink">
-                {summary.map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
+    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} title={t('settings.biz.location.editLocation')} width="max-w-[860px]" testId="edit-location-modal">
+      <FormStack>
+        <FormCard>
+          <Checkbox checked={noAddress} onChange={setNoAddress} label={t('settings.biz.location.noAddressLabel')} />
+        </FormCard>
+        {!noAddress && (
+          <>
+            <FormCard>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-display text-title-3 text-ink">{t('settings.biz.location.businessLocation')}</h2>
+                  <div className="mt-1 text-body-lg text-ink">
+                    {summary.map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
+                </div>
+                <ActionsPill
+                  groups={[
+                    {
+                      items: [
+                        { label: t('settings.biz.location.resetAddress'), onSelect: () => setAddress(saved) },
+                        { label: t('settings.biz.location.clearAddress'), onSelect: () => setAddress({ line1: '', line2: '', district: '', city: '', region: '', postcode: '', country: address.country, directions: '' }) },
+                      ],
+                    },
+                  ]}
+                />
               </div>
-            </div>
-            <ActionsPill
-              groups={[
-                {
-                  items: [
-                    { label: t('settings.biz.location.resetAddress'), onSelect: () => setAddress(saved) },
-                    { label: t('settings.biz.location.clearAddress'), onSelect: () => setAddress({ line1: '', line2: '', district: '', city: '', region: '', postcode: '', country: address.country, directions: '' }) },
-                  ],
-                },
-              ]}
-            />
-          </div>
-          <div className="mt-6 border-t border-line pt-6">
-            <AddressFields value={address} onChange={setAddress} errors={submitted ? errors : {}} />
-          </div>
-          <div className="mt-6 border-t border-line pt-6">
-            <h2 className="font-display text-title-3 text-ink">{t('settings.biz.location.mapTitle')}</h2>
-            <p className="mb-3 mt-1 text-body text-muted">{t('settings.biz.location.mapHint')}</p>
-            <MapPlaceholder label={location.name} view={map} onChange={setMap} height={300} />
-          </div>
-        </>
-      )}
+              <AddressFields value={address} onChange={setAddress} errors={submitted ? errors : {}} />
+            </FormCard>
+            <FormCard title={t('settings.biz.location.mapTitle')} description={t('settings.biz.location.mapHint')}>
+              <MapPlaceholder label={location.name} view={map} onChange={setMap} height={300} />
+            </FormCard>
+          </>
+        )}
+      </FormStack>
     </FullModal>
   )
 }
@@ -454,8 +456,11 @@ function EditHoursModal({ location, open, onClose }: { location: Location; open:
         </>
       }
       width="max-w-[860px]"
+      testId="edit-hours-modal"
     >
-      <OpeningHoursEditor value={hours} onChange={setHours} errors={submitted ? errors : {}} />
+      <FormCard>
+        <OpeningHoursEditor value={hours} onChange={setHours} errors={submitted ? errors : {}} />
+      </FormCard>
     </FullModal>
   )
 }

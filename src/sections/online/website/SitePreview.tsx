@@ -47,17 +47,25 @@ export const FONT_PACKS: { heading: string; body: string }[] = [
   { heading: "'Gill Sans', 'Gill Sans MT', Calibri, sans-serif", body: "'Gill Sans', Calibri, sans-serif" },
 ]
 
-/** Live rendering of the generated site (used in the wizard, preview modals and the dashboard). */
-export function SitePreview({ config, mobile, compact }: { config: WebsiteConfig; mobile?: boolean; compact?: boolean }) {
+/**
+ * Live rendering of the generated site (used in the wizard, preview modals and
+ * the dashboard). `page` shows a single page as visitors see it; the home page
+ * (default) shows the hero followed by every visible page section.
+ */
+export function SitePreview({ config, mobile, compact, page = 'home' }: { config: WebsiteConfig; mobile?: boolean; compact?: boolean; page?: string }) {
   const workspace = useDb((s) => s.workspace)
   const services = useDb((s) => s.services)
   const team = useDb((s) => s.teamMembers)
+  const locations = useDb((s) => s.locations)
   const [bg, surface, ink, accent, onAccent] = PALETTES[config.palette] ?? PALETTES[0]
   const font = FONT_PACKS[config.fontPack] ?? FONT_PACKS[0]
   const template = TEMPLATES.find((t) => t.id === config.template) ?? TEMPLATES[0]
   const featured = useMemo(() => services.filter((s) => !s.archived && s.onlineBooking).slice(0, 4), [services])
   const members = team.filter((m) => !m.archived && m.bookable).slice(0, 4)
   const nav = config.pages.filter((p) => !p.hidden && p.id !== 'home')
+  const current = config.pages.find((p) => p.id === page)
+  const single = page !== 'home' && current ? current : null
+  const sections = single ? [single] : nav
   const heroImg = sampleImage(template.id.length)
   const s = compact ? 0.7 : 1
   const cta = (
@@ -83,72 +91,89 @@ export function SitePreview({ config, mobile, compact }: { config: WebsiteConfig
           {!mobile && (
             <span className="flex gap-5 text-[13px]">
               {nav.map((p) => (
-                <span key={p.id}>{p.name}</span>
+                <span key={p.id} className={clsx(p.id === page && 'underline underline-offset-4')}>
+                  {p.name}
+                </span>
               ))}
             </span>
           )}
           {cta}
         </div>
       )}
-      <div className="relative">
-        {template.hero === 'image' && (
-          <div className="relative flex min-h-[340px] items-center px-8 pb-12 pt-24" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)), url("${heroImg}")`, backgroundSize: 'cover' }}>
-            {heroText(true)}
-          </div>
-        )}
-        {template.hero === 'band' && (
-          <div className="px-8 py-14" style={{ background: accent }}>
-            <div style={{ color: onAccent }}>
-              <p className="mb-3 text-[11px] uppercase tracking-[0.3em] opacity-80">{config.hero.eyebrow}</p>
-              <h2 style={{ fontFamily: font.heading, fontSize: (mobile ? 28 : 44) * s, lineHeight: 1.1 }}>{config.hero.heading}</h2>
-              <p className="mt-4 max-w-md text-[14px] opacity-90">{config.hero.text}</p>
-              <span className="mt-6 inline-block px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.15em]" style={{ background: onAccent, color: accent }}>
-                {config.hero.button}
-              </span>
+      {single ? (
+        <div className={clsx('px-8 pb-10', template.hero === 'image' && !config.hideNavigation ? 'pt-24' : 'pt-10')} style={{ background: template.hero === 'image' ? ink : surface, color: template.hero === 'image' ? bg : ink }}>
+          <h2 style={{ fontFamily: font.heading, fontSize: (mobile ? 28 : 40) * s, lineHeight: 1.1 }}>{single.name}</h2>
+        </div>
+      ) : (
+        <div className="relative">
+          {template.hero === 'image' && (
+            <div className="relative flex min-h-[340px] items-center px-8 pb-12 pt-24" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)), url("${heroImg}")`, backgroundSize: 'cover' }}>
+              {heroText(true)}
             </div>
-          </div>
-        )}
-        {(template.hero === 'split' || template.hero === 'arch') && (
-          <div className={clsx('grid items-center gap-6 px-8 py-12', !mobile && 'grid-cols-2')}>
-            {heroText(false)}
-            <img src={heroImg} alt="" className={clsx('h-64 w-full object-cover', template.hero === 'arch' ? 'rounded-t-full' : 'rounded-lg')} />
-          </div>
-        )}
-      </div>
-      {config.pages
-        .filter((p) => !p.hidden && p.id !== 'home')
-        .map((p) => (
-          <section key={p.id} className="px-8 py-10" style={{ background: p.id === 'team' || p.id === 'contact' ? surface : bg }}>
-            <h3 style={{ fontFamily: font.heading, fontSize: 26 * s }}>{p.heading}</h3>
-            <p className="mt-2 text-[14px] opacity-80">{p.text}</p>
-            {p.id === 'services' && (
-              <ul className={clsx('mt-5 grid gap-3', !mobile && 'grid-cols-2')}>
-                {featured.map((sv) => (
-                  <li key={sv.id} className="flex justify-between border-b py-2 text-[14px]" style={{ borderColor: `${ink}22` }}>
-                    <span>
-                      {sv.name}
-                      <span className="block text-[12px] opacity-60">{durationLabel(sv.durationMin)}</span>
-                    </span>
-                    <span>{money(sv.price)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {p.id === 'team' && (
-              <div className="mt-5 flex flex-wrap gap-4">
-                {members.map((m) => (
-                  <div key={m.id} className="text-center text-[13px]">
-                    <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full text-[16px] font-semibold" style={{ background: accent, color: onAccent }}>
-                      {m.firstName[0]}
-                      {m.lastName[0] ?? ''}
-                    </div>
-                    {m.firstName}
-                  </div>
-                ))}
+          )}
+          {template.hero === 'band' && (
+            <div className="px-8 py-14" style={{ background: accent }}>
+              <div style={{ color: onAccent }}>
+                <p className="mb-3 text-[11px] uppercase tracking-[0.3em] opacity-80">{config.hero.eyebrow}</p>
+                <h2 style={{ fontFamily: font.heading, fontSize: (mobile ? 28 : 44) * s, lineHeight: 1.1 }}>{config.hero.heading}</h2>
+                <p className="mt-4 max-w-md text-[14px] opacity-90">{config.hero.text}</p>
+                <span className="mt-6 inline-block px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.15em]" style={{ background: onAccent, color: accent }}>
+                  {config.hero.button}
+                </span>
               </div>
-            )}
-          </section>
-        ))}
+            </div>
+          )}
+          {(template.hero === 'split' || template.hero === 'arch') && (
+            <div className={clsx('grid items-center gap-6 px-8 py-12', !mobile && 'grid-cols-2')}>
+              {heroText(false)}
+              <img src={heroImg} alt="" className={clsx('h-64 w-full object-cover', template.hero === 'arch' ? 'rounded-t-full' : 'rounded-lg')} />
+            </div>
+          )}
+        </div>
+      )}
+      {sections.map((p) => (
+        <section key={p.id} className="px-8 py-10" style={{ background: p.id === 'team' || p.id === 'contact' ? surface : bg }}>
+          {!(single && p.heading === p.name) && <h3 style={{ fontFamily: font.heading, fontSize: 26 * s }}>{p.heading}</h3>}
+          <p className="mt-2 text-[14px] opacity-80">{p.text}</p>
+          {p.id === 'services' && (
+            <ul className={clsx('mt-5 grid gap-3', !mobile && 'grid-cols-2')}>
+              {featured.map((sv) => (
+                <li key={sv.id} className="flex justify-between border-b py-2 text-[14px]" style={{ borderColor: `${ink}22` }}>
+                  <span>
+                    {sv.name}
+                    <span className="block text-[12px] opacity-60">{durationLabel(sv.durationMin)}</span>
+                  </span>
+                  <span>{money(sv.price)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {p.id === 'team' && (
+            <div className="mt-5 flex flex-wrap gap-4">
+              {members.map((m) => (
+                <div key={m.id} className="text-center text-[13px]">
+                  <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full text-[16px] font-semibold" style={{ background: accent, color: onAccent }}>
+                    {m.firstName[0]}
+                    {m.lastName[0] ?? ''}
+                  </div>
+                  {m.firstName}
+                </div>
+              ))}
+            </div>
+          )}
+          {p.id === 'contact' && (
+            <ul className={clsx('mt-5 grid gap-4 text-[14px]', !mobile && 'grid-cols-2')}>
+              {locations.map((l) => (
+                <li key={l.id}>
+                  <span className="block font-semibold">{l.name}</span>
+                  <span className="block opacity-80">{[l.address.line1, l.address.postcode, l.address.city].filter(Boolean).join(', ')}</span>
+                  <span className="block opacity-80">{l.phone}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
     </div>
   )
 }

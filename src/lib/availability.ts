@@ -24,7 +24,8 @@ export type AvailabilityData = Pick<
   | 'resources'
   | 'locations'
   | 'settings'
->
+> &
+  Partial<Pick<DbData, 'serviceCategories'>>
 
 export interface SlotRequestItem {
   serviceId: ID
@@ -45,6 +46,8 @@ export interface AvailabilityQuery {
   now: Date
   excludeAppointmentId?: ID
   intervalMin?: number
+  /** Client booking (for "Prioritize last booked team member"). */
+  clientId?: ID | null
 }
 
 export interface SlotAssignment {
@@ -144,8 +147,8 @@ export function eligibleMembers(data: Pick<AvailabilityData, 'teamMembers'>, ser
     .sort((a, b) => a.order - b.order)
 }
 
-function serviceAllowedOnline(service: Service, date: ISODate, start: number, end: number): boolean {
-  if (!service.onlineBooking || service.archived) return false
+function serviceAllowedOnline(service: Service, date: ISODate, start: number, end: number, categoryArchived = false): boolean {
+  if (!service.onlineBooking || service.archived || categoryArchived) return false
   const range = service.limits.dateRange
   if (range && (date < range.from || date > range.to)) return false
   const weekly = service.limits.weekly
@@ -154,6 +157,89 @@ function serviceAllowedOnline(service: Service, date: ISODate, start: number, en
     if (!ranges?.some((r) => toMinutes(r.start) <= start && end <= toMinutes(r.end))) return false
   }
   return true
+}
+
+/**
+ * Orders candidates for "any professional" by the strategy in Settings ›
+ * Scheduling › Dynamic assignment:
+ * - fill: most availability (fewest booked minutes on the day, or over the
+ *   prior 7 / 14 days)
+ * - turns: longest since their last automatic assignment
+ * - ratings: fewest client reviews
+ * - priority: the team member list order
+ * "Prioritize last booked team member" puts the client's previous team member first.
+ */
+function anyProfessionalRanking(data: AvailabilityData, query: AvailabilityQuery, busyToday: Map<ID, [number, number][]>) {
+  const settings = data.settings.dynamicAssignment
+  const strategy = settings?.strategy ?? 'fill'
+  const minutes = (ranges: [number, number][] | undefined) => (ranges ?? []).reduce((s, [a, b]) => s + (b - a), 0)
+
+  let score: (memberId: ID) => number
+  if (strategy === 'fill' && settings?.period && settings.period !== 'day') {
+    const days = settings.period === '7d' ? 7 : 14
+    const from = toISODate(addDays(parseISO(query.date), -days))
+    const booked = new Map<ID, number>()
+    for (const a of data.appointments) {
+      if (a.status === 'cancelled' || a.date < from || a.date > query.date) continue
+      for (const item of a.items) booked.set(item.teamMemberId, (booked.get(item.teamMemberId) ?? 0) + item.durationMin)
+    }
+    score = (id) => booked.get(id) ?? 0
+  } else if (strategy === 'turns') {
+    const lastAuto = new Map<ID, string>()
+    for (const a of data.appointments) {
+      if (a.requested || a.channel === 'offline') continue
+      for (const item of a.items) if ((lastAuto.get(item.teamMemberId) ?? '') < a.createdAt) lastAuto.set(item.teamMemberId, a.createdAt)
+    }
+    // Earliest last assignment first; never assigned sorts first.
+    score = (id) => (lastAuto.has(id) ? Date.parse(lastAuto.get(id)!) : 0)
+  } else if (strategy === 'ratings') {
+    score = (id) => data.teamMembers.find((m) => m.id === id)?.reviewCount ?? 0
+  } else if (strategy === 'priority') {
+    score = (id) => data.teamMembers.find((m) => m.id === id)?.order ?? 0
+  } else {
+    score = (id) => minutes(busyToday.get(id))
+  }
+
+  let preferred: ID | undefined
+  if (settings?.prioritizeLast && query.clientId) {
+    preferred = data.appointments
+      .filter((a) => a.clientId === query.clientId && a.status !== 'cancelled' && a.date <= query.date)
+      .sort((a, b) => b.date.localeCompare(a.date))[0]?.items[0]?.teamMemberId
+  }
+
+  return (pool: TeamMember[]) => [...pool].sort((a, b) => (b.id === preferred ? 1 : 0) - (a.id === preferred ? 1 : 0) || score(a.id) - score(b.id) || a.order - b.order)
+}
+
+/**
+ * Settings › Scheduling › Availability › Schedule optimization (online only):
+ * - regular: every free time
+ * - reduce: no slot that leaves a gap shorter than the shortest online service
+ * - eliminate: only slots that start or end against an existing booking,
+ *   blocked time or the edge of the shift
+ */
+function fitsOptimization(
+  data: AvailabilityData,
+  busy: Map<ID, [number, number][]>,
+  windowsFor: (memberId: ID) => [number, number][],
+  assignments: SlotAssignment[],
+  start: number,
+  end: number,
+): boolean {
+  const mode = data.settings.scheduleOptimization?.mode ?? 'regular'
+  if (mode === 'regular' || !assignments.length) return true
+  const gapAround = (memberId: ID, from: number, to: number) => {
+    const edges = [...(busy.get(memberId) ?? []), ...windowsFor(memberId).flatMap(([ws, we]): [number, number][] => [[-Infinity, ws], [we, Infinity]])]
+    const before = Math.max(...edges.filter(([, b]) => b <= from).map(([, b]) => b), -Infinity)
+    const after = Math.min(...edges.filter(([a]) => a >= to).map(([a]) => a), Infinity)
+    return { before: from - before, after: after - to }
+  }
+  const head = gapAround(assignments[0].teamMemberId, start, toMinutes(assignments[0].end))
+  const tail = gapAround(assignments[assignments.length - 1].teamMemberId, toMinutes(assignments[assignments.length - 1].start), end)
+  if (mode === 'eliminate') return head.before === 0 || tail.after === 0
+  const online = data.services.filter((s) => s.onlineBooking && !s.archived).map((s) => s.durationMin)
+  const minGap = Math.max(15, online.length ? Math.min(...online) : 30)
+  const awkward = (gap: number) => gap > 0 && gap < minGap
+  return !awkward(head.before) && !awkward(tail.after)
 }
 
 /** Bookable slots for the requested services on one date. */
@@ -194,8 +280,7 @@ export function getAvailableSlots(data: AvailabilityData, query: AvailabilityQue
     if (!windowsCache.has(memberId)) windowsCache.set(memberId, workingWindows(data, memberId, date, locationId))
     return windowsCache.get(memberId)!
   }
-  // Booked minutes per member, used to pick "any professional" (fill open calendars).
-  const load = (memberId: ID) => (busy.get(memberId) ?? []).reduce((s, [a, b]) => s + (b - a), 0)
+  const rankAny = anyProfessionalRanking(data, query, busy)
 
   const openRanges = location.openingHours[weekdayOf(date)]
   const openWindows: [number, number][] = openRanges?.open ? openRanges.ranges.map((r) => [toMinutes(r.start), toMinutes(r.end)]) : []
@@ -240,14 +325,16 @@ export function getAvailableSlots(data: AvailabilityData, query: AvailabilityQue
       const service = services[i]!
       const { durationMin, extraTime } = timings[i]
       const end = cursor + totals[i]
-      if (online && !serviceAllowedOnline(service, date, cursor, end)) {
+      const categoryArchived = Boolean(data.serviceCategories?.find((c) => c.id === service.categoryId)?.archived)
+      if (online && !serviceAllowedOnline(service, date, cursor, end, categoryArchived)) {
         ok = false
         break
       }
       const segments = itemSegments(cursor, durationMin, extraTime)
       const requested = items[i].teamMemberId
-      const pool = requested ? data.teamMembers.filter((m) => m.id === requested) : eligibleMembers(data, service, locationId, online).filter((m) => !(online && m.excludeAutoAssign))
-      const ranked = requested ? pool : [...pool].sort((a, b) => load(a.id) - load(b.id) || a.order - b.order)
+      const excluded = data.settings.dynamicAssignment?.excluded ?? []
+      const pool = requested ? data.teamMembers.filter((m) => m.id === requested) : eligibleMembers(data, service, locationId, online).filter((m) => !(online && (m.excludeAutoAssign || excluded.includes(m.id))))
+      const ranked = requested ? pool : rankAny(pool)
       const chosen = ranked.find((m) => memberFree(m.id, segments, takenByMember.get(m.id) ?? []))
       if (!chosen) {
         ok = false
@@ -263,6 +350,7 @@ export function getAvailableSlots(data: AvailabilityData, query: AvailabilityQue
       assignments.push({ itemIndex: i, teamMemberId: chosen.id, start: toClock(cursor), end: toClock(end), resourceId })
       cursor = end
     }
+    if (ok && online && !fitsOptimization(data, busy, windowsFor, assignments, start, cursor)) ok = false
     if (ok) slots.push({ start: toClock(start), end: toClock(cursor), assignments })
   }
   return slots

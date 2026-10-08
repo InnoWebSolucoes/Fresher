@@ -1,13 +1,13 @@
-import { Plus } from 'lucide-react'
+import { ClipboardList } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
-import { Button, DataTable, EmptyState, IntroPage, LearnMore, Menu, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, usePageLoading, type Column } from '@/components/ui'
+import { Button, DataTable, EmptyState, IntroPage, LearnMore, Menu, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, Toolbar, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { fmtDateTimeUS } from '@/lib/format'
 import type { Stocktake } from '@/types'
-import { FiltersButton, SortButton, ToolbarCard } from '../ui'
+import { FiltersButton, SortButton, useIntroProps } from '../ui'
 import { InventoryStatus } from './shared'
 
 type Sort = 'startedDesc' | 'startedAsc' | 'nameAsc' | 'nameDesc'
@@ -20,6 +20,7 @@ export function StocktakesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const loading = usePageLoading()
+  const intro = useIntroProps('Stocktakes')
   const stocktakes = useDb((s) => s.stocktakes)
   const locations = useDb((s) => s.locations)
   const [query, setQuery] = useState('')
@@ -47,15 +48,16 @@ export function StocktakesPage() {
 
   if (loading)
     return (
-      <Page>
+      <Page wide>
         <PageSkeleton />
       </Page>
     )
 
   if (!stocktakes.length)
     return (
-      <Page>
+      <Page wide>
         <IntroPage
+          {...intro}
           title={t('catalog.inventory.stocktakes.intro.title')}
           body={t('catalog.inventory.stocktakes.intro.body')}
           bullets={[1, 2, 3, 4].map((n) => t(`catalog.inventory.stocktakes.intro.b${n}`))}
@@ -85,7 +87,7 @@ export function StocktakesPage() {
       width: '56px',
       cell: (s) => (
         <Menu
-          label={t('catalog.inventory.common.actions')}
+          label={t('catalog.common.actions')}
           groups={[
             {
               items: [
@@ -102,22 +104,22 @@ export function StocktakesPage() {
   const statuses: Stocktake['status'][] = ['in_progress', 'paused', 'draft', 'completed', 'cancelled']
 
   return (
-    <Page>
+    <Page wide>
       <PageHeader
         title={t('catalog.inventory.stocktakes.title')}
         count={stocktakes.length}
         subtitle={
           <>
-            {t('catalog.inventory.stocktakes.subtitle')} <LearnMore topic={t('catalog.inventory.stocktakes.title')}>{t('catalog.inventory.common.learnMore')}</LearnMore>
+            {t('catalog.inventory.stocktakes.subtitle')} <LearnMore topic={t('catalog.inventory.stocktakes.title')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={
-          <Button variant="primary" icon={<Plus size={16} />} onClick={() => navigate('/catalogue/stocktakes/new')}>
-            {t('catalog.inventory.common.add')}
+          <Button variant="primary" onClick={() => navigate('/catalogue/stocktakes/new')}>
+            {t('catalog.common.add')}
           </Button>
         }
       />
-      <ToolbarCard>
+      <Toolbar>
         <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.stocktakes.search')} className="max-w-sm" />
         <FiltersButton
           count={status === 'all' ? 0 : 1}
@@ -133,18 +135,18 @@ export function StocktakesPage() {
             options={(['startedDesc', 'startedAsc', 'nameAsc', 'nameDesc'] as Sort[]).map((v) => ({ value: v, label: t(`catalog.inventory.stocktakes.sort.${v}`) }))}
           />
         </div>
-      </ToolbarCard>
+      </Toolbar>
       <DataTable
         columns={columns}
         rows={rows}
         rowKey={(s) => s.id}
         onRowClick={(s) => navigate(openPath(s))}
-        empty={<EmptyState title={t('catalog.inventory.common.noResults')} body={t('catalog.inventory.common.noResultsBody')} />}
+        empty={<EmptyState icon={<ClipboardList size={26} />} title={t('catalog.common.noResults')} body={t('catalog.inventory.common.noResultsBody')} />}
       />
       <SideDrawer
         open={filtersOpen}
         onClose={() => setFiltersOpen(false)}
-        title={t('catalog.inventory.common.filters')}
+        title={t('catalog.common.filters')}
         footer={
           <>
             <Button
@@ -153,7 +155,7 @@ export function StocktakesPage() {
                 setFiltersOpen(false)
               }}
             >
-              {t('catalog.inventory.common.clearAll')}
+              {t('catalog.common.clearFilters')}
             </Button>
             <Button
               variant="primary"
@@ -162,7 +164,7 @@ export function StocktakesPage() {
                 setFiltersOpen(false)
               }}
             >
-              {t('catalog.inventory.common.apply')}
+              {t('catalog.common.apply')}
             </Button>
           </>
         }

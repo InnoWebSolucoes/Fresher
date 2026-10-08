@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { DrawerProps } from '@/app/sectionRegistry'
 import { useDrawer } from '@/lib/drawer'
 import { Button, toast } from '@/components/ui'
-import { markNewsRead, setNewsAction, usePanels } from '@/api/panels'
+import { markNewsRead, panelsState, setNewsAction, usePanels } from '@/api/panels'
 import { BottomTabs, PanelHeader } from '../shared'
 import { HelpPanel } from './Help'
 import { GuidesPanel } from './Guides'
@@ -51,7 +51,7 @@ function NewsPanel() {
   const { t } = useTranslation()
   const newsRead = usePanels((s) => s.newsRead)
   const actions = usePanels((s) => s.newsActions)
-  const [unreadAtOpen] = useState(() => NEWS.filter((n) => !usePanels.getState().newsRead.includes(n.id)).map((n) => n.id as string))
+  const [unreadAtOpen] = useState(() => NEWS.filter((n) => !panelsState().newsRead.includes(n.id)).map((n) => n.id as string))
   const [busy, setBusy] = useState<string | null>(null)
 
   useEffect(() => {

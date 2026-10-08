@@ -5,9 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, RadioGroup, Select, Switch, TextArea, TextInput } from '@/components/ui'
 import { updateLocation } from '@/api/settings'
 import type { ID, Location, Settings } from '@/types'
-import { Banner, EditCard, InfoGrid } from '../components/ui'
+import { Banner, EditCard, FormCard, FormStack, InfoGrid, ModalForm } from '../components/ui'
 import { FullModal } from '../components/FullModal'
-import { SettingsModal } from '../components/SettingsModal'
 import { useAction } from '../components/useAction'
 import { useSettings, useWorkspace } from '../hooks'
 import { formatAddress } from './shared'
@@ -142,29 +141,27 @@ function SequencingModal({ location, open, onClose }: { location: Location; open
     )
   }
   return (
-    <SettingsModal
+    <FullModal
       open={open}
       onClose={onClose}
       title={t('settings.biz.sales.editSequencing')}
       subtitle={t('settings.biz.sales.editSequencingHint', { name: location.name })}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" loading={saving} disabled={Boolean(prefixError || nextError)} onClick={save}>
-            {t('common.save')}
-          </Button>
-        </>
-      }
+      onSave={save}
+      saving={saving}
+      saveDisabled={Boolean(prefixError || nextError)}
+      testId="location-sequencing-modal"
     >
-      <div className="flex flex-col gap-4">
-        <Field label={t('settings.biz.sales.prefix')} error={prefixError} counter={{ value: prefix.length, max: 10 }}>
-          {(id) => <TextInput id={id} maxLength={10} value={prefix} invalid={Boolean(prefixError)} onChange={(e) => setPrefix(e.target.value.toUpperCase())} />}
-        </Field>
-        <Field label={t('settings.biz.sales.nextNumber')} error={nextError}>
-          {(id) => <TextInput id={id} inputMode="numeric" value={next} invalid={Boolean(nextError)} onChange={(e) => setNext(e.target.value.replace(/[^\d]/g, ''))} />}
-        </Field>
-      </div>
-    </SettingsModal>
+      <FormCard>
+        <ModalForm onSubmit={save} className="sm:grid sm:grid-cols-2 sm:gap-4">
+          <Field label={t('settings.biz.sales.prefix')} error={prefixError} counter={{ value: prefix.length, max: 10 }}>
+            {(id) => <TextInput id={id} maxLength={10} value={prefix} invalid={Boolean(prefixError)} onChange={(e) => setPrefix(e.target.value.toUpperCase())} data-testid="location-prefix" />}
+          </Field>
+          <Field label={t('settings.biz.sales.nextNumber')} error={nextError}>
+            {(id) => <TextInput id={id} inputMode="numeric" value={next} invalid={Boolean(nextError)} onChange={(e) => setNext(e.target.value.replace(/[^\d]/g, ''))} data-testid="location-next-number" />}
+          </Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -186,20 +183,8 @@ function TaxDefaultsModal({ location, current, open, onClose }: { location: Loca
   const options = [{ value: '', label: t('settings.biz.sales.noTax') }, ...settings.taxRates.map((r) => ({ value: r.id, label: `${r.name} (${r.rate}%)` }))]
   const save = () => void run(() => saveLocationExtras(location.id, { taxDefaults: draft }), t('settings.biz.sales.taxSaved'), onClose)
   return (
-    <SettingsModal
-      open={open}
-      onClose={onClose}
-      title={t('settings.biz.sales.editTaxDefaults')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" loading={saving} disabled={noRates} onClick={save}>
-            {t('common.save')}
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-4">
+    <FullModal open={open} onClose={onClose} title={t('settings.biz.sales.editTaxDefaults')} subtitle={t('settings.biz.sales.taxDefaultsHint')} onSave={save} saving={saving} saveDisabled={noRates} testId="location-tax-modal">
+      <FormCard>
         {noRates ? (
           <Banner
             tone="warning"
@@ -231,8 +216,8 @@ function TaxDefaultsModal({ location, current, open, onClose }: { location: Loca
             {(id) => <Select id={id} disabled={noRates || draft.mode === 'workspace'} value={shown[key] ?? ''} options={options} onChange={(e) => setDraft({ ...draft, [key]: e.target.value || null })} />}
           </Field>
         ))}
-      </div>
-    </SettingsModal>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -258,36 +243,35 @@ function TippingModal({ location, current, open, onClose }: { location: Location
     void run(() => saveLocationExtras(location.id, { tipping: draft.mode === 'workspace' ? { ...view, mode: 'workspace' } : draft }), t('settings.biz.sales.tippingSaved'), onClose)
   }
   return (
-    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} saveDisabled={invalid} title={t('settings.biz.sales.tipTitle')}>
-      <div className="flex flex-col gap-8">
-        <Field label={t('settings.biz.sales.tipping')}>
-          {(id) => (
-            <Select
-              id={id}
-              value={draft.mode}
-              onChange={(e) => {
-                const mode = e.target.value as Tipping['mode']
-                setDraft(mode === 'custom' && current.mode === 'workspace' ? { ...view, mode } : { ...draft, mode })
-              }}
-              options={[
-                { value: 'custom', label: t('settings.biz.sales.customForLocation') },
-                { value: 'workspace', label: t('settings.biz.sales.workspaceDefaults') },
-              ]}
-            />
-          )}
-        </Field>
-        <section className={workspace ? 'opacity-60' : undefined} aria-disabled={workspace}>
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.sales.tippingOptions')}</h2>
-          <div className="mt-4 flex flex-col gap-4">
+    <FullModal open={open} onClose={onClose} onSave={save} saving={saving} saveDisabled={invalid} title={t('settings.biz.sales.tipTitle')} subtitle={t('settings.biz.sales.tippingHint')} testId="location-tipping-modal">
+      <FormStack>
+        <FormCard>
+          <Field label={t('settings.biz.sales.tipping')}>
+            {(id) => (
+              <Select
+                id={id}
+                value={draft.mode}
+                onChange={(e) => {
+                  const mode = e.target.value as Tipping['mode']
+                  setDraft(mode === 'custom' && current.mode === 'workspace' ? { ...view, mode } : { ...draft, mode })
+                }}
+                options={[
+                  { value: 'custom', label: t('settings.biz.sales.customForLocation') },
+                  { value: 'workspace', label: t('settings.biz.sales.workspaceDefaults') },
+                ]}
+              />
+            )}
+          </Field>
+        </FormCard>
+        <FormCard title={t('settings.biz.sales.tippingOptions')} className={workspace ? 'opacity-60' : undefined}>
+          <div className="flex flex-col gap-4">
             <Switch disabled={workspace} checked={view.pos} onChange={(pos) => set({ pos })} label={t('settings.biz.sales.optPosLong')} />
             <Switch disabled={workspace} checked={view.terminal} onChange={(terminal) => set({ terminal })} label={t('settings.biz.sales.optTerminalLong')} />
             <Switch disabled={workspace} checked={view.online} onChange={(online) => set({ online })} label={t('settings.biz.sales.optOnlineLong')} hint={t('settings.biz.sales.optOnlineHint')} />
           </div>
-        </section>
-        <section className={workspace ? 'opacity-60' : undefined}>
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.sales.defaultValues')}</h2>
-          <p className="mt-1 text-body text-muted">{t('settings.biz.sales.defaultValuesHint')}</p>
-          <div className="mt-4 flex flex-col gap-3">
+        </FormCard>
+        <FormCard title={t('settings.biz.sales.defaultValues')} description={t('settings.biz.sales.defaultValuesHint')} className={workspace ? 'opacity-60' : undefined}>
+          <div className="flex flex-col gap-3">
             {view.values.map((v, i) => (
               <div key={i} className="flex items-start gap-3">
                 <Field className="flex-1" label={t('settings.biz.sales.tipValue', { n: i + 1 })} error={valueErrors[i]}>
@@ -304,16 +288,14 @@ function TippingModal({ location, current, open, onClose }: { location: Location
               </Button>
             )}
           </div>
-        </section>
-        <section className={workspace ? 'opacity-60' : undefined}>
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.sales.tipCalculation')}</h2>
-          <p className="mt-1 text-body text-muted">{t('settings.biz.sales.cartItemsHint')}</p>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        </FormCard>
+        <FormCard title={t('settings.biz.sales.tipCalculation')} description={t('settings.biz.sales.cartItemsHint')} className={workspace ? 'opacity-60' : undefined}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {CART_KEYS.map((k) => (
               <Checkbox key={k} disabled={workspace} checked={view.include[k]} onChange={(on) => set({ include: { ...view.include, [k]: on } })} label={t(`settings.biz.sales.cart.${k}`)} />
             ))}
           </div>
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {BASE_KEYS.map((k) => (
               <Field key={k} label={t(`settings.biz.sales.base.${k}`)}>
                 {(id) => (
@@ -331,8 +313,8 @@ function TippingModal({ location, current, open, onClose }: { location: Location
               </Field>
             ))}
           </div>
-        </section>
-      </div>
+        </FormCard>
+      </FormStack>
     </FullModal>
   )
 }
@@ -361,68 +343,50 @@ function ReceiptDetailsModal({ location, current, open, onClose }: { location: L
     void run(() => saveLocationExtras(location.id, { receipt: { ...draft, note: draft.note.trim() } }), t('settings.biz.sales.receiptSaved'), onClose)
   }
   return (
-    <SettingsModal
-      open={open}
-      onClose={onClose}
-      size="lg"
-      title={t('settings.biz.sales.editReceipt')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" loading={saving} onClick={save}>
-            {t('common.save')}
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-6">
-        <div>
-          <h3 className="text-body-strong text-ink">{t('settings.biz.sales.businessDetails')}</h3>
-          <div className="mt-3">
-            <RadioGroup
-              variant="cards"
-              value={draft.source}
-              onChange={(source) => setDraft({ ...draft, source })}
-              options={[
-                {
-                  value: 'billing',
-                  disabled: !billing,
-                  label: t('settings.biz.sales.billingProfile'),
-                  hint: billing ? (
-                    `${billing.businessName} • ${billing.address}`
-                  ) : (
-                    <>
-                      {t('settings.biz.sales.noBillingProfile')}{' '}
-                      <Link to="/setup/billing/business-details" className="text-primary hover:underline">
-                        {t('settings.common.manage')}
-                      </Link>
-                    </>
-                  ),
-                },
-                { value: 'location', label: t('settings.biz.sales.locationSource'), hint: location.name },
-                { value: 'custom', label: t('settings.biz.sales.customSource') },
-              ]}
-            />
-          </div>
+    <FullModal open={open} onClose={onClose} title={t('settings.biz.sales.editReceipt')} subtitle={t('settings.biz.sales.receiptDetailsHint')} onSave={save} saving={saving} testId="location-receipt-modal">
+      <FormStack>
+        <FormCard title={t('settings.biz.sales.businessDetails')}>
+          <RadioGroup
+            variant="cards"
+            value={draft.source}
+            onChange={(source) => setDraft({ ...draft, source })}
+            options={[
+              {
+                value: 'billing',
+                disabled: !billing,
+                label: t('settings.biz.sales.billingProfile'),
+                hint: billing ? (
+                  `${billing.businessName} • ${billing.address}`
+                ) : (
+                  <>
+                    {t('settings.biz.sales.noBillingProfile')}{' '}
+                    <Link to="/setup/billing/business-details" className="text-primary hover:underline">
+                      {t('settings.common.manage')}
+                    </Link>
+                  </>
+                ),
+              },
+              { value: 'location', label: t('settings.biz.sales.locationSource'), hint: location.name },
+              { value: 'custom', label: t('settings.biz.sales.customSource') },
+            ]}
+          />
           {draft.source === 'custom' && (
-            <div className="mt-4 grid grid-cols-1 gap-4">
+            <>
               <Field label={t('settings.biz.sales.companyName')} error={submitted ? errors.companyName : undefined}>
                 {(id) => <TextInput id={id} maxLength={100} value={draft.companyName} invalid={submitted && Boolean(errors.companyName)} onChange={(e) => setDraft({ ...draft, companyName: e.target.value })} />}
               </Field>
               <Field label={t('settings.biz.sales.address')} error={submitted ? errors.address : undefined}>
                 {(id) => <TextArea id={id} maxLength={200} className="min-h-[72px]" value={draft.address} invalid={submitted && Boolean(errors.address)} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />}
               </Field>
-            </div>
+            </>
           )}
-        </div>
-        <div>
-          <h3 className="text-body-strong text-ink">{t('settings.biz.sales.clientNote')}</h3>
-          <p className="mb-3 text-body text-muted">{t('settings.biz.sales.clientNoteHint')}</p>
+        </FormCard>
+        <FormCard title={t('settings.biz.sales.clientNote')} description={t('settings.biz.sales.clientNoteHint')}>
           <Field label={t('settings.biz.sales.receiptNote')} counter={{ value: draft.note.length, max: 200 }}>
-            {(id) => <TextArea id={id} maxLength={200} placeholder={t('settings.biz.sales.notePlaceholder')} value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} />}
+            {(id) => <TextArea id={id} maxLength={200} placeholder={t('settings.biz.sales.notePlaceholder')} value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} data-testid="location-receipt-note" />}
           </Field>
-        </div>
-      </div>
-    </SettingsModal>
+        </FormCard>
+      </FormStack>
+    </FullModal>
   )
 }

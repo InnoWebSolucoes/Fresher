@@ -19,8 +19,8 @@ export function DrawerHost() {
     if (!name) return
     panelRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
-      // Modals opened from inside the drawer handle their own Escape.
-      if (e.key === 'Escape' && !document.querySelector('[role="dialog"][aria-modal="true"]:not([data-drawer-panel])')) close()
+      // Menus, popovers and modals opened inside the drawer close first on Escape.
+      if (e.key === 'Escape' && !document.querySelector('[role="menu"], [role="listbox"], [role="dialog"]:not([data-drawer-panel])')) close()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)

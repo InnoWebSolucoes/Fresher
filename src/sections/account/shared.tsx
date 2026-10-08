@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Star } from 'lucide-react'
 import clsx from 'clsx'
-import { Button, Modal } from '@/components/ui'
+import { Button, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
-import { defaultProfile, usePanels, type OnlineProfile } from '@/api/panels'
+import { cancelRequest, defaultProfile, usePanels, type OnlineProfile, type PendingRequest } from '@/api/panels'
+import { fmtDate } from '@/lib/format'
 import type { ID } from '@/types'
 
 /** The logged-in user's team member record (may be missing). */
@@ -25,14 +26,9 @@ export function useOnlineProfile(userId: ID | undefined): OnlineProfile {
     [stored, userId, users])
 }
 
-/** True once the persisted panels store has loaded from browser storage. */
+/** True once the demo data (including db.ext.panels) has loaded from browser storage. */
 export function usePanelsHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(() => usePanels.persist.hasHydrated())
-  useEffect(() => {
-    if (usePanels.persist.hasHydrated()) setHydrated(true)
-    return usePanels.persist.onFinishHydration(() => setHydrated(true))
-  }, [])
-  return hydrated
+  return useDb((s) => s.hydrated)
 }
 
 export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -48,23 +44,34 @@ export function Stars({ value, size = 16, className }: { value: number; size?: n
   )
 }
 
-/** "This is disabled in the demo" explanation for irreversible account actions. */
-export function DisabledInDemoModal({ action, open, onClose }: { action: string; open: boolean; onClose: () => void }) {
+/** The user's request of this kind that is waiting for an emailed confirmation. */
+export function usePendingRequest(userId: ID | undefined, kind: PendingRequest['kind']): PendingRequest | undefined {
+  const requests = usePanels((s) => s.requests)
+  return useMemo(() => requests.find((r) => r.userId === userId && r.kind === kind), [requests, userId, kind])
+}
+
+/** "Waiting for confirmation" note with a Cancel request button. */
+export function PendingRequestNote({ request, text }: { request: PendingRequest; text: string }) {
   const { t } = useTranslation()
+  const [busy, setBusy] = useState(false)
+  const cancel = async () => {
+    setBusy(true)
+    try {
+      await cancelRequest(request.id)
+      toast(t('account.requests.canceled'))
+    } finally {
+      setBusy(false)
+    }
+  }
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="sm"
-      title={t('account.common.disabledTitle')}
-      footer={
-        <Button variant="primary" onClick={onClose}>
-          {t('account.common.gotIt')}
-        </Button>
-      }
-    >
-      <p className="text-body text-muted">{t('account.common.disabledBody', { action })}</p>
-    </Modal>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-warning-subtle px-4 py-3" role="status">
+      <p className="text-body text-ink">
+        <span className="font-semibold">{t('account.requests.pending', { date: fmtDate(request.at) })}</span> {text}
+      </p>
+      <Button size="sm" loading={busy} onClick={cancel}>
+        {t('account.requests.cancel')}
+      </Button>
+    </div>
   )
 }
 

@@ -1,8 +1,7 @@
 import clsx from 'clsx'
 import { CreditCard } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDb } from '@/store/db'
 import { Button, Field, Modal, MoneyInput, Select, Switch, TextInput, toast } from '@/components/ui'
 import { IVA, saveAdvancedOptions, setAutoTopUp, topUpBalance, useMarketingSettings } from '@/api/marketing'
 import { money, money2, round2 } from '@/lib/format'
@@ -11,13 +10,12 @@ const AMOUNTS = [20, 50, 100, 200]
 
 export function TopUpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation()
-  const workspace = useDb((s) => s.workspace)
   const settings = useMarketingSettings()
   const [amount, setAmount] = useState<number | 'custom'>(50)
   const [custom, setCustom] = useState<number | ''>('')
   const [busy, setBusy] = useState(false)
   const value = amount === 'custom' ? Number(custom || 0) : amount
-  const card = settings.billingCard ?? workspace.plan.card
+  const card = settings.billingCard
   const pay = async () => {
     if (!(value >= 5)) {
       toast(t('marketing.balance.minAmount'), 'error')
@@ -92,6 +90,14 @@ export function AutoTopUpModal({ open, onClose }: { open: boolean; onClose: () =
   const [threshold, setThreshold] = useState(String(settings.autoTopUp.threshold))
   const [amount, setAmount] = useState(String(settings.autoTopUp.amount))
   const [busy, setBusy] = useState(false)
+  // Both entry points ("Enable auto top-ups", "Manage auto top-ups") open with the rule switched on and the saved amounts.
+  useEffect(() => {
+    if (!open) return
+    setEnabled(true)
+    setThreshold(String(settings.autoTopUp.threshold))
+    setAmount(String(settings.autoTopUp.amount))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
   const save = async () => {
     setBusy(true)
     try {
@@ -137,6 +143,10 @@ export function AdvancedOptionsModal({ open, onClose }: { open: boolean; onClose
   const settings = useMarketingSettings()
   const [form, setForm] = useState(settings.advanced)
   const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    if (open) setForm(settings.advanced)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
   const hours = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`)
   const save = async () => {
     setBusy(true)

@@ -1,8 +1,9 @@
 import clsx from 'clsx'
 import { addMonths, format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
 import { ChevronLeft, ChevronRight, PersonStanding, X } from 'lucide-react'
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useBlocker, type BlockerFunction } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Modal, type MenuGroup } from '@/components/ui'
 import { useDismiss } from '@/lib/useDismiss'
@@ -22,17 +23,38 @@ interface DropdownProps {
   panelClassName?: string
 }
 
+/**
+ * Escape closes only the innermost open popover: it is caught before the
+ * drawer host or a modal sees it, so the drawer underneath stays open.
+ */
+export function useEscapeFirst(open: boolean, onClose: () => void) {
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      onCloseRef.current()
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [open])
+}
+
 /** Anchored popover with outside-click / Escape dismissal. */
 export function Dropdown({ trigger, children, align = 'left', placement = 'bottom', width, className, panelClassName }: DropdownProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  useDismiss([ref], open, () => setOpen(false))
-  const close = () => setOpen(false)
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss([ref], open, close)
+  useEscapeFirst(open, close)
   return (
     <div ref={ref} className={clsx('relative inline-flex', className)}>
       {trigger({ open, toggle: () => setOpen((o) => !o) })}
       {open && (
         <div
+          data-dropdown-open
           style={width ? { width } : undefined}
           className={clsx(
             'absolute z-[60] rounded-lg border border-line bg-raised shadow-md',
@@ -108,11 +130,11 @@ export function Pill({ children, active, className, ...rest }: ButtonHTMLAttribu
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 /** One Monday-first month. */
-export function MonthGrid({ month, selected, onSelect, isDisabled }: { month: Date; selected?: ISODate; onSelect: (date: ISODate) => void; isDisabled?: (date: ISODate) => boolean }) {
+export function MonthGrid({ month, selected, onSelect, isDisabled, wide }: { month: Date; selected?: ISODate; onSelect: (date: ISODate) => void; isDisabled?: (date: ISODate) => boolean; wide?: boolean }) {
   const today = todayISO()
   const days = viewDays('month', toISODate(month))
   return (
-    <div className="w-[252px]">
+    <div className={wide ? 'w-[300px]' : 'w-[252px]'}>
       <div className="grid grid-cols-7 gap-y-1 text-center">
         {WEEKDAYS.map((d) => (
           <span key={d} className="pb-2 text-caption text-muted">
@@ -146,7 +168,7 @@ export function MonthGrid({ month, selected, onSelect, isDisabled }: { month: Da
 }
 
 /** Months side by side with ‹ › paging. */
-export function MonthsPicker({ value, onSelect, months = 2, isDisabled }: { value: ISODate; onSelect: (date: ISODate) => void; months?: number; isDisabled?: (date: ISODate) => boolean }) {
+export function MonthsPicker({ value, onSelect, months = 2, isDisabled, wide }: { value: ISODate; onSelect: (date: ISODate) => void; months?: number; isDisabled?: (date: ISODate) => boolean; wide?: boolean }) {
   const { t } = useTranslation()
   const [anchor, setAnchor] = useState(() => startOfMonth(parseISO(value)))
   return (
@@ -172,7 +194,7 @@ export function MonthsPicker({ value, onSelect, months = 2, isDisabled }: { valu
                 <span className="w-8" />
               )}
             </div>
-            <MonthGrid month={month} selected={value} onSelect={onSelect} isDisabled={isDisabled} />
+            <MonthGrid month={month} selected={value} onSelect={onSelect} isDisabled={isDisabled} wide={wide} />
           </div>
         )
       })}
@@ -207,8 +229,9 @@ export function TimeList({ options, value, onSelect, className }: { options: str
 
 // ─── People ────────────────────────────────────────────────────────────
 
-/** Lavender initial circle (clients) or a walking figure for walk-ins. */
-export function ClientAvatar({ name, size = 40, walkIn }: { name?: string | null; size?: number; walkIn?: boolean }) {
+/** Client photo, else a lavender initial circle; a walking figure for walk-ins. */
+export function ClientAvatar({ name, size = 40, walkIn, photo }: { name?: string | null; size?: number; walkIn?: boolean; photo?: string }) {
+  if (photo && !walkIn) return <img src={photo} alt="" aria-hidden className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />
   return (
     <span
       aria-hidden
@@ -222,27 +245,36 @@ export function ClientAvatar({ name, size = 40, walkIn }: { name?: string | null
 
 // ─── Overlays ──────────────────────────────────────────────────────────
 
-/** Full-screen white step (no-show / cancel confirmations, add blocked time type). */
-export function FullScreen({ open, onClose, children, actions, closeLabel }: { open: boolean; onClose: () => void; children: ReactNode; actions?: ReactNode; closeLabel: string }) {
+/**
+ * Full-screen white step (no-show / cancel confirmations, add blocked time
+ * type, manage filter presets). Sits above drawers and below modals, so a
+ * confirmation opened from it shows on top.
+ */
+export function FullScreen({ open, onClose, children, actions, closeLabel, closeVariant = 'secondary', narrow, label }: { open: boolean; onClose: () => void; children: ReactNode; actions?: ReactNode; closeLabel: string; closeVariant?: 'secondary' | 'primary'; narrow?: boolean; label?: string }) {
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation()
-        onClose()
-      }
+      if (e.key !== 'Escape') return
+      // A modal or popover opened on top handles its own Escape.
+      if (document.querySelector('[data-dropdown-open], [role="dialog"][aria-modal="true"]:not([data-drawer-panel]):not([data-fullscreen])')) return
+      e.stopPropagation()
+      onCloseRef.current()
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [open, onClose])
+  }, [open])
   if (!open) return null
   return createPortal(
-    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[85] overflow-y-auto bg-surface">
-      <div className="sticky top-0 flex justify-end gap-2 bg-surface/90 px-8 py-4 backdrop-blur">
-        <Button onClick={onClose}>{closeLabel}</Button>
+    <div role="dialog" aria-modal="true" aria-label={label} data-fullscreen className="fixed inset-0 z-[75] overflow-y-auto bg-surface">
+      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-surface/90 px-8 py-4 backdrop-blur">
+        <Button variant={closeVariant} onClick={onClose} className="rounded-full">
+          {closeLabel}
+        </Button>
         {actions}
       </div>
-      <div className="mx-auto w-full max-w-5xl px-8 pb-16 pt-6">{children}</div>
+      <div className={clsx('mx-auto w-full px-8 pb-16 pt-6', narrow ? 'max-w-[870px]' : 'max-w-5xl')}>{children}</div>
     </div>,
     document.body,
   )
@@ -270,36 +302,38 @@ export function FloatingDrawerButtons({ drawerWidth, buttons }: { drawerWidth: n
 }
 
 /**
- * Intercepts the drawer host's close paths (× button, backdrop, Escape) while
- * there are unsaved changes, so the "You have unsaved changes" modal can ask
- * first. Returns the modal state.
+ * Asks before an open drawer with unsaved changes goes away. Every close path
+ * (the floating ×, a click outside, Escape, the sidebar, browser back) is a
+ * navigation, so a router blocker catches them all and the "You have unsaved
+ * changes" modal decides. `bypass` runs an intentional navigation (save,
+ * minimise, pick from calendar) without asking.
  */
-export function useCloseGuard(dirty: boolean, closeLabel: string) {
-  const [asking, setAsking] = useState(false)
-  useEffect(() => {
-    if (!dirty) return
-    const onClick = (e: MouseEvent) => {
-      const target = e.target as Element | null
-      const closer = target?.closest?.(`[aria-label="${closeLabel}"]`)
-      if (!closer || closer.closest('[data-cal-drawer]')) return
-      e.stopPropagation()
-      e.preventDefault()
-      setAsking(true)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      if (document.querySelectorAll('[role="dialog"][aria-modal="true"]').length > 1) return
-      e.stopPropagation()
-      setAsking(true)
-    }
-    window.addEventListener('click', onClick, true)
-    window.addEventListener('keydown', onKey, true)
-    return () => {
-      window.removeEventListener('click', onClick, true)
-      window.removeEventListener('keydown', onKey, true)
-    }
-  }, [dirty, closeLabel])
-  return { asking, ask: () => setAsking(true), dismiss: () => setAsking(false) }
+export function useLeaveGuard(dirty: boolean) {
+  const dirtyRef = useRef(dirty)
+  dirtyRef.current = dirty
+  const allow = useRef(false)
+  const shouldBlock = useCallback<BlockerFunction>(({ currentLocation, nextLocation }) => {
+    if (!dirtyRef.current || allow.current) return false
+    const from = new URLSearchParams(currentLocation.search)
+    const to = new URLSearchParams(nextLocation.search)
+    return currentLocation.pathname !== nextLocation.pathname || from.get('drawer') !== to.get('drawer') || from.get('id') !== to.get('id')
+  }, [])
+  const blocker = useBlocker(shouldBlock)
+  const bypass = useCallback((fn: () => void) => {
+    allow.current = true
+    fn()
+    setTimeout(() => (allow.current = false), 0)
+  }, [])
+  return {
+    asking: blocker.state === 'blocked',
+    stay: () => {
+      if (blocker.state === 'blocked') blocker.reset()
+    },
+    leave: () => {
+      if (blocker.state === 'blocked') bypass(() => blocker.proceed())
+    },
+    bypass,
+  }
 }
 
 export function UnsavedChangesModal({ open, onBack, onExit }: { open: boolean; onBack: () => void; onExit: () => void }) {

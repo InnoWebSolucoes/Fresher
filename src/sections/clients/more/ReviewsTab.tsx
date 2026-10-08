@@ -222,7 +222,7 @@ function ReviewCard({ review }: { review: Review }) {
       toast(had ? t('clients.more.reputation.replyUpdated') : t('clients.more.reputation.replyPosted'))
       setEditing(false)
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e))
+      toast(e instanceof Error ? e.message : String(e), 'error')
     } finally {
       setSaving(false)
     }

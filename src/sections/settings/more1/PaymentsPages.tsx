@@ -21,11 +21,10 @@ import {
 import { fmtDate, fmtDateTime, money2 } from '@/lib/format'
 import type { Settings } from '@/types'
 import { useLocations, useSettings, useWorkspace } from '../hooks'
-import { ActionsPill, EditCard, PillMenu, SettingsPage, SummaryList, Banner } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
-import { useAction, useDraft } from '../components/useAction'
-import { RowCard, RowStack } from '../scheduling/shared'
-import { B, M, ModalFooter, ModalForm } from './shared'
+import { ActionsPill, Banner, CardButton, EditCard, FormCard, ListCard, ListRow, ModalForm, PillMenu, SettingsPage, SummaryList } from '../components/ui'
+import { FullModal } from '../components/FullModal'
+import { useAction, useDraft, usePending } from '../components/useAction'
+import { B, M } from './shared'
 
 const b = { b: <B /> }
 
@@ -89,38 +88,49 @@ function PolicyModal({ kind, onClose }: { kind: 'deposits' | 'cancellation'; onC
     )
   }
   return (
-    <SettingsModal open onClose={onClose} title={t(kind === 'deposits' ? `${PP}.depositsTitle` : `${PP}.cancelTitle`)} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} disabled={invalid} testId="policy-save" />}>
-      <ModalForm onSubmit={save}>
-        {kind === 'deposits' ? (
-          <>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-body-strong text-ink">{t(`${PP}.requireDeposit`)}</p>
-                <p className="text-small text-muted">{t(`${PP}.requireDepositHint`)}</p>
+    <FullModal
+      open
+      onClose={onClose}
+      title={t(kind === 'deposits' ? `${PP}.depositsTitle` : `${PP}.cancelTitle`)}
+      subtitle={t(kind === 'deposits' ? `${PP}.depositsDescription` : `${PP}.cancelDescription`)}
+      onSave={save}
+      saving={saving}
+      saveDisabled={invalid}
+      testId="policy-modal"
+    >
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          {kind === 'deposits' ? (
+            <>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-body-strong text-ink">{t(`${PP}.requireDeposit`)}</p>
+                  <p className="text-small text-muted">{t(`${PP}.requireDepositHint`)}</p>
+                </div>
+                <Switch checked={draft.depositsEnabled} onChange={(depositsEnabled) => patch({ depositsEnabled })} label={<span className="sr-only">{t(`${PP}.requireDeposit`)}</span>} />
               </div>
-              <Switch checked={draft.depositsEnabled} onChange={(depositsEnabled) => patch({ depositsEnabled })} label={<span className="sr-only">{t(`${PP}.requireDeposit`)}</span>} />
-            </div>
-            {draft.depositsEnabled && <Percent label={t(`${PP}.depositPct`)} hint={t(`${PP}.depositPctHint`)} value={draft.depositPct} onChange={(depositPct) => patch({ depositPct })} error={errors[0]} testId="policy-deposit-pct" />}
-          </>
-        ) : (
-          <>
-            <Field label={t(`${PP}.window`)} hint={t(`${PP}.windowHint`)}>
-              {(id) => (
-                <Select
-                  id={id}
-                  value={String(draft.cancellationWindowHours)}
-                  onChange={(e) => patch({ cancellationWindowHours: Number(e.target.value) })}
-                  options={(HOURS.includes(draft.cancellationWindowHours) ? HOURS : [...HOURS, draft.cancellationWindowHours].sort((a, c) => a - c)).map((h) => ({ value: String(h), label: h === 0 ? t(`${PP}.noWindow`) : t(`${PP}.hoursBefore`, { count: h }) }))}
-                  data-testid="policy-window"
-                />
-              )}
-            </Field>
-            <Percent label={t(`${PP}.lateFee`)} hint={t(`${PP}.lateFeeHint`)} value={draft.lateCancelFeePct} onChange={(lateCancelFeePct) => patch({ lateCancelFeePct })} error={errors[0]} testId="policy-late" />
-            <Percent label={t(`${PP}.noShowFee`)} hint={t(`${PP}.noShowFeeHint`)} value={draft.noShowFeePct} onChange={(noShowFeePct) => patch({ noShowFeePct })} error={errors[1]} testId="policy-noshow" />
-          </>
-        )}
-      </ModalForm>
-    </SettingsModal>
+              {draft.depositsEnabled && <Percent label={t(`${PP}.depositPct`)} hint={t(`${PP}.depositPctHint`)} value={draft.depositPct} onChange={(depositPct) => patch({ depositPct })} error={errors[0]} testId="policy-deposit-pct" />}
+            </>
+          ) : (
+            <>
+              <Field label={t(`${PP}.window`)} hint={t(`${PP}.windowHint`)}>
+                {(id) => (
+                  <Select
+                    id={id}
+                    value={String(draft.cancellationWindowHours)}
+                    onChange={(e) => patch({ cancellationWindowHours: Number(e.target.value) })}
+                    options={(HOURS.includes(draft.cancellationWindowHours) ? HOURS : [...HOURS, draft.cancellationWindowHours].sort((a, c) => a - c)).map((h) => ({ value: String(h), label: h === 0 ? t(`${PP}.noWindow`) : t(`${PP}.hoursBefore`, { count: h }) }))}
+                    data-testid="policy-window"
+                  />
+                )}
+              </Field>
+              <Percent label={t(`${PP}.lateFee`)} hint={t(`${PP}.lateFeeHint`)} value={draft.lateCancelFeePct} onChange={(lateCancelFeePct) => patch({ lateCancelFeePct })} error={errors[0]} testId="policy-late" />
+              <Percent label={t(`${PP}.noShowFee`)} hint={t(`${PP}.noShowFeeHint`)} value={draft.noShowFeePct} onChange={(noShowFeePct) => patch({ noShowFeePct })} error={errors[1]} testId="policy-noshow" />
+            </>
+          )}
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -145,19 +155,16 @@ export function PaymentMethodsPage() {
   const navigate = useNavigate()
   const stored = useSettingsExtra<Partial<Methods>>(METHODS_KEY, METHOD_DEFAULTS)
   const methods = useMemo(() => ({ ...METHOD_DEFAULTS, ...stored }), [stored])
-  const [busy, setBusy] = useState<MethodKey | null>(null)
+  const [shown, pending] = usePending<MethodKey>()
   const toggle = async (key: MethodKey, on: boolean) => {
     if (key === 'card' && !on) {
       toast(t(`${PM}.cardRequired`), 'error')
       return
     }
-    setBusy(key)
-    try {
+    await pending(key, on, async () => {
       await setSettingsExtra(METHODS_KEY, { ...methods, [key]: on })
       toast(t(on ? `${PM}.enabled` : `${PM}.disabled`, { name: t(`${PM}.names.${key}`) }))
-    } finally {
-      setBusy(null)
-    }
+    })
   }
   return (
     <SettingsPage title={t(`${PM}.title`)} description={t(`${PM}.description`)}>
@@ -170,7 +177,7 @@ export function PaymentMethodsPage() {
                 <p className="text-body-strong text-ink">{t(`${PM}.names.${key}`)}</p>
                 <p className="text-small text-muted">{t(`${PM}.hints.${key}`)}</p>
               </div>
-              <Switch checked={methods[key]} disabled={busy !== null} onChange={(on) => void toggle(key, on)} label={<span className="sr-only">{t(`${PM}.names.${key}`)}</span>} />
+              <Switch checked={shown(key, methods[key])} onChange={(on) => void toggle(key, on)} label={<span className="sr-only">{t(`${PM}.names.${key}`)}</span>} />
             </li>
           ))}
         </ul>
@@ -179,9 +186,7 @@ export function PaymentMethodsPage() {
         title={t(`${PM}.posTitle`)}
         description={t(`${PM}.posDescription`)}
         action={
-          <Button size="sm" className="rounded-full px-4" onClick={() => navigate('/setup/sales/payment-methods')}>
-            {t('settings.common.manage')}
-          </Button>
+          <CardButton onClick={() => navigate('/setup/sales/payment-methods')}>{t('settings.common.manage')}</CardButton>
         }
       />
     </SettingsPage>
@@ -228,7 +233,7 @@ export function CardTerminalsPage() {
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={240} groups={[{ items: [{ label: t(`${TM}.pairExisting`), onSelect: () => setModal({ kind: 'pair' }) }] }]} />
-          <Button variant="primary" className="rounded-full px-5" onClick={() => setModal({ kind: 'order' })} data-testid="terminal-order">
+          <Button variant="primary" onClick={() => setModal({ kind: 'order' })} data-testid="terminal-order">
             {t(`${TM}.order`)}
           </Button>
         </>
@@ -236,14 +241,14 @@ export function CardTerminalsPage() {
     >
       {terminals.length === 0 ? (
         <div className="card">
-          <EmptyState title={t(`${TM}.emptyTitle`)} body={t(`${TM}.emptyBody`)} action={<Button onClick={() => setModal({ kind: 'order' })}>{t(`${TM}.order`)}</Button>} />
+          <EmptyState title={t(`${TM}.emptyTitle`)} body={t(`${TM}.emptyBody`)} action={<Button variant="primary" onClick={() => setModal({ kind: 'order' })}>{t(`${TM}.order`)}</Button>} />
         </div>
       ) : (
-        <RowStack testId="terminals-list">
+        <ListCard testId="terminals-list">
           {terminals.map((x) => {
             const paired = x.status === 'online' || x.status === 'offline'
             return (
-              <RowCard
+              <ListRow
                 key={x.id}
                 testId={`terminal-${x.id}`}
                 leading={<CreditCard size={22} aria-hidden />}
@@ -257,7 +262,7 @@ export function CardTerminalsPage() {
                 trailing={
                   <>
                     {!paired && (
-                      <Button size="sm" className="rounded-full" icon={<Plug size={16} aria-hidden />} onClick={() => setModal({ kind: 'pair', terminal: x })} data-testid={`terminal-pair-${x.id}`}>
+                      <Button size="sm" icon={<Plug size={16} aria-hidden />} onClick={() => setModal({ kind: 'pair', terminal: x })} data-testid={`terminal-pair-${x.id}`}>
                         {t(`${TM}.pair`)}
                       </Button>
                     )}
@@ -279,7 +284,7 @@ export function CardTerminalsPage() {
               />
             )
           })}
-        </RowStack>
+        </ListCard>
       )}
       {modal?.kind === 'order' && <OrderTerminalModal onClose={() => setModal(null)} />}
       {modal?.kind === 'pair' && <PairModal terminal={modal.terminal} onClose={() => setModal(null)} />}
@@ -301,30 +306,32 @@ function OrderTerminalModal({ onClose }: { onClose: () => void }) {
   const card = workspace.plan.card
   const save = () => void run(() => orderTerminals({ modelId, quantity, locationId }), t(`${TM}.ordered`), onClose)
   return (
-    <SettingsModal open onClose={onClose} title={t(`${TM}.orderTitle`)} subtitle={t(`${TM}.orderSubtitle`)} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} disabled={!card} saveLabel={t(`${TM}.placeOrder`, { total: money2(quote.total) })} testId="terminal-order-save" />}>
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${TM}.model`)}>{(id) => <Select id={id} value={modelId} onChange={(e) => setModelId(e.target.value)} options={TERMINAL_MODELS.map((m) => ({ value: m.id, label: `${m.name} · ${money2(m.price)}` }))} />}</Field>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t(`${TM}.quantity`)}>{(id) => <Select id={id} value={String(quantity)} onChange={(e) => setQuantity(Number(e.target.value))} options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))} />}</Field>
-          <Field label={t(`${TM}.deliverTo`)}>{(id) => <Select id={id} value={locationId} onChange={(e) => setLocationId(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>
-        </div>
-        <dl className="flex flex-col gap-1.5 rounded-lg bg-sunken p-4 text-body">
-          <div className="flex justify-between">
-            <dt className="text-muted">{t(`${TM}.subtotal`)}</dt>
-            <dd className="text-ink">{money2(quote.subtotal)}</dd>
+    <FullModal open onClose={onClose} title={t(`${TM}.orderTitle`)} subtitle={t(`${TM}.orderSubtitle`)} onSave={save} saving={saving} saveDisabled={!card} saveLabel={t(`${TM}.placeOrder`, { total: money2(quote.total) })} testId="terminal-order-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${TM}.model`)}>{(id) => <Select id={id} value={modelId} onChange={(e) => setModelId(e.target.value)} options={TERMINAL_MODELS.map((m) => ({ value: m.id, label: `${m.name} · ${money2(m.price)}` }))} />}</Field>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t(`${TM}.quantity`)}>{(id) => <Select id={id} value={String(quantity)} onChange={(e) => setQuantity(Number(e.target.value))} options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))} />}</Field>
+            <Field label={t(`${TM}.deliverTo`)}>{(id) => <Select id={id} value={locationId} onChange={(e) => setLocationId(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>
           </div>
-          <div className="flex justify-between">
-            <dt className="text-muted">{t(`${TM}.tax`)}</dt>
-            <dd className="text-ink">{money2(quote.tax)}</dd>
-          </div>
-          <div className="flex justify-between border-t border-line pt-1.5 text-body-strong">
-            <dt className="text-ink">{t(`${TM}.total`)}</dt>
-            <dd className="text-ink">{money2(quote.total)}</dd>
-          </div>
-        </dl>
-        {card ? <p className="text-small text-muted">{t(`${TM}.chargedTo`, { brand: card.brand, last4: card.last4 })}</p> : <Banner tone="warning">{t(`${TM}.noCard`)}</Banner>}
-      </ModalForm>
-    </SettingsModal>
+          <dl className="flex flex-col gap-1.5 rounded-lg bg-sunken p-4 text-body">
+            <div className="flex justify-between">
+              <dt className="text-muted">{t(`${TM}.subtotal`)}</dt>
+              <dd className="text-ink">{money2(quote.subtotal)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">{t(`${TM}.tax`)}</dt>
+              <dd className="text-ink">{money2(quote.tax)}</dd>
+            </div>
+            <div className="flex justify-between border-t border-line pt-1.5 text-body-strong">
+              <dt className="text-ink">{t(`${TM}.total`)}</dt>
+              <dd className="text-ink">{money2(quote.total)}</dd>
+            </div>
+          </dl>
+          {card ? <p className="text-small text-muted">{t(`${TM}.chargedTo`, { brand: card.brand, last4: card.last4 })}</p> : <Banner tone="warning">{t(`${TM}.noCard`)}</Banner>}
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -344,15 +351,17 @@ function PairModal({ terminal, onClose }: { terminal?: CardTerminal; onClose: ()
     void run(() => pairTerminal({ terminalId: terminal?.id, code, locationId, name: name || undefined }), t(`${TM}.paired`), onClose)
   }
   return (
-    <SettingsModal open onClose={onClose} title={t(`${TM}.pairTitle`)} subtitle={terminal ? terminal.name : t(`${TM}.pairSubtitle`)} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} saveLabel={t(`${TM}.pair`)} testId="terminal-pair-save" />}>
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${TM}.code`)} hint={t(`${TM}.codeHint`)} error={error}>
-          {(id) => <TextInput id={id} inputMode="numeric" maxLength={7} value={code} invalid={!!error} placeholder="000000" onChange={(e) => setCode(e.target.value.replace(/[^\d ]/g, ''))} data-testid="terminal-code" />}
-        </Field>
-        {!terminal && <Field label={t(`${TM}.name`)} optional>{(id) => <TextInput id={id} value={name} maxLength={60} placeholder={t(`${TM}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} />}</Field>}
-        {locations.length > 1 && <Field label={t(`${TM}.location`)}>{(id) => <Select id={id} value={locationId} onChange={(e) => setLocationId(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>}
-      </ModalForm>
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t(`${TM}.pairTitle`)} subtitle={terminal ? terminal.name : t(`${TM}.pairSubtitle`)} onSave={save} saving={saving} saveLabel={t(`${TM}.pair`)} testId="terminal-pair-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${TM}.code`)} hint={t(`${TM}.codeHint`)} error={error}>
+            {(id) => <TextInput id={id} inputMode="numeric" maxLength={7} value={code} invalid={!!error} placeholder="000000" onChange={(e) => setCode(e.target.value.replace(/[^\d ]/g, ''))} data-testid="terminal-code" />}
+          </Field>
+          {!terminal && <Field label={t(`${TM}.name`)} optional>{(id) => <TextInput id={id} value={name} maxLength={60} placeholder={t(`${TM}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} />}</Field>}
+          {locations.length > 1 && <Field label={t(`${TM}.location`)}>{(id) => <Select id={id} value={locationId} onChange={(e) => setLocationId(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>}
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -362,13 +371,15 @@ function RenameModal({ terminal, onClose }: { terminal: CardTerminal; onClose: (
   const [saving, run] = useAction()
   const save = () => name.trim() && void run(() => renameTerminal(terminal.id, name), t(`${TM}.renamed`), onClose)
   return (
-    <SettingsModal open onClose={onClose} title={t(`${TM}.renameTitle`)} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} disabled={!name.trim()} testId="terminal-rename-save" />}>
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${TM}.name`)} error={!name.trim() ? t('settings.common.required') : undefined}>
-          {(id) => <TextInput id={id} value={name} maxLength={60} onChange={(e) => setName(e.target.value)} data-testid="terminal-name" />}
-        </Field>
-      </ModalForm>
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t(`${TM}.renameTitle`)} onSave={save} saving={saving} saveDisabled={!name.trim()} testId="terminal-rename-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${TM}.name`)} error={!name.trim() ? t('settings.common.required') : undefined}>
+            {(id) => <TextInput id={id} value={name} maxLength={60} onChange={(e) => setName(e.target.value)} data-testid="terminal-name" />}
+          </Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -379,10 +390,12 @@ function LocationModal({ terminal, onClose }: { terminal: CardTerminal; onClose:
   const [saving, run] = useAction()
   const save = () => void run(() => assignTerminalLocation(terminal.id, locationId), t(`${TM}.locationSaved`), onClose)
   return (
-    <SettingsModal open onClose={onClose} title={t(`${TM}.changeLocation`)} subtitle={terminal.name} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} />}>
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${TM}.location`)}>{(id) => <Select id={id} value={locationId} onChange={(e) => setLocationId(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>
-      </ModalForm>
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t(`${TM}.changeLocation`)} subtitle={terminal.name} onSave={save} saving={saving} testId="terminal-location-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${TM}.location`)}>{(id) => <Select id={id} value={locationId} onChange={(e) => setLocationId(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }

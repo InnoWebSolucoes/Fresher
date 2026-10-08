@@ -6,6 +6,7 @@ import { at, now, nowISO, toClock, toISODate, toMinutes } from '@/lib/time'
 import { round2 } from '@/lib/format'
 import { activity, actorName, ApiError, latency } from './client'
 import { notifyAppointment, pushNotification, queueMessage } from './messaging'
+import { taxRateFor } from './sales'
 
 export interface NewAppointmentItem {
   serviceId: ID
@@ -216,7 +217,7 @@ function chargeFee(appointment: Appointment, type: 'late_cancellation_fee' | 'no
       createdAt: at,
       completedAt: at,
       createdBy: actorName(),
-      items: [{ id: uid('si'), type, name: type === 'no_show_fee' ? 'No-show fee' : 'Late cancellation fee', detail: appointment.items[0]?.name, quantity: 1, unitPrice: amount, teamMemberId: appointment.items[0]?.teamMemberId ?? null, appointmentId: appointment.id, taxRate: 0.23 }],
+      items: [{ id: uid('si'), type, name: type === 'no_show_fee' ? 'No-show fee' : 'Late cancellation fee', detail: appointment.items[0]?.name, quantity: 1, unitPrice: amount, teamMemberId: appointment.items[0]?.teamMemberId ?? null, appointmentId: appointment.id, taxRate: taxRateFor(type) }],
       serviceCharges: [],
       tips: [],
       paymentIds: [paymentId],

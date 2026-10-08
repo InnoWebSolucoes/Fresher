@@ -1,11 +1,11 @@
 import clsx from 'clsx'
 import { DndContext, PointerSensor, pointerWithin, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent, type DragMoveEvent } from '@dnd-kit/core'
 import { CalendarDays, ChevronDown, Columns3, LayoutGrid, Rows3 } from 'lucide-react'
-import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type MutableRefObject } from 'react'
+import { memo, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type MutableRefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/ui'
 import { useDb } from '@/store/db'
-import type { Appointment, AppointmentItem, BlockedTime, ID, ISODate, TeamMember } from '@/types'
+import type { Appointment, AppointmentItem, BlockedTime, BlockedTimeType, ID, ISODate, TeamMember } from '@/types'
 import { closedPeriodOn, timeOffOn, workingWindows } from '@/lib/schedule'
 import { itemSegments, itemTotalMinutes } from '@/lib/availability'
 import { fullName } from '@/lib/format'
@@ -13,7 +13,7 @@ import { todayISO, toClock, toMinutes } from '@/lib/time'
 import { AppointmentHoverCard, BlockedHoverCard, StatusIcons, useHoverCard } from './blocks'
 import { useClock, useScheduleData, type Lookups } from './hooks'
 import { BLOCKED_TONE, layoutLanes, memberName, snap, toneFor, type BlockTone, type CalView } from './lib'
-import { useCalendarUi, type PreviewBlock } from './store'
+import { useCalendarUi, type BlockedPreview, type PreviewBlock } from './store'
 import { DropMenu } from './ui'
 
 export interface PendingMove {
@@ -53,7 +53,8 @@ interface DayViewProps {
   pxPerHour: number
   lookups: Lookups
   mode: GridMode
-  selectedId: string | null
+  /** Appointments drawn with the selection border (open drawer, open group, pick source). */
+  selectedIds: Set<string>
   pending: PendingMove | null
   onSlot: (memberId: ID, time: string, point: { x: number; y: number }) => void
   onAppointment: (appt: Appointment) => void
@@ -71,6 +72,7 @@ export function DayView(props: DayViewProps) {
   const schedule = useScheduleData()
   const focus = useCalendarUi((s) => s.focus)
   const preview = useCalendarUi((s) => s.preview)
+  const blockedPreview = useCalendarUi((s) => s.blockedPreview)
   const pxPerMin = pxPerHour / 60
   const total = 24 * pxPerHour
   const nowMin = clock.getHours() * 60 + clock.getMinutes()
@@ -108,6 +110,16 @@ export function DayView(props: DayViewProps) {
     el.scrollTop = Math.max(0, target * (pxPerHour / 60))
   }, [date, pxPerHour, focus])
 
+  // Keep a new appointment or blocked time being drafted in view (e.g. right after a pick-mode slot).
+  const draftStart = (preview && preview.date === date && preview.locationId === locationId ? preview.items[0]?.start : undefined) ?? (blockedPreview && blockedPreview.date === date && blockedPreview.locationId === locationId ? blockedPreview.start : undefined)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el || !draftStart) return
+    const top = toMinutes(draftStart) * pxPerMin
+    const header = 120
+    if (top < el.scrollTop || top > el.scrollTop + el.clientHeight - header - 48) el.scrollTop = Math.max(0, top - 90)
+  }, [draftStart, pxPerMin])
+
   // Items per member.
   const byMember = useMemo(() => {
     const map = new Map<ID, { appt: Appointment; item: AppointmentItem }[]>()
@@ -126,6 +138,7 @@ export function DayView(props: DayViewProps) {
     return map
   }, [blocked])
   const previewItems = preview && preview.date === date && preview.locationId === locationId ? preview : null
+  const blockPreview = blockedPreview && blockedPreview.date === date && blockedPreview.locationId === locationId ? blockedPreview : null
 
   const onDragMove = (e: DragMoveEvent) => {
     const [kind, apptId, itemId] = String(e.active.id).split(':')
@@ -200,10 +213,12 @@ export function DayView(props: DayViewProps) {
               items={byMember.get(col.member.id) ?? []}
               blocked={blockedByMember.get(col.member.id) ?? []}
               preview={previewItems}
+              blockedPreview={blockPreview && blockPreview.teamMemberId === col.member.id ? blockPreview : null}
+              replacedBlockId={blockPreview?.replaceId}
               pxPerHour={pxPerHour}
               lookups={props.lookups}
               mode={props.mode}
-              selectedId={props.selectedId}
+              selectedIds={props.selectedIds}
               dragLabel={dragLabel}
               justDragged={justDragged}
               onSlot={props.onSlot}
@@ -273,10 +288,12 @@ interface ColumnProps {
   items: { appt: Appointment; item: AppointmentItem }[]
   blocked: BlockedTime[]
   preview: PreviewBlock | null
+  blockedPreview: BlockedPreview | null
+  replacedBlockId?: string
   pxPerHour: number
   lookups: Lookups
   mode: GridMode
-  selectedId: string | null
+  selectedIds: Set<string>
   dragLabel: { id: string; text: string } | null
   justDragged: MutableRefObject<boolean>
   onSlot: DayViewProps['onSlot']
@@ -294,26 +311,104 @@ const DayColumn = memo(function DayColumn(p: ColumnProps) {
   const quarter = p.pxPerHour / 4
 
   const previewItems = useMemo(() => (p.preview ? p.preview.items.filter((i) => i.teamMemberId === p.member.id) : []), [p.preview, p.member.id])
+  const blocked = useMemo(() => (p.replacedBlockId ? p.blocked.filter((b) => b.id !== p.replacedBlockId) : p.blocked), [p.blocked, p.replacedBlockId])
 
   const lanes = useMemo(
     () =>
       layoutLanes([
         ...p.items.map(({ appt, item }) => ({ key: `a:${appt.id}:${item.id}`, start: toMinutes(item.start), end: toMinutes(item.start) + Math.max(15, itemTotalMinutes(item.durationMin, item.extraTime)) })),
-        ...p.blocked.map((b) => ({ key: `b:${b.id}`, start: toMinutes(b.start), end: Math.max(toMinutes(b.end), toMinutes(b.start) + 15) })),
+        ...blocked.map((b) => ({ key: `b:${b.id}`, start: toMinutes(b.start), end: Math.max(toMinutes(b.end), toMinutes(b.start) + 15) })),
         ...previewItems.map((i) => ({ key: `p:${i.key}`, start: toMinutes(i.start), end: toMinutes(i.start) + itemTotalMinutes(i.durationMin, i.extraTime) })),
+        ...(p.blockedPreview ? [{ key: 'bp', start: toMinutes(p.blockedPreview.start), end: Math.max(toMinutes(p.blockedPreview.end), toMinutes(p.blockedPreview.start) + 15) }] : []),
       ]),
-    [p.items, p.blocked, previewItems],
+    [p.items, blocked, previewItems, p.blockedPreview],
   )
-  const place = (key: string) => {
-    const l = lanes.get(key) ?? { lane: 0, lanes: 1 }
-    return { left: `calc(${(l.lane / l.lanes) * 100}% + 2px)`, width: `calc(${100 / l.lanes}% - 4px)` }
-  }
 
   const slotAt = (e: ReactMouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     return Math.max(0, Math.min(95, Math.floor((e.clientY - rect.top) / quarter)))
   }
   const interactiveSlots = p.mode !== 'select'
+
+  // Blocks are memoised so moving the mouse over the column (hover slot) doesn't re-render them.
+  const { onAppointment, onBlocked, justDragged, lookups, mode, selectedIds, dragLabel, member } = p
+  const blockedPreview = p.blockedPreview
+  const previewLabel = p.preview?.label
+  const content = useMemo(() => {
+    const place = (key: string) => {
+      const l = lanes.get(key) ?? { lane: 0, lanes: 1 }
+      return { left: `calc(${(l.lane / l.lanes) * 100}% + 2px)`, width: `calc(${100 / l.lanes}% - 4px)` }
+    }
+    const typeOf = (id?: string) => (id ? btTypes.find((x) => x.id === id) : undefined)
+    return (
+      <>
+        {blocked.map((b) => (
+          <BlockedBlock
+            key={b.id}
+            block={b}
+            type={typeOf(b.typeId)}
+            top={toMinutes(b.start) * pxPerMin}
+            height={Math.max(quarter, (toMinutes(b.end) - toMinutes(b.start)) * pxPerMin)}
+            {...place(`b:${b.id}`)}
+            faded={mode !== 'normal'}
+            memberLabel={memberName(member)}
+            onOpen={onBlocked}
+            justDragged={justDragged}
+          />
+        ))}
+        {blockedPreview && (
+          <div
+            data-block
+            className="pointer-events-none absolute z-[6] overflow-hidden rounded-xs border-2 border-primary px-2 py-0.5 text-small"
+            style={{ top: toMinutes(blockedPreview.start) * pxPerMin, height: Math.max(quarter, (toMinutes(blockedPreview.end) - toMinutes(blockedPreview.start)) * pxPerMin), background: BLOCKED_TONE.fill, color: BLOCKED_TONE.text, ...place('bp') }}
+            data-testid="blocked-preview"
+          >
+            <span className="tabular">
+              {blockedPreview.start} - {blockedPreview.end}
+            </span>{' '}
+            <b>{blockedPreview.label}</b>
+          </div>
+        )}
+        {p.items.map(({ appt, item }) => {
+          const key = `${appt.id}:${item.id}`
+          return (
+            <AppointmentBlock
+              key={key}
+              appt={appt}
+              item={item}
+              pxPerMin={pxPerMin}
+              {...place(`a:${key}`)}
+              lookups={lookups}
+              mode={mode}
+              selected={selectedIds.has(appt.id)}
+              dragText={dragLabel && dragLabel.id.endsWith(key) ? dragLabel.text : null}
+              onOpen={onAppointment}
+              justDragged={justDragged}
+            />
+          )
+        })}
+        {previewItems.map((i) => {
+          const tone = toneFor({ status: 'booked' }, { serviceId: i.serviceId, teamMemberId: i.teamMemberId }, lookups.tones)
+          const minutes = itemTotalMinutes(i.durationMin, i.extraTime)
+          return (
+            <div
+              key={i.key}
+              data-block
+              className="pointer-events-none absolute z-[6] overflow-hidden rounded-xs border-2 border-primary px-2 py-1 text-small shadow-md"
+              style={{ top: toMinutes(i.start) * pxPerMin, height: Math.max(quarter, minutes * pxPerMin), background: tone.fill, color: tone.text, ...place(`p:${i.key}`) }}
+              data-testid="appointment-preview"
+            >
+              <span className="tabular">
+                {i.start} - {toClock(toMinutes(i.start) + minutes)}
+              </span>{' '}
+              <b>{previewLabel}</b>
+              <div className="truncate">{i.name}</div>
+            </div>
+          )
+        })}
+      </>
+    )
+  }, [blocked, blockedPreview, p.items, previewItems, previewLabel, lanes, btTypes, pxPerMin, quarter, mode, member, onBlocked, onAppointment, justDragged, lookups, selectedIds, dragLabel])
 
   return (
     <div
@@ -322,7 +417,8 @@ const DayColumn = memo(function DayColumn(p: ColumnProps) {
       style={{ gridColumn: p.gridColumn, gridRow: 2, height: 24 * p.pxPerHour, backgroundImage: HATCH }}
       onMouseMove={(e) => {
         if (!interactiveSlots || (e.target as HTMLElement).closest('[data-block]')) return setHover(null)
-        setHover(slotAt(e))
+        const slot = slotAt(e)
+        setHover((h) => (h === slot ? h : slot))
       }}
       onMouseLeave={() => setHover(null)}
       onClick={(e) => {
@@ -354,57 +450,26 @@ const DayColumn = memo(function DayColumn(p: ColumnProps) {
           {quarter >= 12 ? toClock(hover * 15) : ''}
         </div>
       )}
-      {p.blocked.map((b) => (
-        <BlockedBlock
-          key={b.id}
-          block={b}
-          typeEmoji={btTypes.find((x) => x.id === b.typeId)?.emoji}
-          typeName={btTypes.find((x) => x.id === b.typeId)?.name}
-          style={{ top: toMinutes(b.start) * pxPerMin, height: Math.max(quarter, (toMinutes(b.end) - toMinutes(b.start)) * pxPerMin), ...place(`b:${b.id}`) }}
-          faded={p.mode !== 'normal'}
-          memberLabel={memberName(p.member)}
-          onClick={() => !p.justDragged.current && p.onBlocked(b)}
-        />
-      ))}
-      {p.items.map(({ appt, item }) => (
-        <AppointmentBlock
-          key={`${appt.id}:${item.id}`}
-          appt={appt}
-          item={item}
-          pxPerMin={pxPerMin}
-          style={place(`a:${appt.id}:${item.id}`)}
-          lookups={p.lookups}
-          mode={p.mode}
-          selected={p.selectedId === appt.id}
-          dragText={p.dragLabel && p.dragLabel.id.endsWith(`${appt.id}:${item.id}`) ? p.dragLabel.text : null}
-          onClick={() => !p.justDragged.current && p.onAppointment(appt)}
-        />
-      ))}
-      {previewItems.map((i) => {
-        const tone = toneFor({ status: 'booked' }, { serviceId: i.serviceId, teamMemberId: i.teamMemberId }, p.lookups.tones)
-        const minutes = itemTotalMinutes(i.durationMin, i.extraTime)
-        return (
-          <div
-            key={i.key}
-            data-block
-            className="pointer-events-none absolute z-[6] overflow-hidden rounded-xs border-2 border-dashed px-2 py-1 text-small"
-            style={{ top: toMinutes(i.start) * pxPerMin, height: Math.max(quarter, minutes * pxPerMin), background: tone.fill, color: tone.text, borderColor: tone.edge, ...place(`p:${i.key}`) }}
-          >
-            <span className="tabular">
-              {i.start} - {toClock(toMinutes(i.start) + minutes)}
-            </span>{' '}
-            <b>{p.preview?.label}</b>
-            <div className="truncate">{i.name}</div>
-          </div>
-        )
-      })}
+      {content}
     </div>
   )
 })
 
-function BlockedBlock({ block, typeEmoji, typeName, style, faded, memberLabel, onClick }: { block: BlockedTime; typeEmoji?: string; typeName?: string; style: CSSProperties; faded: boolean; memberLabel: string; onClick: () => void }) {
+interface BlockedBlockProps {
+  block: BlockedTime
+  type?: BlockedTimeType
+  top: number
+  height: number
+  left: string
+  width: string
+  faded: boolean
+  memberLabel: string
+  onOpen: (block: BlockedTime) => void
+  justDragged: MutableRefObject<boolean>
+}
+
+const BlockedBlock = memo(function BlockedBlock({ block, type, top, height, left, width, faded, memberLabel, onOpen, justDragged }: BlockedBlockProps) {
   const hover = useHoverCard()
-  const types = useDb((s) => s.blockedTimeTypes)
   return (
     <>
       <button
@@ -413,31 +478,46 @@ function BlockedBlock({ block, typeEmoji, typeName, style, faded, memberLabel, o
         onClick={(e) => {
           e.stopPropagation()
           hover.hide()
-          onClick()
+          if (!justDragged.current) onOpen(block)
         }}
         {...hover.bind}
         className={clsx('absolute z-[5] overflow-hidden rounded-xs border-l-4 px-2 py-0.5 text-left text-small', faded && 'pointer-events-none opacity-40')}
-        style={{ ...style, background: BLOCKED_TONE.fill, color: BLOCKED_TONE.text, borderColor: BLOCKED_TONE.edge }}
+        style={{ top, height, left, width, background: BLOCKED_TONE.fill, color: BLOCKED_TONE.text, borderColor: BLOCKED_TONE.edge }}
+        data-testid="blocked-block"
       >
         <span className="tabular">
           {block.start} - {block.end}
         </span>{' '}
         <b>
-          {block.title || typeName} {typeEmoji}
+          {block.title || type?.name} {type?.emoji}
         </b>
       </button>
-      {hover.rect && <BlockedHoverCard block={block} type={types.find((x) => x.id === block.typeId)} rect={hover.rect} memberLabel={memberLabel} />}
+      {hover.rect && <BlockedHoverCard block={block} type={type} rect={hover.rect} memberLabel={memberLabel} />}
     </>
   )
+})
+
+interface AppointmentBlockProps {
+  appt: Appointment
+  item: AppointmentItem
+  pxPerMin: number
+  left: string
+  width: string
+  lookups: Lookups
+  mode: GridMode
+  selected: boolean
+  dragText: string | null
+  onOpen: (appt: Appointment) => void
+  justDragged: MutableRefObject<boolean>
 }
 
-function AppointmentBlock({ appt, item, pxPerMin, style, lookups, mode, selected, dragText, onClick }: { appt: Appointment; item: AppointmentItem; pxPerMin: number; style: CSSProperties; lookups: Lookups; mode: GridMode; selected: boolean; dragText: string | null; onClick: () => void }) {
+const AppointmentBlock = memo(function AppointmentBlock({ appt, item, pxPerMin, left, width, lookups, mode, selected, dragText, onOpen, justDragged }: AppointmentBlockProps) {
   const { t } = useTranslation()
   const locked = mode !== 'normal' || appt.status === 'completed' || appt.status === 'no_show' || appt.status === 'cancelled'
   const move = useDraggable({ id: `move:${appt.id}:${item.id}`, disabled: locked })
   const resize = useDraggable({ id: `resize:${appt.id}:${item.id}`, disabled: locked })
   const hover = useHoverCard()
-  const notes = useDb((s) => s.clientNotes)
+  const noteHtml = useDb((s) => (lookups.notedAppointments.has(appt.id) ? s.clientNotes.find((n) => n.appointmentId === appt.id)?.html : undefined))
   const client = appt.clientId ? lookups.clientsById.get(appt.clientId) : undefined
   const tone: BlockTone = toneFor(appt, item, lookups.tones)
   const start = toMinutes(item.start)
@@ -448,7 +528,12 @@ function AppointmentBlock({ appt, item, pxPerMin, style, lookups, mode, selected
   const dragging = move.isDragging || resize.isDragging
   const transform = move.transform ? `translate3d(${move.transform.x}px, ${snap(move.transform.y / pxPerMin) * pxPerMin}px, 0)` : undefined
   const short = height < 36
-  const note = useMemo(() => notes.find((n) => n.appointmentId === appt.id)?.html.replace(/<[^>]+>/g, ' ').trim(), [notes, appt.id])
+  const note = useMemo(() => noteHtml?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(), [noteHtml])
+  // In pick modes the appointment being moved or rebooked stays visible; the others fade.
+  const faded = mode === 'pick' && !selected
+  const open = () => {
+    if (!justDragged.current) onOpen(appt)
+  }
 
   return (
     <>
@@ -458,26 +543,32 @@ function AppointmentBlock({ appt, item, pxPerMin, style, lookups, mode, selected
         aria-label={`${item.start} ${fullName(client, t('calendar.walkIn'))} ${item.name}`}
         {...move.listeners}
         {...move.attributes}
+        // Still clickable when it can't be dragged (pick modes, completed): not "disabled".
+        aria-disabled={undefined}
+        aria-roledescription={locked ? undefined : move.attributes['aria-roledescription']}
         onClick={(e) => {
           e.stopPropagation()
           hover.hide()
-          onClick()
+          open()
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') onClick()
+          if (e.key === 'Enter') open()
           else move.listeners?.onKeyDown?.(e)
         }}
-        onMouseEnter={dragging ? undefined : hover.bind.onMouseEnter}
+        onMouseEnter={dragging || faded ? undefined : hover.bind.onMouseEnter}
         onMouseLeave={hover.bind.onMouseLeave}
         className={clsx(
           'group/block absolute overflow-hidden rounded-xs text-left text-small shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-primary',
           dragging ? 'z-50 cursor-grabbing shadow-lg' : 'z-[5]',
           !locked && !dragging && 'cursor-pointer',
-          mode === 'pick' && 'pointer-events-none opacity-40',
+          faded && 'pointer-events-none opacity-40',
           mode === 'select' && 'cursor-pointer hover:ring-2 hover:ring-primary',
           selected && 'ring-2 ring-primary',
         )}
-        style={{ ...style, top: start * pxPerMin, height, background: tone.fill, color: tone.text, transform, touchAction: 'none' }}
+        style={{ left, width, top: start * pxPerMin, height, background: tone.fill, color: tone.text, transform, touchAction: 'none' }}
+        data-testid="appointment-block"
+        data-appointment-id={appt.id}
+        data-selected={selected || undefined}
       >
         {/* Faded processing segments */}
         {segments
@@ -515,7 +606,7 @@ function AppointmentBlock({ appt, item, pxPerMin, style, lookups, mode, selected
       {hover.rect && !dragging && <AppointmentHoverCard appt={appt} rect={hover.rect} lookups={lookups} client={client} note={note} />}
     </>
   )
-}
+})
 
 /** Faded lunch/blocked style used by week and month cells. */
 export const hatchStyle = { backgroundImage: HATCH }

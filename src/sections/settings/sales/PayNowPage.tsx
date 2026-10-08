@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox } from '@/components/ui'
 import { setSettingsExtra, useSettingsExtra } from '@/api/settings'
-import { Banner, EditCard, SettingsPage, SummaryList } from '../components/ui'
+import { Banner, EditCard, FormCard, SettingsPage, SummaryList } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction, useDraft } from '../components/useAction'
-import { FormCard, ToggleCard, usePaymentsActive } from './shared'
+import { ToggleCard, usePaymentsActive } from './shared'
 
 /** Extras key 'sales.payNow'. */
 export interface PayNowSettings {

@@ -1,16 +1,18 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Globe, Loader2, Monitor, Smartphone, XCircle } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, Globe, Home, Link2, Loader2, Monitor, Play, Plus, ShoppingCart, Smartphone, Sparkles, XCircle } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, Chip, confirm, Field, IntroPage, Menu, Modal, Page, PageHeader, PageSkeleton, RadioGroup, Segmented, Select, Switch, TextInput, toast, usePageLoading } from '@/components/ui'
+import { Button, Card, Chip, confirm, Field, IconButton, IntroPage, LearnMore, Menu, Modal, Page, PageHeader, PageSkeleton, Segmented, Select, Switch, TextArea, TextInput, toast, usePageLoading } from '@/components/ui'
 import { useDb } from '@/store/db'
-import { activateSmartWebsite, addOnStatus, cancelSmartWebsite, checkDomain, defaultWebsite, saveWebsite, SITE_SUFFIX, SMART_WEBSITE_PRICE, IVA, smartWebsiteProRata, useOnlineState, type BillingInput, type WebsiteConfig } from '@/api/online'
+import { activateSmartWebsite, addOnStatus, cancelSmartWebsite, checkDomain, defaultWebsite, saveWebsite, SITE_SUFFIX, SMART_WEBSITE_PRICE, IVA, smartWebsiteProRata, useWebsite, type SitePage, type WebsiteConfig } from '@/api/online'
 import { fmtDateTime, money2 } from '@/lib/format'
+import { uid } from '@/lib/ids'
+import { BillingDetailsFields, CardFields, initialBilling, validateBilling, type BillingErrors, type BillingValues } from '@/sections/marketing/components/kit'
 import { CheckList, copyText } from '../shared'
 import { BrowserFrame, FONT_PACKS, PALETTES, SitePreview, TEMPLATES } from './SitePreview'
 
-const STEPS = ['overview', 'design', 'styling', 'domain-type', 'domain', 'enable'] as const
+const STEPS = ['overview', 'design', 'styling', 'builder', 'domain-type', 'domain', 'enable'] as const
 type Step = (typeof STEPS)[number]
 const TLDS = ['.com', '.pt', '.salon', '.beauty']
 
@@ -20,7 +22,7 @@ export function SmartWebsitePage() {
   const navigate = useNavigate()
   const loading = usePageLoading()
   const addOns = useDb((s) => s.addOns)
-  const { website } = useOnlineState()
+  const website = useWebsite()
   const [visit, setVisit] = useState(false)
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
   if (loading) return <Page><PageSkeleton /></Page>
@@ -32,7 +34,7 @@ export function SmartWebsitePage() {
         {website && (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-lg bg-info-subtle px-5 py-4">
             <p className="text-body text-ink">{t('online.website.draftNote')}</p>
-            <Button variant="primary" onClick={() => navigate('/online-presence/smart-website/styling')}>
+            <Button variant="primary" onClick={() => navigate('/online-presence/smart-website/builder')}>
               {t('online.website.continueEditing')}
             </Button>
           </div>
@@ -80,6 +82,7 @@ export function SmartWebsitePage() {
                 {
                   items: [
                     { label: t('online.website.changeTemplate'), onSelect: () => navigate('/online-presence/smart-website/design') },
+                    { label: t('online.website.changeStyling'), onSelect: () => navigate('/online-presence/smart-website/styling') },
                     { label: t('online.website.changeDomain'), onSelect: () => navigate('/online-presence/smart-website/domain-type') },
                     { label: t('online.common.copyLink'), onSelect: () => copyText(url, t('online.common.linkCopied')) },
                   ],
@@ -88,7 +91,7 @@ export function SmartWebsitePage() {
               ]}
             />
             <Button onClick={() => setVisit(true)}>{t('online.website.visit')}</Button>
-            <Button variant="primary" onClick={() => navigate('/online-presence/smart-website/styling')}>
+            <Button variant="primary" onClick={() => navigate('/online-presence/smart-website/builder')}>
               {t('online.website.edit')}
             </Button>
           </>
@@ -165,19 +168,39 @@ export function SmartWebsiteWizardPage() {
   const workspace = useDb((s) => s.workspace)
   const services = useDb((s) => s.services)
   const addOns = useDb((s) => s.addOns)
-  const { website } = useOnlineState()
+  const website = useWebsite()
   const active = addOnStatus(addOns, 'smart-website') === 'active' && !!website?.publishedAt
   const [config, setConfig] = useState<WebsiteConfig>(() => website ?? defaultWebsite({ workspace, services }))
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
+  const [page, setPage] = useState('home')
   const [busy, setBusy] = useState(false)
+  const [saving, setSaving] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [domainOk, setDomainOk] = useState<boolean | null>(null)
-  const [billing, setBilling] = useState<BillingInput & { cvc: string }>(() => {
-    const b = workspace.plan.billingDetails
-    return { cardHolder: '', cardNumber: '', expiry: '', cvc: '', accountType: b?.accountType ?? 'Business', firstName: b?.firstName ?? '', lastName: b?.lastName ?? '', businessName: b?.businessName ?? workspace.name, vatNumber: b?.vatNumber ?? '', address: b?.address ?? '' }
-  })
-  const [billingErrors, setBillingErrors] = useState<Record<string, string>>({})
+  const [billing, setBilling] = useState<BillingValues>(() => initialBilling(workspace.plan.billingDetails))
+  const [billingErrors, setBillingErrors] = useState<BillingErrors>({})
   const index = STEPS.indexOf(step)
   const set = (p: Partial<WebsiteConfig>) => setConfig((c) => ({ ...c, ...p }))
+  const patchBilling = (p: Partial<BillingValues>) => {
+    setBilling((b) => ({ ...b, ...p }))
+    setBillingErrors((e) => {
+      const next = { ...e }
+      Object.keys(p).forEach((k) => delete next[k as keyof BillingValues])
+      return next
+    })
+  }
+
+  // The editor saves as you go ("Saving" → "All changes saved").
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    setSaving('saving')
+    const timer = window.setTimeout(() => void saveWebsite(config, true).then(() => setSaving('saved')), 700)
+    return () => window.clearTimeout(timer)
+  }, [config])
 
   const go = async (s: Step) => {
     await saveWebsite(config, true)
@@ -212,63 +235,77 @@ export function SmartWebsiteWizardPage() {
       }
       return
     }
-    const errs: Record<string, string> = {}
-    const req = t('online.website.billing.required')
-    if (!billing.cardHolder.trim()) errs.cardHolder = req
-    if (billing.cardNumber.replace(/\D/g, '').length < 12) errs.cardNumber = t('online.website.billing.cardInvalid')
-    if (!/^\d{2}\s?\/\s?\d{2}$/.test(billing.expiry.trim())) errs.expiry = t('online.website.billing.expiryInvalid')
-    if (!/^\d{3,4}$/.test(billing.cvc.trim())) errs.cvc = req
-    if (!billing.firstName.trim()) errs.firstName = req
-    if (!billing.lastName.trim()) errs.lastName = req
-    if (!billing.address.trim()) errs.address = req
+    const errs = validateBilling(billing, t)
     setBillingErrors(errs)
-    if (Object.keys(errs).length) return
+    if (Object.keys(errs).length) return toast(t('online.website.billing.fix'), 'error')
     setBusy(true)
     try {
       await activateSmartWebsite(config, billing)
       toast(t('online.website.activatedToast'))
       navigate('/online-presence/smart-website')
     } catch (e) {
-      toast((e as Error).message)
+      toast((e as Error).message, 'error')
     } finally {
       setBusy(false)
     }
   }
 
+  const stage = step === 'overview' ? -1 : ['design', 'styling', 'builder'].includes(step) ? 0 : step === 'enable' ? 2 : 1
   const continueLabel = step === 'enable' ? (active ? t('online.website.publishChanges') : t('online.website.activate')) : t('online.common.continue')
+  const editor = step === 'styling' || step === 'builder'
   return (
     <div className="flex h-full flex-col bg-canvas">
-      <div className="h-1 w-full bg-sunken" role="progressbar" aria-valuenow={Math.round(((index + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100}>
-        <div className="h-full bg-primary transition-all duration-base" style={{ width: `${((index + 1) / STEPS.length) * 100}%` }} />
-      </div>
-      <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-6">
+      {stage >= 0 && (
+        <div className="grid grid-cols-3 gap-1.5 px-6 pt-3" role="progressbar" aria-valuenow={Math.round(((index + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={t('online.wizard.progress', { pct: Math.round(((index + 1) / STEPS.length) * 100) })}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-1.5 overflow-hidden rounded-full bg-sunken">
+              <div className="h-full rounded-full bg-primary transition-all duration-base" style={{ width: i < stage ? '100%' : i === stage ? `${step === 'design' || step === 'domain-type' ? 34 : step === 'styling' ? 67 : 100}%` : '0%' }} />
+            </div>
+          ))}
+        </div>
+      )}
+      <header className={clsx('flex h-16 shrink-0 items-center justify-between gap-3 px-6', editor && 'border-b border-line bg-surface')}>
         <div className="flex items-center gap-3">
-          <button type="button" className="icon-btn h-10 w-10" aria-label={t('online.common.back')} onClick={back}>
+          <button type="button" className="icon-btn h-10 w-10 rounded-full border border-line-strong" aria-label={t('online.common.back')} onClick={back}>
             <ArrowLeft size={20} aria-hidden />
           </button>
-          {step === 'styling' && (
-            <Segmented
-              value={device}
-              onChange={setDevice}
-              items={[
-                { value: 'desktop', label: <Monitor size={16} aria-label={t('online.website.desktop')} /> },
-                { value: 'mobile', label: <Smartphone size={16} aria-label={t('online.website.mobile')} /> },
-              ]}
-            />
+          {editor && (
+            <>
+              <Segmented
+                value={device}
+                onChange={setDevice}
+                items={[
+                  { value: 'desktop', label: <Monitor size={16} aria-label={t('online.website.desktop')} /> },
+                  { value: 'mobile', label: <Smartphone size={16} aria-label={t('online.website.mobile')} /> },
+                ]}
+              />
+              <span className="flex items-center gap-1.5 text-small text-muted" aria-live="polite">
+                {saving === 'saving' && <Loader2 size={14} className="animate-spin" aria-hidden />}
+                {saving === 'saved' && <CheckCircle2 size={14} className="text-success" aria-hidden />}
+                {saving === 'saving' ? t('online.website.builder.saving') : saving === 'saved' ? t('online.website.builder.saved') : ''}
+              </span>
+            </>
           )}
         </div>
         <div className="flex items-center gap-2">
+          {editor && (
+            <Button icon={<Play size={16} aria-hidden />} onClick={() => setPreviewOpen(true)}>
+              {t('online.wizard.preview')}
+            </Button>
+          )}
           <Button onClick={close}>{t('online.common.close')}</Button>
-          <Button variant="primary" onClick={onContinue} loading={busy} disabled={step === 'domain' && !domainOk} iconRight={step === 'enable' ? <Check size={16} aria-hidden /> : <ArrowRight size={16} aria-hidden />}>
-            {continueLabel}
-          </Button>
+          {step !== 'domain-type' && (
+            <Button variant="primary" onClick={onContinue} loading={busy} disabled={step === 'domain' && !domainOk} iconRight={step === 'enable' ? <Check size={16} aria-hidden /> : <ArrowRight size={16} aria-hidden />}>
+              {continueLabel}
+            </Button>
+          )}
         </div>
       </header>
       <main className="min-h-0 flex-1 overflow-y-auto">
-        {step === 'styling' ? (
-          <StylingStep config={config} set={set} device={device} />
-        ) : (
-          <div className={clsx('mx-auto w-full px-6 pb-16 pt-10', step === 'design' ? 'max-w-[1100px]' : 'max-w-[680px]')}>
+        {step === 'styling' && <StylingStep config={config} set={set} device={device} />}
+        {step === 'builder' && <BuilderStep config={config} set={set} device={device} page={page} setPage={setPage} />}
+        {!editor && (
+          <div className={clsx('mx-auto w-full px-6 pb-16 pt-10', step === 'design' || step === 'enable' ? 'max-w-[1100px]' : 'max-w-[760px]')}>
             {step === 'overview' && (
               <>
                 <h1 className="mb-8 font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.overview.title')}</h1>
@@ -289,26 +326,58 @@ export function SmartWebsiteWizardPage() {
             {step === 'domain-type' && (
               <>
                 <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.domainType.title')}</h1>
-                <p className="mb-8 mt-2 text-body-lg text-muted">{t('online.website.domainType.body')}</p>
-                <RadioGroup
-                  variant="cards"
-                  value={config.domainType}
-                  onChange={(v) => {
-                    set({ domainType: v })
-                    setDomainOk(null)
-                  }}
-                  options={(['included', 'custom', 'existing'] as const).map((v) => ({ value: v, label: t(`online.website.domainType.${v}`), hint: t(`online.website.domainType.${v}Hint`, { suffix: SITE_SUFFIX }) }))}
-                />
+                <p className="mb-8 mt-2 text-body-lg text-muted">
+                  {t('online.website.domainType.body')} <LearnMore topic="Smart Website domains" />
+                </p>
+                <ul className="flex flex-col gap-3">
+                  {DOMAIN_TYPES.map(({ value, icon }) => (
+                    <li key={value}>
+                      <button
+                        type="button"
+                        aria-pressed={config.domainType === value}
+                        onClick={() => {
+                          set({ domainType: value })
+                          setDomainOk(null)
+                          navigate('/online-presence/smart-website/domain')
+                        }}
+                        className={clsx('flex w-full items-center gap-4 rounded-lg border bg-surface p-5 text-left transition-colors hover:border-line-strong', config.domainType === value ? 'border-primary' : 'border-line')}
+                      >
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary">{icon}</span>
+                        <span>
+                          <span className="block text-body-strong text-ink">{t(`online.website.domainType.${value}`)}</span>
+                          <span className="block text-body text-muted">{t(`online.website.domainType.${value}Hint`, { suffix: SITE_SUFFIX })}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </>
             )}
             {step === 'domain' && <DomainStep config={config} set={set} onStatus={setDomainOk} />}
-            {step === 'enable' && <EnableStep active={active} config={config} billing={billing} setBilling={setBilling} errors={billingErrors} />}
+            {step === 'enable' && <EnableStep active={active} config={config} billing={billing} setBilling={patchBilling} errors={billingErrors} />}
           </div>
         )}
       </main>
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        size="xl"
+        title={config.domain}
+        footer={<Segmented value={device} onChange={setDevice} items={[{ value: 'desktop', label: t('online.website.desktop') }, { value: 'mobile', label: t('online.website.mobile') }]} />}
+      >
+        <BrowserFrame url={`https://${config.domain}`} mobile={device === 'mobile'}>
+          <SitePreview config={config} mobile={device === 'mobile'} page={step === 'builder' ? page : 'home'} />
+        </BrowserFrame>
+      </Modal>
     </div>
   )
 }
+
+const DOMAIN_TYPES: { value: WebsiteConfig['domainType']; icon: ReactNode }[] = [
+  { value: 'included', icon: <Globe size={22} aria-hidden /> },
+  { value: 'custom', icon: <ShoppingCart size={22} aria-hidden /> },
+  { value: 'existing', icon: <Link2 size={22} aria-hidden /> },
+]
 
 function DesignStep({ config, set }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void }) {
   const { t } = useTranslation()
@@ -389,7 +458,6 @@ function DesignStep({ config, set }: { config: WebsiteConfig; set: (p: Partial<W
 
 function StylingStep({ config, set, device }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void; device: 'desktop' | 'mobile' }) {
   const { t } = useTranslation()
-  const setHero = (p: Partial<WebsiteConfig['hero']>) => set({ hero: { ...config.hero, ...p } })
   return (
     <div className="grid min-h-full lg:grid-cols-[360px_1fr]">
       <aside className="border-r border-line bg-surface p-6">
@@ -417,33 +485,159 @@ function StylingStep({ config, set, device }: { config: WebsiteConfig; set: (p: 
             </button>
           ))}
         </div>
-        <h2 className="mb-3 mt-8 text-title-3 text-ink">{t('online.website.styling.content')}</h2>
-        <div className="flex flex-col gap-3">
-          <Field label={t('online.website.styling.eyebrow')}>{(id) => <TextInput id={id} value={config.hero.eyebrow} onChange={(e) => setHero({ eyebrow: e.target.value })} />}</Field>
-          <Field label={t('online.website.styling.headline')}>{(id) => <TextInput id={id} value={config.hero.heading} onChange={(e) => setHero({ heading: e.target.value })} />}</Field>
-          <Field label={t('online.website.styling.text')}>{(id) => <TextInput id={id} value={config.hero.text} onChange={(e) => setHero({ text: e.target.value })} />}</Field>
-          <Field label={t('online.website.styling.button')}>{(id) => <TextInput id={id} value={config.hero.button} onChange={(e) => setHero({ button: e.target.value })} />}</Field>
-        </div>
-        <h2 className="mb-3 mt-8 text-title-3 text-ink">{t('online.website.styling.pages')}</h2>
-        <Switch checked={config.hideNavigation} onChange={(v) => set({ hideNavigation: v })} label={t('online.website.styling.hideNav')} />
-        <ul className="mt-3 flex flex-col gap-1">
-          {config.pages.map((p) => (
-            <li key={p.id} className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-sunken">
-              <span className={clsx('text-body', p.hidden ? 'text-muted line-through' : 'text-ink')}>{p.name}</span>
-              {p.id !== 'home' && (
-                <Button size="sm" variant="ghost" onClick={() => set({ pages: config.pages.map((x) => (x.id === p.id ? { ...x, hidden: !x.hidden } : x)) })}>
-                  {p.hidden ? t('online.website.styling.show') : t('online.website.styling.hide')}
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
       </aside>
       <div className="bg-sunken p-6">
         <BrowserFrame url={config.domain} mobile={device === 'mobile'}>
           <SitePreview config={config} mobile={device === 'mobile'} />
         </BrowserFrame>
       </div>
+    </div>
+  )
+}
+
+/** The page editor (online-booking.md §5 "sites/builder"): page list with options, page content, live preview. */
+function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void; device: 'desktop' | 'mobile'; page: string; setPage: (id: string) => void }) {
+  const { t } = useTranslation()
+  const [adding, setAdding] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [nameError, setNameError] = useState('')
+  const selected = config.pages.find((p) => p.id === page) ?? config.pages[0]
+  const setHero = (p: Partial<WebsiteConfig['hero']>) => set({ hero: { ...config.hero, ...p } })
+  const setPageFields = (id: string, p: Partial<SitePage>) => set({ pages: config.pages.map((x) => (x.id === id ? { ...x, ...p } : x)) })
+  const move = (id: string, dir: -1 | 1) => {
+    const i = config.pages.findIndex((x) => x.id === id)
+    const j = i + dir
+    if (i < 1 || j < 1 || j >= config.pages.length) return
+    const next = [...config.pages]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    set({ pages: next })
+  }
+  const addPage = () => {
+    const name = newName.trim()
+    if (!name) return setNameError(t('online.website.builder.nameRequired'))
+    if (config.pages.some((p) => p.name.toLowerCase() === name.toLowerCase())) return setNameError(t('online.website.builder.nameTaken'))
+    const id = uid('pg')
+    set({ pages: [...config.pages, { id, name, heading: name, text: '', hidden: false, system: false }] })
+    setPage(id)
+    setAdding(false)
+    setNewName('')
+    toast(t('online.website.builder.addedToast', { name }))
+  }
+  const remove = async (p: SitePage) => {
+    if (!(await confirm({ title: t('online.website.builder.deleteTitle'), body: t('online.website.builder.deleteBody', { name: p.name }), confirmLabel: t('online.website.builder.deletePage'), tone: 'danger' }))) return
+    set({ pages: config.pages.filter((x) => x.id !== p.id) })
+    if (page === p.id) setPage('home')
+    toast(t('online.website.builder.deletedToast'))
+  }
+  return (
+    <div className="grid min-h-full lg:grid-cols-[320px_1fr]">
+      <aside className="flex flex-col border-r border-line bg-surface">
+        <div className="border-b border-line p-5">
+          <h1 className="font-display text-title-2 text-ink">{t('online.website.builder.title')}</h1>
+          <div className="mt-4">
+            <Switch checked={config.hideNavigation} onChange={(v) => set({ hideNavigation: v })} label={t('online.website.builder.hideNav')} />
+          </div>
+        </div>
+        <div className="flex items-center justify-between px-5 pb-2 pt-4">
+          <h2 className="text-body-strong text-ink">{t('online.website.builder.mainMenu')}</h2>
+          <IconButton
+            label={t('online.website.builder.addNew')}
+            onClick={() => {
+              setAdding(true)
+              setNameError('')
+            }}
+          >
+            <Plus size={18} aria-hidden />
+          </IconButton>
+        </div>
+        <ul className="flex flex-col gap-0.5 px-3">
+          {config.pages.map((p, i) => (
+            <li key={p.id} className={clsx('flex items-center rounded-md pr-1', p.id === selected?.id ? 'bg-primary-subtle' : 'hover:bg-sunken')}>
+              <button type="button" onClick={() => setPage(p.id)} aria-current={p.id === selected?.id ? 'page' : undefined} className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2.5 text-left text-body">
+                {p.id === 'home' ? <Home size={16} className="shrink-0 text-primary" aria-hidden /> : <FileText size={16} className="shrink-0 text-muted" aria-hidden />}
+                <span className={clsx('truncate', p.hidden ? 'text-muted line-through' : 'text-ink', p.id === selected?.id && 'font-semibold')}>{p.name}</span>
+                {p.hidden && <span className="chip ml-auto bg-sunken text-caption text-muted">{t('online.website.builder.hidden')}</span>}
+              </button>
+              <Menu
+                label={t('online.website.builder.pageOptions', { name: p.name })}
+                groups={[
+                  {
+                    items: [
+                      { label: t('online.website.builder.editPage'), onSelect: () => setPage(p.id) },
+                      ...(p.id !== 'home'
+                        ? [
+                            { label: p.hidden ? t('online.website.builder.showInNav') : t('online.website.builder.hideFromNav'), onSelect: () => setPageFields(p.id, { hidden: !p.hidden }) },
+                            { label: t('online.website.builder.moveUp'), onSelect: () => move(p.id, -1), disabled: i <= 1 },
+                            { label: t('online.website.builder.moveDown'), onSelect: () => move(p.id, 1), disabled: i === config.pages.length - 1 },
+                          ]
+                        : []),
+                    ],
+                  },
+                  ...(!p.system ? [{ items: [{ label: t('online.website.builder.deletePage'), danger: true, onSelect: () => void remove(p) }] }] : []),
+                ]}
+              />
+            </li>
+          ))}
+        </ul>
+        {selected && (
+          <div className="mt-4 flex flex-col gap-3 border-t border-line p-5">
+            <h2 className="text-body-strong text-ink">{t('online.website.builder.pageContent', { name: selected.name })}</h2>
+            {selected.id === 'home' ? (
+              <>
+                <Field label={t('online.website.styling.eyebrow')}>{(id) => <TextInput id={id} value={config.hero.eyebrow} onChange={(e) => setHero({ eyebrow: e.target.value })} />}</Field>
+                <Field label={t('online.website.styling.headline')}>{(id) => <TextInput id={id} value={config.hero.heading} onChange={(e) => setHero({ heading: e.target.value })} />}</Field>
+                <Field label={t('online.website.styling.text')}>{(id) => <TextArea id={id} rows={3} value={config.hero.text} onChange={(e) => setHero({ text: e.target.value })} />}</Field>
+                <Field label={t('online.website.styling.button')}>{(id) => <TextInput id={id} value={config.hero.button} onChange={(e) => setHero({ button: e.target.value })} />}</Field>
+              </>
+            ) : (
+              <>
+                <Field label={t('online.website.builder.pageName')}>{(id) => <TextInput id={id} value={selected.name} onChange={(e) => setPageFields(selected.id, { name: e.target.value })} />}</Field>
+                <Field label={t('online.website.builder.heading')}>{(id) => <TextInput id={id} value={selected.heading} onChange={(e) => setPageFields(selected.id, { heading: e.target.value })} />}</Field>
+                <Field label={t('online.website.builder.text')}>{(id) => <TextArea id={id} rows={4} value={selected.text} onChange={(e) => setPageFields(selected.id, { text: e.target.value })} />}</Field>
+              </>
+            )}
+          </div>
+        )}
+        <div className="mt-auto border-t border-line p-5 text-center">
+          <LearnMore topic="Smart Website">{t('online.website.builder.helpCenter')}</LearnMore>
+        </div>
+      </aside>
+      <div className="bg-sunken p-6">
+        <BrowserFrame url={`${config.domain}${selected && selected.id !== 'home' ? `/${selected.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : ''}`} mobile={device === 'mobile'}>
+          <SitePreview config={config} mobile={device === 'mobile'} page={selected?.id ?? 'home'} />
+        </BrowserFrame>
+      </div>
+      <Modal
+        open={adding}
+        onClose={() => setAdding(false)}
+        size="sm"
+        title={t('online.website.builder.addTitle')}
+        footer={
+          <>
+            <Button onClick={() => setAdding(false)}>{t('online.common.cancel')}</Button>
+            <Button variant="primary" onClick={addPage}>
+              {t('online.website.builder.add')}
+            </Button>
+          </>
+        }
+      >
+        <Field label={t('online.website.builder.pageName')} error={nameError || undefined}>
+          {(id) => (
+            <TextInput
+              id={id}
+              value={newName}
+              autoFocus
+              placeholder={t('online.website.builder.pageNamePlaceholder')}
+              invalid={!!nameError}
+              onChange={(e) => {
+                setNewName(e.target.value)
+                setNameError('')
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && addPage()}
+            />
+          )}
+        </Field>
+      </Modal>
     </div>
   )
 }
@@ -534,68 +728,67 @@ function DomainStep({ config, set, onStatus }: { config: WebsiteConfig; set: (p:
   )
 }
 
-function EnableStep({ active, config, billing, setBilling, errors }: { active: boolean; config: WebsiteConfig; billing: BillingInput & { cvc: string }; setBilling: (fn: (b: BillingInput & { cvc: string }) => BillingInput & { cvc: string }) => void; errors: Record<string, string> }) {
+function EnableStep({ active, config, billing, setBilling, errors }: { active: boolean; config: WebsiteConfig; billing: BillingValues; setBilling: (p: Partial<BillingValues>) => void; errors: BillingErrors }) {
   const { t } = useTranslation()
   const { tax, payNow } = smartWebsiteProRata()
   if (active) {
     return (
-      <>
+      <div className="max-w-[680px]">
         <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.enable.activeTitle')}</h1>
         <p className="mt-2 text-body-lg text-muted">{t('online.website.enable.activeBody', { domain: config.domain })}</p>
-      </>
+      </div>
     )
   }
-  const f = (key: keyof (BillingInput & { cvc: string }), label: string, extra?: { placeholder?: string; className?: string; inputMode?: 'numeric' }) => (
-    <Field label={label} error={errors[key]} className={extra?.className}>
-      {(id) => <TextInput id={id} value={billing[key] ?? ''} placeholder={extra?.placeholder} inputMode={extra?.inputMode} onChange={(e) => setBilling((b) => ({ ...b, [key]: e.target.value }))} invalid={!!errors[key]} />}
-    </Field>
-  )
   return (
     <>
-      <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.enable.title')}</h1>
-      <Card className="mt-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-body-strong text-ink">{t('online.website.title')}</p>
-            <p className="text-small text-muted">{t('online.website.enable.fixed')}</p>
-          </div>
-          <p className="text-body-strong text-ink">{money2(SMART_WEBSITE_PRICE)}</p>
+      <h1 className="mb-8 font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.enable.title')}</h1>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <CardFields values={billing} errors={errors} onChange={setBilling} />
+          <BillingDetailsFields values={billing} errors={errors} onChange={setBilling} />
         </div>
-        <dl className="mt-4 flex flex-col gap-2 border-t border-line pt-4 text-body">
-          <div className="flex justify-between">
-            <dt className="text-muted">{t('online.website.enable.subtotal')}</dt>
-            <dd className="text-ink">{money2(SMART_WEBSITE_PRICE)}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted">{t('online.website.enable.iva', { pct: Math.round(IVA * 100) })}</dt>
-            <dd className="text-ink">{money2(tax)}</dd>
-          </div>
-          <div className="flex justify-between border-t border-line pt-2 text-body-strong">
-            <dt className="text-ink">{t('online.website.enable.payNow')}</dt>
-            <dd className="text-ink">{money2(payNow)}</dd>
-          </div>
-        </dl>
-        <p className="mt-4 text-small text-muted">{t('online.website.enable.note', { price: money2(SMART_WEBSITE_PRICE) })}</p>
-      </Card>
-      <h2 className="mb-3 mt-8 text-title-3 text-ink">{t('online.website.billing.card')}</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {f('cardHolder', t('online.website.billing.cardHolder'), { className: 'sm:col-span-2' })}
-        {f('cardNumber', t('online.website.billing.cardNumber'), { placeholder: '4242 4242 4242 4242', className: 'sm:col-span-2', inputMode: 'numeric' })}
-        {f('expiry', t('online.website.billing.expiry'), { placeholder: 'MM / YY' })}
-        {f('cvc', t('online.website.billing.cvc'), { placeholder: '123', inputMode: 'numeric' })}
+        <div className="flex flex-col gap-4 lg:sticky lg:top-0">
+          <section className="card flex items-start gap-4 p-6">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-info text-on-primary">
+              <Sparkles size={22} aria-hidden />
+            </span>
+            <div>
+              <p className="text-title-3 text-ink">{t('online.website.title')}</p>
+              <p className="mt-1 text-body text-muted">{t('online.website.enable.tagline')}</p>
+            </div>
+          </section>
+          <section className="card p-6">
+            <div className="flex items-start justify-between border-b border-line pb-4">
+              <div>
+                <p className="text-body text-ink">{t('online.website.enable.fixedPrice')}</p>
+                <p className="text-body text-muted">{t('online.website.enable.monthly')}</p>
+              </div>
+              <p className="text-body text-ink">{money2(SMART_WEBSITE_PRICE)}</p>
+            </div>
+            <dl className="flex flex-col gap-1 border-b border-line py-4 text-body text-muted">
+              <div className="flex justify-between">
+                <dt>{t('online.website.enable.subtotal')}</dt>
+                <dd>{money2(SMART_WEBSITE_PRICE)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>{t('online.website.enable.iva', { pct: Math.round(IVA * 100) })}</dt>
+                <dd>{money2(tax)}</dd>
+              </div>
+            </dl>
+            <div className="flex justify-between border-b border-line py-4 text-title-3 text-ink">
+              <span>{t('online.website.enable.payNow')}</span>
+              <span>{money2(payNow)}</span>
+            </div>
+            <div className="flex flex-col gap-3 pt-4 text-body text-muted">
+              <p>{t('online.website.enable.proRata')}</p>
+              <p>{t('online.website.enable.renews', { price: money2(SMART_WEBSITE_PRICE) })}</p>
+              <p>{t('online.website.enable.autoRenew')}</p>
+              <p>{t('online.website.enable.manage')}</p>
+            </div>
+          </section>
+          <CheckList items={[t('online.website.enable.c1', { domain: config.domain }), t('online.website.enable.c2')]} />
+        </div>
       </div>
-      <h2 className="mb-3 mt-8 text-title-3 text-ink">{t('online.website.billing.details')}</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('online.website.billing.accountType')} className="sm:col-span-2">
-          {(id) => <Select id={id} value={billing.accountType} onChange={(e) => setBilling((b) => ({ ...b, accountType: e.target.value }))} options={[{ value: 'Business', label: t('online.website.billing.business') }, { value: 'Individual', label: t('online.website.billing.individual') }]} />}
-        </Field>
-        {f('firstName', t('online.website.billing.firstName'))}
-        {f('lastName', t('online.website.billing.lastName'))}
-        {f('businessName', t('online.website.billing.businessName'))}
-        {f('vatNumber', t('online.website.billing.vat'))}
-        {f('address', t('online.website.billing.address'), { className: 'sm:col-span-2' })}
-      </div>
-      <CheckList className="mt-8" items={[t('online.website.enable.c1', { domain: config.domain }), t('online.website.enable.c2')]} />
     </>
   )
 }

@@ -125,7 +125,6 @@ export function AutomationDetailPage() {
     )
   }
 
-  const custom = automation.key.startsWith('custom-')
   const channels = (['email', 'sms', 'whatsapp'] as Channel[]).filter((ch) => automation.channels[ch])
   const chart = perf.buckets.map((b) => {
     const tt = perf.totalsOf(b.rows)
@@ -195,7 +194,7 @@ export function AutomationDetailPage() {
               items: [
                 { label: t('marketing.common.edit'), onSelect: () => navigate(`/marketing/automated-messages/configure/${automation.id}`) },
                 { label: automation.enabled ? t('marketing.automationDetail.disable') : t('marketing.common.enable'), onSelect: () => void toggle() },
-                ...(custom ? [{ label: t('marketing.automationDetail.remove.action'), danger: true, onSelect: () => void remove() }] : []),
+                { label: t('marketing.automationDetail.remove.action'), danger: true, onSelect: () => void remove() },
                 { label: t('marketing.automationDetail.reset.action'), onSelect: () => void reset() },
               ],
             },

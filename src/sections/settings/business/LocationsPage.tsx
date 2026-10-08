@@ -2,12 +2,11 @@ import { Copy, MapPin, Plus, Star } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button, Select, confirm, toast } from '@/components/ui'
+import { Button, Modal, Select, confirm, toast } from '@/components/ui'
 import { deleteLocation, locationUsage } from '@/api/settings'
 import { useDb } from '@/store/db'
 import type { Location } from '@/types'
 import { ActionsPill, PillMenu, SettingsPage } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
 import { useAction } from '../components/useAction'
 import { useLocations, useWorkspace } from '../hooks'
 import { formatAddress } from './shared'
@@ -141,8 +140,10 @@ export function LocationImage({ name, size = 'md' }: { name: string; size?: 'md'
 
 function ShareLinkModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const workspace = useWorkspace()
   const locations = useLocations()
+  const listed = locations.filter((l) => l.marketplace.listed)
   const [locationId, setLocationId] = useState('all')
   const base = `https://book.innoweb.app/${slugify(workspace.name)}`
   const link = locationId === 'all' ? base : `${base}/${slugify(locations.find((l) => l.id === locationId)?.internalName ?? locationId)}`
@@ -154,8 +155,27 @@ function ShareLinkModal({ open, onClose }: { open: boolean; onClose: () => void 
     }
     toast(t('settings.common.copied'))
   }
+  if (!listed.length) {
+    // Reference: "To create a link for the entire service menu, publish your profile" (Start now / Close).
+    return (
+      <Modal
+        open={open}
+        onClose={onClose}
+        title={t('settings.biz.locations.publishTitle')}
+        subtitle={t('settings.biz.locations.publishBody')}
+        footer={
+          <>
+            <Button onClick={onClose}>{t('settings.common.close')}</Button>
+            <Button variant="primary" onClick={() => navigate('/online-presence/locations')} data-testid="share-start-now">
+              {t('settings.biz.locations.startNow')}
+            </Button>
+          </>
+        }
+      />
+    )
+  }
   return (
-    <SettingsModal
+    <Modal
       open={open}
       onClose={onClose}
       title={t('settings.biz.locations.shareTitle')}
@@ -163,19 +183,21 @@ function ShareLinkModal({ open, onClose }: { open: boolean; onClose: () => void 
       footer={
         <>
           <Button onClick={onClose}>{t('settings.common.done')}</Button>
-          <Button variant="primary" icon={<Copy size={16} />} onClick={copy}>
+          <Button variant="primary" icon={<Copy size={16} />} onClick={copy} data-testid="share-copy">
             {t('settings.biz.locations.copyLink')}
           </Button>
         </>
       }
     >
-      <label className="label" htmlFor="share-location">
-        {t('settings.biz.locations.shareFor')}
-      </label>
-      <Select id="share-location" value={locationId} onChange={(e) => setLocationId(e.target.value)} options={[{ value: 'all', label: t('settings.common.allLocations') }, ...locations.map((l) => ({ value: l.id, label: l.name }))]} />
-      <p className="mt-4 break-all rounded-md bg-sunken px-4 py-3 font-mono text-small text-ink" data-testid="share-link">
-        {link}
-      </p>
-    </SettingsModal>
+      <div className="pb-2">
+        <label className="label" htmlFor="share-location">
+          {t('settings.biz.locations.shareFor')}
+        </label>
+        <Select id="share-location" value={locationId} onChange={(e) => setLocationId(e.target.value)} options={[{ value: 'all', label: t('settings.common.allLocations') }, ...listed.map((l) => ({ value: l.id, label: l.name }))]} />
+        <p className="mt-4 break-all rounded-md bg-sunken px-4 py-3 font-mono text-small text-ink" data-testid="share-link">
+          {link}
+        </p>
+      </div>
+    </Modal>
   )
 }

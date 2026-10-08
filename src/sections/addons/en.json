@@ -28,14 +28,6 @@
     "bookableMember": "per bookable team member, per month",
     "teamMember": "per team member, per month"
   },
-  "qty": {
-    "location_one": "{{count}} x location",
-    "location_other": "{{count}} x locations",
-    "bookableMember_one": "{{count}} x bookable team member",
-    "bookableMember_other": "{{count}} x bookable team members",
-    "teamMember_one": "{{count}} x team member",
-    "teamMember_other": "{{count}} x team members"
-  },
   "unitMonthly": {
     "location": "{{price}} per location, monthly",
     "bookableMember": "{{price}} per bookable team member, monthly",
@@ -92,7 +84,29 @@
       "expiry": "Enter a valid expiry date (MM/YY)",
       "cvv": "Enter a valid CVV",
       "vat": "Enter a valid VAT number, e.g. PT123456789"
-    }
+    },
+    "titles": {
+      "google-rating-boost": "Enable Google Rating Boost",
+      "premium-support": "Add your billing details"
+    },
+    "intros": {
+      "google-rating-boost": "Select your payment method and confirm your order.",
+      "team-chat": "Select your payment method and confirm your Team Connect add-on activation",
+      "data-connector": "Select your payment method and confirm your Innoweb add-on.",
+      "premium-support": "Activate your subscription plan to keep Premium Support after your free trial."
+    },
+    "activate": "Activate",
+    "planActivated": "Plan activated",
+    "planLine": "Subscription plan",
+    "planName": "Subscription plan",
+    "planTagline": "Grow your business with Innoweb",
+    "savedCardHint": "Expires {{expiry}}",
+    "newCard": "Add a new card",
+    "cardHolderPlaceholder": "Add card holder full name",
+    "cardNumberPlaceholder": "Credit or debit card number",
+    "cvvPlaceholder": "3 digits",
+    "order": "Order summary",
+    "trialEnding": "Free trial, ending {{date}}"
   },
   "manage": {
     "breadcrumb": "Add-ons",
@@ -101,15 +115,13 @@
     "pricing": "Pricing",
     "helpCenter": "Help center",
     "viewMore": "View more in help center",
-    "includedInPlan": "Included in Innoweb for business",
     "enabledOn": "Enabled on {{date}}",
-    "trialBanner": "Activate your plan to ensure uninterrupted access after your free trial ends in {{count}} days",
     "activatePlan": "Activate plan",
     "notActive": "This add-on isn't active in your workspace.",
     "disableTitle": "Are you sure you want to disable {{name}}?",
     "noLonger": "You will no longer be able to:",
     "why": "Why are you disabling?",
-    "selectReason": "Select a reason",
+    "selectReason": "Select an option",
     "goBack": "Go back",
     "disableNow": "Disable now",
     "disabled": "{{name}} disabled",
@@ -152,56 +164,183 @@
     "verified": "Verified",
     "reviewPrompts": "Review prompts are on",
     "reviewPromptsOff": "Review prompts are off",
-    "promptsUpdated": "Settings updated"
+    "promptsUpdated": "Settings updated",
+    "names": {
+      "bookable-resources": "Bookable resources"
+    },
+    "breadcrumbLabel": "Breadcrumb",
+    "includedIn": "Included in",
+    "planName": "Innoweb for business",
+    "trialBannerPrefix": "Activate your plan to ensure uninterrupted access after your free trial ends in",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "trialActivated": "Your free trial ends on {{end}}. Your plan is activated and billing starts on {{start}}.",
+    "disabledOn": "Disabled on {{date}}. You can enable it again at any time.",
+    "selectReasonError": "Select a reason to continue",
+    "trialEnds": "Free trial ends {{date}}",
+    "removeAccountTitle": "Remove payout account?",
+    "removeAccountBody": "{{name}} will no longer receive payouts.",
+    "removeAccount": "Remove account",
+    "accountRemoved": "Payout account removed",
+    "promptsOn": "Review prompts turned on",
+    "promptsOff": "Review prompts turned off",
+    "minRating": "Prompt clients who rate"
   },
   "features": {
     "payments": [
-      { "title": "Payout accounts", "body": "Bank accounts that receive your daily payouts." },
-      { "title": "Payment methods", "body": "Choose how clients can pay in-store and online.", "action": "View settings", "to": "/setup/payments/payment-methods" },
-      { "title": "Card terminals", "body": "Order and manage card terminals for in-store payments.", "action": "View terminals", "to": "/setup/payments/terminals" }
+      {
+        "title": "Payout accounts",
+        "body": "Bank accounts that receive your next-day payouts."
+      },
+      {
+        "title": "Payment methods",
+        "body": "Choose how clients can pay in-store and online.",
+        "action": "View settings",
+        "to": "/setup/payments/payment-methods"
+      },
+      {
+        "title": "Card terminals",
+        "body": "Order and manage card terminals, or use Tap to Pay on your phone.",
+        "action": "View terminals",
+        "to": "/setup/payments/terminals"
+      },
+      {
+        "title": "Payment policy",
+        "body": "Collect deposits online and charge cancellation and no-show fees.",
+        "action": "View policy",
+        "to": "/setup/payments/payment-policy"
+      }
     ],
     "premium-support": [
-      { "title": "Phone support", "body": "Reach experienced business support specialists over phone" },
-      { "title": "Chat support", "body": "Chat directly to a support specialist at any time from within the Innoweb app" }
+      {
+        "title": "Phone support",
+        "body": "Reach experienced business support specialists over phone"
+      },
+      {
+        "title": "Chat support",
+        "body": "Chat directly to a support specialist at any time from within the Innoweb app"
+      }
     ],
     "insights": [
-      { "title": "Premium reports", "body": "Get access to additional premium reports.", "action": "View reports", "to": "/reports/report-group/4" },
-      { "title": "Performance summary", "body": "Overview of business performance by team or location.", "action": "View report", "to": "/reports/table/performance-summary" },
-      { "title": "Performance over time", "body": "Key business metrics by location or team member over time.", "action": "View report", "to": "/reports/table/performance-over-time" }
+      {
+        "title": "Premium reports",
+        "body": "Get access to additional premium reports.",
+        "action": "View reports",
+        "to": "/reports/report-group/4?category=all"
+      },
+      {
+        "title": "Custom reports",
+        "body": "Create custom reports with the specific data you want to track, and organise them in folders.",
+        "action": "View custom reports",
+        "to": "/reports/report-group/5?category=all"
+      },
+      {
+        "title": "Report access",
+        "body": "Control which reports each team member can access.",
+        "action": "Manage permissions",
+        "to": "/setup/team/permissions"
+      }
     ],
     "google-rating-boost": [
-      { "title": "Google review prompts", "body": "Clients who rate their visit highly are sent straight to your Google Business Profile." },
-      { "title": "Client reviews", "body": "See every review your clients leave.", "action": "View reviews", "to": "/user-account/reviews" }
+      {
+        "title": "Google review prompts",
+        "body": "Clients who rate their visit highly are sent straight to your Google Business Profile to leave a review."
+      },
+      {
+        "title": "Client reviews",
+        "body": "See star ratings and reviews left by clients after their visit.",
+        "action": "View reviews",
+        "to": "/user-account/reviews"
+      }
     ],
     "loyalty": [
-      { "title": "Loyalty program", "body": "Set up points, tiers and referral rewards.", "action": "Set up program", "to": "/clients/loyalty" },
-      { "title": "Loyalty dashboard", "body": "Track loyalty sales and engaged clients.", "action": "View report", "to": "/reports/table/loyalty_dashboard" }
+      {
+        "title": "Loyalty program",
+        "body": "Set up points, tiers and referral rewards.",
+        "action": "Set up program",
+        "to": "/clients/loyalty"
+      },
+      {
+        "title": "Loyalty dashboard",
+        "body": "Track loyalty sales and engaged clients.",
+        "action": "View report",
+        "to": "/reports/table/loyalty_dashboard"
+      }
     ],
     "data-connector": [
-      { "title": "Warehouse credentials", "body": "Connect your BI tool to your Innoweb data.", "action": "View connection", "to": "/reports/data-connector" }
+      {
+        "title": "Warehouse credentials",
+        "body": "Connect your BI tool to your Innoweb data.",
+        "action": "View connection",
+        "to": "/reports/data-connector"
+      }
     ],
     "client-connect": [
-      { "title": "Client messages", "body": "Reply to client enquiries in real time from one shared inbox", "action": "View chat", "to": "/connect" },
-      { "title": "Client Connect settings", "body": "Manage how clients can contact your business", "action": "View settings", "to": "/setup/clients/messages" }
+      {
+        "title": "Client messages",
+        "body": "Reply to client enquiries in real time from one shared inbox",
+        "action": "View chat",
+        "to": "/connect"
+      },
+      {
+        "title": "Client Connect settings",
+        "body": "Manage how clients can contact your business",
+        "action": "View settings",
+        "to": "/setup/clients/messages"
+      }
     ],
     "team-chat": [
-      { "title": "Team chats", "body": "Create group chats by location, team or topic and share files.", "action": "Open Team Connect", "to": "/connect" }
+      {
+        "title": "Team chats",
+        "body": "Create group chats by location, team or topic and share files.",
+        "action": "Open Team Connect",
+        "to": "/connect"
+      }
     ],
     "bookable-resources": [
-      { "title": "Set up resources", "body": "Add and manage bookable resources, rooms, and equipment. Assign them to services to ensure smooth scheduling.", "action": "Set up resources", "to": "/setup/scheduling/resources" },
-      { "title": "Assign resources to your services", "body": "Set what resources are required to perform your services.", "action": "View services", "to": "/catalogue/services" },
-      { "title": "Track resource utilization", "body": "Track how often resources are booked and the revenue they generate for your business.", "action": "View report", "to": "/reports" }
+      {
+        "title": "Set up resources",
+        "body": "Add and manage bookable resources, rooms, and equipment. Assign them to services to ensure smooth scheduling.",
+        "action": "Set up resources",
+        "to": "/setup/scheduling/resources"
+      },
+      {
+        "title": "Assign resources to your services",
+        "body": "Set what resources are required to perform your services.",
+        "action": "View services",
+        "to": "/catalogue/services"
+      },
+      {
+        "title": "Track resource utilization",
+        "body": "Track how often resources are booked and the revenue they generate for your business.",
+        "action": "View report",
+        "to": "/reports"
+      }
     ],
     "xero": [
-      { "title": "Automatic sync", "body": "Sales, payments and fees are sent to your accounting software every night." }
+      {
+        "title": "Automatic sync",
+        "body": "Sales, payments and fees are sent to Xero every day."
+      },
+      {
+        "title": "Account mapping",
+        "body": "Where each type of transaction is recorded in Xero."
+      }
     ],
     "quickbooks": [
-      { "title": "Automatic sync", "body": "Sales, payments and fees are sent to your accounting software every night." }
+      {
+        "title": "Automatic sync",
+        "body": "Sales, payments and fees are sent to QuickBooks every day."
+      },
+      {
+        "title": "Account mapping",
+        "body": "Where each type of transaction is recorded in QuickBooks."
+      }
     ]
   },
   "taglines": {
     "payments": "Low cost, safe and simple payments integrated directly to your workspace",
-    "premium-support": "Help from our experienced business support specialists",
+    "premium-support": "Get the most out of the Innoweb platform and it's features with help from our experienced business support specialists.",
     "insights": "Advanced analytics to better understand your business",
     "google-rating-boost": "Turn happy clients into Google reviews",
     "loyalty": "Reward your regulars",
@@ -213,41 +352,261 @@
     "quickbooks": "Automatically sync your sales and payments with QuickBooks"
   },
   "help": {
-    "default": ["How do add-ons work?", "How am I billed for add-ons?"],
-    "premium-support": ["How to contact support?", "What can support help me with?", "How to access phone support?"],
-    "client-connect": ["How clients send you messages", "Explore your client messages inbox", "Message clients using Client Connect"],
-    "bookable-resources": ["How do I create a resource", "How do I assign a resource to a service"]
+    "default": [
+      "How do add-ons work?",
+      "How am I billed for add-ons?"
+    ],
+    "premium-support": [
+      "How to contact support?",
+      "What can support help me with?",
+      "How to access phone support?"
+    ],
+    "client-connect": [
+      "How clients send you messages",
+      "Explore your client messages inbox",
+      "Message clients using Client Connect"
+    ],
+    "bookable-resources": [
+      "How do I create a resource",
+      "How do I assign a resource to a service"
+    ],
+    "payments": [
+      "How do payouts work?",
+      "What are the payment processing fees?",
+      "How do I take a deposit?"
+    ],
+    "insights": [
+      "What reports are included in Insights?",
+      "How do I create a custom report?",
+      "How do I control report access?"
+    ],
+    "google-rating-boost": [
+      "How does Google Rating Boost work?",
+      "Which clients are asked for a Google review?"
+    ],
+    "loyalty": [
+      "How do I set up a loyalty program?",
+      "How do clients redeem rewards?"
+    ],
+    "data-connector": [
+      "What data does the Data Connector sync?",
+      "How do I connect Power BI?"
+    ],
+    "team-chat": [
+      "How do I create a group chat?",
+      "Who can see Team Connect chats?"
+    ],
+    "xero": [
+      "How does the Xero integration work?",
+      "How are transactions mapped in Xero?"
+    ],
+    "quickbooks": [
+      "How does the QuickBooks integration work?",
+      "How are transactions mapped in QuickBooks?"
+    ]
   },
   "loseAccess": {
-    "default": ["Use the features included in this add-on", "Access the data and settings it created"],
-    "client-connect": ["Message clients within Innoweb", "Receive messages from clients within Innoweb", "Access client connect message history"]
+    "default": [
+      "Use the features included in this add-on",
+      "Access the data and settings it created"
+    ],
+    "client-connect": [
+      "Message clients within Innoweb",
+      "Receive messages from clients within Innoweb",
+      "Access client connect message history"
+    ],
+    "premium-support": [
+      "Call our business support specialists",
+      "Chat with a support specialist from within Innoweb"
+    ],
+    "insights": [
+      "View premium reports",
+      "Use your custom reports and folders",
+      "Customize reports"
+    ],
+    "bookable-resources": [
+      "Assign resources to your services",
+      "Book appointments with resources only",
+      "Track resource utilization"
+    ],
+    "loyalty": [
+      "Reward clients with points, tiers and referrals",
+      "Let clients redeem rewards online"
+    ],
+    "data-connector": [
+      "Sync your data to your data warehouse",
+      "Query your data from your BI tools"
+    ],
+    "team-chat": [
+      "Chat with your team in group chats",
+      "Share files with your team"
+    ],
+    "google-rating-boost": [
+      "Send happy clients to your Google Business Profile"
+    ],
+    "payments": [
+      "Take card payments in-store and online",
+      "Receive next-day payouts",
+      "Charge deposits and no-show fees"
+    ],
+    "xero": [
+      "Sync sales and payments to Xero"
+    ],
+    "quickbooks": [
+      "Sync sales and payments to QuickBooks"
+    ]
   },
   "intro": {
-    "payments": { "label": "Payments add-on", "heading": "Power your payments with Innoweb", "body": "Get paid by clients online and in-store with low cost, safe and simple payments.", "bullets": ["Protect against no shows and cancellations", "Accept contactless, swipe, chip and pin with an Innoweb card terminal or use Tap to Pay on iPhone or Android.", "Receive money in your bank account the very next day."], "price": "From 1.09% + €0.10 per transaction" },
-    "premium-support": { "label": "Premium Support add-on", "heading": "Get expert help whenever you need it", "body": "Get the most out of the Innoweb platform and its features with help from our experienced business support specialists.", "bullets": ["Phone support with a dedicated number", "Live chat with a support specialist at any time", "Priority help with setup and features"] },
-    "insights": { "label": "Insights add-on", "heading": "Understand your business better with Insights", "body": "Enhance your reports with rich data, control your team's access, and make more profitable decisions for your business.", "bullets": ["Get access to additional premium reports", "Create custom reports with the specific data you want to track", "Control which reports each team member can access"] },
-    "google-rating-boost": { "label": "Google Rating Boost add-on", "heading": "Increase your footfall with glowing Google reviews", "body": "When your clients give you positive feedback through Innoweb, we'll send them straight to your Google Business Profile to leave a review.", "bullets": ["Any clients rating their experience highly will be prompted to post their review to your Google profile", "Increase your rating on Google", "Watch your footfall grow"] },
-    "loyalty": { "label": "Client Loyalty add-on", "heading": "Turn all clients into regulars", "body": "Watch your sales skyrocket with a custom loyalty program - encouraging repeat visits and larger purchases.", "bullets": ["Offer the ultimate loyalty experience with points, tiers and referrals", "Reward your clients with exclusive offers, discounts and incentives to celebrate their loyalty", "Allow clients to easily track their progress and redeem rewards online"] },
-    "data-connector": { "label": "Data Connector add-on", "heading": "Connect Innoweb data to your own data warehouse and BI tools", "body": "Automate data syncing and keep all your essential business systems updated without any manual effort.", "bullets": ["Connect to major data tools, including Power BI, DOMO, Salesforce, Tableau, and many others", "Query data directly in your own data tool"] },
-    "client-connect": { "label": "Client Connect add-on", "heading": "Keep clients close with two-way messaging", "body": "Keep clients close with two-way messaging and a shared inbox across web and app, all in one place.", "bullets": ["Reply to client enquiries in real time", "One shared inbox for your whole team", "Message history on every client profile"] },
-    "team-chat": { "label": "Team Connect add-on", "heading": "Connecting with your team, made easy", "body": "Give your team a dedicated space to collaborate, all without leaving Innoweb. Create groups, share files, and keep every update where it belongs", "bullets": ["Set up custom spaces by location, team or topic", "Keep all files, updates and decisions in Innoweb, not buried in external apps", "Loved by teams of all sizes - with instant messaging, notifications and privacy controls"] },
-    "bookable-resources": { "label": "Bookable resources add-on", "heading": "Manage your resources, rooms and equipment", "body": "Set up and track rooms, equipment, and other bookable resources. Assign them to services, set availability schedules, and monitor utilization.", "bullets": ["Assign a resource to your services", "Book appointments with no team members, such as a sauna", "Track resource utilization with detailed reporting and insights"], "words": ["Chair", "Table", "Bed", "Room", "Equipment"] },
-    "xero": { "label": "Xero Integration", "heading": "Connect Innoweb and Xero for easier accounting", "body": "Automatically sync your sales, payments and expenses with Xero accounting software", "bullets": ["Save hours each week by automatically syncing sales and payments to Xero", "Reduce errors and manual entry with automatic categorisation of transactions, taxes and fees"] },
-    "quickbooks": { "label": "QuickBooks Integration", "heading": "Connect Innoweb and QuickBooks for easier accounting", "body": "Automatically sync your sales and payments with QuickBooks accounting software", "bullets": ["Save hours each week by automatically syncing sales and payments to QuickBooks", "Reduce errors and manual entry with automatic categorisation of transactions, taxes and fees"] }
+    "payments": {
+      "label": "Payments add-on",
+      "heading": "Power your payments with Innoweb",
+      "bullets": [
+        "Protect against no shows and cancellations",
+        "Accept contactless, swipe, chip and pin with an Innoweb card terminal or use Tap to Pay on iPhone or Android.",
+        "Receive money in your bank account the very next day."
+      ],
+      "price": "From 1.09% + €0.10 per transaction"
+    },
+    "premium-support": {
+      "label": "Premium Support add-on",
+      "heading": "Get expert help whenever you need it",
+      "body": "Get the most out of the Innoweb platform and its features with help from our experienced business support specialists.",
+      "bullets": [
+        "Phone support with a dedicated number",
+        "Live chat with a support specialist at any time",
+        "Priority help with setup and features"
+      ]
+    },
+    "insights": {
+      "label": "Insights add-on",
+      "heading": "Understand your business better with Insights",
+      "body": "Enhance your reports with rich data, control your team's access, and make more profitable decisions for your business.",
+      "bullets": [
+        "Get access to additional premium reports",
+        "Create custom reports with the specific data you want to track",
+        "Control which reports each team member can access"
+      ]
+    },
+    "google-rating-boost": {
+      "label": "Google Rating Boost add-on",
+      "heading": "Increase your footfall with glowing Google reviews",
+      "body": "When your clients give you positive feedback through Innoweb, we'll send them straight to your Google Business Profile to leave a review.",
+      "bullets": [
+        "Any clients rating their experience highly will be prompted to post their review to your Google profile",
+        "Increase your rating on Google",
+        "Watch your footfall grow"
+      ]
+    },
+    "loyalty": {
+      "label": "Client Loyalty add-on",
+      "heading": "Turn all clients into regulars",
+      "body": "Watch your sales skyrocket with a custom loyalty program - encouraging repeat visits and larger purchases.",
+      "bullets": [
+        "Offer the ultimate loyalty experience with points, tiers and referrals",
+        "Reward your clients with exclusive offers, discounts and incentives to celebrate their loyalty",
+        "Allow clients to easily track their progress and redeem rewards online"
+      ]
+    },
+    "data-connector": {
+      "label": "Data Connector add-on",
+      "heading": "Connect Innoweb data to your own data warehouse and BI tools",
+      "body": "Automate data syncing and keep all your essential business systems updated without any manual effort.",
+      "bullets": [
+        "Connect to major data tools, including Power BI, DOMO, Salesforce, Tableau, and many others",
+        "Query data directly in your own data tool"
+      ]
+    },
+    "client-connect": {
+      "label": "Client Connect add-on",
+      "heading": "Keep clients close with two-way messaging",
+      "body": "Keep clients close with two-way messaging and a shared inbox across web and app, all in one place.",
+      "bullets": [
+        "Reply to client enquiries in real time",
+        "One shared inbox for your whole team",
+        "Message history on every client profile"
+      ]
+    },
+    "team-chat": {
+      "label": "Team Connect add-on",
+      "heading": "Connecting with your team, made easy",
+      "body": "Give your team a dedicated space to collaborate, all without leaving Innoweb. Create groups, share files, and keep every update where it belongs",
+      "bullets": [
+        "Set up custom spaces by location, team or topic",
+        "Keep all files, updates and decisions in Innoweb, not buried in external apps",
+        "Loved by teams of all sizes - with instant messaging, notifications and privacy controls"
+      ]
+    },
+    "bookable-resources": {
+      "label": "Bookable resources add-on",
+      "heading": "Manage your resources, rooms and equipment",
+      "body": "Set up and track rooms, equipment, and other bookable resources. Assign them to services, set availability schedules, and monitor utilization.",
+      "bullets": [
+        "Assign a resource to your services",
+        "Book appointments with no team members, such as a sauna",
+        "Track resource utilization with detailed reporting and insights"
+      ],
+      "words": [
+        "Chair",
+        "Table",
+        "Bed",
+        "Room",
+        "Equipment"
+      ]
+    },
+    "xero": {
+      "label": "Xero Integration",
+      "heading": "Connect Innoweb and Xero for easier accounting",
+      "body": "Automatically sync your sales, payments and expenses with Xero accounting software",
+      "bullets": [
+        "Save hours each week by automatically syncing sales and payments to Xero",
+        "Reduce errors and manual entry with automatic categorisation of transactions, taxes and fees"
+      ]
+    },
+    "quickbooks": {
+      "label": "QuickBooks Integration",
+      "heading": "Connect Innoweb and QuickBooks for easier accounting",
+      "body": "Automatically sync your sales and payments with QuickBooks accounting software",
+      "bullets": [
+        "Save hours each week by automatically syncing sales and payments to QuickBooks",
+        "Reduce errors and manual entry with automatic categorisation of transactions, taxes and fees"
+      ]
+    }
   },
   "accounting": {
     "readyTitle": "Get ready to set up {{name}} accounting",
     "readyBody": "We'll guide you through a few simple steps to connect Innoweb with {{name}} and make sure your financial data is organised correctly",
     "checks": {
       "xero": [
-        { "title": "Make sure you have a Xero account", "body": "If you don't have a Xero account set one up" },
-        { "title": "Make sure you have permission in Xero to add integrations", "body": "If you don't have permission, please ask your Xero admin." },
-        { "title": "Make sure your Xero account is set with the Grow plan or above", "body": "The Grow plan or above gives you unlimited integration capabilities with no limits on number of sales and payments you synchronize between Innoweb and Xero" }
+        {
+          "title": "Make sure you have a Xero account",
+          "body": "If you don't have a Xero account set one up",
+          "link": "set one up"
+        },
+        {
+          "title": "Make sure you have permission in Xero to add integrations",
+          "body": "If you don't have permission, please ask your Xero admin.",
+          "link": "Learn more"
+        },
+        {
+          "title": "Make sure your Xero account is set with the Grow plan or above",
+          "body": "The Grow plan or above gives you unlimited integration capabilities with no limits on number of sales and payments you synchronize between Innoweb and Xero"
+        }
       ],
       "quickbooks": [
-        { "title": "Make sure you have a QuickBooks account", "body": "If you don't have a QuickBooks account set one up" },
-        { "title": "Make sure you have permission in QuickBooks to add integrations", "body": "If you don't have permission, please ask your QuickBooks admin." },
-        { "title": "Make sure your QuickBooks subscription supports integrations", "body": "Online subscriptions give you full integration capabilities with no limits on number of sales and payments you synchronize between Innoweb and QuickBooks" }
+        {
+          "title": "Make sure you have a QuickBooks account",
+          "body": "If you don't have a QuickBooks account set one up",
+          "link": "set one up"
+        },
+        {
+          "title": "Make sure you have permission in QuickBooks to add integrations",
+          "body": "If you don't have permission, please ask your QuickBooks admin.",
+          "link": "Learn more"
+        },
+        {
+          "title": "Make sure your QuickBooks subscription supports integrations",
+          "body": "Online subscriptions give you full integration capabilities with no limits on number of sales and payments you synchronize between Innoweb and QuickBooks"
+        }
       ]
     },
     "connectTitle": "Connect to {{name}}",
@@ -257,14 +616,83 @@
     "connecting": "Connecting to {{name}}…",
     "organisation": "Organisation",
     "connected": "Connected to {{org}}",
-    "confirmTitle": "Confirm your {{name}} integration",
-    "connectedToast": "{{name}} connected"
+    "connectedToast": "{{name}} connected",
+    "authorised": "{{name}} authorised",
+    "chooseOrg": "Choose the {{name}} organisation to connect",
+    "cancel": "Cancel",
+    "allow": "Allow access",
+    "finish": "Finish",
+    "mapTitle": "Map your accounts",
+    "mapBody": "Choose where Innoweb records your sales, payments and tips in {{org}}.",
+    "salesAccount": "Sales account",
+    "paymentsAccount": "Payments account",
+    "tipsAccount": "Tips account",
+    "syncTitle": "Choose how to sync",
+    "syncBody": "Pick the first day to send to {{name}} and how often to sync.",
+    "syncFrom": "Start syncing from",
+    "frequency": "Sync frequency",
+    "frequencies": {
+      "daily": "Once a day, overnight",
+      "hourly": "Every hour"
+    },
+    "includeUnpaid": "Include unpaid sales",
+    "demoOrg": "{{name}} (Demo company)"
   },
   "integration": {
-    "fb-and-ig-bookings": { "heading": "Get booked on Facebook and Instagram", "body": "Add online booking to your social media pages.", "bullets": ["FREE online bookings for all clients, both new and returning", "Connect your pages in moments with Innoweb's official add-on", "Promote your Book Now button on social posts and ads"], "field": "Facebook page URL", "placeholder": "https://facebook.com/yourpage", "error": "Enter a valid Facebook page URL", "field2": "Instagram username", "placeholder2": "@yourbusiness", "error2": "Enter a valid Instagram username" },
-    "meta-pixel-ads": { "heading": "Track more bookings with Meta Pixel", "body": "Use Meta Pixel to capture online booking traffic data in your Meta Business Manager.", "bullets": ["Send data to your Meta Business Manager", "Track conversions to better understand your business", "Build audiences and retarget customers who did not complete a booking."], "field": "Meta Pixel ID", "placeholder": "e.g. 123456789012345", "error": "Pixel ID must be 15 or 16 digits" },
-    "google-analytics": { "heading": "Track more bookings with Google Analytics", "body": "Send events about certain actions to Google Analytics, and create goals based on events to track conversions", "bullets": ["Send data to your Google Analytics account", "Create \"goals\" for tracking Ad conversions", "Make data-driven marketing decisions"], "field": "Measurement ID", "placeholder": "e.g. G-XXXXXXXXXX", "error": "Measurement ID must look like G-XXXXXXXXXX" },
-    "google-ads": { "heading": "Track more bookings with Google Ads", "body": "Measure the bookings your Google Ads campaigns drive, and use that data to optimize bidding and win back potential clients.", "bullets": ["Send conversion data to your Google Ads account", "Attribute bookings to the ads and keywords that drove them", "Build remarketing audiences to retarget clients who didn't complete a booking."], "field": "Conversion ID", "placeholder": "e.g. AW-123456789", "error": "Conversion ID must look like AW-123456789", "field2": "Conversion label", "placeholder2": "e.g. AbC-D_efG-h12_34-567", "error2": "Enter the conversion label" },
+    "fb-and-ig-bookings": {
+      "heading": "Get booked on Facebook and Instagram",
+      "body": "Add online booking to your social media pages.",
+      "bullets": [
+        "FREE online bookings for all clients, both new and returning",
+        "Connect your pages in moments with Innoweb's official add-on",
+        "Promote your Book Now button on social posts and ads"
+      ],
+      "field": "Facebook page URL",
+      "placeholder": "https://facebook.com/yourpage",
+      "error": "Enter a valid Facebook page URL",
+      "field2": "Instagram username",
+      "placeholder2": "@yourbusiness",
+      "error2": "Enter a valid Instagram username"
+    },
+    "meta-pixel-ads": {
+      "heading": "Track more bookings with Meta Pixel",
+      "body": "Use Meta Pixel to capture online booking traffic data in your Meta Business Manager.",
+      "bullets": [
+        "Send data to your Meta Business Manager",
+        "Track conversions to better understand your business",
+        "Build audiences and retarget customers who did not complete a booking."
+      ],
+      "field": "Meta Pixel ID",
+      "placeholder": "e.g. 123456789012345",
+      "error": "Pixel ID must be 15 or 16 digits"
+    },
+    "google-analytics": {
+      "heading": "Track more bookings with Google Analytics",
+      "body": "Send events about certain actions to Google Analytics, and create goals based on events to track conversions",
+      "bullets": [
+        "Send data to your Google Analytics account",
+        "Create \"goals\" for tracking Ad conversions",
+        "Make data-driven marketing decisions"
+      ],
+      "field": "Measurement ID",
+      "placeholder": "e.g. G-XXXXXXXXXX",
+      "error": "Measurement ID must look like G-XXXXXXXXXX"
+    },
+    "google-ads": {
+      "heading": "Track more bookings with Google Ads",
+      "body": "Measure the bookings your Google Ads campaigns drive, and use that data to optimize bidding and win back potential clients.",
+      "bullets": [
+        "Send conversion data to your Google Ads account",
+        "Attribute bookings to the ads and keywords that drove them",
+        "Build remarketing audiences to retarget clients who didn't complete a booking."
+      ],
+      "field": "Conversion ID",
+      "placeholder": "e.g. AW-123456789",
+      "error": "Conversion ID must look like AW-123456789",
+      "field2": "Conversion label",
+      "placeholder2": "e.g. AbC-D_efG-h12_34-567",
+      "error2": "Enter the conversion label"
+    },
     "setupTitle": "Set up {{name}}",
     "setupBody": "Enter your details below. Events start sending as soon as you save.",
     "save": "Save and connect",
@@ -277,7 +705,35 @@
     "connectedToast": "{{name}} connected",
     "disconnectedToast": "{{name}} disconnected",
     "events": "Events sent",
-    "eventList": ["View booking page", "Select service", "Select time", "Booking completed"]
+    "eventList": [
+      "View booking page",
+      "Select service",
+      "Select time",
+      "Booking completed"
+    ],
+    "google-reserve": {
+      "heading": "Get booked on Google",
+      "body": "Capture online bookings directly from Google Search, Google Maps and more with our Google integration.",
+      "bullets": [
+        "Show a Book button on Google Search and Google Maps",
+        "Bookings go straight into your calendar",
+        "No extra fees for bookings made through Google"
+      ],
+      "field": "Google Business Profile link",
+      "placeholder": "https://g.page/your-business",
+      "error": "Enter the link to your Google Business Profile"
+    },
+    "setupBodyReserve": "Paste the link to your Google Business Profile. Your Book button goes live within a few minutes.",
+    "connectedBodyReserve": "Clients can book you from Google Search and Google Maps.",
+    "gate": {
+      "title": "Set up your Innoweb marketplace profile to enable {{name}}",
+      "body": "Join the world’s largest beauty and wellness marketplace",
+      "bullets": [
+        "Get your business listed on the Innoweb app",
+        "Reach thousands of new clients who visit Innoweb every day",
+        "Free up time and get your clients self-booking online 24/7"
+      ]
+    }
   },
   "payments": {
     "close": "Close",
@@ -286,24 +742,60 @@
     "overview": {
       "title": "Accept payments quickly, easily and securely with Innoweb",
       "rows": [
-        { "title": "Collect online payments", "body": "Get clients to prepay fully or partially when booking online. Charge cancellation and no-show fees to saved client cards." },
-        { "title": "Let clients self-checkout", "body": "Create and send digital invoices, or text clients with a link to pay directly from their mobile devices." },
-        { "title": "Take in-store payments", "body": "Accept contactless, swipe, chip and pin with an optional card terminal device or use Tap to Pay on iPhone." }
+        {
+          "title": "Collect online payments",
+          "body": "Get clients to prepay fully or partially when booking online. Charge cancellation and no-show fees to saved client cards."
+        },
+        {
+          "title": "Let clients self-checkout",
+          "body": "Create and send digital invoices, or text clients with a link to pay directly from their mobile devices."
+        },
+        {
+          "title": "Take in-store payments",
+          "body": "Accept contactless, swipe, chip and pin with an optional card terminal device or use Tap to Pay on iPhone."
+        }
       ]
     },
     "rates": {
       "title": "Competitive payment rates",
       "body": "No monthly subscription, only pay for what you use. Cancel anytime.",
       "rows": [
-        { "title": "Rapid daily payouts", "body": "Get paid the very next day with free daily payouts, no more waiting.", "price": "Free", "per": "" },
-        { "title": "Online payments", "body": "When clients enter cards online or use self-checkout", "price": "1.29% + €0.20", "per": "per transaction" },
-        { "title": "In-person payments", "body": "Contactless, swipe, chip and pin.", "price": "1.09% + €0.10", "per": "per transaction" },
-        { "title": "Tap to Pay on iPhone", "body": "Contactless payments with compatible mobile devices.", "price": "€0.10", "per": "per authorization" },
-        { "title": "Manual keyed entry", "body": "Manually keying-in card details.", "price": "Free", "per": "" }
+        {
+          "title": "Rapid daily payouts",
+          "body": "Get paid the very next day with free daily payouts, no more waiting.",
+          "price": "Free",
+          "per": ""
+        },
+        {
+          "title": "Online payments",
+          "body": "When clients enter cards online or use self-checkout",
+          "price": "1.29% + €0.20",
+          "per": "per transaction"
+        },
+        {
+          "title": "In-person payments",
+          "body": "Contactless, swipe, chip and pin.",
+          "price": "1.09% + €0.10",
+          "per": "per transaction"
+        },
+        {
+          "title": "Tap to Pay on iPhone",
+          "body": "Contactless payments with compatible mobile devices.",
+          "price": "€0.10",
+          "per": "per authorization"
+        },
+        {
+          "title": "Manual keyed entry",
+          "body": "Manually keying-in card details.",
+          "price": "Free",
+          "per": ""
+        }
       ],
       "footer": "Rates are exclusive of 23% sales tax. By continuing you are agreeing to the above rates.",
       "accepts": "Innoweb accepts all major payment methods",
-      "methods": ["Visa", "Mastercard", "Maestro", "Amex", "Diners", "Discover", "Apple Pay", "Google Pay", "Contactless"]
+      "see": "See our",
+      "pricingPage": "pricing page",
+      "details": "for more details."
     },
     "expect": {
       "title": "Before you can start taking payments we need to verify your details",
@@ -313,9 +805,18 @@
       "title": "Select account type",
       "body": "This must match the registered business details and bank account you wish to payout to.",
       "options": {
-        "sole_trader": { "title": "Sole trader, sole proprietor or freelancer", "body": "You are self-employed or freelancer and have a business bank account." },
-        "company": { "title": "Company", "body": "You are a company representative and have a business bank account." },
-        "partnership": { "title": "Partnership or association", "body": "You are a partnership member or representative with a business bank account." }
+        "sole_trader": {
+          "title": "Sole trader, sole proprietor or freelancer",
+          "body": "You are self-employed or freelancer and have a business bank account."
+        },
+        "company": {
+          "title": "Company",
+          "body": "You are a company representative and have a business bank account."
+        },
+        "partnership": {
+          "title": "Partnership or association",
+          "body": "You are a partnership member or representative with a business bank account."
+        }
       },
       "required": "Select an account type to continue"
     },
@@ -323,9 +824,18 @@
       "title": "Get ready to add these details",
       "body": "Make sure the details exactly match the information on file with your tax authority.",
       "rows": [
-        { "title": "Business details", "body": "Your legal name and tax identifier as registered with the tax authority." },
-        { "title": "Contact details", "body": "Email and mobile number of the business." },
-        { "title": "Address", "body": "The primary business address where you operate." }
+        {
+          "title": "Business details",
+          "body": "Your legal name and tax identifier as registered with the tax authority."
+        },
+        {
+          "title": "Contact details",
+          "body": "Email and mobile number of the business."
+        },
+        {
+          "title": "Address",
+          "body": "The primary business address where you operate."
+        }
       ]
     },
     "details": {
@@ -349,7 +859,6 @@
       "address": "Business address",
       "iban": "IBAN for payouts",
       "ibanPlaceholder": "PT50 0000 0000 0000 0000 0000 0",
-      "submit": "Submit",
       "errors": {
         "required": "This field is required",
         "email": "Enter a valid email address",
@@ -358,7 +867,9 @@
         "vat": "Número de IVA must look like PT123456789",
         "iban": "Enter a valid Portuguese IBAN",
         "dob": "Enter a valid date of birth (18+)"
-      }
+      },
+      "ibanHint": "Payouts are sent to this account every day",
+      "submitting": "Submitting your details…"
     },
     "finished": {
       "verifyingTitle": "We're verifying your details",
@@ -367,7 +878,8 @@
       "verifiedBody": "Your business details were verified and daily payouts are enabled to {{iban}}.",
       "manage": "Manage payments",
       "done": "Done",
-      "submitted": "Business details submitted"
+      "submitted": "Business details submitted",
+      "verifiedToast": "Payments account verified"
     },
     "stepsLeft_one": "{{count}} more step left to go",
     "stepsLeft_other": "{{count}} more steps left to go"
@@ -441,5 +953,17 @@
       "name": "Google Ads",
       "description": "Track booking conversions from your Google Ads campaigns, optimize bidding, and retarget potential clients based on their activity."
     }
+  },
+  "manageAddOn": "Manage add-on",
+  "needsProfile": "Publish your marketplace profile to connect Google",
+  "progress": "Step {{step}} of {{steps}}",
+  "cancel": "Cancel",
+  "unitNames": {
+    "location_one": "location",
+    "location_other": "locations",
+    "bookableMember_one": "bookable team member",
+    "bookableMember_other": "bookable team members",
+    "teamMember_one": "team member",
+    "teamMember_other": "team members"
   }
 }

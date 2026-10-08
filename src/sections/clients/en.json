@@ -73,7 +73,7 @@
     "sales": "Total sales",
     "reviews": "Reviews",
     "createdAt": "Created at",
-    "done": "Export downloaded"
+    "done": "Download started"
   },
   "sort": {
     "first_asc": "First name (A-Z)",
@@ -90,7 +90,7 @@
     "segments": "Client segments",
     "group": "Client group",
     "allTypes": "All types",
-    "marketplace": "Marketplace accounts",
+    "marketplace": "Innoweb accounts",
     "manual": "Manually added clients",
     "blocked": "Blocked clients",
     "allClients": "All clients",
@@ -282,7 +282,6 @@
     "addPronouns": "Add pronouns",
     "addBirthday": "Add date of birth",
     "created": "Created {{date}}",
-    "rewardsCount": "{{count}} active rewards",
     "menu": "Client profile menu",
     "records": "Records",
     "deleteTitle": "Delete client",
@@ -318,7 +317,9 @@
       "block": "Block client",
       "unblock": "Unblock client",
       "delete": "Delete client"
-    }
+    },
+    "rewardsCount_one": "{{count}} active reward",
+    "rewardsCount_other": "{{count}} active rewards"
   },
   "alert": {
     "title": "Add staff alert",
@@ -425,7 +426,12 @@
     "b3": "Seamlessly access client profiles and past conversations from every chat",
     "goToInbox": "Go to inbox",
     "sample1": "Hi! Can I move my booking to Friday?",
-    "sample2": "Of course! We have Friday at 11am."
+    "sample2": "Of course! We have Friday at 11am.",
+    "newTo": "New message to {{name}}",
+    "placeholder": "Write a message…",
+    "required": "Type a message first",
+    "send": "Send",
+    "sent": "Message sent"
   },
   "forms": {
     "send": "Send form",
@@ -504,10 +510,14 @@
       "none_products": "No products",
       "none_packages": "No packages",
       "none_memberships": "No memberships",
-      "some_services": "{{count}} services",
-      "some_products": "{{count}} products",
-      "some_packages": "{{count}} packages",
-      "some_memberships": "{{count}} memberships"
+      "some_services_one": "{{count}} service",
+      "some_services_other": "{{count}} services",
+      "some_products_one": "{{count}} product",
+      "some_products_other": "{{count}} products",
+      "some_packages_one": "{{count}} package",
+      "some_packages_other": "{{count}} packages",
+      "some_memberships_one": "{{count}} membership",
+      "some_memberships_other": "{{count}} memberships"
     },
     "scopeTitle": {
       "services": "Select services",

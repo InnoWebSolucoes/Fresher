@@ -73,6 +73,19 @@ export function AutomationConfigurePage() {
     }
   }
 
+  /** The email editor is its own page: keep the changes made here before leaving. */
+  const editContent = async () => {
+    if (dirty) {
+      if (!channels.email && !channels.sms && !channels.whatsapp) {
+        toast(t('marketing.configure.oneChannel'), 'error')
+        return
+      }
+      await updateAutomation(automation.id, { channels, trigger: options ? trigger : automation.trigger, smsOperator: operator })
+      toast(t('marketing.configure.saved'))
+    }
+    navigate(`/marketing/automated-messages/configure/${automation.id}/email`)
+  }
+
   const channelCard = (ch: Channel, icon: ReactNode, extra?: { label: string; onSelect: () => void }) => (
     <div className="flex flex-wrap items-center gap-4 rounded-lg border border-line bg-surface px-5 py-4">
       <span className="text-primary">{icon}</span>
@@ -132,7 +145,7 @@ export function AutomationConfigurePage() {
         )}
       </Step>
       <Step icon={<Send size={18} />} title={t('marketing.configure.sendEmail')}>
-        {channelCard('email', <Mail size={22} />, { label: t('marketing.configure.editContent'), onSelect: () => navigate(`/marketing/automated-messages/configure/${automation.id}/email`) })}
+        {channelCard('email', <Mail size={22} />, { label: t('marketing.configure.editContent'), onSelect: () => void editContent() })}
       </Step>
       <Step icon={<MessageCircle size={18} />} title={t('marketing.configure.sendMessage')} last>
         <div className="flex flex-col gap-3">

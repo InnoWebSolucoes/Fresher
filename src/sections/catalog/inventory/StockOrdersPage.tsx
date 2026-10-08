@@ -1,19 +1,21 @@
-import { PackagePlus, Plus } from 'lucide-react'
+import { PackagePlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
-import { Button, DataTable, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, toast, usePageLoading, type Column } from '@/components/ui'
+import { Button, DataTable, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { exportCsv, exportXlsx, exportedFileName } from '@/lib/export'
 import { fmtDate, money } from '@/lib/format'
 import type { StockOrder } from '@/types'
 import { deleteStockOrderDraft, orderTotal } from '@/api/catalog'
-import { FiltersButton, ToolbarCard } from '../ui'
+import { FiltersButton, SortButton } from '../ui'
 import { InventoryStatus, downloadOrderPdf } from './shared'
 
 type StatusFilter = 'all' | StockOrder['status']
+type Sort = 'createdDesc' | 'createdAsc' | 'numberDesc' | 'numberAsc'
+const orderNo = (o: StockOrder) => Number(o.number.replace(/\D/g, '')) || 0
 
 /** Stock orders list (`/catalogue/orders`, catalog.md §6). */
 export function StockOrdersPage() {
@@ -29,6 +31,7 @@ export function StockOrdersPage() {
   const [status, setStatus] = useState<StatusFilter>('all')
   const [draftStatus, setDraftStatus] = useState<StatusFilter>('all')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [sort, setSort] = useState<Sort>('createdDesc')
 
   const supplierName = (o: StockOrder) => suppliers.find((s) => s.id === o.supplierId)?.name ?? ''
   const locationName = (o: StockOrder) => locations.find((l) => l.id === o.locationId)?.name ?? ''
@@ -43,10 +46,21 @@ export function StockOrdersPage() {
         if ((suppliers.find((s) => s.id === o.supplierId)?.name ?? '').toLowerCase().includes(q)) return true
         return o.items.some((i) => (products.find((p) => p.id === i.productId)?.name ?? '').toLowerCase().includes(q))
       })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  }, [orders, status, query, suppliers, products])
+      .sort((a, b) => {
+        switch (sort) {
+          case 'createdAsc':
+            return a.createdAt.localeCompare(b.createdAt)
+          case 'numberDesc':
+            return orderNo(b) - orderNo(a)
+          case 'numberAsc':
+            return orderNo(a) - orderNo(b)
+          default:
+            return b.createdAt.localeCompare(a.createdAt)
+        }
+      })
+  }, [orders, status, query, suppliers, products, sort])
 
-  const open = (o: StockOrder) => (o.status === 'draft' ? navigate(`/catalogue/orders/new?d_draft=${o.id}`) : drawer.open('stock-order', { id: o.id }))
+  const open = (o: StockOrder) => (o.status === 'draft' ? navigate(`/catalogue/orders/new?draft=${o.id}`) : drawer.open('stock-order', { id: o.id }))
 
   const exportTable = () => ({
     headers: [t('catalog.inventory.orders.cols.number'), t('catalog.inventory.orders.cols.created'), t('catalog.inventory.orders.cols.expected'), t('catalog.inventory.orders.cols.supplier'), t('catalog.inventory.orders.cols.location'), t('catalog.inventory.orders.cols.total'), t('catalog.inventory.orders.cols.status')],
@@ -55,13 +69,13 @@ export function StockOrdersPage() {
 
   if (loading)
     return (
-      <Page>
+      <Page wide>
         <PageSkeleton />
       </Page>
     )
 
   const columns: Column<StockOrder>[] = [
-    { key: 'number', header: t('catalog.inventory.orders.cols.number'), sortValue: (o) => Number(o.number.replace(/\D/g, '')) || 0, cell: (o) => <span className="text-body-strong text-ink">{o.number}</span> },
+    { key: 'number', header: t('catalog.inventory.orders.cols.number'), sortValue: orderNo, cell: (o) => <span className="text-body-strong text-ink">{o.number}</span> },
     { key: 'created', header: t('catalog.inventory.orders.cols.created'), sortValue: (o) => o.createdAt, cell: (o) => fmtDate(parseISO(o.createdAt)) },
     { key: 'expected', header: t('catalog.inventory.orders.cols.expected'), sortValue: (o) => o.expectedAt ?? '', cell: (o) => (o.expectedAt ? fmtDate(parseISO(o.expectedAt)) : '-') },
     {
@@ -83,7 +97,7 @@ export function StockOrdersPage() {
       width: '56px',
       cell: (o) => (
         <Menu
-          label={t('catalog.inventory.common.actions')}
+          label={t('catalog.common.actions')}
           groups={[
             {
               items:
@@ -94,6 +108,8 @@ export function StockOrdersPage() {
                         label: t('catalog.inventory.orders.deleteDraft'),
                         danger: true,
                         onSelect: async () => {
+                          const ok = await confirm({ title: t('catalog.inventory.orders.deleteDraftTitle', { number: o.number }), body: t('catalog.inventory.orders.deleteDraftBody'), confirmLabel: t('catalog.common.delete'), tone: 'danger' })
+                          if (!ok) return
                           await deleteStockOrderDraft(o.id)
                           toast(t('catalog.inventory.orders.draftDeleted'))
                         },
@@ -102,7 +118,7 @@ export function StockOrdersPage() {
                   : [
                       { label: t('catalog.inventory.orders.view'), onSelect: () => open(o) },
                       ...(o.status === 'ordered' ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${o.id}/receive`) }] : []),
-                      { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void downloadOrderPdf(o, { products, suppliers, locations }, t) },
+                      { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void downloadOrderPdf(o, { products, suppliers, locations }, t).then(() => toast(t('catalog.toasts.downloaded'))) },
                     ],
             },
           ]}
@@ -114,13 +130,13 @@ export function StockOrdersPage() {
   const statuses: StockOrder['status'][] = ['draft', 'ordered', 'received', 'cancelled']
 
   return (
-    <Page>
+    <Page wide>
       <PageHeader
         title={t('catalog.inventory.orders.title')}
         count={orders.filter((o) => o.status !== 'draft').length}
         subtitle={
           <>
-            {t('catalog.inventory.orders.subtitle')} <LearnMore topic={t('catalog.inventory.orders.title')}>{t('catalog.inventory.common.learnMore')}</LearnMore>
+            {t('catalog.inventory.orders.subtitle')} <LearnMore topic={t('catalog.inventory.orders.title')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={
@@ -129,7 +145,7 @@ export function StockOrdersPage() {
               width={240}
               trigger={({ open: o, toggle }) => (
                 <MenuButton open={o} toggle={toggle}>
-                  {t('catalog.inventory.common.options')}
+                  {t('catalog.common.options')}
                 </MenuButton>
               )}
               groups={[
@@ -160,8 +176,8 @@ export function StockOrdersPage() {
                 },
               ]}
             />
-            <Button variant="primary" icon={<Plus size={16} />} onClick={() => navigate('/catalogue/orders/new')}>
-              {t('catalog.inventory.common.add')}
+            <Button variant="primary" onClick={() => navigate('/catalogue/orders/new')}>
+              {t('catalog.common.add')}
             </Button>
           </>
         }
@@ -180,7 +196,7 @@ export function StockOrdersPage() {
         </div>
       ) : (
         <>
-          <ToolbarCard>
+          <Toolbar>
             <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.orders.search')} className="max-w-sm" />
             <FiltersButton
               count={status === 'all' ? 0 : 1}
@@ -189,21 +205,23 @@ export function StockOrdersPage() {
                 setFiltersOpen(true)
               }}
             />
-          </ToolbarCard>
+            <div className="ml-auto">
+              <SortButton value={sort} onChange={setSort} options={(['createdDesc', 'createdAsc', 'numberDesc', 'numberAsc'] as Sort[]).map((v) => ({ value: v, label: t(`catalog.inventory.orders.sort.${v}`) }))} />
+            </div>
+          </Toolbar>
           <DataTable
             columns={columns}
             rows={rows}
             rowKey={(o) => o.id}
             onRowClick={open}
-            initialSort={{ key: 'created', dir: 'desc' }}
-            empty={<EmptyState title={t('catalog.inventory.common.noResults')} body={t('catalog.inventory.common.noResultsBody')} />}
+            empty={<EmptyState icon={<PackagePlus size={26} />} title={t('catalog.common.noResults')} body={t('catalog.inventory.common.noResultsBody')} />}
           />
         </>
       )}
       <SideDrawer
         open={filtersOpen}
         onClose={() => setFiltersOpen(false)}
-        title={t('catalog.inventory.common.filters')}
+        title={t('catalog.common.filters')}
         footer={
           <>
             <Button
@@ -212,7 +230,7 @@ export function StockOrdersPage() {
                 setFiltersOpen(false)
               }}
             >
-              {t('catalog.inventory.common.clearAll')}
+              {t('catalog.common.clearFilters')}
             </Button>
             <Button
               variant="primary"
@@ -221,7 +239,7 @@ export function StockOrdersPage() {
                 setFiltersOpen(false)
               }}
             >
-              {t('catalog.inventory.common.apply')}
+              {t('catalog.common.apply')}
             </Button>
           </>
         }

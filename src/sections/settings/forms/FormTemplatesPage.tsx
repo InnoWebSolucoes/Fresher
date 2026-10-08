@@ -23,7 +23,7 @@ export function FormTemplatesPage() {
       description={t('settings.frm.templates.description')}
       learnMore="Form templates"
       actions={
-        <Button variant="primary" className="rounded-full px-5" onClick={add} data-testid="form-templates-add">
+        <Button variant="primary" onClick={add} data-testid="form-templates-add">
           {t('settings.frm.templates.add')}
         </Button>
       }
@@ -35,7 +35,7 @@ export function FormTemplatesPage() {
             title={t('settings.frm.templates.emptyTitle')}
             body={t('settings.frm.templates.emptyBody')}
             action={
-              <Button variant="primary" className="rounded-full" onClick={add}>
+              <Button variant="primary" onClick={add}>
                 {t('settings.frm.templates.emptyAction')}
               </Button>
             }

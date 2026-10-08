@@ -8,6 +8,7 @@ import type { Automation } from '@/types'
 import { Button, Checkbox, Chip, Field, LearnMore, Menu, Modal, Page, PageSkeleton, Select, TextArea, TextInput, toast, usePageLoading } from '@/components/ui'
 import { addOnActive, createAutomation, setAutomationEnabled, useMarketingSettings } from '@/api/marketing'
 import { money, money2 } from '@/lib/format'
+import { ProfileGateModal } from '@/sections/online/shared'
 import { AdvancedOptionsModal, AutoTopUpModal, TopUpModal } from '../components/BalanceModals'
 
 export const AUTOMATION_SECTIONS: Automation['section'][] = ['reminders', 'appointment_updates', 'waitlist_updates', 'increase_bookings', 'celebrate_milestones', 'client_messages', 'client_loyalty']
@@ -182,13 +183,16 @@ export function AutomationsPage() {
   const automations = useDb((s) => s.automations)
   const workspace = useDb((s) => s.workspace)
   const addOns = useDb((s) => s.addOns)
+  const locations = useDb((s) => s.locations)
   const settings = useMarketingSettings()
   const [tab, setTab] = useState<Automation['section']>('reminders')
-  const [modal, setModal] = useState<'topup' | 'auto' | 'advanced' | 'create' | 'loyalty' | null>(null)
+  const [modal, setModal] = useState<'topup' | 'auto' | 'advanced' | 'create' | 'loyalty' | 'profile' | null>(null)
+  // Marketing automations go out with links to the booking profile, so one must be listed.
+  const profileListed = locations.some((l) => l.marketplace.listed)
   const [enabling, setEnabling] = useState<string | null>(null)
   const sectionRefs = useRef<Partial<Record<Automation['section'], HTMLElement | null>>>({})
   const tabsRef = useRef<HTMLDivElement>(null)
-  const autoOn = addOnActive(addOns, 'auto-top-up')
+  const autoOn = settings.autoTopUpEnabled
 
   const jump = (section: Automation['section']) => {
     setTab(section)
@@ -198,6 +202,10 @@ export function AutomationsPage() {
   const enable = async (a: Automation) => {
     if (a.section === 'client_loyalty' && !addOnActive(addOns, 'loyalty')) {
       setModal('loyalty')
+      return
+    }
+    if (a.marketing && !profileListed) {
+      setModal('profile')
       return
     }
     setEnabling(a.id)
@@ -308,7 +316,7 @@ export function AutomationsPage() {
                 {section === 'celebrate_milestones' && (
                   <button
                     type="button"
-                    onClick={() => setModal('create')}
+                    onClick={() => setModal(profileListed ? 'create' : 'profile')}
                     className="flex min-h-[230px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-line-strong bg-transparent p-6 text-ink hover:border-primary hover:text-primary"
                     data-testid="automation-create-new"
                   >
@@ -330,6 +338,7 @@ export function AutomationsPage() {
       <AdvancedOptionsModal open={modal === 'advanced'} onClose={() => setModal(null)} />
       <CreateAutomationModal open={modal === 'create'} onClose={() => setModal(null)} />
       <LoyaltyGate open={modal === 'loyalty'} onClose={() => setModal(null)} />
+      <ProfileGateModal open={modal === 'profile'} onClose={() => setModal(null)} title={t('marketing.automations.profileGate')} locations={locations} />
     </Page>
   )
 }

@@ -1,7 +1,5 @@
 {
   "more1": {
-    "orderSaved": "Order saved",
-    "saved": "Settings updated",
     "advanced": "Advanced options",
     "reasons": {
       "title": "Cancellation reasons",
@@ -16,7 +14,6 @@
       "added": "Cancellation reason added",
       "updated": "Cancellation reason updated",
       "deleted": "Cancellation reason deleted",
-      "moved": "Order updated",
       "deleteTitle": "Delete cancellation reason?",
       "deleteBody": "\"{{name}}\" will no longer be available when cancelling appointments. Past cancellations keep their reason."
     },
@@ -32,7 +29,6 @@
       "added": "Appointment status added",
       "updated": "Appointment status updated",
       "deleted": "Appointment status deleted",
-      "moved": "Order updated",
       "deleteTitle": "Delete appointment status?",
       "deleteBody": "\"{{name}}\" will be removed from the status list."
     },
@@ -69,10 +65,22 @@
       "reassignModalText": "Automatically move eligible appointments between team members to create more availability for clients who request a specific person.",
       "strategy": "Assignment strategy",
       "strategies": {
-        "fill": { "label": "Fill open calendars", "hint": "Assign appointments to the team member with the most availability" },
-        "turns": { "label": "Take turns", "hint": "Assign appointments to the team member who has gone longest without an automatic assignment" },
-        "ratings": { "label": "Build ratings and reviews", "hint": "Assign appointments to the team member with fewest client reviews" },
-        "priority": { "label": "Use a custom priority order", "hint": "Assign appointments based on the order of your main team member list, starting from the top" }
+        "fill": {
+          "label": "Fill open calendars",
+          "hint": "Assign appointments to the team member with the most availability"
+        },
+        "turns": {
+          "label": "Take turns",
+          "hint": "Assign appointments to the team member who has gone longest without an automatic assignment"
+        },
+        "ratings": {
+          "label": "Build ratings and reviews",
+          "hint": "Assign appointments to the team member with fewest client reviews"
+        },
+        "priority": {
+          "label": "Use a custom priority order",
+          "hint": "Assign appointments based on the order of your main team member list, starting from the top"
+        }
       },
       "period": "Strategy period",
       "periods": {
@@ -110,7 +118,8 @@
         "reassignTeam": "Appointments booked by your team can be reassigned",
         "reassignOff": "Booked appointments are never reassigned",
         "cutoff": "Reassignment is possible up to <b>{{value}}</b> before the appointment's start time"
-      }
+      },
+      "saved": "Dynamic assignment updated"
     },
     "availability": {
       "title": "Availability",
@@ -150,9 +159,18 @@
       "intelligentHint": "Show only specific time slots to clients booking online to prevent gaps in your calendar that are unable to be filled",
       "maxAvailability": "Max availability",
       "modes": {
-        "regular": { "label": "Regular time slots", "hint": "Show all available time slots based on your time slot interval. This may create gaps in your calendar" },
-        "reduce": { "label": "Reduce calendar gaps", "hint": "Intelligently show your clients plenty of slots while preventing them from creating gaps that are difficult to fill" },
-        "eliminate": { "label": "Eliminate calendar gaps", "hint": "Only show slots before and after existing appointments and blocked time. This may limit your online availability" }
+        "regular": {
+          "label": "Regular time slots",
+          "hint": "Show all available time slots based on your time slot interval. This may create gaps in your calendar"
+        },
+        "reduce": {
+          "label": "Reduce calendar gaps",
+          "hint": "Intelligently show your clients plenty of slots while preventing them from creating gaps that are difficult to fill"
+        },
+        "eliminate": {
+          "label": "Eliminate calendar gaps",
+          "hint": "Only show slots before and after existing appointments and blocked time. This may limit your online availability"
+        }
       },
       "saved": "Booking window updated",
       "optimSaved": "Schedule optimization updated"
@@ -183,15 +201,42 @@
       "emailInvalid": "Enter valid email addresses separated by commas",
       "portfolioOf": "Show portfolio images of: All team members",
       "opts": {
-        "bookSpecific": { "label": "Clients can book specific team members", "hint": "Show available team members so clients can choose who to book" },
-        "profiles": { "label": "Display team member professional profiles", "hint": "Clients can view team member profiles to help decide who to book" },
-        "portfolio": { "label": "Display team member portfolio images", "hint": "Clients can view images within team member profiles" },
-        "ratings": { "label": "Display team member star ratings", "hint": "Show average star ratings of team members to help decide who to book" },
-        "gender": { "label": "Clients can book by team member gender", "hint": "Show options to book \"any female\" and \"any male\" along with displaying team member pronouns" },
-        "images": { "label": "Display images within services", "hint": "Show images to help clients better understand each service" },
-        "featured": { "label": "Display featured services", "hint": "Highlight your most popular services by displaying them at the top of your menu" },
-        "reviews": { "label": "Display service names in reviews", "hint": "Show the service the client booked next to their review on your marketplace profile" },
-        "group": { "label": "Clients can book group appointments", "hint": "Clients can book appointments for multiple people at once" }
+        "bookSpecific": {
+          "label": "Clients can book specific team members",
+          "hint": "Show available team members so clients can choose who to book"
+        },
+        "profiles": {
+          "label": "Display team member professional profiles",
+          "hint": "Clients can view team member profiles to help decide who to book"
+        },
+        "portfolio": {
+          "label": "Display team member portfolio images",
+          "hint": "Clients can view images within team member profiles"
+        },
+        "ratings": {
+          "label": "Display team member star ratings",
+          "hint": "Show average star ratings of team members to help decide who to book"
+        },
+        "gender": {
+          "label": "Clients can book by team member gender",
+          "hint": "Show options to book \"any female\" and \"any male\" along with displaying team member pronouns"
+        },
+        "images": {
+          "label": "Display images within services",
+          "hint": "Show images to help clients better understand each service"
+        },
+        "featured": {
+          "label": "Display featured services",
+          "hint": "Highlight your most popular services by displaying them at the top of your menu"
+        },
+        "reviews": {
+          "label": "Display service names in reviews",
+          "hint": "Show the service the client booked next to their review on your marketplace profile"
+        },
+        "group": {
+          "label": "Clients can book group appointments",
+          "hint": "Clients can book appointments for multiple people at once"
+        }
       },
       "summary": {
         "bookSpecific_on": "Clients can book specific team members",
@@ -215,7 +260,8 @@
         "emailBooked": "Send emails to booked team members",
         "emailAddresses": "Send emails to specific addresses: <b>{{value}}</b>",
         "emailNone": "Team members don't receive emails for online bookings"
-      }
+      },
+      "saved": "Booking options updated"
     },
     "resource": {
       "newTitle": "New resource",
@@ -307,7 +353,6 @@
       "added": "Client tag created",
       "updated": "Client tag updated",
       "deleted": "Client tag deleted",
-      "moved": "Order updated",
       "deleteTitle": "Delete client tag?",
       "deleteBody": "\"{{name}}\" will be removed from {{count}} clients."
     },
@@ -330,12 +375,30 @@
         "typing": "Typing indicators are <b>{{value}}</b> to clients"
       },
       "opts": {
-        "reply": { "label": "Allow clients to reply to conversations", "hint": "Clients can always reply to new conversations opened by you" },
-        "start": { "label": "Allow clients to start new conversations", "hint": "Clients can open new conversations with you through their Innoweb account" },
-        "read": { "label": "Show read receipts", "hint": "Clients can see when you have read their messages" },
-        "typing": { "label": "Show typing indicators", "hint": "Clients can see when you are typing a reply" },
-        "attachments": { "label": "Allow image attachments", "hint": "Clients can attach image files to their message" },
-        "consent": { "label": "Show marketing consent checkbox", "hint": "Clients can choose to receive your marketing notifications" }
+        "reply": {
+          "label": "Allow clients to reply to conversations",
+          "hint": "Clients can always reply to new conversations opened by you"
+        },
+        "start": {
+          "label": "Allow clients to start new conversations",
+          "hint": "Clients can open new conversations with you through their Innoweb account"
+        },
+        "read": {
+          "label": "Show read receipts",
+          "hint": "Clients can see when you have read their messages"
+        },
+        "typing": {
+          "label": "Show typing indicators",
+          "hint": "Clients can see when you are typing a reply"
+        },
+        "attachments": {
+          "label": "Allow image attachments",
+          "hint": "Clients can attach image files to their message"
+        },
+        "consent": {
+          "label": "Show marketing consent checkbox",
+          "hint": "Clients can choose to receive your marketing notifications"
+        }
       },
       "instantTitle": "Instant replies",
       "instantDescription": "Instant replies are sent automatically as your first response to new messages. For example you can use instant replies to let clients know you will get back to them soon or to thank them for contacting you.",

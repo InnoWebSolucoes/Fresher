@@ -7,6 +7,7 @@ import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordi
 import { CSS } from '@dnd-kit/utilities'
 import { Button, Field, FullscreenFrame, Menu, Modal, SectionNav, Skeleton, TextArea, TextInput, toast } from '@/components/ui'
 import { useDismiss } from '@/lib/useDismiss'
+import { useDrawer } from '@/lib/drawer'
 import { durationLong } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { Location, PaletteColor, Product, ServiceCategory } from '@/types'
@@ -491,7 +492,7 @@ export function SectionCard({ id, title, subtitle, titleExtra, action, children,
   )
 }
 
-/** Full-screen editor: Close / Save header, big title, scroll-spy left nav. */
+/** Full-screen editor: Close / Save header, big page title (as in the reference), scroll-spy left nav. */
 export function EditorFrame<T extends string>({
   title,
   onClose,
@@ -509,10 +510,11 @@ export function EditorFrame<T extends string>({
   loading?: boolean
   maxWidth?: string
 }) {
+  const { t } = useTranslation()
   const ids = useMemo(() => nav?.groups.flatMap((g) => g.items.map((i) => i.value)) ?? [], [nav])
   const [active, scrollTo] = useScrollSpy<T>(ids)
   return (
-    <FullscreenFrame title={title} onClose={onClose} actions={actions} maxWidth={maxWidth} nav={nav && !loading ? <SectionNav groups={nav.groups} value={active} onChange={scrollTo} /> : undefined}>
+    <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={onClose} actions={actions} maxWidth={maxWidth} nav={nav && !loading ? <SectionNav groups={nav.groups} value={active} onChange={scrollTo} /> : undefined}>
       {loading ? (
         <div className="flex flex-col gap-4" aria-busy="true">
           <Skeleton className="h-10 w-72" />
@@ -529,13 +531,16 @@ export function EditorFrame<T extends string>({
   )
 }
 
-/** Drawer body used by product, supplier and stock order drawers (left hero + tabs, grey right pane). */
+/** Width of the product, supplier and stock order drawers (catalog.md §4, §6, §7). */
+export const CATALOG_DRAWER_WIDTH = 1012
+
+/** Drawer body used by the product, supplier and stock order drawers: left hero + vertical tabs, grey right pane. */
 export function TwoPaneDrawer<T extends string>({ hero, tabs, tab, onTab, children }: { hero: ReactNode; tabs: { value: T; label: string }[]; tab: T; onTab: (t: T) => void; children: ReactNode }) {
   return (
     <div className="flex h-full min-h-0">
       <div className="flex w-[360px] shrink-0 flex-col overflow-y-auto border-r border-line bg-surface">
         <div className="flex flex-col items-center gap-2 border-b border-line px-6 pb-6 pt-8 text-center">{hero}</div>
-        <nav className="flex flex-col gap-1 p-4" role="tablist">
+        <nav className="flex flex-col gap-1 p-4" role="tablist" aria-orientation="vertical">
           {tabs.map((item) => (
             <button
               key={item.value}
@@ -551,6 +556,26 @@ export function TwoPaneDrawer<T extends string>({ hero, tabs, tab, onTab, childr
         </nav>
       </div>
       <div className="min-w-0 flex-1 overflow-y-auto bg-sunken px-8 py-8">{children}</div>
+    </div>
+  )
+}
+
+/** Big title of the right-hand pane ("Product details", "Stock order details") with an optional action. */
+export function PaneTitle({ title, action }: { title: string; action?: ReactNode }) {
+  return (
+    <div className="mb-6 flex items-center justify-between gap-4">
+      <h2 className="font-display text-title-1 text-ink">{title}</h2>
+      {action}
+    </div>
+  )
+}
+
+/** Rounded icon tile shown at the top of a drawer hero (stock order, product placeholder). */
+export function HeroTile({ children, badge }: { children: ReactNode; badge?: ReactNode }) {
+  return (
+    <div className="relative mb-2 flex h-28 w-28 items-center justify-center rounded-lg border border-line bg-surface text-ink">
+      {children}
+      {badge && <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-on-accent shadow-sm">{badge}</span>}
     </div>
   )
 }
@@ -686,6 +711,20 @@ export function CardsSkeleton() {
       </div>
     </div>
   )
+}
+
+/** Translated badge and "Learn more" button for the shared IntroPage (feature intro pages). */
+export function useIntroProps(topic: string) {
+  const { t } = useTranslation()
+  const drawer = useDrawer()
+  return {
+    badge: t('catalog.common.includedInPlan'),
+    secondary: (
+      <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: topic })}>
+        {t('catalog.common.learnMore')}
+      </Button>
+    ),
+  }
 }
 
 /** Light-grey toolbar card (search, filters, sort). */

@@ -2,9 +2,9 @@ import { Package, ShoppingBag, Store } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Chip, confirm, DataTable, EmptyState, IntroPage, Menu, MoneyInput, Page, PageHeader, PageSkeleton, Switch, toast, usePageLoading, type Column } from '@/components/ui'
+import { Button, Card, Chip, confirm, DataTable, EmptyState, IntroPage, Menu, Modal, MoneyInput, Page, PageHeader, PageSkeleton, Switch, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
-import { addOnStatus, businessSlug, saveStoreSettings, setProductOnline, setStoreActive, STORE_BASE, useOnlineState } from '@/api/online'
+import { addOnStatus, businessSlug, saveStoreSettings, setProductOnline, setStoreActive, STORE_BASE, useStoreConfig } from '@/api/online'
 import { fmtDate, fullName, money, money2 } from '@/lib/format'
 import { now } from '@/lib/time'
 import type { Product, ProductOrder } from '@/types'
@@ -22,10 +22,13 @@ export function ProductStorePage() {
   const products = useDb((s) => s.products)
   const orders = useDb((s) => s.productOrders)
   const clients = useDb((s) => s.clients)
-  const { store } = useOnlineState()
+  const store = useStoreConfig()
+  const locations = useDb((s) => s.locations)
   const [busy, setBusy] = useState(false)
+  const [paymentsGate, setPaymentsGate] = useState(false)
   const [fee, setFee] = useState<number | ''>(store.shippingFee)
   const active = addOnStatus(addOns, 'product-store') === 'active'
+  const paymentsOn = addOnStatus(addOns, 'payments') === 'active'
   const retail = useMemo(() => products.filter((p) => !p.archived && p.retailSales), [products])
   const recent = useMemo(() => [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6), [orders])
   const month = useMemo(() => {
@@ -36,6 +39,8 @@ export function ProductStorePage() {
   if (loading) return <Page><PageSkeleton /></Page>
 
   const launch = async () => {
+    // The store takes payments online: Payments must be set up first.
+    if (!paymentsOn) return setPaymentsGate(true)
     setBusy(true)
     try {
       await setStoreActive(true)
@@ -54,8 +59,23 @@ export function ProductStorePage() {
           body={t('online.store.introBody')}
           bullets={[t('online.store.b1'), t('online.store.b2'), t('online.store.b3'), t('online.store.b4')]}
           primary={{ label: t('online.common.startNow'), onClick: () => void launch(), loading: busy }}
-          art={<PhoneArt name={workspace.name} lines={[t('online.store.art1'), t('online.store.art2')]} />}
+          art={<PhoneArt name={workspace.name} city={locations[0]?.address.city} cta={t('online.store.shopNow')} lines={[t('online.store.art1'), t('online.store.art2')]} />}
         />
+        <Modal
+          open={paymentsGate}
+          onClose={() => setPaymentsGate(false)}
+          title={t('online.store.paymentsGateTitle')}
+          footer={
+            <>
+              <Button onClick={() => setPaymentsGate(false)}>{t('online.common.close')}</Button>
+              <Button variant="primary" onClick={() => navigate('/payments/payment-processing')}>
+                {t('online.store.paymentsGateAction')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-body text-muted">{t('online.store.paymentsGateBody')}</p>
+        </Modal>
       </Page>
     )
   }

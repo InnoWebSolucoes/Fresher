@@ -6,11 +6,10 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { formTemplatesApi } from '@/api/settings'
-import { Button, Checkbox, EmptyState, Field, FullscreenFrame, RadioGroup, Segmented, Select, Switch, TextInput, confirm } from '@/components/ui'
+import { Button, Checkbox, EmptyState, Field, FullscreenFrame, Modal, RadioGroup, Segmented, Select, Switch, TextInput, confirm } from '@/components/ui'
 import { now } from '@/lib/time'
 import { useDb } from '@/store/db'
 import type { FormSection, FormTemplate, ID } from '@/types'
-import { SettingsModal } from '../components/SettingsModal'
 import { useAction } from '../components/useAction'
 import { SectionCard } from '../forms/builder/SectionCard'
 import { FormRunner, SideArrow } from '../forms/FormRunner'
@@ -33,7 +32,7 @@ export function FormEditPage() {
         <EmptyState
           title={t('settings.more2.forms.notFound')}
           action={
-            <Button variant="primary" className="rounded-full" onClick={() => navigate(FORMS_BASE)}>
+            <Button variant="primary" onClick={() => navigate(FORMS_BASE)}>
               {t('settings.more2.forms.backToTemplates')}
             </Button>
           }
@@ -165,15 +164,15 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
       maxWidth={step === 0 ? 'max-w-[880px]' : 'max-w-[1240px]'}
       actions={
         step === 0 ? (
-          <Button variant="primary" className="rounded-full px-6" disabled={sections.length === 0} onClick={nextStep} data-testid="form-next-step">
+          <Button variant="primary" className="px-6" disabled={sections.length === 0} onClick={nextStep} data-testid="form-next-step">
             {t('settings.frm.preview.next')}
           </Button>
         ) : (
           <>
-            <Button variant="ghost" className="rounded-full" onClick={() => setStep(0)}>
+            <Button variant="ghost" onClick={() => setStep(0)}>
               {t('settings.common.previous')}
             </Button>
-            <Button variant="primary" className="rounded-full px-6" loading={busy} onClick={save} data-testid="form-save">
+            <Button variant="primary" className="px-6" loading={busy} onClick={save} data-testid="form-save">
               {t('settings.common.save')}
             </Button>
           </>
@@ -184,10 +183,10 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
         <div className="flex flex-col gap-6">
           {/* Palette for narrow screens (the side nav is hidden below md). */}
           <div className="flex gap-2 md:hidden">
-            <Button size="sm" className="rounded-full" disabled={hasClientDetails} onClick={() => addSection('client_details')}>
+            <Button size="sm" disabled={hasClientDetails} onClick={() => addSection('client_details')}>
               {t('settings.frm.builder.clientDetails')}
             </Button>
-            <Button size="sm" className="rounded-full" onClick={() => addSection('custom')}>
+            <Button size="sm" onClick={() => addSection('custom')}>
               {t('settings.frm.builder.customSection')}
             </Button>
           </div>
@@ -353,7 +352,7 @@ function ServicesModal({ value, onClose, onSave }: { value: TemplateDraft['servi
   const all = selected.length === active.length
   const toggle = (ids: ID[], on: boolean) => setSelected((s) => (on ? Array.from(new Set([...s, ...ids])) : s.filter((x) => !ids.includes(x))))
   return (
-    <SettingsModal
+    <Modal
       open
       onClose={onClose}
       title={t('settings.more2.forms.servicesTitle')}
@@ -392,6 +391,6 @@ function ServicesModal({ value, onClose, onSave }: { value: TemplateDraft['servi
         })}
         {selected.length === 0 && <p className="text-small text-danger">{t('settings.more2.forms.servicesRequired')}</p>}
       </div>
-    </SettingsModal>
+    </Modal>
   )
 }

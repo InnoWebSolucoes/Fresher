@@ -3,19 +3,19 @@ import QRCode from 'qrcode'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trans, useTranslation } from 'react-i18next'
-import { Button, Checkbox, EmptyState, Field, Select, Switch, TextArea, TextInput, confirm, toast } from '@/components/ui'
+import { Button, Checkbox, EmptyState, Field, Modal, Select, Switch, TextArea, TextInput, confirm, toast } from '@/components/ui'
 import { clientSourcesApi, clientTagsApi, deleteClientTag, reorderCollection, updateSettings } from '@/api/settings'
 import { useDb } from '@/store/db'
 import { PALETTE, PALETTE_ORDER } from '@/styles/palette'
 import type { ClientSource, ClientTag, PaletteColor, Settings } from '@/types'
 import { useSettings, useWorkspace } from '../hooks'
-import { ActionsPill, ActiveLabel, EditCard, PillMenu, PromoCard, SettingsPage, SummaryList } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
+import { ActionsPill, ActiveLabel, EditCard, FormCard, ListCard, ListRow, LockMark, ModalForm, PillMenu, PromoCard, SettingsPage, SummaryList } from '../components/ui'
+import { FullModal } from '../components/FullModal'
 import { OrderModal } from '../components/OrderModal'
 import { ColorSwatches } from '../components/pickers'
 import { useAction, useDraft } from '../components/useAction'
-import { RadioRow, RowCard, RowStack, deleteItem, rowActions } from '../scheduling/shared'
-import { B, M, ModalFooter, ModalForm, moved } from './shared'
+import { RadioRow, deleteItem, rowActions } from '../scheduling/shared'
+import { B, M, moved } from './shared'
 
 // ─── Client sources (§1) ─────────────────────────────────────────────────
 
@@ -40,31 +40,31 @@ export function ClientSourcesPage() {
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={200} groups={[{ items: [{ label: t('settings.common.changeOrder'), onSelect: () => setOrdering(true) }] }]} />
-          <Button variant="primary" className="rounded-full px-5" onClick={() => setEditing('new')} data-testid="source-add">
+          <Button variant="primary" onClick={() => setEditing('new')} data-testid="source-add">
             {t('settings.common.add')}
           </Button>
         </>
       }
     >
-      <RowStack testId="sources-list">
+      <ListCard testId="sources-list">
         {sources.map((s) => (
-          <RowCard
+          <ListRow
             key={s.id}
             testId={`source-${s.id}`}
             title={s.name}
             subtitle={<ActiveLabel active={s.active} />}
-            onClick={() => setEditing(s)}
-            trailing={<ActionsPill groups={rowActions(t, { onEdit: () => setEditing(s), onDelete: () => void remove(s), deleteDisabled: s.system, deleteHint: s.system ? t(`${CS}.systemHint`) : undefined })} />}
+            onClick={s.system ? undefined : () => setEditing(s)}
+            trailing={s.system ? <LockMark label={t(`${CS}.systemHint`)} /> : <ActionsPill groups={rowActions(t, { onEdit: () => setEditing(s), onDelete: () => void remove(s) })} />}
           />
         ))}
-      </RowStack>
+      </ListCard>
       {editing && <SourceModal source={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
       <OrderModal
         open={ordering}
         onClose={() => setOrdering(false)}
         title={t(`${CS}.orderTitle`)}
         items={sources.map((s) => ({ id: s.id, label: s.name }))}
-        onSave={(ids) => run(() => reorderCollection('clientSources', ids), t(`${M}.orderSaved`)).then(() => undefined)}
+        onSave={(ids) => run(() => reorderCollection('clientSources', ids), t('settings.common.orderUpdated'))}
       />
     </SettingsPage>
   )
@@ -84,20 +84,22 @@ function SourceModal({ source, onClose }: { source: ClientSource | null; onClose
     setTouched(true)
     if (!trimmed || duplicate) return
     void run(
-      () => (source ? clientSourcesApi.update(source.id, { name: source.system ? source.name : trimmed, active }) : clientSourcesApi.create({ name: trimmed, active, system: false, order: all.length })),
+      () => (source ? clientSourcesApi.update(source.id, { name: trimmed, active }) : clientSourcesApi.create({ name: trimmed, active, system: false, order: all.length })),
       t(source ? `${CS}.updated` : `${CS}.added`),
       onClose,
     )
   }
   return (
-    <SettingsModal open onClose={onClose} title={t(source ? `${CS}.editTitle` : `${CS}.addTitle`)} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} saveLabel={source ? undefined : t('settings.common.add')} testId="source-save" />}>
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${CS}.name`)} error={error} hint={source?.system ? t(`${CS}.systemHint`) : undefined}>
-          {(id) => <TextInput id={id} value={name} disabled={source?.system} maxLength={100} invalid={!!error} placeholder={t(`${CS}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} data-testid="source-name" />}
-        </Field>
-        <Checkbox checked={active} onChange={setActive} label={t('settings.common.active')} />
-      </ModalForm>
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t(source ? `${CS}.editTitle` : `${CS}.addTitle`)} onSave={save} saving={saving} saveLabel={source ? undefined : t('settings.common.add')} testId="source-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${CS}.name`)} error={error}>
+            {(id) => <TextInput id={id} value={name} maxLength={100} invalid={!!error} placeholder={t(`${CS}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} data-testid="source-name" />}
+          </Field>
+          <Checkbox checked={active} onChange={setActive} label={t('settings.common.active')} />
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -142,7 +144,7 @@ export function ClientTagsPage() {
             direction,
           ),
         ),
-      t(`${CT}.moved`),
+      t('settings.common.orderUpdated'),
     )
   return (
     <SettingsPage
@@ -150,19 +152,19 @@ export function ClientTagsPage() {
       description={t(`${CT}.description`)}
       learnMore="Client tags"
       actions={
-        <Button variant="primary" className="rounded-full px-5" onClick={() => setEditing('new')} data-testid="tag-add">
+        <Button variant="primary" onClick={() => setEditing('new')} data-testid="tag-add">
           {t('settings.common.add')}
         </Button>
       }
     >
       {tags.length === 0 ? (
         <div className="card">
-          <EmptyState title={t(`${CT}.emptyTitle`)} body={t(`${CT}.emptyBody`)} action={<Button onClick={() => setEditing('new')}>{t(`${CT}.addTitle`)}</Button>} />
+          <EmptyState title={t(`${CT}.emptyTitle`)} body={t(`${CT}.emptyBody`)} action={<Button variant="primary" onClick={() => setEditing('new')}>{t('settings.common.add')}</Button>} />
         </div>
       ) : (
-        <RowStack testId="tags-list">
+        <ListCard testId="tags-list">
           {tags.map((tag, i) => (
-            <RowCard
+            <ListRow
               key={tag.id}
               testId={`tag-${tag.id}`}
               title={<TagChip name={tag.name} color={tag.color} />}
@@ -189,7 +191,7 @@ export function ClientTagsPage() {
               }
             />
           ))}
-        </RowStack>
+        </ListCard>
       )}
       {editing && <TagModal tag={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
     </SettingsPage>
@@ -212,21 +214,23 @@ function TagModal({ tag, onClose }: { tag: ClientTag | null; onClose: () => void
     void run(() => (tag ? clientTagsApi.update(tag.id, { name: trimmed, color }) : clientTagsApi.create({ name: trimmed, color, order: all.length })), t(tag ? `${CT}.updated` : `${CT}.added`), onClose)
   }
   return (
-    <SettingsModal open onClose={onClose} title={t(tag ? `${CT}.editTitle` : `${CT}.addTitle`)} footer={<ModalFooter onCancel={onClose} onSave={save} saving={saving} disabled={!trimmed} saveLabel={tag ? undefined : t('settings.common.add')} testId="tag-save" />}>
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${CT}.name`)} counter={{ value: name.length, max: 15 }} error={error}>
-          {(id) => <TextInput id={id} value={name} maxLength={15} invalid={!!error} placeholder={t(`${CT}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} data-testid="tag-name" />}
-        </Field>
-        <div>
-          <p className="mb-2 text-body-strong text-ink">{t(`${CT}.color`)}</p>
-          <ColorSwatches value={color} onChange={setColor} label={t(`${CT}.color`)} />
-        </div>
-        <div className="rounded-lg bg-sunken p-4">
-          <p className="mb-2 text-small text-muted">{t(`${CT}.preview`)}</p>
-          <TagChip name={trimmed || t(`${CT}.previewEmpty`)} color={color} />
-        </div>
-      </ModalForm>
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t(tag ? `${CT}.editTitle` : `${CT}.addTitle`)} onSave={save} saving={saving} saveDisabled={!trimmed} saveLabel={tag ? undefined : t('settings.common.add')} testId="tag-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${CT}.name`)} counter={{ value: name.length, max: 15 }} error={error}>
+            {(id) => <TextInput id={id} value={name} maxLength={15} invalid={!!error} placeholder={t(`${CT}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} data-testid="tag-name" />}
+          </Field>
+          <div>
+            <p className="mb-2 text-body-strong text-ink">{t(`${CT}.color`)}</p>
+            <ColorSwatches value={color} onChange={setColor} label={t(`${CT}.color`)} />
+          </div>
+          <div className="rounded-lg bg-sunken p-4">
+            <p className="mb-2 text-small text-muted">{t(`${CT}.preview`)}</p>
+            <TagChip name={trimmed || t(`${CT}.previewEmpty`)} color={color} />
+          </div>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -277,7 +281,7 @@ export function ClientConnectPage() {
           body={t(`${CC}.promoBody`)}
           onDismiss={() => setPromo(false)}
           action={
-            <Button className="rounded-full" onClick={() => navigate('/connect')}>
+            <Button onClick={() => navigate('/connect')}>
               {t(`${CC}.viewInbox`)}
             </Button>
           }
@@ -308,13 +312,13 @@ export function ClientConnectPage() {
           <SummaryList items={[{ key: 'state', text: c.contactPage ? <Trans i18nKey={`${CC}.contactEnabled`} values={{ link: link.replace('https://', '') }} components={b} /> : t(`${CC}.contactDisabled`) }]} />
           {c.contactPage && (
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" className="rounded-full" icon={<Copy size={16} aria-hidden />} onClick={() => void copyText(link, t('settings.common.copied'))} data-testid="contact-copy">
+              <Button size="sm" icon={<Copy size={16} aria-hidden />} onClick={() => void copyText(link, t('settings.common.copied'))} data-testid="contact-copy">
                 {t(`${CC}.copyLink`)}
               </Button>
-              <Button size="sm" className="rounded-full" icon={<QrCode size={16} aria-hidden />} onClick={() => setModal('qr')} data-testid="contact-qr">
+              <Button size="sm" icon={<QrCode size={16} aria-hidden />} onClick={() => setModal('qr')} data-testid="contact-qr">
                 {t(`${CC}.generateQr`)}
               </Button>
-              <Button size="sm" className="rounded-full" icon={<Eye size={16} aria-hidden />} onClick={() => setModal('preview')} data-testid="contact-preview">
+              <Button size="sm" icon={<Eye size={16} aria-hidden />} onClick={() => setModal('preview')} data-testid="contact-preview">
                 {t(`${CC}.preview`)}
               </Button>
             </div>
@@ -323,7 +327,7 @@ export function ClientConnectPage() {
       </EditCard>
       {modal === 'messaging' && <MessagingModal onClose={() => setModal(null)} />}
       {modal === 'instant' && <InstantModal onClose={() => setModal(null)} />}
-      {modal === 'contact' && <ContactModal onClose={() => setModal(null)} onPreview={() => setModal('preview')} />}
+      {modal === 'contact' && <ContactModal onClose={() => setModal(null)} />}
       {modal === 'preview' && <PreviewModal onClose={() => setModal(null)} />}
       {modal === 'qr' && <QrModal onClose={() => setModal(null)} />}
     </SettingsPage>
@@ -350,14 +354,14 @@ function MessagingModal({ onClose }: { onClose: () => void }) {
   const [draft, patch] = useDraft<Connect>(useSettings().clientConnect)
   const [saving, save] = useSaveConnect(onClose)
   return (
-    <SettingsModal open onClose={onClose} title={t(`${CC}.messagingTitle`)} footer={<ModalFooter onCancel={onClose} onSave={() => void save(draft)} saving={saving} testId="messaging-save" />}>
-      <div className="flex flex-col gap-5 pb-2">
+    <FullModal open onClose={onClose} title={t(`${CC}.messagingTitle`)} subtitle={t(`${CC}.messagingDescription`)} onSave={() => void save(draft)} saving={saving} testId="messaging-modal">
+      <FormCard>
         <Checkbox checked disabled onChange={() => undefined} label={t(`${CC}.opts.reply.label`)} hint={t(`${CC}.opts.reply.hint`)} />
         <Checkbox checked={draft.allowStart} onChange={(allowStart) => patch({ allowStart })} label={t(`${CC}.opts.start.label`)} hint={t(`${CC}.opts.start.hint`)} />
         <Checkbox checked={draft.readReceipts} onChange={(readReceipts) => patch({ readReceipts })} label={t(`${CC}.opts.read.label`)} hint={t(`${CC}.opts.read.hint`)} />
         <Checkbox checked={draft.typing} onChange={(typing) => patch({ typing })} label={t(`${CC}.opts.typing.label`)} hint={t(`${CC}.opts.typing.hint`)} />
-      </div>
-    </SettingsModal>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -368,8 +372,8 @@ function InstantModal({ onClose }: { onClose: () => void }) {
   const [saving, save] = useSaveConnect(onClose)
   const error = draft.instantReply && !draft.instantReplyText.trim() ? t(`${CC}.instantRequired`) : undefined
   return (
-    <SettingsModal open onClose={onClose} title={t(`${CC}.instantTitle`)} footer={<ModalFooter onCancel={onClose} onSave={() => !error && void save({ ...draft, instantReplyText: draft.instantReplyText.trim() })} saving={saving} disabled={!!error} testId="instant-save" />}>
-      <div className="flex flex-col gap-5 pb-2">
+    <FullModal open onClose={onClose} title={t(`${CC}.instantTitle`)} subtitle={t(`${CC}.instantDescription`)} onSave={() => !error && void save({ ...draft, instantReplyText: draft.instantReplyText.trim() })} saving={saving} saveDisabled={!!error} testId="instant-modal">
+      <FormCard>
         <div className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-2 text-body-strong text-ink">
             {t(`${CC}.sendInstant`)}
@@ -382,33 +386,35 @@ function InstantModal({ onClose }: { onClose: () => void }) {
             {(id) => <TextArea id={id} value={draft.instantReplyText} maxLength={500} invalid={!!error} onChange={(e) => patch({ instantReplyText: e.target.value })} data-testid="instant-text" />}
           </Field>
         )}
-      </div>
-    </SettingsModal>
+      </FormCard>
+    </FullModal>
   )
 }
 
-function ContactModal({ onClose, onPreview }: { onClose: () => void; onPreview: () => void }) {
+function ContactModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const [draft, patch] = useDraft<Connect>(useSettings().clientConnect)
+  const [preview, setPreview] = useState(false)
   const [saving, save] = useSaveConnect(onClose)
   const linkError = draft.contactPage && draft.redirect === 'custom' && !/^https?:\/\/\S+\.\S+/.test(draft.customLink.trim()) ? t(`${CC}.customLinkInvalid`) : undefined
   const contacts = Object.entries(CONTACT_OPTIONS).map(([value, key]) => ({ value, label: t(`${CC}.required.${key}`) }))
   return (
-    <SettingsModal
+    <FullModal
       open
       onClose={onClose}
-      size="lg"
       title={t(`${CC}.contactTitle`)}
-      footer={
-        <>
-          <Button className="mr-auto rounded-full" icon={<Eye size={16} aria-hidden />} onClick={onPreview}>
-            {t(`${CC}.preview`)}
-          </Button>
-          <ModalFooter onCancel={onClose} onSave={() => !linkError && void save({ ...draft, customLink: draft.customLink.trim() })} saving={saving} disabled={!!linkError} testId="contact-save" />
-        </>
+      subtitle={t(`${CC}.contactDescription`)}
+      onSave={() => !linkError && void save({ ...draft, customLink: draft.customLink.trim() })}
+      saving={saving}
+      saveDisabled={!!linkError}
+      actions={
+        <Button icon={<Eye size={16} aria-hidden />} onClick={() => setPreview(true)} data-testid="contact-modal-preview">
+          {t(`${CC}.preview`)}
+        </Button>
       }
+      testId="contact-modal"
     >
-      <div className="flex flex-col gap-6 pb-2">
+      <FormCard>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-body-strong text-ink">
@@ -446,8 +452,9 @@ function ContactModal({ onClose, onPreview }: { onClose: () => void; onPreview: 
             </div>
           </>
         )}
-      </div>
-    </SettingsModal>
+      </FormCard>
+      {preview && <PreviewModal value={draft} onClose={() => setPreview(false)} />}
+    </FullModal>
   )
 }
 
@@ -464,10 +471,11 @@ function withCurrent(options: { value: string; label: string }[], value: string)
   return !value || options.some((o) => o.value === value) ? options : [...options, { value, label: value }]
 }
 
-function PreviewModal({ onClose }: { onClose: () => void }) {
+function PreviewModal({ value, onClose }: { value?: Connect; onClose: () => void }) {
   const { t } = useTranslation()
   const workspace = useWorkspace()
-  const c = useSettings().clientConnect
+  const saved = useSettings().clientConnect
+  const c = value ?? saved
   const link = useContactLink()
   const field = (label: string, el: ReactNode) => (
     <label className="flex flex-col gap-1.5">
@@ -476,16 +484,16 @@ function PreviewModal({ onClose }: { onClose: () => void }) {
     </label>
   )
   return (
-    <SettingsModal
+    <Modal
       open
       onClose={onClose}
       title={t(`${CC}.previewTitle`)}
       footer={
         <>
-          <Button className="rounded-full" icon={<Copy size={16} aria-hidden />} onClick={() => void copyText(link, t('settings.common.copied'))}>
+          <Button icon={<Copy size={16} aria-hidden />} onClick={() => void copyText(link, t('settings.common.copied'))}>
             {t(`${CC}.copyLink`)}
           </Button>
-          <Button variant="primary" className="rounded-full px-6" onClick={onClose}>
+          <Button variant="primary" onClick={onClose}>
             {t('settings.common.done')}
           </Button>
         </>
@@ -513,7 +521,7 @@ function PreviewModal({ onClose }: { onClose: () => void }) {
           <span className="btn-primary w-full justify-center">{t(`${CC}.sendMessage`)}</span>
         </div>
       </div>
-    </SettingsModal>
+    </Modal>
   )
 }
 
@@ -536,7 +544,7 @@ function QrModal({ onClose }: { onClose: () => void }) {
     toast(t(`${CC}.qrDownloaded`))
   }
   return (
-    <SettingsModal
+    <Modal
       open
       onClose={onClose}
       size="sm"
@@ -544,10 +552,10 @@ function QrModal({ onClose }: { onClose: () => void }) {
       subtitle={t(`${CC}.qrSubtitle`)}
       footer={
         <>
-          <Button className="rounded-full" onClick={onClose}>
+          <Button onClick={onClose}>
             {t('settings.common.close')}
           </Button>
-          <Button variant="primary" className="rounded-full" icon={<Download size={16} aria-hidden />} disabled={!qr} onClick={download} data-testid="qr-download">
+          <Button variant="primary" icon={<Download size={16} aria-hidden />} disabled={!qr} onClick={download} data-testid="qr-download">
             {t(`${CC}.downloadQr`)}
           </Button>
         </>
@@ -557,6 +565,6 @@ function QrModal({ onClose }: { onClose: () => void }) {
         {qr ? <img src={qr} alt={t(`${CC}.qrAlt`)} className="h-[220px] w-[220px] rounded-lg border border-line" data-testid="qr-image" /> : <div className="h-[220px] w-[220px] animate-pulse rounded-lg bg-sunken" />}
         <p className="break-all text-center text-small text-muted">{link}</p>
       </div>
-    </SettingsModal>
+    </Modal>
   )
 }

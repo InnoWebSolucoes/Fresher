@@ -15,11 +15,12 @@ const TIME_GROUPINGS = [{ key: 'day' }, { key: 'week' }, { key: 'month' }, { key
 function financeValues(ctx: Ctx, r: Range, filters: Params['filters']): Record<string, number> {
   const lines = applyFilters(lineFacts(ctx).filter((f) => inR(f.date, r)), filters)
   const goods = lines.filter((f) => !f.giftCard)
-  const gross = sum(goods, (f) => f.gross)
+  // Items covered by a membership benefit sell at €0; their list price shows as gross and is taken back on the Memberships line.
+  const memberships = -sum(goods.filter((f) => f.item.benefitNote && f.item.clientMembershipId && !f.refund), (f) => (f.item.originalPrice ?? 0) / (1 + f.rate))
   const discounts = -sum(goods, (f) => f.itemDiscEx + f.cartDiscEx)
-  const memberships = -sum(goods.filter((f) => f.item.benefitNote && f.item.clientMembershipId), (f) => (f.item.originalPrice ?? 0) / (1 + f.rate))
   const refunds = sum(goods, (f) => f.refunds)
-  const netSales = round2(gross + discounts + memberships + refunds)
+  const netSales = sum(goods, (f) => f.net)
+  const gross = round2(netSales - discounts - memberships - refunds)
   const taxes = sum(goods, (f) => f.tax)
   const totalSales = round2(netSales + taxes)
   const giftCardSales = sum(lines.filter((f) => f.giftCard), (f) => f.netIncl)
@@ -39,7 +40,8 @@ function financeValues(ctx: Ctx, r: Range, filters: Params['filters']): Record<s
   const refundsPaid = sum(sales.filter((s) => s.kind === 'refund'), (s) => computeTotals(s).total)
   const salesPaid = round2(paidInPeriod + refundsPaid)
   const pays = (ctx.d.payments ?? []).filter((p) => p.status === 'succeeded' && inR(ctx.day(p.at), r) && (!loc.length || loc.includes(p.locationId)))
-  const salePays = pays.filter((p) => p.kind !== 'deposit' && p.method !== 'gift_card')
+  // Money received: every payment except gift card redemptions (those are listed under Redemptions).
+  const salePays = pays.filter((p) => p.method !== 'gift_card')
   const out: Record<string, number> = {
     grossSales: gross,
     discounts,
@@ -60,15 +62,14 @@ function financeValues(ctx: Ctx, r: Range, filters: Params['filters']): Record<s
   }
   for (const p of salePays) out[`pm_${p.method}`] = round2((out[`pm_${p.method}`] ?? 0) + p.amount)
   out.totalPayments = sum(salePays, (p) => p.amount)
-  out.paymentsForSalesInPeriod = sum(
-    salePays.filter((p) => {
-      const sale = ctx.byId.sale.get(p.saleId)
-      return sale && inR(ctx.day(sale.createdAt), r)
-    }),
-    (p) => p.amount,
-  )
-  out.paymentsForPreviousPeriods = round2(out.totalPayments - out.paymentsForSalesInPeriod)
-  out.prepayments = sum(pays.filter((p) => p.kind === 'deposit'), (p) => p.amount)
+  // Total payments = payments for sales in this period + for earlier sales + prepayments not yet used by a sale in the period.
+  const saleDate = (p: (typeof salePays)[number]) => {
+    const sale = p.saleId ? ctx.byId.sale.get(p.saleId) : undefined
+    return sale ? ctx.day(sale.createdAt) : null
+  }
+  out.paymentsForSalesInPeriod = sum(salePays.filter((p) => { const d = saleDate(p); return d !== null && inR(d, r) }), (p) => p.amount)
+  out.paymentsForPreviousPeriods = sum(salePays.filter((p) => { const d = saleDate(p); return d !== null && d < r.from }), (p) => p.amount)
+  out.prepayments = round2(out.totalPayments - out.paymentsForSalesInPeriod - out.paymentsForPreviousPeriods)
   const events = liabilityEvents(ctx).filter((e) => inR(e.date, r) && e.activity === 'redemption' && (!loc.length || loc.includes(e.locationId)))
   out.prepaymentRedemption = -sum(events.filter((e) => e.liability === 'prepayment'), (e) => e.amount)
   out.giftCardRedemption = -sum(events.filter((e) => e.liability === 'gift_card'), (e) => e.amount)
@@ -86,13 +87,14 @@ const financeSummary: Spec = {
   range: 'last_6_months',
   groupBy: true,
   groupings: TIME_GROUPINGS,
+  defaultGroupBy: 'month',
   filters: ['location'],
   advanced: false,
   customize: false,
   build: (ctx, p) => {
     const unit = (['day', 'week', 'month', 'quarter', 'year'].includes(p.groupBy) ? p.groupBy : 'month') as 'day' | 'week' | 'month' | 'quarter' | 'year'
     const buckets = bucketsBetween(unit, p.range).reverse()
-    const methods = [...new Set((ctx.d.payments ?? []).filter((x) => x.status === 'succeeded' && x.kind !== 'deposit' && x.method !== 'gift_card' && inR(ctx.day(x.at), p.range)).map((x) => x.method))].sort()
+    const methods = [...new Set((ctx.d.payments ?? []).filter((x) => x.status === 'succeeded' && x.method !== 'gift_card' && inR(ctx.day(x.at), p.range)).map((x) => x.method))].sort()
     const lines: Line[] = [
       { key: 'grossSales' },
       { key: 'discounts', indent: true, to: 'discount-summary' },

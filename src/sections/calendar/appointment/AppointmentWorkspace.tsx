@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { format, parseISO } from 'date-fns'
 import { ArrowLeft, ChevronDown, ChevronRight, ClipboardList, CreditCard, FileText, LocateFixed, Minimize2, MoreVertical, NotebookPen, Plus, ShieldCheck, UsersRound } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Modal, confirm, toast, type MenuGroup } from '@/components/ui'
 import { addAppointmentNote, createAppointment, rescheduleAppointment, setStatus, undoNoShow, updateAppointment } from '@/api/appointments'
@@ -15,8 +15,8 @@ import { fullName, money } from '@/lib/format'
 import type { Slot } from '@/lib/availability'
 import type { Appointment, AppointmentStatus, ClientNote, ID, Service } from '@/types'
 import { useAvailabilityData, useLocationMembers, usePaymentsActive } from '../hooks'
-import { useCalendarUi, type AppointmentDraft, type DraftItem } from '../store'
-import { DropMenu, FloatingDrawerButtons, UnsavedChangesModal, useCloseGuard } from '../ui'
+import { useCalendarUi, type AppointmentDraft, type DraftItem, type MinimizedDrawer } from '../store'
+import { DropMenu, FloatingDrawerButtons, UnsavedChangesModal, useLeaveGuard } from '../ui'
 import { ClientPanel } from './ClientPanel'
 import { draftFromAppointment, draftItemFromService, layout, resolveMember, sameItems, toAppointmentItems, toNewItems, totals } from './editor'
 import { AppointmentHeader, RepeatPanel } from './HeaderControls'
@@ -48,6 +48,7 @@ interface WorkspaceProps {
 export function AppointmentWorkspace({ appointment, initial, defaultMember = null, close }: WorkspaceProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const drawer = useDrawer()
   const isNew = !appointment
   const availability = useAvailabilityData()
@@ -83,7 +84,9 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
     : Boolean(baseline && (!sameItems(draft.items, baseline.items) || draft.date !== baseline.date || draft.start !== baseline.start || draft.clientId !== baseline.clientId))
   const dirtyRef = useRef(dirty)
   dirtyRef.current = dirty
-  const guard = useCloseGuard(dirty, t('drawers.closeDrawer'))
+  const guard = useLeaveGuard(dirty)
+  /** Close on purpose (after saving, cancelling…) without the unsaved-changes question. */
+  const closeNow = () => guard.bypass(close)
 
   // Keep an existing appointment in sync with the store while untouched.
   useEffect(() => {
@@ -206,8 +209,8 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
     if (isNew) {
       const created = await saveNew()
       if (!created) return
-      if (created.groupId) drawer.open('appointment-group', { id: created.groupId })
-      else close()
+      if (created.groupId) guard.bypass(() => drawer.open('appointment-group', { id: created.groupId }))
+      else closeNow()
       return
     }
     const timeChanged = baseline && (draft.date !== baseline.date || draft.start !== baseline.start)
@@ -220,28 +223,50 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
   const onCheckout = async () => {
     if (isNew) {
       const created = await saveNew()
-      if (created) drawer.open('checkout', { d_appointment: created.id })
+      if (created) guard.bypass(() => drawer.open('checkout', { d_appointment: created.id }))
     } else if (appointment) drawer.open('checkout', { d_appointment: appointment.id })
   }
 
   const exitWithoutSaving = () => {
-    guard.dismiss()
     if (isNew) {
       ui.setDraft(null)
       ui.setPreview(null)
     }
-    close()
+    guard.leave()
   }
 
   const pickQuery = (extra: Record<string, string> = {}) =>
     `?${new URLSearchParams({ date: draft.date, view: 'day', location_id: draft.locationId, calendar_selected_resources: 'e-working', ...extra }).toString()}`
 
-  const minimize = () => {
+  /** Keep the drawer's state so it can come back (minimised pill, or under the client drawer). */
+  const stash = (): MinimizedDrawer | null => {
     if (isNew) {
       ui.setDraft(draft)
-      ui.setMinimized({ kind: 'new-appointment', label: draftClient ? fullName(draftClient) : t('calendar.minimized.newAppointment') })
-    } else if (appointment) ui.setMinimized({ kind: 'appointment', id: appointment.id, label: clientLabel })
-    close()
+      return { kind: 'new-appointment', label: draftClient ? fullName(draftClient) : t('calendar.minimized.newAppointment'), photo: draftClient?.photo }
+    }
+    if (!appointment) return null
+    ui.setDraft(dirty ? { ...draft, editingId: appointment.id } : null)
+    return { kind: 'appointment', id: appointment.id, label: clientLabel, photo: draftClient?.photo }
+  }
+
+  const minimize = () => {
+    const entry = stash()
+    if (entry) ui.setMinimized(entry)
+    closeNow()
+  }
+
+  /** "View profile": the client drawer opens on top; closing it brings this drawer back. */
+  const openClientProfile = (clientId: ID) => {
+    const entry = stash()
+    if (entry) ui.setStacked(entry)
+    guard.bypass(() => drawer.open('client', { id: clientId }))
+  }
+
+  /** Leave for a full page (edit client details) and keep this drawer minimised to come back to. */
+  const leaveTo = (path: string) => {
+    const entry = stash()
+    if (entry) ui.setMinimized(entry)
+    guard.bypass(() => navigate(path))
   }
 
   const changeStatus = async (next: AppointmentStatus) => {
@@ -254,7 +279,23 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
     }
   }
 
+  /**
+   * Payments isn't set up: open the Payments add-on page (as the reference
+   * does); its Close comes back to this drawer with the draft intact.
+   */
+  const openPaymentsPage = () => {
+    stash()
+    const back = new URLSearchParams(location.search)
+    ;[...back.keys()].filter((k) => k === 'drawer' || k === 'id' || k === 'tab' || k.startsWith('d_')).forEach((k) => back.delete(k))
+    back.set('drawer', isNew ? 'new-appointment' : 'appointment')
+    if (appointment) back.set('id', appointment.id)
+    if (isNew || dirty) back.set('d_resume', '1')
+    guard.bypass(() => navigate(`/payments/payment-processing?return=${encodeURIComponent(`${location.pathname}?${back.toString()}`)}`))
+  }
+
   const togglePolicy = async () => {
+    const turningOn = isNew ? !draft.paymentPolicy : !appointment?.paymentPolicy
+    if (turningOn && !paymentsActive) return openPaymentsPage()
     if (isNew) {
       setDraft((d) => ({ ...d, paymentPolicy: !d.paymentPolicy }))
       return
@@ -465,7 +506,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
     return (
       <>
         {optionsButton}
-        <Button size="lg" className="flex-1" iconRight={<CreditCard size={18} className="text-success" />} onClick={() => drawer.open('checkout', { d_appointment: appointment.id, d_step: 'payment' })}>
+        <Button size="lg" className="flex-1" iconRight={<CreditCard size={18} className="text-success" />} onClick={() => (paymentsActive ? drawer.open('checkout', { d_appointment: appointment.id, d_step: 'payment' }) : openPaymentsPage())} data-testid="appointment-pay-now">
           {t('calendar.footer.payNow')}
         </Button>
         <Button variant="primary" size="lg" className="flex-1" onClick={onCheckout} data-testid="appointment-checkout">
@@ -589,8 +630,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
                 onPickFromCalendar={() => {
                   ui.setDraft({ ...draft, start: null })
                   ui.setPreview(null)
-                  close()
-                  navigate(`/calendar/pick-from-calendar${pickQuery()}`)
+                  guard.bypass(() => navigate(`/calendar/pick-from-calendar${pickQuery()}`))
                 }}
               />
             )}
@@ -761,6 +801,8 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
           walkIn={draft.walkIn}
           readOnly={readOnly}
           onChange={(clientId, walkIn) => setDraft((d) => ({ ...d, clientId, walkIn }))}
+          onViewProfile={openClientProfile}
+          onLeaveTo={leaveTo}
         />
       </aside>
       <section className="flex min-w-0 flex-1 flex-col">{renderMainColumn()}</section>
@@ -768,6 +810,15 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
       <NoteModal
         open={modal === 'note'}
         clientName={draftClient ? fullName(draftClient) : undefined}
+        clientPhoto={draftClient?.photo}
+        onClient={
+          draftClient
+            ? () => {
+                setModal(null)
+                openClientProfile(draftClient.id)
+              }
+            : undefined
+        }
         initialHtml={isNew ? draft.note : ''}
         onClose={() => setModal(null)}
         onSave={async (html) => {
@@ -783,6 +834,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
         open={modal === 'editNote' && Boolean(activeNote)}
         title={t('calendar.records.editTitle')}
         clientName={draftClient ? fullName(draftClient) : undefined}
+        clientPhoto={draftClient?.photo}
         initialHtml={activeNote?.html ?? ''}
         onClose={() => setModal(null)}
         onSave={async (html) => {
@@ -818,12 +870,12 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
             onClose={() => setModal(null)}
             onDone={() => {
               setModal(null)
-              close()
+              closeNow()
             }}
           />
         </>
       )}
-      <UnsavedChangesModal open={guard.asking} onBack={guard.dismiss} onExit={exitWithoutSaving} />
+      <UnsavedChangesModal open={guard.asking} onBack={guard.stay} onExit={exitWithoutSaving} />
     </div>
   )
 }

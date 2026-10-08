@@ -2,12 +2,12 @@ import { Facebook, Globe, Instagram, Twitter } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button, Field, LearnMore, RadioGroup, SearchInput, TextInput, confirm } from '@/components/ui'
+import { Button, Field, LearnMore, Modal, RadioGroup, SearchInput, TextInput, confirm } from '@/components/ui'
 import { updateWorkspace } from '@/api/settings'
 import type { Workspace } from '@/types'
 import { useWorkspace } from '../hooks'
 import { FullModal } from '../components/FullModal'
-import { SettingsModal } from '../components/SettingsModal'
+import { FormCard, FormStack } from '../components/ui'
 import { useAction } from '../components/useAction'
 import { LANGUAGES, languageFlag } from './languages'
 
@@ -68,23 +68,24 @@ export function BusinessDetailsEditPage() {
 
   return (
     <FullModal open inline onClose={close} onSave={save} saving={saving} title={t('settings.biz.edit.title')} testId="business-details-edit">
-      <div className="flex flex-col gap-6">
-        <section className="card p-6">
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.edit.businessInfo')}</h2>
-          <p className="mt-1 text-body text-muted">{t('settings.biz.edit.businessInfoHint')}</p>
-          <Field className="mt-5" label={t('settings.biz.details.businessName')} error={submitted ? errors.name : undefined}>
+      <FormStack>
+        <FormCard title={t('settings.biz.edit.businessInfo')} description={t('settings.biz.edit.businessInfoHint')}>
+          <Field label={t('settings.biz.details.businessName')} error={submitted ? errors.name : undefined}>
             {(id) => <TextInput id={id} data-autofocus value={draft.name} placeholder={t('settings.biz.edit.namePlaceholder')} invalid={submitted && Boolean(errors.name)} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />}
           </Field>
-          <p className="mt-4 rounded-md bg-sunken px-4 py-3 text-body text-ink">
+          <p className="rounded-md bg-sunken px-4 py-3 text-body text-ink">
             {t('settings.biz.edit.countryNote1')} <strong>{workspace.country}</strong> {t('settings.biz.edit.countryNote2')} <strong>{workspace.currency}</strong> {t('settings.biz.edit.countryNote3')}
           </p>
-        </section>
+        </FormCard>
 
-        <section className="card p-6">
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.details.taxCalculation')}</h2>
-          <p className="mb-5 mt-1 text-body text-muted">
-            {t('settings.biz.edit.taxHint')} <LearnMore topic="Tax calculation" />
-          </p>
+        <FormCard
+          title={t('settings.biz.details.taxCalculation')}
+          description={
+            <>
+              {t('settings.biz.edit.taxHint')} <LearnMore topic="Tax calculation" />
+            </>
+          }
+        >
           <RadioGroup
             value={draft.taxCalculation}
             onChange={(v) => setDraft({ ...draft, taxCalculation: v })}
@@ -93,12 +94,10 @@ export function BusinessDetailsEditPage() {
               { value: 'inclusive', label: t('settings.biz.details.taxInclusive'), hint: <span className="whitespace-pre-line">{t('settings.biz.edit.taxInclusiveHint')}</span> },
             ]}
           />
-        </section>
+        </FormCard>
 
-        <section className="card p-6">
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.edit.languageSettings')}</h2>
-          <p className="mt-1 text-body text-muted">{t('settings.biz.edit.languageHint')}</p>
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormCard title={t('settings.biz.edit.languageSettings')} description={t('settings.biz.edit.languageHint')}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {(['teamLanguage', 'clientLanguage'] as const).map((key) => (
               <div key={key}>
                 <p className="label">{t(`settings.biz.details.${key}`)}</p>
@@ -113,20 +112,18 @@ export function BusinessDetailsEditPage() {
               </div>
             ))}
           </div>
-          <p className="mt-4 rounded-md bg-sunken px-4 py-3 text-body text-ink">{t('settings.biz.edit.languageNote')}</p>
-        </section>
+          <p className="rounded-md bg-sunken px-4 py-3 text-body text-ink">{t('settings.biz.edit.languageNote')}</p>
+        </FormCard>
 
-        <section className="card p-6">
-          <h2 className="font-display text-title-3 text-ink">{t('settings.biz.details.externalLinks')}</h2>
-          <p className="mt-1 text-body text-muted">{t('settings.biz.edit.linksHint')}</p>
-          <div className="mt-5 flex flex-col gap-4">
+        <FormCard title={t('settings.biz.details.externalLinks')} description={t('settings.biz.edit.linksHint')}>
+          <div className="flex flex-col gap-4">
             {linkField('facebook', <Facebook size={16} aria-hidden />, 'facebook.com/yoursite')}
             {linkField('instagram', <Instagram size={16} aria-hidden />, 'instagram.com/yoursite')}
             {linkField('x', <Twitter size={16} aria-hidden />, 'x.com/yoursite')}
             {linkField('website', <Globe size={16} aria-hidden />, 'yoursite.com')}
           </div>
-        </section>
-      </div>
+        </FormCard>
+      </FormStack>
 
       <LanguagePicker
         open={picker !== null}
@@ -157,7 +154,7 @@ export function LanguagePicker({ open, title, value, onClose, onSelect }: { open
   }
   const list = LANGUAGES.filter((l) => l.name.toLowerCase().includes(query.trim().toLowerCase()))
   return (
-    <SettingsModal
+    <Modal
       open={open}
       onClose={onClose}
       title={title}
@@ -193,6 +190,6 @@ export function LanguagePicker({ open, title, value, onClose, onSelect }: { open
         ))}
         {!list.length && <li className="px-3 py-6 text-center text-body text-muted">{t('settings.common.noResults')}</li>}
       </ul>
-    </SettingsModal>
+    </Modal>
   )
 }

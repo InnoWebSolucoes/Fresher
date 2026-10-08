@@ -64,21 +64,3 @@ export const htmlToText = (html: string) => {
 }
 
 export const fileSize = (bytes: number) => (bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`)
-
-/** Safe localStorage access (private windows can throw). */
-export const storage = {
-  get(key: string): string | null {
-    try {
-      return window.localStorage.getItem(key)
-    } catch {
-      return null
-    }
-  },
-  set(key: string, value: string) {
-    try {
-      window.localStorage.setItem(key, value)
-    } catch {
-      /* ignore */
-    }
-  },
-}

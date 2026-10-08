@@ -15,10 +15,12 @@ import { todayISO } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { Settings } from '@/types'
 import { useCheckout } from './context'
-import { EXPIRY_OPTIONS, dealsForLine, keypadPress, parseAmount } from './model'
+import { EXPIRY_OPTIONS, appliedOfferKey, applyOffer, basePrice, dealsForLine, keypadPress, offerTotal, offerUnitPrice, offersForLine, parseAmount, type Offer } from './model'
+import { OfferTag } from './OffersModal'
 import { Keypad } from './ui'
 
 const num = (v: number | '') => (v === '' ? 0 : v)
+const BOOKED = 'booked'
 
 function MemberSelect({ value, onChange, id }: { value: string; onChange: (v: string) => void; id: string }) {
   const c = useCheckout()
@@ -46,25 +48,45 @@ function ModalFooter({ total, label, onRemove, onApply, applyLabel, removeLabel,
   )
 }
 
-/** "Edit Haircut": price, quantity, discounts (POS deals), team member, item total (calendar.md §10). */
+/** "Edit Haircut": price, quantity, discounts (package benefits, rewards, POS deals), team member, item total (calendar.md §10). */
 export function EditLineModal({ lineKey, onClose }: { lineKey: string; onClose: () => void }) {
   const { t } = useTranslation()
   const c = useCheckout()
   const deals = useDb((s) => s.deals)
+  // Re-render when the client's packages or rewards change.
+  useDb((s) => s.clientPackages)
+  useDb((s) => s.clients)
   const line = c.lines.find((l) => l.key === lineKey)
-  const [price, setPrice] = useState<number | ''>(line?.unitPrice ?? 0)
+  // A price discounted when the appointment was booked (no package, reward or deal attached).
+  const bookedOff = line && !appliedOfferKey(line) && line.originalPrice !== undefined && line.originalPrice > line.unitPrice ? round2(line.originalPrice - line.unitPrice) : 0
+  const [price, setPrice] = useState<number | ''>(line ? basePrice(line) : 0)
   const [qty, setQty] = useState(line?.quantity ?? 1)
-  const [dealId, setDealId] = useState(line?.discount?.dealId ?? '')
+  const [offerKey, setOfferKey] = useState(line ? appliedOfferKey(line) || (bookedOff ? BOOKED : '') : '')
   const [memberId, setMemberId] = useState(line?.teamMemberId ?? c.defaultMemberId ?? '')
   if (!line) return null
-  const available = dealsForLine({ type: line.type, refId: line.refId, teamMemberId: memberId }, deals, todayISO())
-  const deal = available.find((d) => d.id === dealId)
-  const discount = deal ? { type: deal.discountType === 'percent' ? ('percent' as const) : ('amount' as const), value: deal.value, dealId: deal.id } : undefined
-  const total = lineTotal({ unitPrice: num(price), quantity: qty, discount })
-  const invalid = price === '' || num(price) < 0 || qty < 1
+  const draft = { ...line, unitPrice: num(price), originalPrice: undefined, quantity: qty, teamMemberId: memberId || null }
+  // Listed for one unit; a package with fewer sessions than the quantity shows an error below.
+  const offers = offersForLine({ ...draft, quantity: 1 }, c.lines, c.clientId, deals, todayISO())
+  const offer = offers.find((o) => o.key === offerKey)
+  const base = num(price)
+  const total = offerKey === BOOKED ? round2(Math.max(0, base - bookedOff) * qty) : offer ? (offer.kind === 'deal' ? lineTotal({ unitPrice: base, quantity: qty, discount: { type: offer.deal.discountType === 'percent' ? 'percent' : 'amount', value: offer.deal.value } }) : round2(offerUnitPrice(base, offer) * qty)) : round2(base * qty)
+  const invalid = price === '' || num(price) < 0 || qty < 1 || (Boolean(offer) && offer?.kind === 'benefit' && offer.left < qty)
   const fixedQty = Boolean(line.appointmentId)
+  const label = (o: Offer) => {
+    const amount = offerTotal(base, o)
+    if (o.kind === 'benefit') return `${o.packageName} · ${c.offerLabels.packageBenefit} (${t('checkout.summary.free')})`
+    if (o.kind === 'reward') return `${o.reward.name} · ${c.offerLabels.manualReward} (${amount === 0 ? t('checkout.summary.free') : money(amount)})`
+    return `${o.deal.name} (${o.deal.discountType === 'percent' ? `${o.deal.value}%` : money(o.deal.value)} ${t('checkout.editItem.off')})`
+  }
+  const options = [
+    ...(bookedOff ? [{ value: BOOKED, label: `${line.benefitNote ?? t('checkout.editItem.bookedPrice')} (-${money(bookedOff)})` }] : []),
+    ...offers.map((o) => ({ value: o.key, label: label(o) })),
+  ]
   const apply = () => {
-    c.updateLine(line.key, { unitPrice: round2(num(price)), quantity: qty, discount, teamMemberId: memberId || null })
+    if (invalid) return
+    const common = { quantity: qty, teamMemberId: memberId || null }
+    if (offerKey === BOOKED) c.updateLine(line.key, { ...common, unitPrice: round2(Math.max(0, base - bookedOff)), originalPrice: round2(base), benefitNote: line.benefitNote })
+    else c.updateLine(line.key, { ...common, ...applyOffer({ ...draft, unitPrice: round2(base) }, offer ?? null, c.offerLabels) })
     onClose()
   }
   return (
@@ -76,10 +98,10 @@ export function EditLineModal({ lineKey, onClose }: { lineKey: string; onClose: 
     >
       <div className="flex flex-col gap-5 pb-2">
         <div className="grid grid-cols-[1fr_1fr] gap-4">
-          <Field label={t('checkout.editItem.price')} error={invalid && price === '' ? t('checkout.editItem.priceRequired') : undefined}>
+          <Field label={t('checkout.editItem.price')} error={price === '' ? t('checkout.editItem.priceRequired') : undefined}>
             {(id) => <MoneyInput id={id} value={price} onChange={setPrice} />}
           </Field>
-          <Field label={t('checkout.editItem.quantity')} hint={fixedQty ? t('checkout.editItem.fromAppointment') : undefined}>
+          <Field label={t('checkout.editItem.quantity')} hint={fixedQty ? t('checkout.editItem.fromAppointment') : undefined} error={offer?.kind === 'benefit' && offer.left < qty ? t('checkout.editItem.sessionsLeft', { count: offer.left }) : undefined}>
             {(id) => (
               <div className="flex gap-2">
                 <TextInput id={id} type="number" min={1} value={qty} disabled={fixedQty} onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))} />
@@ -96,16 +118,14 @@ export function EditLineModal({ lineKey, onClose }: { lineKey: string; onClose: 
           </Field>
         </div>
         <Field label={t('checkout.editItem.discounts')}>
-          {(id) => (
-            <Select
-              id={id}
-              value={dealId}
-              disabled={!available.length}
-              onChange={(e) => setDealId(e.target.value)}
-              options={available.length ? [{ value: '', label: t('checkout.editItem.noneSelected') }, ...available.map((d) => ({ value: d.id, label: `${d.name} (${d.discountType === 'percent' ? `${d.value}%` : money(d.value)} ${t('checkout.editItem.off')})` }))] : [{ value: '', label: t('checkout.editItem.noneAvailable') }]}
-            />
-          )}
+          {(id) => <Select id={id} value={offerKey} disabled={!options.length} onChange={(e) => setOfferKey(e.target.value)} options={options.length ? [{ value: '', label: t('checkout.editItem.noneSelected') }, ...options] : [{ value: '', label: t('checkout.editItem.noneAvailable') }]} />}
         </Field>
+        {offer && offer.kind !== 'deal' && (
+          <p className="-mt-2 flex items-center gap-2 text-small text-muted">
+            <OfferTag label={offer.kind === 'benefit' ? c.offerLabels.packageBenefit : c.offerLabels.manualReward} />
+            {offer.kind === 'benefit' ? t('checkout.offers.sessionsLeft', { count: Number.isFinite(offer.left) ? offer.left : 99 }) : offer.reward.name}
+          </p>
+        )}
         <Field label={t('checkout.editItem.teamMember')}>{(id) => <MemberSelect id={id} value={memberId} onChange={setMemberId} />}</Field>
       </div>
     </Modal>
@@ -209,7 +229,9 @@ export function SellCustomModal({ type, onClose }: { type: 'package' | 'membersh
   const add = () => {
     setTouched(true)
     if (invalid) return
-    c.addLine({ type, name: name.trim(), detail: type === 'package' ? t('checkout.custom.customPackage') : t('checkout.custom.customMembership'), quantity: 1, unitPrice: round2(num(price)), teamMemberId: memberId || null })
+    const kind = type === 'package' ? t('checkout.custom.customPackage') : t('checkout.custom.customMembership')
+    // The detail says it was sold as custom, unless the name already does.
+    c.addLine({ type, name: name.trim(), detail: name.trim() === kind ? undefined : kind, quantity: 1, unitPrice: round2(num(price)), teamMemberId: memberId || null })
     onClose()
   }
   return (

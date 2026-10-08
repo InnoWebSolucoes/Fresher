@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import type { DrawerProps } from '@/app/sectionRegistry'
-import { Button, DetailList, EmptyState, Menu, MenuButton, toast } from '@/components/ui'
+import { Avatar, Button, DetailList, EmptyState, Menu, MenuButton, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { todayISO } from '@/lib/time'
@@ -137,10 +137,20 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
                     const link = e.title === 'Gift card purchased' && sale ? { number: sale.number, id: sale.id } : saleLink(e.detail)
                     return (
                       <li key={e.id} className="rounded-lg border border-line bg-surface p-5">
-                        <p className="text-body-lg font-semibold text-ink">{e.title}</p>
-                        <p className="text-body text-muted">
-                          {relativeAt(e.at)} {t('checkout.giftCard.by', { name: e.by })}
-                        </p>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="text-body-lg font-semibold text-ink">{e.title}</p>
+                            <p className="text-body text-muted">
+                              {relativeAt(e.at)} {t('checkout.giftCard.by', { name: e.by })}
+                            </p>
+                          </div>
+                          <span className="relative shrink-0" aria-hidden>
+                            <Avatar name={e.by || '?'} size={48} />
+                            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-surface bg-success text-white">
+                              <Check size={11} />
+                            </span>
+                          </span>
+                        </div>
                         {e.detail && !/^(view )?sale \d+$/i.test(e.detail) && <p className="mt-2 text-body text-ink">{e.detail}</p>}
                         {link && (
                           <p className="mt-3 text-body text-ink">

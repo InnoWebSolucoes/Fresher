@@ -72,6 +72,15 @@ export function durationChoices(): number[] {
 
 export const snap = (minutes: number, step = 5) => Math.round(minutes / step) * step
 
+/** "15 minutes", "1 hour", "1 hour 30 minutes", "2 hours" (blocked time type durations). */
+export function durationWords(min: number): string {
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  const hours = h ? `${h} ${h === 1 ? 'hour' : 'hours'}` : ''
+  const minutes = m ? `${m} ${m === 1 ? 'minute' : 'minutes'}` : ''
+  return [hours, minutes].filter(Boolean).join(' ') || '0 minutes'
+}
+
 // ─── Colours ───────────────────────────────────────────────────────────
 
 export interface BlockTone {
@@ -148,7 +157,7 @@ export const FILTER_PAYMENTS = ['unpaid', 'part_paid', 'paid'] as const
 export const FILTER_CREATED = ['any', 'today', '1h', '3h', '12h', '24h', '2d', '3d', 'gt3d'] as const
 export const FILTER_REQUESTED = ['requested', 'no_preference'] as const
 
-export const activeFilterCount = (f: CalendarFilters) => FILTER_KEYS.filter((k) => f[k].length > 0).length
+export const activeFilterCount = (f: CalendarFilters) => FILTER_KEYS.filter((k) => f[k].length > 0 && !(k === 'created' && f[k][0] === 'any')).length
 
 export const normaliseFilters = (raw: Record<string, string[]> | undefined): CalendarFilters =>
   Object.fromEntries(FILTER_KEYS.map((k) => [k, Array.isArray(raw?.[k]) ? [...raw![k]] : []])) as unknown as CalendarFilters

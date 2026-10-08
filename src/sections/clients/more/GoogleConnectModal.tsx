@@ -36,7 +36,7 @@ function Body({ onClose, onConnected }: { onClose: () => void; onConnected?: () 
       onConnected?.()
       onClose()
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e))
+      toast(e instanceof Error ? e.message : String(e), 'error')
       setSaving(false)
     }
   }

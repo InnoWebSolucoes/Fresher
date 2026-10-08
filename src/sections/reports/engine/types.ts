@@ -83,6 +83,8 @@ export interface Spec {
   range: PresetKey | null
   /** Group by options, first = default. A button shows when `groupBy` is true. */
   groupings?: GroupingOpt[]
+  /** Default grouping when it isn't the first option (Finance summary: Month). */
+  defaultGroupBy?: string
   groupBy?: boolean
   /** Filters drawer sections in reference order. */
   filters: string[]
@@ -93,5 +95,7 @@ export interface Spec {
   customize: boolean
   /** Extra toolbar selectors (Performance over time). */
   selectors?: Selector[]
+  /** Point-in-time report (Stock on hand): a single "as of" date with ‹ Today's date › stepper. */
+  asOf?: boolean
   build: (ctx: Ctx, p: Params) => Result
 }

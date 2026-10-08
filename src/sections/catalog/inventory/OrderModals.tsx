@@ -42,7 +42,7 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
       title={t('catalog.inventory.orderNew.picker.title')}
       footer={
         <>
-          <Button onClick={onClose}>{t('catalog.inventory.common.cancel')}</Button>
+          <Button onClick={onClose}>{t('catalog.common.cancel')}</Button>
           <Button variant="primary" disabled={!selected.size} onClick={() => onAdd([...selected])}>
             {selected.size ? t('catalog.inventory.orderNew.picker.add', { count: selected.size }) : t('catalog.inventory.orderNew.picker.addNone')}
           </Button>
@@ -54,7 +54,7 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
         {supplierOnly && (
           <span className="chip h-9 gap-1 bg-primary-subtle pl-3 pr-1 text-primary">
             {t('catalog.inventory.orderNew.picker.supplier', { name: supplierName })}
-            <button type="button" aria-label={t('catalog.inventory.common.remove')} onClick={() => setSupplierOnly(false)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-surface">
+            <button type="button" aria-label={t('catalog.common.remove')} onClick={() => setSupplierOnly(false)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-surface">
               <X size={14} aria-hidden />
             </button>
           </span>
@@ -67,7 +67,7 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
               setQuery('')
             }}
           >
-            {t('catalog.inventory.common.clearAll')}
+            {t('catalog.common.clearFilters')}
           </Button>
         )}
       </div>
@@ -138,9 +138,9 @@ export function FeesModal({ fees, onClose, onSave }: { fees: StockOrder['fees'];
       title={t('catalog.inventory.orderNew.feesModal.title')}
       footer={
         <>
-          <Button onClick={onClose}>{t('catalog.inventory.common.cancel')}</Button>
+          <Button onClick={onClose}>{t('catalog.common.cancel')}</Button>
           <Button variant="primary" onClick={save}>
-            {t('catalog.inventory.common.save')}
+            {t('catalog.common.save')}
           </Button>
         </>
       }

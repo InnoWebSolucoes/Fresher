@@ -6,10 +6,10 @@ import { ArrowLeft, Building2, CalendarDays, CalendarPlus, Plus, Trash2 } from '
 import { Button, Checkbox, EmptyState, Field, LearnMore, Menu, MenuButton, Modal, PageHeader, PageSkeleton, RadioGroup, Select, Switch, TextInput, confirm, toast, usePageLoading } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
-import { countPrefsOn, defaultPrefs, linkCalendar, PREF_SCHEMA, saveNotificationPrefs, unlinkCalendar, usePanels, type NotificationPrefs, type PrefChannel, type PrefRowDef } from '@/api/panels'
+import { cancelRequest, countPrefsOn, createRequest, defaultPrefs, linkCalendar, PREF_SCHEMA, saveNotificationPrefs, unlinkCalendar, usePanels, type NotificationPrefs, type PendingRequest, type PrefChannel, type PrefRowDef } from '@/api/panels'
 import { fmtDate } from '@/lib/format'
 import type { AppointmentStatus, User } from '@/types'
-import { DisabledInDemoModal, errorText, SettingsCard, useMyTeamMember } from './shared'
+import { errorText, PendingRequestNote, SettingsCard, useMyTeamMember, usePendingRequest } from './shared'
 
 function useMyPrefs(userId: string | undefined): NotificationPrefs {
   const stored = usePanels((s) => (userId ? s.prefs[userId] : undefined))
@@ -26,7 +26,9 @@ export function WorkspacesPage() {
   const member = useMyTeamMember()
   const workspace = useDb((s) => s.workspace)
   const seededAt = useDb((s) => s.meta?.seededAt)
-  const [addOpen, setAddOpen] = useState(false)
+  const allRequests = usePanels((s) => s.requests)
+  const pending = useMemo(() => allRequests.filter((r) => r.userId === user?.id && (r.kind === 'create_workspace' || r.kind === 'join_workspace')), [allRequests, user?.id])
+  const [addMode, setAddMode] = useState<'create_workspace' | 'join_workspace' | null>(null)
   if (loading || !user) return <PageSkeleton rows={2} />
 
   const joined = member?.startDate ?? seededAt
@@ -49,8 +51,8 @@ export function WorkspacesPage() {
             groups={[
               {
                 items: [
-                  { label: t('account.workspaces.create'), icon: <Plus size={16} />, onSelect: () => setAddOpen(true) },
-                  { label: t('account.workspaces.join'), icon: <Building2 size={16} />, onSelect: () => setAddOpen(true) },
+                  { label: t('account.workspaces.create'), icon: <Plus size={16} />, onSelect: () => setAddMode('create_workspace') },
+                  { label: t('account.workspaces.join'), icon: <Building2 size={16} />, onSelect: () => setAddMode('join_workspace') },
                 ],
               },
             ]}
@@ -72,10 +74,108 @@ export function WorkspacesPage() {
         <Button onClick={() => navigate(`/user-account/workspaces/${workspace.id}/settings`)}>{t('account.workspaces.manage')}</Button>
       </article>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} size="sm" title={t('account.workspaces.addTitle')} footer={<Button variant="primary" onClick={() => setAddOpen(false)}>{t('account.common.gotIt')}</Button>}>
-        <p className="text-body text-muted">{t('account.workspaces.addBody')}</p>
-      </Modal>
+      {pending.length > 0 && (
+        <>
+          <h2 className="mb-3 mt-8 font-display text-title-3 text-ink">{t('account.workspaces.pending')}</h2>
+          <ul className="flex flex-col gap-3">
+            {pending.map((r) => (
+              <PendingWorkspace key={r.id} request={r} />
+            ))}
+          </ul>
+        </>
+      )}
+
+      {addMode && <AddWorkspaceModal userId={user.id} email={user.email} mode={addMode} onClose={() => setAddMode(null)} />}
     </div>
+  )
+}
+
+function PendingWorkspace({ request }: { request: PendingRequest }) {
+  const { t } = useTranslation()
+  const [busy, setBusy] = useState(false)
+  const create = request.kind === 'create_workspace'
+  const cancel = async () => {
+    setBusy(true)
+    try {
+      await cancelRequest(request.id)
+      toast(t('account.requests.canceled'))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <li className="card flex flex-wrap items-center gap-5 p-5">
+      <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-md bg-sunken text-muted">
+        <Building2 size={28} aria-hidden />
+      </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="flex flex-wrap items-center gap-2 font-display text-title-3 text-ink">
+          {create ? request.detail : t('account.workspaces.joinTitle', { code: request.detail })}
+          <span className="chip bg-warning-subtle text-warning">{create ? t('account.workspaces.setupPending') : t('account.workspaces.requestSent')}</span>
+        </h3>
+        <p className="mt-0.5 text-body text-muted">{create ? t('account.workspaces.setupPendingBody', { date: fmtDate(request.at) }) : t('account.workspaces.requestSentBody', { date: fmtDate(request.at) })}</p>
+      </div>
+      <Button loading={busy} onClick={cancel}>
+        {t('account.requests.cancel')}
+      </Button>
+    </li>
+  )
+}
+
+function AddWorkspaceModal({ userId, email, mode, onClose }: { userId: string; email: string; mode: 'create_workspace' | 'join_workspace'; onClose: () => void }) {
+  const { t } = useTranslation()
+  const [value, setValue] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const create = mode === 'create_workspace'
+  const submit = async () => {
+    const v = value.trim()
+    if (!v) return setError(t('account.info.required'))
+    if (!create && !/^(https?:\/\/\S+|[A-Za-z0-9-]{6,})$/.test(v)) return setError(t('account.workspaces.codeError'))
+    setBusy(true)
+    try {
+      await createRequest(userId, mode, { detail: v })
+      toast(create ? t('account.requests.emailed', { email }) : t('account.workspaces.joinSentToast'))
+      onClose()
+    } catch (e) {
+      setError(errorText(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={create ? t('account.workspaces.create') : t('account.workspaces.join')}
+      subtitle={create ? t('account.workspaces.createBody') : t('account.workspaces.joinBody')}
+      footer={
+        <>
+          <Button onClick={onClose}>{t('account.common.cancel')}</Button>
+          <Button variant="primary" loading={busy} onClick={submit}>
+            {create ? t('account.workspaces.createAction') : t('account.workspaces.joinAction')}
+          </Button>
+        </>
+      }
+    >
+      <Field label={create ? t('account.workspaces.businessName') : t('account.workspaces.invite')} error={error || undefined}>
+        {(id) => (
+          <TextInput
+            id={id}
+            autoFocus
+            value={value}
+            invalid={!!error}
+            placeholder={create ? t('account.workspaces.businessNamePlaceholder') : t('account.workspaces.invitePlaceholder')}
+            onChange={(e) => {
+              setValue(e.target.value)
+              setError('')
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && void submit()}
+          />
+        )}
+      </Field>
+    </Modal>
   )
 }
 
@@ -91,7 +191,9 @@ export function WorkspaceSettingsPage() {
   const member = useMyTeamMember()
   const workspace = useDb((s) => s.workspace)
   const prefs = useMyPrefs(user?.id)
-  const [disabledAction, setDisabledAction] = useState<string | null>(null)
+  const [modal, setModal] = useState<'transfer' | 'delete' | null>(null)
+  const transfer = usePendingRequest(user?.id, 'transfer_ownership')
+  const deletion = usePendingRequest(user?.id, 'delete_workspace')
   const [linkOpen, setLinkOpen] = useState(false)
   const prefsOpen = params.get('d_prefs') === '1'
 
@@ -163,8 +265,8 @@ export function WorkspaceSettingsPage() {
             groups={[
               {
                 items: [
-                  { label: t('account.settings.transfer'), onSelect: () => setDisabledAction(t('account.settings.transfer')) },
-                  { label: t('account.settings.delete'), danger: true, onSelect: () => setDisabledAction(t('account.settings.delete')) },
+                  { label: t('account.settings.transfer'), disabled: user.role !== 'owner' || !!transfer, onSelect: () => setModal('transfer') },
+                  { label: t('account.settings.delete'), danger: true, disabled: user.role !== 'owner' || !!deletion, onSelect: () => setModal('delete') },
                 ],
               },
             ]}
@@ -172,6 +274,8 @@ export function WorkspaceSettingsPage() {
         }
       />
       <div className="flex flex-col gap-6">
+        {transfer && <PendingRequestNote request={transfer} text={t('account.settings.transferPending', { name: transfer.detail })} />}
+        {deletion && <PendingRequestNote request={deletion} text={t('account.settings.deletePending', { email: user.email })} />}
         <SettingsCard
           title={t('account.settings.linked.title')}
           body={
@@ -218,8 +322,96 @@ export function WorkspaceSettingsPage() {
 
       {prefsOpen && <PrefsModal user={user} prefs={prefs} onClose={() => setPrefsOpen(false)} />}
       {linkOpen && member && <LinkCalendarModal user={user} memberId={member.id} onClose={() => setLinkOpen(false)} />}
-      <DisabledInDemoModal open={!!disabledAction} action={disabledAction ?? ''} onClose={() => setDisabledAction(null)} />
+      {modal === 'transfer' && <TransferModal user={user} onClose={() => setModal(null)} />}
+      {modal === 'delete' && <DeleteWorkspaceModal user={user} workspaceName={workspace.name} onClose={() => setModal(null)} />}
     </div>
+  )
+}
+
+// ─── Transfer ownership / delete workspace (confirmed by email) ───────────
+
+function TransferModal({ user, onClose }: { user: User; onClose: () => void }) {
+  const { t } = useTranslation()
+  const users = useDb((s) => s.users)
+  const candidates = users.filter((u) => u.id !== user.id && u.role !== 'none')
+  const [target, setTarget] = useState(candidates[0]?.id ?? '')
+  const [busy, setBusy] = useState(false)
+  const submit = async () => {
+    const to = candidates.find((u) => u.id === target)
+    if (!to) return
+    setBusy(true)
+    try {
+      await createRequest(user.id, 'transfer_ownership', { targetUserId: to.id })
+      toast(t('account.settings.transferSent', { name: `${to.firstName} ${to.lastName}` }))
+      onClose()
+    } catch (e) {
+      toast(errorText(e), 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t('account.settings.transfer')}
+      subtitle={t('account.settings.transferBody')}
+      footer={
+        <>
+          <Button onClick={onClose}>{t('account.common.cancel')}</Button>
+          <Button variant="primary" loading={busy} disabled={!target} onClick={submit}>
+            {t('account.settings.transferAction')}
+          </Button>
+        </>
+      }
+    >
+      {candidates.length ? (
+        <Field label={t('account.settings.newOwner')} hint={t('account.settings.newOwnerHint')}>
+          {(id) => <Select id={id} value={target} onChange={(e) => setTarget(e.target.value)} options={candidates.map((u) => ({ value: u.id, label: `${u.firstName} ${u.lastName} · ${u.email}` }))} />}
+        </Field>
+      ) : (
+        <p className="text-body text-muted">{t('account.settings.noCandidates')}</p>
+      )}
+    </Modal>
+  )
+}
+
+function DeleteWorkspaceModal({ user, workspaceName, onClose }: { user: User; workspaceName: string; onClose: () => void }) {
+  const { t } = useTranslation()
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const matches = typed.trim() === workspaceName
+  const submit = async () => {
+    setBusy(true)
+    try {
+      await createRequest(user.id, 'delete_workspace')
+      toast(t('account.requests.emailed', { email: user.email }))
+      onClose()
+    } catch (e) {
+      toast(errorText(e), 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t('account.settings.deleteTitle')}
+      footer={
+        <>
+          <Button onClick={onClose}>{t('account.common.cancel')}</Button>
+          <Button variant="danger" loading={busy} disabled={!matches} onClick={submit}>
+            {t('account.settings.delete')}
+          </Button>
+        </>
+      }
+    >
+      <p className="text-body text-ink">{t('account.settings.deleteBody', { name: workspaceName })}</p>
+      <Field className="mt-4" label={t('account.settings.typeName', { name: workspaceName })}>
+        {(id) => <TextInput id={id} value={typed} autoComplete="off" onChange={(e) => setTyped(e.target.value)} />}
+      </Field>
+    </Modal>
   )
 }
 

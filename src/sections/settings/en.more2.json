@@ -48,8 +48,7 @@
         "renamed": "Permission role renamed",
         "defaultSet": "{{name}} is now the default permission role",
         "defaultUpdated": "Default permission role updated",
-        "membersUpdated": "Team members updated",
-        "ordered": "Permission roles order updated"
+        "membersUpdated": "Team members assignment successfully updated!"
       }
     },
     "add": {
@@ -82,9 +81,9 @@
       "toast": {
         "added": "Time off type added",
         "updated": "Time off type updated",
-        "deleted": "Time off type deleted",
-        "ordered": "Time off types order updated"
-      }
+        "deleted": "Time off type deleted"
+      },
+      "systemHint": "Default time off types can't be changed"
     },
     "timesheets": {
       "title": "Timesheets",
@@ -177,15 +176,42 @@
       "footer": "You can customize commission settings per team member",
       "toast": "Commission settings updated",
       "items": {
-        "deductDiscounts": { "label": "Deduct discounts", "hint": "Deduct discounts applied to sale price of any product, service, membership and gift card, prior to calculating commission" },
-        "deductTaxes": { "label": "Deduct taxes", "hint": "Deduct taxes from sale price prior to calculating commission" },
-        "deductServiceCost": { "label": "Deduct service cost", "hint": "Deduct service cost from sale price prior to calculating commission" },
-        "deductProductCost": { "label": "Deduct product cost", "hint": "Deduct product cost from sale price prior to calculating commission" },
-        "packageServices": { "label": "Earn commission on services paid for with a package", "hint": "Commission is earned on services paid for with a package" },
-        "membershipServices": { "label": "Earn commission on services paid for with a membership", "hint": "Commission is earned on services paid for with a membership" },
-        "loyaltyFull": { "label": "Earn full commission when loyalty points are redeemed", "hint": "Commission is calculated on the sale amount before loyalty points are deducted" },
-        "fullyPaidOnly": { "label": "Earn commissions on fully paid invoices", "hint": "Commission is only applied on invoices once they are marked as fully paid" },
-        "exceedPaid": { "label": "Earn commission even if it exceeds the amount paid", "hint": "Commission can be earned even if it's higher than the amount paid for the service" }
+        "deductDiscounts": {
+          "label": "Deduct discounts",
+          "hint": "Deduct discounts applied to sale price of any product, service, membership and gift card, prior to calculating commission"
+        },
+        "deductTaxes": {
+          "label": "Deduct taxes",
+          "hint": "Deduct taxes from sale price prior to calculating commission"
+        },
+        "deductServiceCost": {
+          "label": "Deduct service cost",
+          "hint": "Deduct service cost from sale price prior to calculating commission"
+        },
+        "deductProductCost": {
+          "label": "Deduct product cost",
+          "hint": "Deduct product cost from sale price prior to calculating commission"
+        },
+        "packageServices": {
+          "label": "Earn commission on services paid for with a package",
+          "hint": "Commission is earned on services paid for with a package"
+        },
+        "membershipServices": {
+          "label": "Earn commission on services paid for with a membership",
+          "hint": "Commission is earned on services paid for with a membership"
+        },
+        "loyaltyFull": {
+          "label": "Earn full commission when loyalty points are redeemed",
+          "hint": "Commission is calculated on the sale amount before loyalty points are deducted"
+        },
+        "fullyPaidOnly": {
+          "label": "Earn commissions on fully paid invoices",
+          "hint": "Commission is only applied on invoices once they are marked as fully paid"
+        },
+        "exceedPaid": {
+          "label": "Earn commission even if it exceeds the amount paid",
+          "hint": "Commission can be earned even if it's higher than the amount paid for the service"
+        }
       }
     },
     "pin": {

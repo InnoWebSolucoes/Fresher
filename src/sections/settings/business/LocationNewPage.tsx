@@ -38,11 +38,14 @@ const blank = (): WizardDraft => ({
 })
 
 /** Wizard state survives moving between the step URLs (not persisted). */
-const useWizard = create<{ draft: WizardDraft; dirty: boolean; set: (patch: Partial<WizardDraft>) => void; reset: () => void }>((set) => ({
+const useWizard = create<{ draft: WizardDraft; dirty: boolean; completed: boolean; set: (patch: Partial<WizardDraft>) => void; reset: () => void; complete: () => void }>((set) => ({
   draft: blank(),
   dirty: false,
+  /** The draft was turned into a location; it is cleared the next time the wizard opens. */
+  completed: false,
   set: (patch) => set((s) => ({ draft: { ...s.draft, ...patch }, dirty: true })),
-  reset: () => set({ draft: blank(), dirty: false }),
+  reset: () => set({ draft: blank(), dirty: false, completed: false }),
+  complete: () => set({ completed: true, dirty: false }),
 }))
 
 /** Add new location wizard, 4 steps (settings-business-setup.md §2.1). */
@@ -50,7 +53,7 @@ export function LocationNewPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { step = 'basic-info' } = useParams()
-  const { draft, dirty, set, reset } = useWizard()
+  const { draft, dirty, completed, set, reset, complete } = useWizard()
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({})
   const [saving, run] = useAction()
   const index = STEPS.indexOf(step as Step)
@@ -70,6 +73,13 @@ export function LocationNewPage() {
   useEffect(() => {
     document.title = t('settings.biz.new.title')
   }, [t])
+
+  // A finished draft from the previous run: start again from scratch.
+  useEffect(() => {
+    if (completed) reset()
+    // Only when the wizard opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (index === -1) return <Navigate to="/setup/location/new/basic-info" replace />
   // Deep link to a later step with earlier steps incomplete: go back to the first incomplete one.
@@ -105,7 +115,8 @@ export function LocationNewPage() {
           openingHours: draft.hours,
         })
         await saveLocationExtras(location.id, { noAddress: draft.noAddress, map: draft.map })
-        reset()
+        // Keep the draft until the page has left (clearing it now would bounce the wizard back to step 1).
+        complete()
         navigate(`/setup/location/${location.id}/business-details`)
       },
       t('settings.biz.new.created'),

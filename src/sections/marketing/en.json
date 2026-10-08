@@ -64,7 +64,8 @@
     "toast": {
       "enabled": "{{name}} enabled",
       "disabled": "{{name}} disabled"
-    }
+    },
+    "profileGate": "To send marketing automations, publish your marketplace profile"
   },
   "balance": {
     "topUpTitle": "Top up your balance",

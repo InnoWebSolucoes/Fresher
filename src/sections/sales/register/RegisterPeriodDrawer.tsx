@@ -4,7 +4,7 @@ import { Activity, ArrowDownLeft, ArrowUpRight, Banknote, Check, Info, List, Min
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DrawerProps } from '@/app/sectionRegistry'
-import { Button, Chip, EmptyState, Menu, toast } from '@/components/ui'
+import { Button, EmptyState, Menu, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDate, fmtDateTimeUS, money } from '@/lib/format'
@@ -86,7 +86,11 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
         tone: p.amount < 0 ? 'out' : 'in',
       })
     })
-    return items.sort((a, b) => b.at.localeCompare(a.at))
+    // Newest first; on the same minute the later entry (e.g. Opening float after Register opened) comes first.
+    return items
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => b.item.at.localeCompare(a.item.at) || b.index - a.index)
+      .map(({ item }) => item)
   }, [session, breakdown, sales, clients, t])
 
   if (!session || !register || !breakdown) {
@@ -104,7 +108,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
   const countedTotal = breakdown.groups.reduce((s, g) => s + g.lines.reduce((x, l) => x + counted(l.key, l.expected), 0), 0) + counted('cash', breakdown.cash.expected)
   const meta = open
     ? t('sales.register.drawer.openedMeta', { location: location?.name ?? '', date: fmtDateTimeUS(session.openedAt), name: session.openedBy })
-    : `${location?.name ?? ''} • ${fmtDateTimeUS(session.openedAt)} – ${fmtDateTimeUS(session.closedAt!)}`
+    : `${location?.name ?? ''} • ${fmtDateTimeUS(session.openedAt)} – ${dayOf(session.openedAt) === dayOf(session.closedAt!) ? format(parseISO(session.closedAt!), 'HH:mm') : fmtDateTimeUS(session.closedAt!)}`
 
   const downloadReport = async () => {
     const rows: (string | number)[][] = []
@@ -374,10 +378,10 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
       </nav>
       <div className="min-w-0 flex-1 overflow-y-auto bg-canvas px-8 py-6">
         <div className="mb-4 flex items-start justify-between gap-4">
-          <Chip tone={open ? 'success' : 'warning'} className="h-9 gap-1.5 px-4 text-body-strong">
+          <span className={clsx('chip h-9 gap-1.5 whitespace-nowrap px-4 text-body-strong', open ? 'bg-success text-white' : 'bg-warning text-ink')}>
             {open && <Check size={16} aria-hidden />}
             {open ? t('sales.register.open.status') : t('sales.register.closed')}
-          </Chip>
+          </span>
           <div className="flex items-center gap-2">
             {open && (
               <Button className="rounded-full" onClick={() => setFlow({ kind: 'close', sessionId: session.id })}>

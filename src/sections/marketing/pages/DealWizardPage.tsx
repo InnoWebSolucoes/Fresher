@@ -103,7 +103,17 @@ export function DealWizardPage() {
   const [errors, setErrors] = useState<Errors>({})
   const [scopeModal, setScopeModal] = useState<ScopeKey | null>(null)
   const [saving, setSaving] = useState(false)
-  const set = (patch: Partial<DealDraft>) => setDraft((d) => ({ ...d, ...patch }))
+  const set = (patch: Partial<DealDraft>) => {
+    setDraft((d) => ({ ...d, ...patch }))
+    // Editing a field clears its error.
+    const touched = Object.keys(patch).flatMap((k) => (k === 'limits' ? ['totalUses', 'minPurchase'] : k === 'teamMemberIds' ? ['team'] : [k]))
+    setErrors((e) => {
+      if (!touched.some((k) => k in e)) return e
+      const next = { ...e }
+      touched.forEach((k) => delete next[k as keyof Errors])
+      return next
+    })
+  }
   const step = stepParam as Step
   const index = STEPS.indexOf(step as (typeof STEPS)[number])
   const base = existing ? `/marketing/deals/edit/${existing.id}` : '/marketing/deals/new'
@@ -244,7 +254,8 @@ export function DealWizardPage() {
 
   const scopeRow = (key: ScopeKey) => {
     const value = draft.appliesTo[key]
-    const label = value === 'all' ? t(`marketing.deals.scope.all_${key}`) : value.length ? t(`marketing.deals.scope.count_${key}`, { count: value.length }) : t('marketing.dealWizard.none')
+    const raw = value === 'all' ? t(`marketing.deals.scope.all_${key}`) : value.length ? t(`marketing.deals.scope.count_${key}`, { count: value.length }) : t('marketing.dealWizard.none')
+    const label = raw.charAt(0).toUpperCase() + raw.slice(1)
     return (
       <div key={key} className="flex items-center justify-between gap-4 py-3">
         <div>

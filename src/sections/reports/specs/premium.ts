@@ -6,6 +6,7 @@ import { apptFacts, lineFacts, type ApptFact, type LineFact } from '../engine/fa
 import { applyFilters, avg, bucketsBetween, inRange, pct, statement, sum, type Line } from '../engine/helpers'
 import { L } from '../engine/labels'
 import type { Cell, Col, ColType, Params, Range, Result, Row, Spec } from '../engine/types'
+import { workloadFacts } from './team'
 
 /** Days of a range (capped so "All time" stays fast). */
 export function daysOf(range: Range, cap = 400): string[] {
@@ -49,6 +50,9 @@ export function perfFacts(ctx: Ctx, p: Pick<Params, 'range' | 'filters'>): PerfV
   }
 }
 
+const UPSELL_TYPES = ['service', 'service_addon', 'product', 'package', 'membership', 'gift_card'] as const
+const ONLINE_CHANNELS = ['marketplace', 'automations', 'google', 'instagram', 'book_now_link', 'facebook', 'blast'] as const
+
 const LINES: Omit<Line, 'label'>[] = [
   { key: 'salesSummary', kind: 'section' },
   { key: 'services', indent: true, to: 'sales-summary' },
@@ -73,10 +77,12 @@ const LINES: Omit<Line, 'label'>[] = [
   { key: 'productsSold', indent: true, type: 'int' },
   { key: 'avgProductValue', indent: true },
   { key: 'upsell', kind: 'section' },
-  { key: 'totalUpsell', indent: true },
+  ...UPSELL_TYPES.map((k): Omit<Line, 'label'> => ({ key: `up_${k}`, indent: true })),
+  { key: 'totalUpsell', kind: 'bold' },
   { key: 'pctUpsell', indent: true, type: 'pct' },
   { key: 'appointments', kind: 'section' },
-  { key: 'onlineAppts', indent: true, type: 'int', to: 'appointments-list' },
+  { key: 'onlineAppts', indent: true, type: 'int', to: 'appointment-list' },
+  ...ONLINE_CHANNELS.map((c): Omit<Line, 'label'> => ({ key: `ch_${c}`, indent: true, type: 'int' })),
   { key: 'pctOnlineAppts', indent: true, type: 'pct' },
   { key: 'offlineAppts', indent: true, type: 'int' },
   { key: 'pctOfflineAppts', indent: true, type: 'pct' },
@@ -92,6 +98,9 @@ const LINES: Omit<Line, 'label'>[] = [
   { key: 'avgApptValue', indent: true },
   { key: 'productivity', kind: 'section' },
   { key: 'scheduledHours', indent: true, type: 'hours' },
+  { key: 'timeOffHours', indent: true, type: 'hours' },
+  { key: 'blockedHours', indent: true, type: 'hours' },
+  { key: 'availableHours', indent: true, type: 'hours' },
   { key: 'bookedHours', indent: true, type: 'hours' },
   { key: 'pctOccupancy', indent: true, type: 'pct' },
   { key: 'unbookedHours', indent: true, type: 'hours' },
@@ -103,6 +112,9 @@ const LINES: Omit<Line, 'label'>[] = [
   { key: 'walkIns', indent: true, type: 'int' },
   { key: 'pctWalkIns', indent: true, type: 'pct' },
   { key: 'totalClients', kind: 'bold', type: 'int' },
+  { key: 'rebookedClients', indent: true, type: 'int' },
+  { key: 'pctRebookedClients', indent: true, type: 'pct' },
+  { key: 'pctNonRebookedClients', indent: true, type: 'pct' },
   { key: 'clientsReviews', kind: 'section' },
   { key: 'avgRating', indent: true, type: 'num' },
   { key: 'noReviews', indent: true, type: 'int' },
@@ -123,7 +135,10 @@ function perfSummaryValues(ctx: Ctx, p: Params, bucket: string | null): Record<s
     [...saleIds].map((id) => ctx.byId.sale.get(id)!),
     (s) => s.tips.filter((tp) => by !== 'teamMember' || !bucket || tp.teamMemberId === bucket).reduce((x, tp) => x + tp.amount, 0),
   )
-  const upsell = sum(lines.filter((f) => f.upsell), (f) => f.netIncl)
+  const upsellLines = lines.filter((f) => f.upsell)
+  const upsell = sum(upsellLines, (f) => f.netIncl)
+  const work = workloadFacts(ctx, { ...p, filters: { ...p.filters, ...(bucket ? { [by]: [bucket] } : {}) } })
+  const workSum = (k: 'off' | 'blocked' | 'available') => work.reduce((s2, w) => s2 + w[k], 0)
   const total = appts.length
   const online = appts.filter((f) => f.online).length
   const valid = appts.filter(booked)
@@ -140,6 +155,11 @@ function perfSummaryValues(ctx: Ctx, p: Params, bucket: string | null): Record<s
   const walkIns = valid.filter((f) => !f.appt.clientId).length
   const returning = Math.max(0, clientIds.size - newIds.size - walkIns)
   const reviews = (ctx.d.reviews ?? []).filter((r) => inRange(ctx.day(r.at), p.range) && (by !== 'teamMember' || !bucket || r.teamMemberId === bucket))
+  // Rebooked: clients with another (non-cancelled) appointment after their last visit in the period.
+  const lastVisit = new Map<string, string>()
+  for (const f of valid) if (f.appt.clientId && (lastVisit.get(f.appt.clientId) ?? '') < f.date) lastVisit.set(f.appt.clientId, f.date)
+  const rebooked = [...lastVisit].filter(([id, last]) => (ctx.d.appointments ?? []).some((a) => a.clientId === id && a.date > last && a.status !== 'cancelled')).length
+  const knownClients = lastVisit.size
   return {
     services: net('service'),
     serviceAddons: net('service_addon'),
@@ -161,7 +181,15 @@ function perfSummaryValues(ctx: Ctx, p: Params, bucket: string | null): Record<s
     avgServiceAddonValue: avg(net('service_addon'), qty('service_addon')),
     productsSold: qty('product'),
     avgProductValue: avg(net('product'), qty('product')),
+    ...Object.fromEntries(UPSELL_TYPES.map((k) => [`up_${k}`, sum(upsellLines.filter((f) => f.item.type === k), (f) => f.netIncl)])),
     totalUpsell: upsell,
+    ...Object.fromEntries(ONLINE_CHANNELS.map((c) => [`ch_${c}`, appts.filter((f) => f.appt.channel === c).length])),
+    timeOffHours: workSum('off'),
+    blockedHours: workSum('blocked'),
+    availableHours: workSum('available'),
+    rebookedClients: rebooked,
+    pctRebookedClients: pct(rebooked, knownClients),
+    pctNonRebookedClients: knownClients ? round2(100 - pct(rebooked, knownClients)) : 0,
     pctUpsell: pct(upsell, totalSales),
     onlineAppts: online,
     pctOnlineAppts: pct(online, total),
@@ -204,7 +232,7 @@ const performanceSummary: Spec = {
   groupings: [{ key: 'teamMember' }, { key: 'location' }],
   filters: ['location', 'teamMember'],
   advanced: false,
-  customize: true,
+  customize: false,
   build: (ctx, p) => statement(L('ps.salesSummary'), LINES.map((l) => ({ ...l, label: L(`ps.${l.key}`) })), buckets(ctx, p), (b) => perfSummaryValues(ctx, p, b)),
 }
 
@@ -234,7 +262,7 @@ const performanceOverTime: Spec = {
   groupings: [{ key: 'teamMember' }, { key: 'location' }],
   filters: ['location', 'teamMember'],
   advanced: false,
-  customize: true,
+  customize: false,
   selectors: [
     { key: 'metric', options: [...METRICS], default: 'totalSales' },
     { key: 'unit', options: ['day', 'week', 'month'], default: 'day' },

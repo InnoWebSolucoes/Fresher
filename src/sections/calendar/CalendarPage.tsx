@@ -8,7 +8,7 @@ import { addToGroup, removeFromGroup } from '@/api/appointments'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { useDismiss } from '@/lib/useDismiss'
-import { clientsInSegment } from '@/lib/segments'
+import { clientStats, clientsInSegment } from '@/lib/segments'
 import { workingWindows } from '@/lib/schedule'
 import { now, todayISO } from '@/lib/time'
 import type { Appointment, BlockedTime, ID, ISODate, TeamMember } from '@/types'
@@ -16,9 +16,9 @@ import { DayView, type MemberAction, type PendingMove } from './DayView'
 import { MonthView, MultiDayView } from './RangeViews'
 import { CalendarToolbar, type AddAction } from './Toolbar'
 import { UpdateAppointmentModal } from './UpdateAppointmentModal'
-import { TEAM_PARAM, useCalendarParams, useLocationMembers, useLookups, useScheduleData } from './hooks'
-import { activeFilterCount, appointmentMatches, blockedTimeVisible, isCalView, parseTeam, teamValue, viewDays } from './lib'
-import { useCalendarUi } from './store'
+import { TEAM_PARAM, useCalendarParams, useLocationMembers, useLookups, useScheduleData, useStableCallback } from './hooks'
+import { EMPTY_FILTERS, activeFilterCount, appointmentMatches, blockedTimeVisible, isCalView, parseTeam, teamValue, viewDays } from './lib'
+import { useCalendarUi, type MinimizedDrawer } from './store'
 import { ClientAvatar, CountBadge } from './ui'
 
 export type PickMode =
@@ -32,6 +32,12 @@ export type PickMode =
 
 const PICK_ONLY_PARAMS = ['group_id', 'source']
 
+/** Reopen a drawer kept by minimise or by the client drawer stacked on top. */
+export function restoreDrawer(open: ReturnType<typeof useDrawer>['open'], entry: MinimizedDrawer) {
+  if (entry.kind === 'appointment') open('appointment', { id: entry.id, d_resume: useCalendarUi.getState().draft?.editingId === entry.id ? '1' : undefined })
+  else open('new-appointment', { d_resume: '1' })
+}
+
 /** The calendar (calendar.md §1–6) and its pick modes (§7, §5.1, §9, §11, §12, §13). */
 export function CalendarPage({ pick }: { pick?: PickMode }) {
   const { t } = useTranslation()
@@ -44,6 +50,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
   const appointments = useDb((s) => s.appointments)
   const blockedTimes = useDb((s) => s.blockedTimes)
   const waitlist = useDb((s) => s.waitlist)
+  const groups = useDb((s) => s.groups)
   const clients = useDb((s) => s.clients)
   const sales = useDb((s) => s.sales)
   const clientPackages = useDb((s) => s.clientPackages)
@@ -64,13 +71,13 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
   useEffect(() => {
     const values: Record<string, string> = {}
     if (!params.get('date')) values.date = date
-    if (!params.get('drawer') && !isCalView(params.get('view'))) values.view = view
+    if (!isCalView(params.get('view'))) values.view = view
     if (!params.get('location_id')) {
       const linked = params.get('drawer') === 'appointment' ? appointments.find((a) => a.id === params.get('id')) : undefined
       values.location_id = linked?.locationId ?? locationId
       if (linked && !params.get('date')) values.date = linked.date
     }
-    if (!params.get(TEAM_PARAM)) values[TEAM_PARAM] = pick ? 'e-working' : 'e-all'
+    if (!params.get(TEAM_PARAM)) values[TEAM_PARAM] = pick && pick.kind !== 'group' && pick.kind !== 'add-to-group' ? 'e-working' : 'e-all'
     if (Object.keys(values).length) patch(values)
   }, [params, date, view, locationId, appointments, pick, patch])
 
@@ -79,6 +86,19 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
     if (focus && focus.date !== params.get('date')) patch({ date: focus.date, view: 'day' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus])
+
+  // The client drawer opens on top of an appointment drawer: closing it brings that one back.
+  const previousDrawer = useRef(drawer.name)
+  useEffect(() => {
+    const previous = previousDrawer.current
+    previousDrawer.current = drawer.name
+    const ui = useCalendarUi.getState()
+    const stacked = ui.stacked
+    if (!stacked || drawer.name === 'client') return
+    ui.setStacked(null)
+    if (previous === 'client' && !drawer.name) restoreDrawer(drawer.open, stacked)
+    else if (stacked.kind === 'new-appointment' || ui.draft?.editingId) ui.setDraft(null)
+  }, [drawer.name, drawer.open])
 
   const days = useMemo(() => viewDays(view, date), [view, date])
   const dayKey = days.join(',')
@@ -91,8 +111,9 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
   const segmentClients = useMemo(() => {
     if (!filters.segments.length) return null
     const data = { clients, appointments, sales, clientPackages, clientMemberships, giftCards }
+    const stats = clientStats(data)
     const ids = new Set<ID>()
-    segments.filter((s) => filters.segments.includes(s.id)).forEach((s) => clientsInSegment(data, s).forEach((c) => ids.add(c.id)))
+    segments.filter((s) => filters.segments.includes(s.id)).forEach((s) => clientsInSegment(data, s, stats).forEach((c) => ids.add(c.id)))
     return ids
   }, [filters.segments, segments, clients, appointments, sales, clientPackages, clientMemberships, giftCards])
 
@@ -104,7 +125,11 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
 
   const byDate = useMemo(() => {
     const map = new Map<ISODate, Appointment[]>()
-    filtered.forEach((a) => map.set(a.date, [...(map.get(a.date) ?? []), a]))
+    filtered.forEach((a) => {
+      const list = map.get(a.date)
+      if (list) list.push(a)
+      else map.set(a.date, [a])
+    })
     return map
   }, [filtered])
 
@@ -113,7 +138,10 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
     if (!blockedTimeVisible(filters)) return map
     const set = new Set(dayKey.split(','))
     blockedTimes.forEach((b) => {
-      if (b.locationId === locationId && set.has(b.date)) map.set(b.date, [...(map.get(b.date) ?? []), b])
+      if (b.locationId !== locationId || !set.has(b.date)) return
+      const list = map.get(b.date)
+      if (list) list.push(b)
+      else map.set(b.date, [b])
     })
     return map
   }, [blockedTimes, locationId, dayKey, filters])
@@ -135,6 +163,16 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
   const waitlistCount = useMemo(() => waitlist.filter((w) => w.status === 'waiting' && w.preferences.some((p) => p.date >= todayISO())).length, [waitlist])
   const filterCount = activeFilterCount(filters)
   const mode = pick ? (pick.kind === 'add-to-group' ? 'select' : 'pick') : 'normal'
+
+  // Blocks drawn with the purple selection border: the open appointment, the open group, or the source of a pick.
+  const selectedKey = (() => {
+    if (pick?.kind === 'reschedule' || pick?.kind === 'rebook') return pick.appointmentId
+    const groupId = pick?.kind === 'add-to-group' ? pick.groupId : drawer.name === 'appointment-group' ? drawer.id : null
+    if (groupId) return groups.find((g) => g.id === groupId)?.appointmentIds.join(',') ?? (pick?.kind === 'add-to-group' ? (pick.sourceId ?? '') : '')
+    if (pick?.kind === 'add-to-group' && pick.sourceId) return pick.sourceId
+    return drawer.name === 'appointment' ? (drawer.id ?? '') : ''
+  })()
+  const selectedIds = useMemo(() => new Set(selectedKey.split(',').filter(Boolean)), [selectedKey])
 
   /** Leave pick mode back to /calendar, optionally opening a drawer. */
   const exitTo = (extra: Record<string, string | undefined> = {}) => {
@@ -158,7 +196,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
         break
       case 'waitlist': {
         const entry = waitlist.find((w) => w.id === pick.entryId)
-        exitTo({ drawer: 'new-appointment', ...slot, d_client: entry?.clientId ?? undefined, d_services: entry?.items.map((i) => i.serviceId).join(','), d_waitlist: pick.entryId })
+        exitTo({ drawer: 'new-appointment', ...slot, d_client: entry?.clientId ?? undefined, d_waitlist: pick.entryId })
         break
       }
       case 'rebook': {
@@ -180,16 +218,16 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
     }
   }
 
-  const onSlot = (memberId: ID, time: string, point: { x: number; y: number }) => {
+  const onSlot = useStableCallback((memberId: ID, time: string, point: { x: number; y: number }) => {
     if (pick) return pickSlot(memberId, date, time)
     if (!quickActions) return drawer.open('new-appointment', { d_date: date, d_time: time, d_member: memberId })
     setQuick({ memberId, date, time, ...point })
-  }
+  })
 
   const addSelectedToGroup = async (appt: Appointment) => {
     if (!pick || pick.kind !== 'add-to-group') return
     if (appt.groupId && appt.groupId === pick.groupId) return toast(t('calendar.group.alreadyIn'))
-    if (appt.id === pick.sourceId) return
+    if (appt.id === pick.sourceId) return toast(t('calendar.group.alreadyIn'))
     try {
       if (appt.groupId) await removeFromGroup(appt.id)
       let groupId = pick.groupId
@@ -202,18 +240,20 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
     }
   }
 
-  const onAppointment = (appt: Appointment) => {
+  const onAppointment = useStableCallback((appt: Appointment) => {
     if (pick?.kind === 'add-to-group') return void addSelectedToGroup(appt)
     if (pick) return
-    if (appt.groupId) drawer.open('appointment-group', { id: appt.groupId })
+    if (appt.groupId && groups.some((g) => g.id === appt.groupId)) drawer.open('appointment-group', { id: appt.groupId })
     else drawer.open('appointment', { id: appt.id })
-  }
+  })
 
-  const onBlocked = (block: BlockedTime) => {
+  const onBlocked = useStableCallback((block: BlockedTime) => {
     if (!pick) drawer.open('blocked-time', { id: block.id })
-  }
+  })
 
-  const onMemberAction = (m: TeamMember, action: MemberAction) => {
+  const onMove = useStableCallback((move: PendingMove) => setPending(move))
+
+  const onMemberAction = useStableCallback((m: TeamMember, action: MemberAction) => {
     switch (action.kind) {
       case 'view':
         patch({ view: action.view, [TEAM_PARAM]: teamValue([m.id]) })
@@ -237,7 +277,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
         drawer.open('team-member', { id: m.id })
         break
     }
-  }
+  })
 
   const onAdd = (action: AddAction) => {
     switch (action) {
@@ -265,36 +305,36 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
     drawer.open('new-appointment', { d_date: cellDate, d_member: memberId })
   }
 
-  const banner = pick
-    ? pick.kind === 'blocked'
-      ? t('calendar.pick.block')
-      : pick.kind === 'add-to-group'
-        ? t('calendar.pick.selectAppointment')
-        : t('calendar.pick.book')
-    : null
+  const closePick = () => {
+    if (pick?.kind === 'book') useCalendarUi.getState().setDraft(null)
+    exitTo()
+  }
+
+  const banner = pick ? (pick.kind === 'blocked' ? t('calendar.pick.block') : pick.kind === 'add-to-group' ? t('calendar.pick.selectAppointment') : t('calendar.pick.book')) : null
+  // A group lives on one day, so the date can't change while picking for it.
+  const lockDate = pick?.kind === 'group' || pick?.kind === 'add-to-group'
 
   return (
     <div className={clsx('flex flex-col bg-surface', pick ? 'fixed inset-0 z-40' : 'h-full min-h-0')} data-testid={pick ? 'calendar-pick-mode' : 'calendar-page'}>
       {pick && (
-        <div className="flex h-16 shrink-0 items-center gap-4 bg-primary px-6 text-on-primary">
+        <div className="flex h-16 shrink-0 items-center gap-4 bg-primary px-6 text-on-primary" data-testid="pick-banner">
           <span className="hidden flex-1 md:block" />
           <h1 className="font-display text-title-3">{banner}</h1>
           <div className="flex flex-1 justify-end gap-2">
-            {pick.kind === 'book' && (
-              <button type="button" onClick={() => exitTo({ drawer: 'new-appointment', d_date: date, d_resume: useCalendarUi.getState().draft ? '1' : undefined })} className="h-10 rounded-full border border-white px-4 text-body-strong hover:bg-white/10">
-                {t('calendar.pick.viewTimes')}
+            {pick.kind === 'book' ? (
+              <>
+                <button type="button" onClick={() => exitTo({ drawer: 'new-appointment', d_date: date, d_resume: useCalendarUi.getState().draft ? '1' : undefined })} className="h-10 rounded-full border border-white px-4 text-body-strong hover:bg-white/10">
+                  {t('calendar.pick.viewTimes')}
+                </button>
+                <button type="button" onClick={closePick} className="h-10 rounded-full bg-white px-4 text-body-strong text-ink hover:bg-white/90">
+                  {t('calendar.common.close')}
+                </button>
+              </>
+            ) : (
+              <button type="button" onClick={closePick} aria-label={t('calendar.common.close')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/15" data-testid="pick-close">
+                <X size={22} aria-hidden />
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => {
-                if (pick.kind === 'book') useCalendarUi.getState().setDraft(null)
-                exitTo()
-              }}
-              className="h-10 rounded-full bg-white px-4 text-body-strong text-ink hover:bg-white/90"
-            >
-              {t('calendar.common.close')}
-            </button>
           </div>
         </div>
       )}
@@ -307,6 +347,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
         filterCount={filterCount}
         waitlistCount={waitlistCount}
         pickMode={Boolean(pick)}
+        lockDate={lockDate}
         onPatch={patch}
         onFilters={() => drawer.open('visibility-filters')}
         onSettings={() => drawer.open('calendar-settings')}
@@ -315,12 +356,12 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
       />
       <div className="relative min-h-0 flex-1">
         {filterCount > 0 && (
-          <div className="absolute left-1/2 top-3 z-40 flex h-10 -translate-x-1/2 items-stretch overflow-hidden rounded-full border-2 border-primary bg-surface shadow-md">
+          <div className="absolute left-1/2 z-40 flex h-10 -translate-x-1/2 items-stretch overflow-hidden rounded-full border-2 border-primary bg-surface shadow-md" style={{ top: PILL_TOP[view] }} data-testid="filters-pill">
             <button type="button" onClick={() => drawer.open('visibility-filters')} className="flex items-center gap-2 pl-3 pr-4 text-body-strong text-ink hover:bg-sunken">
               <CountBadge value={filterCount} />
               {t('calendar.filters.pill')}
             </button>
-            <button type="button" onClick={() => setFilters({ status: [], type: [], channel: [], payment: [], services: [], created: [], requested: [], segments: [] })} aria-label={t('calendar.filters.clear')} className="flex w-10 items-center justify-center border-l border-line hover:bg-sunken">
+            <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} aria-label={t('calendar.filters.clear')} title={t('calendar.filters.clear')} className="flex w-10 items-center justify-center border-l border-line hover:bg-sunken">
               <X size={16} aria-hidden />
             </button>
           </div>
@@ -333,17 +374,17 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
               date={date}
               locationId={locationId}
               members={members}
-              appointments={byDate.get(date) ?? []}
-              blocked={blockedByDate.get(date) ?? []}
+              appointments={byDate.get(date) ?? EMPTY_APPTS}
+              blocked={blockedByDate.get(date) ?? EMPTY_BLOCKS}
               pxPerHour={zoom}
               lookups={lookups}
               mode={mode}
-              selectedId={drawer.name === 'appointment' ? drawer.id : null}
+              selectedIds={selectedIds}
               pending={pending}
               onSlot={onSlot}
               onAppointment={onAppointment}
               onBlocked={onBlocked}
-              onMove={setPending}
+              onMove={onMove}
               onMemberAction={onMemberAction}
             />
           ) : (
@@ -359,7 +400,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
             />
           )
         ) : view === 'month' ? (
-          <MonthView date={date} days={days} memberIds={new Set(members.map((m) => m.id))} locationId={locationId} byDate={byDate} lookups={lookups} mode={mode} onAppointment={onAppointment} onDay={(d) => patch({ date: d, view: 'day' })} />
+          <MonthView date={date} days={days} memberIds={new Set(members.map((m) => m.id))} locationId={locationId} byDate={byDate} lookups={lookups} mode={mode} selectedIds={selectedIds} onAppointment={onAppointment} onDay={(d) => patch({ date: d, view: 'day' })} />
         ) : (
           <MultiDayView
             days={days}
@@ -369,6 +410,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
             blockedByDate={blockedByDate}
             lookups={lookups}
             mode={mode}
+            selectedIds={selectedIds}
             showRange={view === 'day_3'}
             onAppointment={onAppointment}
             onBlocked={onBlocked}
@@ -387,8 +429,9 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
           onSettings={() => drawer.open('calendar-settings')}
         />
       )}
-      {minimized && !drawer.name && <MinimizedPill />}
+      {minimized && !drawer.name && !pick && <MinimizedPill />}
       <UpdateAppointmentModal
+        key={pending ? `${pending.appointmentId}-${pending.date}-${pending.start}-${pending.teamMemberId ?? ''}-${pending.resize?.durationMin ?? ''}` : 'none'}
         move={pending}
         onCancel={() => setPending(null)}
         onDone={(move) => {
@@ -399,6 +442,12 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
     </div>
   )
 }
+
+/** The filters pill floats at the top of the grid, just under the column headers of each view. */
+const PILL_TOP: Record<string, number> = { day: 132, day_3: 84, week: 84, month: 56 }
+
+const EMPTY_APPTS: Appointment[] = []
+const EMPTY_BLOCKS: BlockedTime[] = []
 
 function GridSkeleton() {
   return (
@@ -419,7 +468,8 @@ function GridSkeleton() {
 function QuickActions({ time, x, y, onClose, onAppointment, onGroup, onBlocked, onSettings }: { time: string; x: number; y: number; onClose: () => void; onAppointment: () => void; onGroup: () => void; onBlocked: () => void; onSettings: () => void }) {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
-  useDismiss([ref], true, onClose)
+  const refs = useMemo(() => [ref], [])
+  useDismiss(refs, true, onClose)
   const left = Math.min(x + 8, window.innerWidth - 296)
   const top = Math.min(y + 8, window.innerHeight - 250)
   const run = (fn: () => void) => () => {
@@ -462,22 +512,22 @@ function MinimizedPill() {
   if (!minimized) return null
   const restore = () => {
     setMinimized(null)
-    if (minimized.kind === 'appointment') drawer.open('appointment', { id: minimized.id })
-    else drawer.open('new-appointment', { d_resume: '1' })
+    restoreDrawer(drawer.open, minimized)
   }
   return (
     <div className="fixed bottom-5 right-5 z-40 flex h-14 w-[320px] items-center gap-3 rounded-lg bg-ink pl-3 pr-2 text-canvas shadow-lg" data-testid="minimized-drawer">
       <button type="button" onClick={restore} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label={t('calendar.minimized.restore', { name: minimized.label })}>
-        <ClientAvatar name={minimized.label} size={32} />
+        <ClientAvatar name={minimized.label} photo={minimized.photo} size={32} />
         <span className="truncate text-body-strong">{minimized.label}</span>
       </button>
       <button
         type="button"
         onClick={() => {
           setMinimized(null)
-          if (minimized.kind === 'new-appointment') setDraft(null)
+          setDraft(null)
         }}
         aria-label={t('calendar.minimized.dismiss')}
+        title={t('calendar.minimized.dismiss')}
         className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/15"
       >
         <X size={18} aria-hidden />

@@ -1,16 +1,16 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowUpRight, Clock, Coins, IdCard, Image as ImageIcon, LayoutGrid, MapPin, Smile, Sparkles, Store, TrendingUp, UserPlus } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { ArrowLeft, ArrowUpRight, Clock, Coins, IdCard, Image as ImageIcon, Info, LayoutGrid, MapPin, Smile, Sparkles, Store, TrendingUp, UserPlus } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, Chip, confirm, DataTable, EmptyState, LearnMore, Menu, Modal, Page, PageSkeleton, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
-import { addOnStatus, setProfileListed, useOnlineState } from '@/api/online'
+import { addOnStatus, ensureProfileActivity, saveProfile, setProfileListed, useFacebookConnection, useProfileActivity } from '@/api/online'
 import { fmtDateTimeUS, money } from '@/lib/format'
 import { now, weekdayOf } from '@/lib/time'
 import type { ActivityEntry, Location } from '@/types'
 import { addressLine, opensAt, sampleImage, WEEKDAYS } from '../shared'
-import { MapArt, type ProfileStep } from './ProfileWizard'
+import { InModal, MapArt, patchFor, StepBody, toDraft, validateStep, type Draft, type ProfileStep } from './ProfileWizard'
 import { ProfilePreviewModal } from './ProfilePreview'
 
 const TABS = ['overview', 'essentials', 'location', 'working-hours', 'images', 'features'] as const
@@ -45,8 +45,10 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
   const appointments = useDb((s) => s.appointments)
   const [preview, setPreview] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState<ProfileStep | null>(null)
   const listed = location.marketplace.listed
-  const edit = (step: ProfileStep) => navigate(`/online-presence/profile/edit/${location.id}/${step}?from=dashboard`)
+  /** Card "Edit" buttons open the matching wizard step as a modal. */
+  const edit = (step: ProfileStep) => setEditing(step)
 
   const rating = useMemo(() => {
     const apptLoc = new Map(appointments.map((a) => [a.id, a.locationId]))
@@ -99,7 +101,7 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={() => setPreview(true)}>{t('online.dashboard.profile')}</Button>
-          <Button onClick={() => edit('essentials')}>{t('online.dashboard.edit')}</Button>
+          <Button onClick={() => navigate(`/online-presence/profile/edit/${location.id}/essentials?from=dashboard`)}>{t('online.dashboard.edit')}</Button>
           <Menu
             label={t('online.common.options')}
             groups={[{ items: [{ label: listed ? t('online.dashboard.unlist') : t('online.dashboard.list'), onSelect: toggleListed, disabled: busy, danger: listed }] }]}
@@ -131,9 +133,9 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
             <div className="flex flex-col gap-6">
               <Card title={t('online.dashboard.essentials.title')} action={<Button onClick={() => edit('essentials')}>{t('online.dashboard.edit')}</Button>}>
                 <dl className="grid gap-4">
-                  <Row label={t('online.wizard.essentials.name')} value={location.name} />
-                  <Row label={t('online.wizard.essentials.phone')} value={location.phone || '—'} />
-                  <Row label={t('online.wizard.essentials.email')} value={location.email || '—'} />
+                  <Row label={t('online.dashboard.essentials.displayName')} value={location.name} />
+                  <Row label={t('online.dashboard.essentials.phone')} value={location.phone || '—'} />
+                  <Row label={t('online.dashboard.essentials.email')} value={location.email || '—'} />
                 </dl>
               </Card>
               <Card title={t('online.dashboard.essentials.about')} action={<Button onClick={() => edit('about')}>{t('online.dashboard.edit')}</Button>}>
@@ -174,7 +176,64 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
         </div>
       </div>
       <ProfilePreviewModal open={preview} onClose={() => setPreview(false)} location={location} />
+      {editing && <EditStepModal key={editing} location={location} step={editing} onClose={() => setEditing(null)} />}
     </Page>
+  )
+}
+
+const STEP_TITLES: Partial<Record<ProfileStep, string>> = {
+  essentials: 'online.wizard.essentials.title',
+  about: 'online.wizard.about.title',
+  location: 'online.wizard.location.title',
+  'working-hours': 'online.wizard.hours.title',
+  images: 'online.wizard.images.title',
+  features: 'online.wizard.features.title',
+}
+
+/** One wizard step as a modal (Cancel / Save), opened from a dashboard card. */
+function EditStepModal({ location, step, onClose }: { location: Location; step: ProfileStep; onClose: () => void }) {
+  const { t } = useTranslation()
+  const [draft, setDraft] = useState<Draft>(() => toDraft(location))
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const set = (patch: Partial<Draft>) => {
+    setDraft((d) => ({ ...d, ...patch }))
+    setError(null)
+  }
+  const save = async () => {
+    const problem = validateStep(step, draft, t)
+    if (problem) return setError(problem)
+    setBusy(true)
+    try {
+      const { patch, title } = patchFor(step, draft)
+      await saveProfile(location.id, patch, title)
+      toast(t('online.wizard.savedToast'))
+      onClose()
+    } catch (e) {
+      toast((e as Error).message, 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size={step === 'images' || step === 'features' || step === 'location' ? 'lg' : 'md'}
+      title={t(STEP_TITLES[step] ?? 'online.dashboard.edit')}
+      footer={
+        <>
+          <Button onClick={onClose}>{t('online.common.cancel')}</Button>
+          <Button variant="primary" loading={busy} onClick={() => void save()}>
+            {t('online.common.save')}
+          </Button>
+        </>
+      }
+    >
+      <InModal.Provider value>
+        <StepBody step={step} draft={draft} set={set} error={error} location={location} />
+      </InModal.Provider>
+    </Modal>
   )
 }
 
@@ -206,7 +265,8 @@ function Overview({ location }: { location: Location }) {
   const navigate = useNavigate()
   const appointments = useDb((s) => s.appointments)
   const addOns = useDb((s) => s.addOns)
-  const { profileActivity, facebook } = useOnlineState()
+  const profileActivity = useProfileActivity()
+  const facebook = useFacebookConnection()
   const [all, setAll] = useState(false)
 
   const perf = useMemo(() => {
@@ -223,11 +283,12 @@ function Overview({ location }: { location: Location }) {
     return { newClients: newClients.length, total, roi: fees > 0 ? ((total - fees) / fees) * 100 : 0 }
   }, [appointments, location.id])
 
+  useEffect(() => ensureProfileActivity(location.id), [location.id])
   const activity = profileActivity[location.id] ?? []
   const columns: Column<ActivityEntry>[] = [
     { key: 'date', header: t('online.dashboard.activity.date'), cell: (r) => fmtDateTimeUS(r.at) },
     { key: 'by', header: t('online.dashboard.activity.member'), cell: (r) => r.by },
-    { key: 'action', header: t('online.dashboard.activity.action'), cell: (r) => r.title },
+    { key: 'action', header: t('online.dashboard.activity.action'), cell: (r) => (r.title.startsWith('online.activity.') ? t(r.title) : r.title) },
   ]
   const integrations = [
     { key: 'grb', name: t('online.dashboard.addons.grb'), icon: <Sparkles size={20} aria-hidden />, active: addOnStatus(addOns, 'google-rating-boost') === 'active', to: '/add-ons' },
@@ -279,10 +340,13 @@ function Overview({ location }: { location: Location }) {
 
 function PerfRow({ icon, label, hint, value }: { icon: ReactNode; label: string; hint: string; value: string }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-primary-subtle px-5 py-4" title={hint}>
+    <div className="flex items-center justify-between rounded-lg bg-primary-subtle px-5 py-4">
       <span className="flex items-center gap-3 text-body-lg text-ink">
         {icon}
         {label}
+        <span className="text-subtle" title={hint} aria-label={hint} role="img">
+          <Info size={15} aria-hidden />
+        </span>
       </span>
       <span className="font-display text-title-2 text-ink">{value}</span>
     </div>
@@ -306,11 +370,11 @@ function ImagesCard({ location, onEdit }: { location: Location; onEdit: () => vo
         {t('online.dashboard.images.body')} <LearnMore topic="Venue images" />
       </p>
       {images.length ? (
-        <ul className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <ul className="grid grid-cols-2 gap-4">
           {images.map((src, i) => (
-            <li key={i} className="relative overflow-hidden rounded-md border border-line">
+            <li key={i} className={clsx('relative overflow-hidden rounded-lg', i === 0 && 'col-span-2')}>
               <button type="button" className="block w-full" onClick={() => setFull(i)} aria-label={t('online.dashboard.images.viewFull', { n: i + 1 })}>
-                <img src={src} alt="" className="aspect-[16/10] w-full object-cover" />
+                <img src={src} alt="" className="aspect-[16/9] w-full object-cover" />
               </button>
               {i === 0 && <span className="chip absolute left-2 top-2 bg-surface text-caption text-ink shadow-sm">{t('online.wizard.images.cover')}</span>}
             </li>

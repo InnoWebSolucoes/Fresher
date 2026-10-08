@@ -22,15 +22,28 @@
     "save": "Save",
     "startNow": "Start now"
   },
-  "status": { "listed": "Listed", "unlisted": "Unlisted" },
-  "days": { "0": "Monday", "1": "Tuesday", "2": "Wednesday", "3": "Thursday", "4": "Friday", "5": "Saturday", "6": "Sunday" },
+  "status": {
+    "listed": "Listed",
+    "unlisted": "Unlisted"
+  },
+  "days": {
+    "0": "Monday",
+    "1": "Tuesday",
+    "2": "Wednesday",
+    "3": "Thursday",
+    "4": "Friday",
+    "5": "Saturday",
+    "6": "Sunday"
+  },
   "activity": {
     "essentials": "Updated venue essentials",
     "location": "Updated business location",
     "hours": "Updated opening hours",
     "images": "Updated images",
     "features": "Updated amenities and highlights",
-    "description": "Updated venue description"
+    "description": "Updated venue description",
+    "listed": "Listed profile on the marketplace",
+    "unlisted": "Unlisted profile"
   },
   "profile": {
     "title": "Marketplace profile",
@@ -48,7 +61,11 @@
       "b2": "Reach thousands of new clients who visit the marketplace every day",
       "b3": "Free up time and get your clients self-booking online 24/7"
     },
-    "art": { "instant": "Instant booking", "pay": "Pay by app", "access": "Wheelchair accessible" }
+    "art": {
+      "instant": "Instant booking",
+      "pay": "Pay by app",
+      "access": "Wheelchair accessible"
+    }
   },
   "wizard": {
     "progress": "Done {{pct}}% of the process",
@@ -201,7 +218,13 @@
       "images": "Venue images",
       "features": "Amenities and highlights"
     },
-    "essentials": { "title": "Venue essentials", "about": "About" },
+    "essentials": {
+      "title": "Venue essentials",
+      "about": "About",
+      "displayName": "Display name",
+      "phone": "Business phone number",
+      "email": "Business email"
+    },
     "hours": {
       "title": "Your opening hours",
       "range": "{{start}} to {{end}}",
@@ -314,13 +337,38 @@
     "all_packages": "All packages",
     "all_memberships": "All memberships",
     "preview": "Link preview",
-    "cols": { "name": "Name", "type": "Type", "link": "Link", "created": "Created" },
+    "cols": {
+      "name": "Name",
+      "type": "Type",
+      "link": "Link",
+      "created": "Created"
+    },
     "kinds": {
-      "everything": { "title": "Link to everything", "short": "Everything", "body": "One simple link covering everything your clients can book or buy online." },
-      "services": { "title": "Link to services", "short": "Services", "body": "Booking links for certain services, locations or team members." },
-      "packages": { "title": "Link to packages", "short": "Packages", "body": "Link to a specific package or your full list of packages." },
-      "memberships": { "title": "Link to memberships", "short": "Memberships", "body": "Link to a specific membership or your full list of memberships." },
-      "gift_cards": { "title": "Link to gift cards", "short": "Gift cards", "body": "Simple link to directly buy a gift card" }
+      "everything": {
+        "title": "Link to everything",
+        "short": "Everything",
+        "body": "One simple link covering everything your clients can book or buy online."
+      },
+      "services": {
+        "title": "Link to services",
+        "short": "Services",
+        "body": "Booking links for certain services, locations or team members."
+      },
+      "packages": {
+        "title": "Link to packages",
+        "short": "Packages",
+        "body": "Link to a specific package or your full list of packages."
+      },
+      "memberships": {
+        "title": "Link to memberships",
+        "short": "Memberships",
+        "body": "Link to a specific membership or your full list of memberships."
+      },
+      "gift_cards": {
+        "title": "Link to gift cards",
+        "short": "Gift cards",
+        "body": "Simple link to directly buy a gift card"
+      }
     }
   },
   "website": {
@@ -376,29 +424,49 @@
       "selectedToast": "Template selected"
     },
     "templates": {
-      "elegant": { "name": "Elegant", "description": "A sophisticated, warm template perfect for upscale hair salons and beauty studios" },
-      "bold": { "name": "Bold", "description": "A bold, modern template for studios that want a colour to lead with" },
-      "editorial": { "name": "Editorial", "description": "A warm, editorial template with serif headings and soft arched imagery" },
-      "noir": { "name": "Noir", "description": "A dark, editorial template with a warm gold accent for a premium feel" },
-      "crisp": { "name": "Crisp", "description": "A crisp, editorial template that opens on a periwinkle band" },
-      "botanical": { "name": "Botanical", "description": "A calm, botanical template for salons that lead with warmth over contrast" }
+      "elegant": {
+        "name": "Elegant",
+        "description": "A sophisticated, warm template perfect for upscale hair salons and beauty studios"
+      },
+      "bold": {
+        "name": "Bold",
+        "description": "A bold, modern template for studios that want a colour to lead with"
+      },
+      "editorial": {
+        "name": "Editorial",
+        "description": "A warm, editorial template with serif headings and soft arched imagery"
+      },
+      "noir": {
+        "name": "Noir",
+        "description": "A dark, editorial template with a warm gold accent for a premium feel"
+      },
+      "crisp": {
+        "name": "Crisp",
+        "description": "A crisp, editorial template that opens on a periwinkle band"
+      },
+      "botanical": {
+        "name": "Botanical",
+        "description": "A calm, botanical template for salons that lead with warmth over contrast"
+      }
     },
-    "fonts": { "0": "Classic", "1": "Modern", "2": "Editorial", "3": "Luxe", "4": "Clean", "5": "Soft" },
+    "fonts": {
+      "0": "Classic",
+      "1": "Modern",
+      "2": "Editorial",
+      "3": "Luxe",
+      "4": "Clean",
+      "5": "Soft"
+    },
     "styling": {
       "title": "Choose your styling",
       "palettes": "Colour palettes",
       "palette": "Colour palette {{n}}",
       "fonts": "Font packs",
       "heading": "Heading",
-      "content": "Home page",
       "eyebrow": "Tagline",
       "headline": "Headline",
       "text": "Intro text",
-      "button": "Button text",
-      "pages": "Pages",
-      "hideNav": "Hide navigation",
-      "show": "Show",
-      "hide": "Hide"
+      "button": "Button text"
     },
     "domainType": {
       "title": "Choose your domain",
@@ -428,34 +496,54 @@
     },
     "enable": {
       "title": "Enable Smart Website add-on",
-      "fixed": "Fixed price · Monthly",
       "subtotal": "Subtotal",
       "iva": "IVA {{pct}}%",
       "payNow": "Pay now",
-      "note": "Your first month will be billed pro-rata. Smart Website add-on renews monthly at {{price}} + IVA. Your plan automatically renews until canceled. You can manage your billing details and payment methods in Billing Settings.",
       "c1": "Your website goes live at {{domain}}",
       "c2": "Cancel at any time from the Smart Website page",
       "activeTitle": "Publish your changes",
-      "activeBody": "Your updates will go live on {{domain}} straight away."
+      "activeBody": "Your updates will go live on {{domain}} straight away.",
+      "tagline": "Your own professional website that updates itself as your business evolves",
+      "fixedPrice": "Fixed price",
+      "monthly": "Monthly",
+      "proRata": "Your first month will be billed pro-rata.",
+      "renews": "Smart Website add-on renews monthly at {{price}} + IVA.",
+      "autoRenew": "Your plan automatically renews until canceled. For more details, view all pricing.",
+      "manage": "You can manage your billing details and payment methods in Billing Settings."
     },
     "billing": {
-      "card": "Payment card",
-      "cardHolder": "Cardholder name",
-      "cardNumber": "Card number",
-      "expiry": "Expiry date",
-      "cvc": "Security code",
-      "details": "Billing details",
-      "accountType": "Account type",
-      "business": "Business",
-      "individual": "Individual",
-      "firstName": "First name",
-      "lastName": "Last name",
-      "businessName": "Business name",
-      "vat": "VAT number (Optional)",
-      "address": "Billing address",
-      "required": "This field is required",
-      "cardInvalid": "Check your card number",
-      "expiryInvalid": "Use the format MM / YY"
+      "fix": "Check the highlighted fields"
+    },
+    "changeStyling": "Change styling",
+    "builder": {
+      "title": "Your website",
+      "mainMenu": "Main menu",
+      "addNew": "Add new",
+      "hideNav": "Hide navigation",
+      "pageOptions": "Page options for {{name}}",
+      "editPage": "Edit page",
+      "hideFromNav": "Hide from navigation",
+      "showInNav": "Show in navigation",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "deletePage": "Delete page",
+      "deleteTitle": "Delete page?",
+      "deleteBody": "\"{{name}}\" and its content will be removed from your website.",
+      "deletedToast": "Page deleted",
+      "addTitle": "Add a page",
+      "add": "Add page",
+      "pageName": "Page name",
+      "pageNamePlaceholder": "e.g. Gallery",
+      "nameRequired": "Add a page name",
+      "nameTaken": "A page with this name already exists",
+      "addedToast": "\"{{name}}\" added to your website",
+      "hidden": "Hidden",
+      "pageContent": "{{name}} content",
+      "heading": "Heading",
+      "text": "Text",
+      "helpCenter": "Go to help center",
+      "saving": "Saving",
+      "saved": "All changes saved"
     }
   },
   "store": {
@@ -498,8 +586,32 @@
     "shippingHint": "Send orders to the client's address",
     "shippingFee": "Shipping fee",
     "settingsSaved": "Store settings saved",
-    "cols": { "product": "Product", "price": "Price", "stock": "Stock", "online": "Visible online", "order": "Order", "client": "Client", "date": "Date", "fulfilment": "Fulfilment", "status": "Status", "total": "Total" },
-    "fulfilment": { "pickup": "Pick-up", "shipping": "Shipping" },
-    "status": { "new": "New", "ready": "Ready for pick-up", "shipped": "Shipped", "completed": "Completed", "cancelled": "Cancelled" }
+    "cols": {
+      "product": "Product",
+      "price": "Price",
+      "stock": "Stock",
+      "online": "Visible online",
+      "order": "Order",
+      "client": "Client",
+      "date": "Date",
+      "fulfilment": "Fulfilment",
+      "status": "Status",
+      "total": "Total"
+    },
+    "fulfilment": {
+      "pickup": "Pick-up",
+      "shipping": "Shipping"
+    },
+    "status": {
+      "new": "New",
+      "ready": "Ready for pick-up",
+      "shipped": "Shipped",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "shopNow": "Shop now",
+    "paymentsGateTitle": "To launch your Innoweb store, enable the payments add-on",
+    "paymentsGateBody": "Your store takes card payments online, so Payments needs to be set up before clients can place orders.",
+    "paymentsGateAction": "Set up payments"
   }
 }

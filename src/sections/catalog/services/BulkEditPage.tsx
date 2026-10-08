@@ -8,7 +8,7 @@ import { useDb } from '@/store/db'
 import { durationLabel } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { ID, Service } from '@/types'
-import { bulkUpdateServices } from '@/api/catalog'
+import { bulkUpdateServices, isOffMenu } from '@/api/catalog'
 import { TREATMENT_TYPES, serviceTotalDuration, totalExtra } from '../lib'
 import { DurationSelect, FiltersButton } from '../ui'
 import { usePriceTypeOptions, type PriceType } from './serviceParts'
@@ -26,7 +26,8 @@ export function BulkEditPage() {
   const categories = useDb((s) => s.serviceCategories)
   const teamMembers = useDb((s) => s.teamMembers)
   const priceTypes = usePriceTypeOptions()
-  const original = useMemo(() => stored.filter((s) => !s.archived), [stored])
+  const original = useMemo(() => stored.filter((s) => !isOffMenu(s, categories)), [stored, categories])
+  const menuCategories = useMemo(() => [...categories].filter((c) => !c.archived).sort((a, b) => a.order - b.order), [categories])
   const [rows, setRows] = useState<Service[]>(() => structuredClone(original))
   const [past, setPast] = useState<Service[][]>([])
   const [future, setFuture] = useState<Service[][]>([])
@@ -89,8 +90,7 @@ export function BulkEditPage() {
   const teamLabel = (s: Service) => (s.teamMemberIds === 'all' ? t('catalog.bulk.allMembers', { count: activeMembers.length }) : t('catalog.bulk.members', { count: s.teamMemberIds.length }))
 
   return (
-    <FullscreenFrame
-      title={t('catalog.bulk.title')}
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       onClose={() => void close()}
       maxWidth="max-w-none"
       actions={
@@ -122,7 +122,7 @@ export function BulkEditPage() {
                   { label: t('catalog.bulk.allTeam'), onSelect: () => applySelected({ teamMemberIds: 'all' }) },
                 ],
               },
-              { heading: t('catalog.bulk.moveTo'), items: [...categories].sort((a, b) => a.order - b.order).map((c) => ({ label: c.name, onSelect: () => applySelected({ categoryId: c.id }) })) },
+              { heading: t('catalog.bulk.moveTo'), items: menuCategories.map((c) => ({ label: c.name, onSelect: () => applySelected({ categoryId: c.id }) })) },
             ]}
           />
         )}
@@ -217,7 +217,7 @@ export function BulkEditPage() {
                     )}
                     {show('category') && (
                       <td className="px-3 py-2">
-                        <Select value={s.categoryId} aria-label={t('catalog.bulk.col.category')} options={[...categories].sort((a, b) => a.order - b.order).map((c) => ({ value: c.id, label: c.name }))} onChange={(e) => patch(s.id, { categoryId: e.target.value })} />
+                        <Select value={s.categoryId} aria-label={t('catalog.bulk.col.category')} options={menuCategories.map((c) => ({ value: c.id, label: c.name }))} onChange={(e) => patch(s.id, { categoryId: e.target.value })} />
                       </td>
                     )}
                     {show('treatment') && (
@@ -316,9 +316,7 @@ export function BulkEditPage() {
           <div>
             <p className="mb-2 text-body-strong text-ink">{t('catalog.bulk.col.category')}</p>
             <div className="flex flex-col gap-2">
-              {[...categories]
-                .sort((a, b) => a.order - b.order)
-                .map((c) => (
+              {menuCategories.map((c) => (
                   <Checkbox key={c.id} checked={catFilter.includes(c.id)} onChange={(v) => setCatFilter(v ? [...catFilter, c.id] : catFilter.filter((x) => x !== c.id))} label={c.name} />
                 ))}
             </div>

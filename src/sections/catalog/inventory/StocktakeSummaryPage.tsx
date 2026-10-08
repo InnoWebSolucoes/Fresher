@@ -27,16 +27,16 @@ export function StocktakeSummaryPage() {
 
   if (loading)
     return (
-      <Page>
+      <Page wide>
         <PageSkeleton />
       </Page>
     )
   if (!stocktake)
     return (
-      <Page>
+      <Page wide>
         <EmptyState
-          title={t('catalog.inventory.common.notFoundTitle')}
-          body={t('catalog.inventory.common.notFoundBody')}
+          title={t('catalog.common.notFoundTitle')}
+          body={t('catalog.common.notFoundBody')}
           action={<Button onClick={() => navigate('/catalogue/stocktakes')}>{t('catalog.inventory.summary.back')}</Button>}
         />
       </Page>
@@ -69,7 +69,7 @@ export function StocktakeSummaryPage() {
   }
 
   return (
-    <Page>
+    <Page wide>
       <Link to="/catalogue/stocktakes" className="mb-4 inline-flex items-center gap-2 text-body-strong text-primary hover:underline">
         <ArrowLeft size={16} aria-hidden />
         {t('catalog.inventory.summary.back')}
@@ -84,7 +84,7 @@ export function StocktakeSummaryPage() {
             width={220}
             trigger={({ open: o, toggle }) => (
               <MenuButton open={o} toggle={toggle}>
-                {t('catalog.inventory.common.options')}
+                {t('catalog.common.options')}
               </MenuButton>
             )}
             groups={[

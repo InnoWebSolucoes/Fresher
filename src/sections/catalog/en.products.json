@@ -8,7 +8,6 @@
     "manageCategories": "Manage my categories",
     "importProducts": "Import products",
     "selected": "{{count}} selected",
-    "deleteManyTitle": "Delete {{count}} products?",
     "deleteManyBody": "The selected products will be removed from your product list. Past sales and stock history are kept.",
     "deleteTitle": "Delete product?",
     "deleteBody": "{{name}} will be removed from your product list. Past sales and stock history are kept.",
@@ -168,7 +167,7 @@
       "reorderQty": "Reorder quantity",
       "reorderQtyHint": "The default amount to order",
       "lowStockNotify": "Receive low stock notifications",
-      "fixErrors": "Please fix the highlighted fields",
+      "fixErrors": "Please correct all form errors.",
       "discardTitle": "Discard changes?",
       "discardBody": "You have unsaved changes. If you leave now they will be lost.",
       "discard": "Discard"
@@ -353,7 +352,12 @@
         "archived": "Membership archived",
         "unarchived": "Membership unarchived",
         "deleted": "Membership deleted"
-      }
-    }
+      },
+      "gateTitle": "Sell memberships with Innoweb Payments",
+      "gateBody": "Memberships use Innoweb Payments to automatically charge clients' saved cards. Continue your setup by enabling Innoweb Payments before creating your memberships.",
+      "gateContinue": "Continue"
+    },
+    "deleteManyTitle_one": "Delete {{count}} product?",
+    "deleteManyTitle_other": "Delete {{count}} products?"
   }
 }

@@ -45,6 +45,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
   const [editScope, setEditScope] = useState<Scope | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
+  const clearError = (key: string) => setErrors((e) => (e[key] ? { ...e, [key]: '' } : e))
   const stableClose = useCallback(() => onClose(), [onClose])
   useEscape(editScope ? () => setEditScope(null) : stableClose)
 
@@ -98,8 +99,8 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
   const discount = type === 'percent' || type === 'amount'
 
   return createPortal(
-    <div className="fixed inset-0 z-[85] bg-canvas" role="dialog" aria-modal="true" aria-label={t('clients.reward.chooseTitle')}>
-      <FullscreenFrame
+    <div className="fixed inset-0 z-[75] bg-canvas" role="dialog" aria-modal="true" aria-label={t('clients.reward.chooseTitle')}>
+      <FullscreenFrame closeLabel={t('clients.common.close')}
         onClose={onClose}
         maxWidth="max-w-3xl"
         actions={
@@ -135,7 +136,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
             <div className="mt-8 flex flex-col gap-6">
               {discount ? (
                 <Field label={t('clients.reward.value')} error={errors.value}>
-                  {(id) => <TextInput id={id} autoFocus type="number" min={0} step={type === 'percent' ? 1 : 0.01} inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder={type === 'percent' ? '10' : '10.00'} prefix={type === 'amount' ? '€' : undefined} suffix={type === 'percent' ? '%' : undefined} invalid={Boolean(errors.value)} />}
+                  {(id) => <TextInput id={id} autoFocus type="number" min={0} step={type === 'percent' ? 1 : 0.01} inputMode="decimal" value={value} onChange={(e) => { setValue(e.target.value); clearError('value') }} placeholder={type === 'percent' ? '10' : '10.00'} prefix={type === 'amount' ? '€' : undefined} suffix={type === 'percent' ? '%' : undefined} invalid={Boolean(errors.value)} />}
                 </Field>
               ) : (
                 <Field label={type === 'free_service' ? t('clients.reward.service') : t('clients.reward.product')} error={errors.item}>
@@ -143,7 +144,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
                     <Select
                       id={id}
                       value={itemId}
-                      onChange={(e) => setItemId(e.target.value)}
+                      onChange={(e) => { setItemId(e.target.value); clearError('item') }}
                       placeholder={t('clients.form.selectOption')}
                       options={(type === 'free_service' ? liveServices.map((s) => ({ value: s.id, label: `${s.name} · ${money(s.price)}` })) : liveProducts.map((p) => ({ value: p.id, label: `${p.name} · ${money(p.retailPrice)}` })))}
                     />
@@ -163,7 +164,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
                 />
                 {customName && (
                   <Field label={t('clients.reward.name')} error={errors.name} className="ml-8 mt-3" counter={{ value: name.length, max: 50 }}>
-                    {(id) => <TextInput id={id} maxLength={50} value={name} onChange={(e) => setName(e.target.value)} placeholder={suggested} invalid={Boolean(errors.name)} />}
+                    {(id) => <TextInput id={id} maxLength={50} value={name} onChange={(e) => { setName(e.target.value); clearError('name') }} placeholder={suggested} invalid={Boolean(errors.name)} />}
                   </Field>
                 )}
               </div>
@@ -191,7 +192,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
                   <Checkbox checked={minPurchase} onChange={setMinPurchase} label={t('clients.reward.minPurchase')} />
                   {minPurchase && (
                     <Field label={t('clients.reward.minAmount')} error={errors.min} className="ml-8 max-w-xs">
-                      {(id) => <TextInput id={id} type="number" min={0} step={0.01} prefix="€" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} invalid={Boolean(errors.min)} />}
+                      {(id) => <TextInput id={id} type="number" min={0} step={0.01} prefix="€" value={minAmount} onChange={(e) => { setMinAmount(e.target.value); clearError('min') }} invalid={Boolean(errors.min)} />}
                     </Field>
                   )}
                   <Checkbox checked={withDeals} onChange={setWithDeals} label={t('clients.reward.withDeals')} />
@@ -199,7 +200,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
                   {expires && (
                     <div className="ml-8 grid max-w-md grid-cols-2 gap-3">
                       <Field label={t('clients.reward.expiresAfter')} error={errors.expiry}>
-                        {(id) => <TextInput id={id} type="number" min={1} value={expiryValue} onChange={(e) => setExpiryValue(e.target.value)} invalid={Boolean(errors.expiry)} />}
+                        {(id) => <TextInput id={id} type="number" min={1} value={expiryValue} onChange={(e) => { setExpiryValue(e.target.value); clearError('expiry') }} invalid={Boolean(errors.expiry)} />}
                       </Field>
                       <Field label={t('clients.reward.unit')}>
                         {(id) => <Select id={id} value={expiryUnit} onChange={(e) => setExpiryUnit(e.target.value as Unit)} options={(['day', 'week', 'month', 'year'] as const).map((u) => ({ value: u, label: t(`clients.reward.units.${u}`) }))} />}

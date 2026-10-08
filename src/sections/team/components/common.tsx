@@ -8,12 +8,13 @@ import type { TeamMember } from '@/types'
 import { PALETTE } from '@/styles/palette'
 import { useDismiss } from '@/lib/useDismiss'
 import { Button, Menu, Select, type MenuGroup } from '@/components/ui'
-import { asRecord } from '@/api/team'
+import { asRecord, useMemberExtras } from '@/api/team'
 import { TIME_OPTIONS } from '../lib/shifts'
 
 /** Round avatar in the member's calendar colour (or their photo). */
 export function MemberAvatar({ member, size = 40, className }: { member: Pick<TeamMember, 'firstName' | 'lastName' | 'color'> & { id?: string }; size?: number; className?: string }) {
-  const photo = 'id' in member && member.id ? asRecord(member as TeamMember).photo : undefined
+  const extras = useMemberExtras()
+  const photo = 'id' in member && member.id ? asRecord(member as TeamMember, extras).photo : undefined
   const palette = PALETTE[member.color] ?? PALETTE.blue
   const text = `${member.firstName[0] ?? ''}${member.lastName[0] ?? ''}`.toUpperCase() || '?'
   if (photo) {
@@ -166,12 +167,13 @@ export function Row({ label, value, strong, className }: { label: ReactNode; val
 }
 
 /** Big stat card (Earnings / Other / Total / Paid / To pay). */
-export function StatCard({ label, value, strong, children }: { label: ReactNode; value: ReactNode; strong?: boolean; children?: ReactNode }) {
+export function StatCard({ label, value, strong, sub, children }: { label: ReactNode; value: ReactNode; strong?: boolean; sub?: ReactNode; children?: ReactNode }) {
   return (
-    <div className="card flex items-center justify-between gap-4 p-5">
-      <div>
+    <div className={clsx('card flex justify-between gap-4 p-5', children ? 'items-center' : 'items-start')}>
+      <div className="min-w-0">
         <p className={clsx('text-body', strong ? 'font-semibold text-ink' : 'text-muted')}>{label}</p>
-        <p className={clsx('mt-1 font-display text-title-2 tabular', strong ? 'text-ink' : 'text-ink')}>{value}</p>
+        <p className="mt-1 font-display text-title-2 tabular text-ink">{value}</p>
+        {sub}
       </div>
       {children}
     </div>

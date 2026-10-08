@@ -215,12 +215,15 @@ function Kpi({ title, info, value, change }: { title: string; info: string; valu
 /** Single-series bar chart; the current period is the solid bar. */
 function MiniBars({ data, format, tone = 'primary' }: { data: { label: string; value: number }[]; format: (v: number) => string; tone?: 'primary' | 'accent' }) {
   const last = data.length - 1
+  // Size the axis to its longest label so values like "€1,400" aren't clipped.
+  const max = Math.max(0, ...data.map((d) => d.value))
+  const axisWidth = Math.max(28, Math.ceil(format(Math.ceil(max * 1.25)).length * 6.6) + 8)
   return (
     <div className="mt-3 h-40 text-muted">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: -12 }}>
+        <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
           <XAxis dataKey="label" tickLine={false} axisLine={false} interval={0} tick={{ fill: 'currentColor', fontSize: 11 }} />
-          <YAxis tickLine={false} axisLine={false} width={44} tick={{ fill: 'currentColor', fontSize: 11 }} tickFormatter={(v: number) => format(v)} allowDecimals={false} />
+          <YAxis tickLine={false} axisLine={false} width={axisWidth} tick={{ fill: 'currentColor', fontSize: 11 }} tickFormatter={(v: number) => format(v)} allowDecimals={false} />
           <Tooltip
             cursor={{ className: 'fill-sunken' }}
             content={({ active, payload, label }) =>

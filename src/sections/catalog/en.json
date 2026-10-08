@@ -22,14 +22,15 @@
   },
   "advanced": {
     "allLocations": "All locations",
-    "count": "{{count}} custom price and duration overrides",
     "default": "Default",
     "defaultValue": "Default: {{value}}",
     "reset": "Reset",
     "resetAll": "Reset all",
     "rowsHeader": "Location and team members",
     "subtitle": "Set specific pricing by location and team member.",
-    "title": "Advanced pricing and duration"
+    "title": "Advanced pricing and duration",
+    "count_one": "{{count}} custom price and duration override",
+    "count_other": "{{count}} custom price and duration overrides"
   },
   "benefits": {
     "add": "Add benefit",
@@ -38,8 +39,6 @@
     "discountValue": "Discount value",
     "discounts": "Discounts",
     "emptyTitle": "No benefits added",
-    "groupOf": "{{count}} services: {{names}}",
-    "groupOfProducts": "{{count}} products: {{names}}",
     "percentOff": "{{value}}% off",
     "products": "Products",
     "quantity": "Quantity included",
@@ -70,7 +69,11 @@
       "product_group": "Clients get a set quantity which can be used across any products within the group",
       "amount_discount": "Clients get a fixed amount off",
       "percent_discount": "Clients get a percentage off"
-    }
+    },
+    "groupOf_one": "{{count}} service: {{names}}",
+    "groupOf_other": "{{count}} services: {{names}}",
+    "groupOfProducts_one": "{{count}} product: {{names}}",
+    "groupOfProducts_other": "{{count}} products: {{names}}"
   },
   "bulk": {
     "allMembers": "All team members ({{count}})",
@@ -94,7 +97,6 @@
     "discardBody": "Your unsaved changes will be lost.",
     "discardTitle": "Discard changes?",
     "enableOnline": "Enable online bookings",
-    "members": "{{count}} team members",
     "moveTo": "Move to category",
     "redo": "Redo",
     "search": "Search services",
@@ -104,8 +106,12 @@
     "title": "Bulk edit services",
     "toggleVariants": "Show variants",
     "undo": "Undo",
-    "unsaved": "{{count}} services changed",
-    "variants": "{{count}} variants"
+    "members_one": "{{count}} team member",
+    "members_other": "{{count}} team members",
+    "unsaved_one": "{{count}} service changed",
+    "unsaved_other": "{{count}} services changed",
+    "variants_one": "{{count}} variant",
+    "variants_other": "{{count}} variants"
   },
   "bundle": {
     "addService": "Add service",
@@ -185,7 +191,6 @@
     "imageHint": "File type .jpg, .png, .avif, .webp • max size {{mb}}MB",
     "imageTooBig": "{{name}} is larger than {{mb}}MB",
     "imageType": "{{name}} is not a supported image type",
-    "imagesAdded": "{{count}} image(s) added",
     "inactive": "Inactive",
     "increase": "Increase",
     "learnMore": "Learn more",
@@ -211,7 +216,12 @@
     "selectRow": "Select row",
     "startNow": "Start now",
     "unarchive": "Unarchive",
-    "yes": "Yes"
+    "yes": "Yes",
+    "imagesAdded_one": "{{count}} image added",
+    "imagesAdded_other": "{{count}} images added",
+    "includedInPlan": "Included in your plan",
+    "copyOf": "Copy of {{name}}",
+    "copySuffix": "{{name}} (copy)"
   },
   "extraTime": {
     "add": "Add extra time",
@@ -247,7 +257,7 @@
     "archiveBody": "Are you sure you want to archive this service?",
     "archiveBundleBody": "Are you sure you want to archive this bundle?",
     "archiveBundleTitle": "Archive bundle",
-    "archiveCategoryBody": "All services and bundles in {{name}} will be archived.",
+    "archiveCategoryBody": "{{name}} and its services and bundles will be hidden from your menu and online booking. You can unarchive it at any time.",
     "archiveCategoryTitle": "Archive category",
     "archiveTitle": "Archive service",
     "bulkEdit": "Bulk edit services",
@@ -256,7 +266,6 @@
     "deleteBundleBody": "Are you sure you want to delete this bundle?",
     "deleteBundleTitle": "Permanently delete bundle",
     "deleteCategoryBody": "Are you sure you want to delete this category?",
-    "deleteCategoryBodyItems": "This category and its {{count}} services and bundles will be deleted. This cannot be undone.",
     "deleteCategoryTitle": "Permanently delete category",
     "deleteTitle": "Permanently delete service",
     "emptyBody": "Add a category to start building your menu.",
@@ -267,14 +276,20 @@
     "noResultsTitle": "No services found",
     "quickLink": "Quick booking link",
     "search": "Search service name",
-    "servicesCount": "{{count}} services",
     "setBookingSequence": "Set booking sequence",
     "setMenuOrder": "Set menu order",
     "settings": "Settings",
     "showingAll": "Showing all statuses",
     "showingArchived": "Showing archived services",
     "subtitle": "View and manage the services offered by your business.",
-    "title": "Service menu"
+    "title": "Service menu",
+    "categoryAddService": "Add service",
+    "categoryAddBundle": "Add bundle",
+    "archivedCategoryEmpty": "This archived category has no services",
+    "deleteCategoryBodyItems_one": "This category and its {{count}} service or bundle will be deleted. This cannot be undone.",
+    "deleteCategoryBodyItems_other": "This category and its {{count}} services and bundles will be deleted. This cannot be undone.",
+    "servicesCount_one": "{{count}} service",
+    "servicesCount_other": "{{count}} services"
   },
   "menuFilters": {
     "allStatus": "All status",
@@ -285,7 +300,11 @@
     "services": "Services",
     "status": "Status",
     "teamMember": "Team member",
-    "type": "Type"
+    "type": "Type",
+    "online": "Online bookings",
+    "commissions": "Commissions",
+    "resources": "Resource requirements",
+    "employees": "Employee requirements"
   },
   "order": {
     "bundle": "Bundle",
@@ -325,7 +344,6 @@
     "theme": "Package theme"
   },
   "packages": {
-    "addPackage": "Package",
     "allFilters": "All filters",
     "allStatuses": "All statuses",
     "any": "Any",
@@ -336,7 +354,6 @@
     "artName": "Spa Package",
     "artSave": "Save up to €30",
     "artSessions": "6 sessions included",
-    "benefits": "{{count}} benefits",
     "colExpiry": "Expiry date",
     "colHolder": "Holder",
     "colPackage": "Package",
@@ -382,7 +399,9 @@
       "used": "Used",
       "expired": "Expired",
       "canceled": "Canceled"
-    }
+    },
+    "benefits_one": "{{count}} benefit",
+    "benefits_other": "{{count}} benefits"
   },
   "priceTypes": {
     "fixed": "Fixed",
@@ -399,7 +418,10 @@
     "publishBody": "Join the world's largest beauty and wellness marketplace",
     "publishTitle": "To sell services online, publish your Innoweb profile",
     "qrAlt": "Booking link QR code",
-    "title": "Quick booking link"
+    "title": "Quick booking link",
+    "b1": "Get your business listed on the Innoweb app",
+    "b2": "Reach thousands of new clients who visit Innoweb every day",
+    "b3": "Free up time and get your clients self-booking online 24/7"
   },
   "sequence": {
     "emptyBody": "Services will be booked in the order clients select them when booking online. Add a service to control the order in which it is booked.",
@@ -481,7 +503,6 @@
     "rebookHint": "Choose when you would like to notify your clients to rebook this service",
     "rebookUnit": "Interval",
     "rebookValue": "Delay",
-    "resourceCount": "{{count}} resources · {{description}}",
     "resourcesSubtitle": "Select the resources required to perform this service",
     "resourcesTitle": "Resources",
     "salesTax": "Sales tax",
@@ -504,11 +525,11 @@
     "upsellingTitle": "Upselling",
     "useCustomTreatment": "Use \"{{name}}\"",
     "weeksAfter": "Weeks after",
-    "workspaceSettings": "workspace settings"
+    "workspaceSettings": "workspace settings",
+    "resourceCount_one": "{{count}} resource · {{description}}",
+    "resourceCount_other": "{{count}} resources · {{description}}"
   },
   "toasts": {
-    "bulkApplied": "Applied to {{count}} services",
-    "bulkSaved": "{{count}} services updated",
     "bundleArchived": "Bundle archived",
     "bundleCreated": "Bundle created successfully.",
     "bundleDeleted": "Bundle has been deleted",
@@ -533,7 +554,12 @@
     "serviceCreated": "Service created successfully",
     "serviceDeleted": "Service has been deleted",
     "serviceUnarchived": "Service unarchived",
-    "serviceUpdated": "Service has been updated"
+    "serviceUpdated": "Service has been updated",
+    "categoryUnarchived": "Category unarchived",
+    "bulkApplied_one": "Applied to {{count}} service",
+    "bulkApplied_other": "Applied to {{count}} services",
+    "bulkSaved_one": "{{count}} service updated",
+    "bulkSaved_other": "{{count}} services updated"
   },
   "variant": {
     "addTitle": "Add variant",

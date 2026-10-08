@@ -85,24 +85,31 @@ export function LandingPage() {
         ))}
       </nav>
 
-      <section id="settings" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section id="settings" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label={t('settings.tabs.settings')}>
         {SETTINGS_CATEGORIES.map((category) => {
           const Icon = CATEGORY_ICONS[category.id] ?? Building2
+          const links = category.groups.flatMap((g) => g.links)
           return (
-            <Link
-              key={category.id}
-              to={category.to}
-              className="card flex flex-col gap-3 p-5 transition-shadow duration-fast hover:border-primary/40 hover:shadow-sm"
-              data-testid={`settings-card-${category.id}`}
-            >
+            <div key={category.id} className="card group relative flex flex-col gap-3 p-5 transition-shadow duration-fast hover:border-primary/40 hover:shadow-sm" data-testid={`settings-card-${category.id}`}>
               <span className="flex h-11 w-11 items-center justify-center rounded-md bg-primary-subtle text-primary">
                 <Icon size={22} aria-hidden />
               </span>
               <span>
-                <span className="block font-display text-title-3 text-ink">{t(category.title)}</span>
+                <Link to={category.to} className="block font-display text-title-3 text-ink after:absolute after:inset-0 after:rounded-lg after:content-['']">
+                  {t(category.title)}
+                </Link>
                 <span className="mt-1 block text-body text-muted">{t(category.description)}</span>
               </span>
-            </Link>
+              <ul className="relative z-10 mt-auto flex flex-wrap gap-x-3 gap-y-1 border-t border-line pt-3" aria-label={t('settings.landing.pagesIn', { category: t(category.title) })}>
+                {links.map((link) => (
+                  <li key={link.to}>
+                    <Link to={link.to} className="text-small text-muted hover:text-primary hover:underline" data-testid={`settings-link-${link.to.split('/').pop()}`}>
+                      {t(link.label)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )
         })}
       </section>

@@ -82,7 +82,10 @@ export async function updateClient(id: ID, patch: Partial<Omit<Client, 'id' | 'c
   }
   commit((d) => {
     const c = d.clients.find((x) => x.id === id)
-    if (c) Object.assign(c, patch)
+    if (!c) return
+    Object.assign(c, patch)
+    // Cleared optional fields (e.g. a removed photo) are dropped rather than stored as undefined.
+    for (const key of Object.keys(patch) as (keyof typeof patch)[]) if (patch[key] === undefined) delete (c as Partial<Client>)[key]
   })
 }
 
@@ -405,7 +408,7 @@ export async function mergeClients(keepId: ID, mergeIds: ID[], details: { firstN
     for (const id of ids) {
       const other = d.clients.find((c) => c.id === id)
       if (!other || other.deletedAt) continue
-      const scalar = ['phone', 'birthday', 'gender', 'pronouns', 'language', 'occupation', 'country', 'additionalPhone', 'staffAlert', 'referredById'] as const
+      const scalar = ['phone', 'birthday', 'gender', 'pronouns', 'language', 'occupation', 'country', 'additionalPhone', 'staffAlert', 'referredById', 'photo'] as const
       for (const key of scalar) {
         if (!keep[key] && other[key]) (keep as unknown as Record<string, unknown>)[key] = other[key]
       }

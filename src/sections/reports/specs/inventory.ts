@@ -54,14 +54,19 @@ const homeLocation = (ctx: Ctx, p: Product) => (ctx.d.stockMovements ?? []).find
 
 const stockOnHand: Spec = {
   slug: 'stock-on-hand',
-  range: null,
+  range: 'today',
+  asOf: true,
   filters: ['brand', 'location', 'productCategory', 'supplier', 'product'],
   advanced: true,
   customize: true,
   build: (ctx, p) => {
+    // Stock at the end of the chosen day: today's stock minus every movement after it.
+    const asOf = p.range.to
+    const later = new Map<ID, number>()
+    if (asOf < ctx.today) for (const e of stockEvents(ctx)) if (e.date > asOf) later.set(e.product.id, (later.get(e.product.id) ?? 0) + e.qty)
     const facts = (ctx.d.products ?? [])
       .filter((x) => !x.archived && x.trackStock)
-      .map((x) => ({ x, loc: homeLocation(ctx, x), a: productAttrs(x, homeLocation(ctx, x)) }))
+      .map((x) => ({ x: { ...x, stock: x.stock - (later.get(x.id) ?? 0) }, loc: homeLocation(ctx, x), a: productAttrs(x, homeLocation(ctx, x)) }))
       .sort((a, b) => brandName(ctx, a.x).localeCompare(brandName(ctx, b.x)) || a.x.name.localeCompare(b.x.name))
     return listResult(
       applyFilters(facts, p.filters),

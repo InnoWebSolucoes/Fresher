@@ -1,12 +1,13 @@
-import { Banknote, ChevronDown, ChevronUp, CircleDollarSign, Lock, Pencil, Trash2 } from 'lucide-react'
+import { Banknote, ChevronDown, ChevronUp, CircleDollarSign, Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Checkbox, Chip, EmptyState, Field, Menu, TextInput, confirm } from '@/components/ui'
+import { Button, Checkbox, EmptyState, Field, TextInput, confirm } from '@/components/ui'
 import { moveSettingsListItem, reorderSettingsList, updateSettings } from '@/api/settings'
 import { uid } from '@/lib/ids'
 import type { CustomPaymentMethod } from '@/types'
-import { ListCard, ListRow, PillMenu, SettingsPage } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
+import { ActionsPill, ActiveLabel, FormCard, ListCard, ListRow, LockMark, ModalForm, PillMenu, SettingsPage } from '../components/ui'
+import { FullModal } from '../components/FullModal'
+import { OverlayOptions, deleteItem } from '../scheduling/shared'
 import { OrderModal } from '../components/OrderModal'
 import { useAction } from '../components/useAction'
 import { useSettings } from '../hooks'
@@ -36,7 +37,7 @@ export function CheckoutMethodsPage() {
       t('settings.sale.methods.deleted'),
     )
   }
-  const move = (m: CustomPaymentMethod, direction: -1 | 1) => void run(() => moveSettingsListItem('customPaymentMethods', m.id, direction), t('settings.sale.methods.orderSaved'))
+  const move = (m: CustomPaymentMethod, direction: -1 | 1) => void run(() => moveSettingsListItem('customPaymentMethods', m.id, direction), t('settings.common.orderUpdated'))
 
   return (
     <SettingsPage
@@ -73,33 +74,29 @@ export function CheckoutMethodsPage() {
               testId={`method-row-${m.id}`}
               leading={m.system ? <Banknote size={20} className="text-success" aria-hidden /> : <CircleDollarSign size={20} className="text-primary" aria-hidden />}
               title={m.name}
+              subtitle={<ActiveLabel active={m.active} />}
+              onClick={m.system ? undefined : () => setEditing(m)}
               trailing={
-                <>
-                  <Chip tone={m.active ? 'success' : 'neutral'}>{m.active ? t('settings.common.active') : t('settings.common.inactive')}</Chip>
-                  {m.system ? (
-                    <span className="flex h-9 w-9 items-center justify-center text-muted" title={t('settings.sale.methods.systemHint')} aria-label={t('settings.sale.methods.systemHint')} role="img">
-                      <Lock size={18} aria-hidden />
-                    </span>
-                  ) : (
-                    <Menu
-                      label={t('settings.common.actions')}
-                      groups={[
-                        {
-                          items: [
-                            { label: t('settings.common.edit'), icon: <Pencil size={16} />, onSelect: () => setEditing(m) },
-                            { label: t('settings.common.delete'), icon: <Trash2 size={16} />, danger: true, onSelect: () => void remove(m) },
-                          ],
-                        },
-                        {
-                          items: [
-                            { label: t('settings.common.moveUp'), icon: <ChevronUp size={16} />, disabled: index === 0, onSelect: () => move(m, -1) },
-                            { label: t('settings.common.moveDown'), icon: <ChevronDown size={16} />, disabled: index === sorted.length - 1, onSelect: () => move(m, 1) },
-                          ],
-                        },
-                      ]}
-                    />
-                  )}
-                </>
+                m.system ? (
+                  <LockMark label={t('settings.sale.methods.systemHint')} />
+                ) : (
+                  <ActionsPill
+                    groups={[
+                      {
+                        items: [
+                          { label: t('settings.common.edit'), icon: <Pencil size={16} />, onSelect: () => setEditing(m) },
+                          { label: t('settings.common.delete'), icon: <Trash2 size={16} />, danger: true, onSelect: () => void remove(m) },
+                        ],
+                      },
+                      {
+                        items: [
+                          { label: t('settings.common.moveUp'), icon: <ChevronUp size={16} />, disabled: index === 0, onSelect: () => move(m, -1) },
+                          { label: t('settings.common.moveDown'), icon: <ChevronDown size={16} />, disabled: index === sorted.length - 1, onSelect: () => move(m, 1) },
+                        ],
+                      },
+                    ]}
+                  />
+                )
               }
             />
           ))}
@@ -113,7 +110,7 @@ export function CheckoutMethodsPage() {
         title={t('settings.sale.methods.orderTitle')}
         items={sorted.map((m) => ({ id: m.id, label: m.name, leading: m.system ? <Banknote size={18} className="text-success" aria-hidden /> : <CircleDollarSign size={18} className="text-primary" aria-hidden /> }))}
         onSave={async (ids) => {
-          await run(() => reorderSettingsList('customPaymentMethods', ids), t('settings.sale.methods.orderSaved'))
+          await run(() => reorderSettingsList('customPaymentMethods', ids), t('settings.common.orderUpdated'))
         }}
       />
     </SettingsPage>
@@ -165,56 +162,51 @@ function MethodModal({ editing, onClose, methods, onDelete }: { editing: CustomP
       )
   }
   return (
-    <SettingsModal
+    <FullModal
       open={editing !== null}
       onClose={onClose}
       title={isNew ? t('settings.sale.methods.addTitle') : t('settings.sale.methods.editTitle')}
-      footer={
-        <>
-          {current && (
-            <Button
-              variant="ghost"
-              className="mr-auto text-danger hover:bg-danger-subtle"
-              icon={<Trash2 size={16} aria-hidden />}
-              onClick={async () => {
-                if (await onDelete(current)) onClose()
-              }}
-            >
-              {t('settings.common.delete')}
-            </Button>
-          )}
-          <Button onClick={onClose}>{t('settings.common.close')}</Button>
-          <Button variant="primary" loading={saving} onClick={save} data-testid="method-save">
-            {isNew ? t('settings.common.add') : t('settings.common.save')}
-          </Button>
-        </>
+      onSave={save}
+      saving={saving}
+      saveLabel={isNew ? t('settings.common.add') : undefined}
+      actions={
+        current && (
+          <OverlayOptions
+            groups={[
+              {
+                items: [
+                  deleteItem(t('settings.common.delete'), async () => {
+                    if (await onDelete(current)) onClose()
+                  }),
+                ],
+              },
+            ]}
+          />
+        )
       }
+      testId="method-modal"
     >
-      <form
-        className="flex flex-col gap-5 pb-2"
-        onSubmit={(e) => {
-          e.preventDefault()
-          save()
-        }}
-      >
-        <Field label={t('settings.sale.methods.name')} error={error}>
-          {(id) => (
-            <TextInput
-              id={id}
-              value={name}
-              maxLength={NAME_MAX}
-              placeholder={t('settings.sale.methods.namePlaceholder')}
-              invalid={Boolean(error)}
-              onChange={(e) => {
-                setError('')
-                setName(e.target.value)
-              }}
-            />
-          )}
-        </Field>
-        {current && <Checkbox label={t('settings.common.active')} hint={t('settings.sale.methods.activeHint')} checked={active} onChange={setActive} />}
-        <button type="submit" className="hidden" aria-hidden tabIndex={-1} />
-      </form>
-    </SettingsModal>
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t('settings.sale.methods.name')} error={error}>
+            {(id) => (
+              <TextInput
+                id={id}
+                value={name}
+                maxLength={NAME_MAX}
+                placeholder={t('settings.sale.methods.namePlaceholder')}
+                invalid={Boolean(error)}
+                onChange={(e) => {
+                  setError('')
+                  setName(e.target.value)
+                }}
+                data-testid="method-name"
+              />
+            )}
+          </Field>
+          {current && <Checkbox label={t('settings.common.active')} hint={t('settings.sale.methods.activeHint')} checked={active} onChange={setActive} />}
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }

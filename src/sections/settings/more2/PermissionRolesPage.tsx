@@ -3,14 +3,14 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { createPermissionRole, deletePermissionRole, moveSettingsListItem, reorderSettingsList, savePermissionRole, updateSettings } from '@/api/settings'
-import { Button, Checkbox, EmptyState, Field, Menu, RadioGroup, TextInput, confirm, type MenuGroup } from '@/components/ui'
+import { Button, Checkbox, EmptyState, Field, RadioGroup, TextInput, confirm, type MenuGroup } from '@/components/ui'
 import { fullName } from '@/lib/format'
 import type { PermissionRole } from '@/lib/permissions'
 import { useDb } from '@/store/db'
 import type { ID, PermissionLevel, TeamMember } from '@/types'
+import { FullModal } from '../components/FullModal'
 import { OrderModal } from '../components/OrderModal'
-import { SettingsModal } from '../components/SettingsModal'
-import { PillMenu, SettingsPage } from '../components/ui'
+import { ActionsPill, FormCard, ListCard, ListRow, ModalForm, PillMenu, SettingsPage } from '../components/ui'
 import { useAction } from '../components/useAction'
 import { normalizePermissions, resolvePermissions } from '../team/catalogue'
 import {
@@ -114,8 +114,8 @@ export function PermissionRolesPage() {
       },
       {
         items: [
-          { label: t('settings.common.moveUp'), icon: <ArrowUp size={16} />, onSelect: () => void run(() => moveSettingsListItem('permissionRoles', role.id, -1)), disabled: busy || index === 0 },
-          { label: t('settings.common.moveDown'), icon: <ArrowDown size={16} />, onSelect: () => void run(() => moveSettingsListItem('permissionRoles', role.id, 1)), disabled: busy || !next || next.system },
+          { label: t('settings.common.moveUp'), icon: <ArrowUp size={16} />, onSelect: () => void run(() => moveSettingsListItem('permissionRoles', role.id, -1), t('settings.common.orderUpdated')), disabled: busy || index === 0 },
+          { label: t('settings.common.moveDown'), icon: <ArrowDown size={16} />, onSelect: () => void run(() => moveSettingsListItem('permissionRoles', role.id, 1), t('settings.common.orderUpdated')), disabled: busy || !next || next.system },
         ],
       },
     ]
@@ -124,12 +124,12 @@ export function PermissionRolesPage() {
   const row = (role: PermissionLevel, index: number) => {
     const members = membersByRole.get(role.id) ?? []
     return (
-      <div key={role.id} className="card flex items-center gap-4 px-6 py-5" data-testid={`role-${role.id}`}>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-sunken text-ink">
-          <RoleIcon roleId={role.id} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-body-strong text-ink">
+      <ListRow
+        key={role.id}
+        testId={`role-${role.id}`}
+        leading={<RoleIcon roleId={role.id} />}
+        title={
+          <span className="flex items-center gap-2">
             <span className="truncate">{role.name}</span>
             {defaultRole === role.id && (
               <span className="inline-flex items-center gap-1 text-caption text-muted" title={t('settings.more2.roles.defaultBadge')}>
@@ -137,12 +137,16 @@ export function PermissionRolesPage() {
                 <span className="sr-only">{t('settings.more2.roles.defaultBadge')}</span>
               </span>
             )}
-          </p>
-          <p className="mt-0.5 text-body text-muted">{role.description}</p>
-        </div>
-        <MemberAvatars members={members} />
-        <Menu label={t('settings.common.actions')} width={260} groups={groupsFor(role, index)} />
-      </div>
+          </span>
+        }
+        subtitle={role.description}
+        trailing={
+          <>
+            <MemberAvatars members={members} />
+            <ActionsPill width={260} groups={groupsFor(role, index)} testId={`role-actions-${role.id}`} />
+          </>
+        }
+      />
     )
   }
 
@@ -165,18 +169,18 @@ export function PermissionRolesPage() {
               },
             ]}
           />
-          <Button variant="primary" className="rounded-full px-5" onClick={() => navigate(`${PERMISSIONS_BASE}/add/add-permission-role`)} data-testid="roles-add">
+          <Button variant="primary" onClick={() => navigate(`${PERMISSIONS_BASE}/add/add-permission-role`)} data-testid="roles-add">
             {t('settings.common.add')}
           </Button>
         </>
       }
     >
-      <div className="flex flex-col gap-4">{main.map((role, i) => row(role, i))}</div>
+      <ListCard>{main.map((role, i) => row(role, i))}</ListCard>
       {other.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <ListCard>
           <h2 className="font-display text-title-3 text-ink">{t('settings.more2.roles.other')}</h2>
           {other.map((role, i) => row(role, main.length + i))}
-        </div>
+        </ListCard>
       )}
 
       {modal?.kind === 'rename' && <RenameModal role={modal.role} roles={roles} onClose={() => setModal(null)} />}
@@ -195,7 +199,7 @@ export function PermissionRolesPage() {
                 'permissionRoles',
                 [...ids, ...other.map((r) => r.id)],
               ),
-            t('settings.more2.roles.toast.ordered'),
+            t('settings.common.orderUpdated'),
           )
         }}
       />
@@ -214,31 +218,15 @@ function RenameModal({ role, roles, onClose }: { role: PermissionLevel; roles: P
     void run(() => savePermissionRole({ ...role, name: trimmed }), t('settings.more2.roles.toast.renamed'), onClose)
   }
   return (
-    <SettingsModal
-      open
-      onClose={onClose}
-      title={t('settings.more2.roles.renameTitle')}
-      subtitle={t('settings.more2.roles.renameSubtitle')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          <Button variant="primary" loading={busy} disabled={!trimmed || taken || trimmed === role.name} onClick={save} data-testid="rename-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
-    >
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          save()
-        }}
-      >
-        <Field label={t('settings.more2.roles.name')} counter={{ value: name.length, max: 50 }} error={taken ? t('settings.more2.roles.nameTaken') : !trimmed ? t('settings.common.required') : undefined}>
-          {(id) => <TextInput id={id} value={name} maxLength={50} onChange={(e) => setName(e.target.value)} invalid={taken || !trimmed} />}
-        </Field>
-      </form>
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t('settings.more2.roles.renameTitle')} subtitle={t('settings.more2.roles.renameSubtitle')} onSave={save} saving={busy} saveDisabled={!trimmed || taken || trimmed === role.name} testId="rename-modal">
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t('settings.more2.roles.name')} counter={{ value: name.length, max: 50 }} error={taken ? t('settings.more2.roles.nameTaken') : !trimmed ? t('settings.common.required') : undefined}>
+            {(id) => <TextInput id={id} value={name} maxLength={50} onChange={(e) => setName(e.target.value)} invalid={taken || !trimmed} data-testid="rename-name" />}
+          </Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -263,39 +251,37 @@ function MembersModal({ role, current, onClose }: { role: PermissionLevel; curre
       onClose,
     )
   return (
-    <SettingsModal
+    <FullModal
       open
       onClose={onClose}
       title={t('settings.more2.roles.membersTitle', { name: role.name })}
       subtitle={role.description}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          <Button variant="primary" loading={busy} onClick={() => void save()} disabled={!picking && current.length === 0} data-testid="members-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
+      onSave={() => void save()}
+      saving={busy}
+      saveDisabled={!picking && current.length === 0}
+      testId="members-modal"
     >
       {!picking ? (
-        <EmptyState
-          icon={<Users size={24} aria-hidden />}
-          title={t('settings.more2.roles.noMembersTitle')}
-          body={t('settings.more2.roles.noMembersBody', { name: role.name })}
-          action={
-            <Button className="rounded-full" icon={<UserPlus size={16} aria-hidden />} onClick={() => setPicking(true)}>
-              {t('settings.more2.roles.addMember')}
-            </Button>
-          }
-        />
+        <div className="card">
+          <EmptyState
+            icon={<Users size={24} aria-hidden />}
+            title={t('settings.more2.roles.noMembersTitle')}
+            body={t('settings.more2.roles.noMembersBody', { name: role.name })}
+            action={
+              <Button variant="primary" icon={<UserPlus size={16} aria-hidden />} onClick={() => setPicking(true)}>
+                {t('settings.more2.roles.addMember')}
+              </Button>
+            }
+          />
+        </div>
       ) : eligible.length === 0 ? (
-        <p className="py-6 text-center text-body text-muted">{t('settings.more2.roles.noEligible')}</p>
+        <p className="card px-6 py-10 text-center text-body text-muted">{t('settings.more2.roles.noEligible')}</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-line">
+        <ul className="card flex flex-col divide-y divide-line px-6">
           {eligible.map((m) => {
             const currentRole = roleOf(m.id)
             return (
-              <li key={m.id} className="py-3">
+              <li key={m.id} className="py-4">
                 <Checkbox
                   checked={selected.includes(m.id)}
                   onChange={(on) => toggle(m.id, on)}
@@ -307,7 +293,7 @@ function MembersModal({ role, current, onClose }: { role: PermissionLevel; curre
           })}
         </ul>
       )}
-    </SettingsModal>
+    </FullModal>
   )
 }
 
@@ -325,21 +311,8 @@ function DefaultRoleModal({ roles, current, onClose }: { roles: PermissionLevel[
       onClose,
     )
   return (
-    <SettingsModal
-      open
-      onClose={onClose}
-      title={t('settings.more2.roles.editDefault')}
-      subtitle={t('settings.more2.roles.editDefaultSubtitle')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          <Button variant="primary" loading={busy} disabled={value === current} onClick={() => void save()} data-testid="default-role-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
-    >
+    <FullModal open onClose={onClose} title={t('settings.more2.roles.editDefault')} subtitle={t('settings.more2.roles.editDefaultSubtitle')} onSave={() => void save()} saving={busy} saveDisabled={value === current} testId="default-role-modal">
       <RadioGroup variant="cards" name="default-role" value={value} onChange={setValue} options={roles.map((r) => ({ value: r.id, label: r.name, hint: r.description }))} />
-    </SettingsModal>
+    </FullModal>
   )
 }

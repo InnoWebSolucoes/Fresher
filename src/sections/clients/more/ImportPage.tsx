@@ -36,8 +36,9 @@ function Frame({ step, onBack, primary, children, wide }: { step: number; onBack
   const reset = useImportWizard((s) => s.reset)
   const status = useImportWizard((s) => s.status)
   const close = () => {
-    if (status !== 'running') reset()
     navigate('/clients/list')
+    // Reset after leaving, so the step guards don't redirect back to the upload step first.
+    if (status !== 'running') setTimeout(reset, 0)
   }
   return (
     <div className="flex h-full flex-col bg-canvas">
@@ -476,8 +477,8 @@ function ProgressStep() {
   const retry = useImportWizard((s) => s.retry)
   const reset = useImportWizard((s) => s.reset)
   const done = () => {
-    reset()
     navigate('/clients/list')
+    setTimeout(reset, 0)
   }
   return (
     <Frame step={4}>

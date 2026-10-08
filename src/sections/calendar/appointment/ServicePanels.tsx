@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { Avatar, Button, Field, Select } from '@/components/ui'
+import { isOffMenu } from '@/api/catalog'
 import { useDb } from '@/store/db'
 import { PALETTE } from '@/styles/palette'
 import { money } from '@/lib/format'
@@ -37,11 +38,12 @@ export function ServicePicker({ locationId, onPick, onBack, title }: { locationI
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase()
     return [...categories]
+      .filter((c) => !c.archived)
       .sort((a, b) => a.order - b.order)
       .map((c) => ({
         category: c,
         services: services
-          .filter((s) => s.categoryId === c.id && !s.archived && s.locationIds.includes(locationId) && (!q || s.name.toLowerCase().includes(q) || s.variants.some((v) => v.name.toLowerCase().includes(q))))
+          .filter((s) => s.categoryId === c.id && !isOffMenu(s, categories) && s.locationIds.includes(locationId) && (!q || s.name.toLowerCase().includes(q) || s.variants.some((v) => v.name.toLowerCase().includes(q))))
           .sort((a, b) => a.order - b.order),
       }))
       .filter((g) => g.services.length)
@@ -189,7 +191,7 @@ export function ServiceLine({ item, start, edgeColor, members, readOnly, showMem
           <Button size="sm" variant="ghost" onClick={onEdit}>
             {t('calendar.service.edit')}
           </Button>
-          <Button size="sm" variant="ghost" className="text-danger" onClick={onRemove}>
+          <Button size="sm" variant="ghost" className="!text-danger" onClick={onRemove}>
             {t('calendar.service.remove')}
           </Button>
         </div>

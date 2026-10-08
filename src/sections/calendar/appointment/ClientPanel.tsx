@@ -1,14 +1,12 @@
 import clsx from 'clsx'
 import { format, parseISO } from 'date-fns'
-import { AlertTriangle, Cake, ChevronDown, FlaskConical, Mail, PersonStanding, Plus, Search, UserPlus, UserRound, VenusAndMars, X } from 'lucide-react'
+import { AlertTriangle, Cake, ChevronDown, FlaskConical, Phone, PersonStanding, Plus, Search, UserPlus, UserRound, VenusAndMars, X } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, Modal, Select, TextArea, TextInput, confirm, toast } from '@/components/ui'
 import { crud } from '@/api/client'
 import { messageClient } from '@/api/calendar'
 import { useDb } from '@/store/db'
-import { useDrawer } from '@/lib/drawer'
 import { fullName } from '@/lib/format'
 import { uid } from '@/lib/ids'
 import { now, nowISO, toISODate } from '@/lib/time'
@@ -20,10 +18,14 @@ interface ClientPanelProps {
   walkIn: boolean
   readOnly?: boolean
   onChange: (clientId: ID | null, walkIn: boolean) => void
+  /** Open the client drawer on top of this one. */
+  onViewProfile: (clientId: ID) => void
+  /** Leave for a full page (e.g. edit client details), keeping the appointment to come back to. */
+  onLeaveTo: (path: string) => void
 }
 
 /** Left column of the appointment drawer: client picker and client details (calendar.md §7.1). */
-export function ClientPanel({ clientId, walkIn, readOnly, onChange }: ClientPanelProps) {
+export function ClientPanel({ clientId, walkIn, readOnly, onChange, onViewProfile, onLeaveTo }: ClientPanelProps) {
   const { t } = useTranslation()
   const client = useDb((s) => (clientId ? s.clients.find((c) => c.id === clientId) : undefined))
   const [searching, setSearching] = useState(false)
@@ -40,7 +42,7 @@ export function ClientPanel({ clientId, walkIn, readOnly, onChange }: ClientPane
     )
   }
 
-  if (client) return <ClientDetails client={client} readOnly={readOnly} onRemove={() => onChange(null, false)} onChangeClient={() => setSearching(true)} />
+  if (client) return <ClientDetails client={client} readOnly={readOnly} onRemove={() => onChange(null, false)} onChangeClient={() => setSearching(true)} onViewProfile={() => onViewProfile(client.id)} onLeaveTo={onLeaveTo} />
 
   if (walkIn) {
     return (
@@ -109,7 +111,7 @@ function ClientSearch({ onPick, onCancel }: { onPick: (id: ID | null, walkIn: bo
         <div className="my-2 border-t border-line" />
         {results.map((c) => (
           <button key={c.id} type="button" onClick={() => onPick(c.id, false)} className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-sunken">
-            <ClientAvatar name={c.firstName} size={44} />
+            <ClientAvatar name={c.firstName} photo={c.photo} size={44} />
             <span className="min-w-0">
               <span className="block truncate text-body-strong text-ink">{fullName(c)}</span>
               <span className="block truncate text-small text-muted">{c.email || c.phone}</span>
@@ -223,10 +225,8 @@ export function AddClientModal({ open, onClose, onCreated, initialQuery = '' }: 
 
 type ActionModal = 'message' | 'alert' | 'allergy' | 'patch' | 'tag' | null
 
-function ClientDetails({ client, readOnly, onRemove, onChangeClient }: { client: Client; readOnly?: boolean; onRemove: () => void; onChangeClient: () => void }) {
+function ClientDetails({ client, readOnly, onRemove, onChangeClient, onViewProfile, onLeaveTo }: { client: Client; readOnly?: boolean; onRemove: () => void; onChangeClient: () => void; onViewProfile: () => void; onLeaveTo: (path: string) => void }) {
   const { t } = useTranslation()
-  const drawer = useDrawer()
-  const navigate = useNavigate()
   const appointments = useDb((s) => s.appointments)
   const tags = useDb((s) => s.clientTags)
   const [modal, setModal] = useState<ActionModal>(null)
@@ -250,7 +250,7 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient }: { client:
   return (
     <div className="pb-6">
       <div className="flex flex-col items-center border-b border-line px-5 pb-6 pt-8 text-center">
-        <ClientAvatar name={client.firstName} size={96} />
+        <ClientAvatar name={client.firstName} photo={client.photo} size={96} />
         <p className="mt-4 text-title-3 font-semibold text-ink">{fullName(client)}</p>
         {client.email && (
           <a href={`mailto:${client.email}`} className="mt-0.5 max-w-full truncate text-body text-muted hover:underline">
@@ -278,23 +278,23 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient }: { client:
               },
               {
                 items: [
-                  { label: t('calendar.client.edit'), onSelect: () => navigate(`/clients/list/${client.id}/edit`) },
+                  { label: t('calendar.client.edit'), onSelect: () => onLeaveTo(`/clients/list/${client.id}/edit`) },
                   { label: t(client.blocked ? 'calendar.client.unblock' : 'calendar.client.block'), onSelect: () => void block() },
                   { label: t('calendar.client.delete'), danger: true, onSelect: () => void remove() },
                 ],
               },
             ]}
           />
-          <Button size="sm" onClick={() => drawer.open('client', { id: client.id })}>
+          <Button size="sm" onClick={onViewProfile}>
             {t('calendar.client.viewProfile')}
           </Button>
         </div>
       </div>
       <div className="flex flex-col gap-3 px-5 pt-5 text-body">
-        <InfoRow icon={<VenusAndMars size={18} />} text={client.pronouns} placeholder={t('calendar.client.addPronouns')} onAdd={() => navigate(`/clients/list/${client.id}/edit?focus=pronoun`)} />
-        <InfoRow icon={<Cake size={18} />} text={client.birthday ? format(parseISO(client.birthday), 'd MMMM yyyy') : undefined} placeholder={t('calendar.client.addBirthday')} onAdd={() => navigate(`/clients/list/${client.id}/edit?focus=birthday`)} />
+        <InfoRow icon={<VenusAndMars size={18} />} text={client.pronouns} placeholder={t('calendar.client.addPronouns')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=pronoun`)} />
+        <InfoRow icon={<Cake size={18} />} text={client.birthday ? format(parseISO(client.birthday), 'd MMMM yyyy') : undefined} placeholder={t('calendar.client.addBirthday')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=birthday`)} />
         <InfoRow icon={<UserRound size={18} />} text={t('calendar.client.created', { date: format(parseISO(client.createdAt), 'MMM d, yyyy') })} />
-        {client.phone && <InfoRow icon={<Mail size={18} />} text={client.phone} />}
+        {client.phone && <InfoRow icon={<Phone size={18} />} text={client.phone} />}
         {(noShows > 0 || clientTags.length > 0 || isNew || client.blocked) && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {client.blocked && <span className="chip bg-danger text-white">{t('calendar.client.blocked')}</span>}

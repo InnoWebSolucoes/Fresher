@@ -1,29 +1,13 @@
 {
   "inventory": {
     "common": {
-      "back": "Back",
       "done": "Done",
       "goBack": "Go back",
       "confirm": "Confirm",
-      "cancel": "Cancel",
-      "save": "Save",
-      "close": "Close",
-      "add": "Add",
-      "remove": "Remove",
-      "edit": "Edit",
-      "actions": "Actions",
-      "options": "Options",
-      "filters": "Filters",
-      "clearAll": "Clear all",
-      "apply": "Apply",
-      "learnMore": "Learn more",
       "products_one": "{{count}} product",
       "products_other": "{{count}} products",
       "inStock": "{{count}} in stock",
       "sku": "SKU: {{sku}}",
-      "notFoundTitle": "Not found",
-      "notFoundBody": "This item no longer exists.",
-      "noResults": "No results found",
       "noResultsBody": "Try using different filters or search terms.",
       "total": "Total",
       "status": {
@@ -41,8 +25,19 @@
       "title": "Stocktakes",
       "subtitle": "Count and record the amount and value of stock your business holds.",
       "search": "Search by stocktake name",
-      "cols": { "name": "Stocktake name", "status": "Status", "started": "Started on", "completed": "Completed on", "location": "Location" },
-      "sort": { "startedDesc": "Started (newest first)", "startedAsc": "Started (oldest first)", "nameAsc": "Stocktake name (A-Z)", "nameDesc": "Stocktake name (Z-A)" },
+      "cols": {
+        "name": "Stocktake name",
+        "status": "Status",
+        "started": "Started on",
+        "completed": "Completed on",
+        "location": "Location"
+      },
+      "sort": {
+        "startedDesc": "Started (newest first)",
+        "startedAsc": "Started (oldest first)",
+        "nameAsc": "Stocktake name (A-Z)",
+        "nameDesc": "Stocktake name (Z-A)"
+      },
       "intro": {
         "title": "Track and record your product stock",
         "body": "Manage and track your product inventory down to the item, view trends and insights with powerful reports.",
@@ -56,10 +51,8 @@
       "resume": "Resume counting"
     },
     "stocktakeNew": {
-      "frameTitle": "New stocktake",
       "title": "Add the stocktake info",
       "subtitle": "Start a full inventory count to keep accurate stock levels.",
-      "location": "Location",
       "name": "Stocktake name",
       "namePlaceholder": "e.g. October count",
       "description": "Stocktake description",
@@ -69,7 +62,9 @@
       "trackedCount_one": "{{count}} product with stock tracking will be counted.",
       "trackedCount_other": "{{count}} products with stock tracking will be counted.",
       "noProducts": "You don't have any products with stock tracking yet.",
-      "addProducts": "Add products"
+      "addProducts": "Add products",
+      "eyebrow": "Create a new stocktake",
+      "info": "Stocktake info"
     },
     "count": {
       "title": "Count products",
@@ -82,8 +77,18 @@
       "paused": "Stocktake paused",
       "review": "Review stocktake",
       "search": "Search by name or barcode",
-      "sort": { "nameAsc": "Product name (A-Z)", "nameDesc": "Product name (Z-A)", "expectedDesc": "Expected (highest first)", "expectedAsc": "Expected (lowest first)" },
-      "cols": { "product": "Product", "details": "Details", "expected": "Expected", "counted": "Counted" },
+      "sort": {
+        "nameAsc": "Product name (A-Z)",
+        "nameDesc": "Product name (Z-A)",
+        "expectedDesc": "Expected (highest first)",
+        "expectedAsc": "Expected (lowest first)"
+      },
+      "cols": {
+        "product": "Product",
+        "details": "Details",
+        "expected": "Expected",
+        "counted": "Counted"
+      },
       "countLabel": "Counted quantity for {{name}}",
       "started": "Started {{ago}}",
       "summary": "Summary",
@@ -123,8 +128,20 @@
       "cancelBody": "Counts will be discarded and stock levels won't change.",
       "cancelled": "Stocktake cancelled",
       "complete": "Complete stocktake",
-      "pills": { "all": "All", "uncounted": "Uncounted", "unmatched": "Unmatched", "matched": "Matched", "excluded": "Excluded" },
-      "cols": { "product": "Product", "expected": "Expected", "counted": "Counted", "difference": "Difference", "cost": "Cost" },
+      "pills": {
+        "all": "All",
+        "uncounted": "Uncounted",
+        "unmatched": "Unmatched",
+        "matched": "Matched",
+        "excluded": "Excluded"
+      },
+      "cols": {
+        "product": "Product",
+        "expected": "Expected",
+        "counted": "Counted",
+        "difference": "Difference",
+        "cost": "Cost"
+      },
       "notCounted": "Not counted",
       "uncountedHint": "Uncounted and excluded products keep their current stock.",
       "modalTitle": "Complete this stocktake?",
@@ -162,14 +179,31 @@
       "csv": "CSV",
       "excel": "Excel",
       "search": "Search product or order",
-      "cols": { "number": "Order #", "created": "Created", "expected": "Expected", "from": "Deliver from", "total": "Total cost", "status": "Status", "supplier": "Supplier", "location": "Deliver to" },
+      "cols": {
+        "number": "Order #",
+        "created": "Created",
+        "expected": "Expected",
+        "from": "Deliver from",
+        "total": "Total cost",
+        "status": "Status",
+        "supplier": "Supplier",
+        "location": "Deliver to"
+      },
       "emptyTitle": "No stock orders yet",
       "emptyBody": "Click here to add a stock orders now.",
       "view": "View order",
       "continue": "Continue editing",
       "deleteDraft": "Delete draft",
       "draftDeleted": "Draft deleted",
-      "exported": "Export downloaded"
+      "exported": "Download started",
+      "sort": {
+        "createdDesc": "Created (newest first)",
+        "createdAsc": "Created (oldest first)",
+        "numberDesc": "Order # (highest first)",
+        "numberAsc": "Order # (lowest first)"
+      },
+      "deleteDraftTitle": "Delete draft {{number}}?",
+      "deleteDraftBody": "This draft stock order will be deleted. This action cannot be undone."
     },
     "orderNew": {
       "frameTitle": "Create stock order",
@@ -186,7 +220,12 @@
       "noProductsBody": "You haven't added any products to your stock order.",
       "addProducts": "Add products",
       "addMore": "Add more products",
-      "cols": { "product": "Product name", "qty": "Order Qty.", "unitCost": "Unit cost EUR", "total": "Total cost" },
+      "cols": {
+        "product": "Product name",
+        "qty": "Order Qty.",
+        "unitCost": "Unit cost EUR",
+        "total": "Total cost"
+      },
       "qtyLabel": "Order quantity for {{name}}",
       "costLabel": "Unit cost for {{name}}",
       "removeProduct": "Remove {{name}}",
@@ -204,7 +243,12 @@
         "title": "Add products",
         "search": "Search by product name or barcode",
         "supplier": "Supplier: {{name}}",
-        "cols": { "name": "Product name", "category": "Category", "quantity": "Quantity", "cost": "Product cost" },
+        "cols": {
+          "name": "Product name",
+          "category": "Category",
+          "quantity": "Quantity",
+          "cost": "Product cost"
+        },
         "add_one": "Add {{count}} product",
         "add_other": "Add {{count}} products",
         "addNone": "Add products",
@@ -238,14 +282,22 @@
         "pdf": "Download PDF",
         "pdfHint": "Save a copy of this order as a PDF",
         "download": "Download"
-      }
+      },
+      "updated": "Stock order updated",
+      "editTitle": "Edit order {{number}}"
     },
     "receive": {
       "title": "Receive order {{number}}",
       "subtitle": "Review and receive products in your stock order.",
       "autofill": "Auto-fill quantities",
       "submit": "Receive and complete",
-      "cols": { "product": "Product", "ordered": "Ordered", "received": "Received", "unitCost": "Unit cost", "total": "Total" },
+      "cols": {
+        "product": "Product",
+        "ordered": "Ordered",
+        "received": "Received",
+        "unitCost": "Unit cost",
+        "total": "Total"
+      },
       "receivedLabel": "Received quantity for {{name}}",
       "costLabel": "Unit cost for {{name}}",
       "confirmTitle": "Confirm receiving order {{number}}",
@@ -271,7 +323,10 @@
       "cancelBody": "You won't be able to receive stock for a cancelled order.",
       "cancelled": "Stock order cancelled",
       "emailed": "Email sent to {{email}}",
-      "tabs": { "details": "Stock order details", "activity": "Activity" },
+      "tabs": {
+        "details": "Stock order details",
+        "activity": "Activity"
+      },
       "summary": "Summary",
       "createdAt": "Created at",
       "totalQty": "Total quantity",
@@ -287,10 +342,11 @@
       "website": "Website",
       "description": "Description",
       "products": "Products",
-      "qtyLine": "{{qty}} × {{cost}}",
       "receivedLine": "{{count}} received",
       "noActivity": "No activity yet.",
-      "fees": "Fees"
+      "fees": "Fees",
+      "priceLine": "Price: {{price}}",
+      "orderedLine": "Ordered quantity: {{count}}"
     },
     "pdf": {
       "title": "Stock order {{number}}",
@@ -311,8 +367,19 @@
       "title": "Suppliers",
       "subtitle": "Add and manage details of your suppliers.",
       "search": "Search by supplier name, email or phone",
-      "cols": { "name": "Supplier name", "phone": "Phone", "email": "Email", "products": "Products", "updated": "Updated at" },
-      "sort": { "nameAsc": "Supplier name (A-Z)", "nameDesc": "Supplier name (Z-A)", "updatedDesc": "Updated (newest first)", "updatedAsc": "Updated (oldest first)" },
+      "cols": {
+        "name": "Supplier name",
+        "phone": "Phone",
+        "email": "Email",
+        "products": "Products",
+        "updated": "Updated at"
+      },
+      "sort": {
+        "nameAsc": "Supplier name (A-Z)",
+        "nameDesc": "Supplier name (Z-A)",
+        "updatedDesc": "Updated (newest first)",
+        "updatedAsc": "Updated (oldest first)"
+      },
       "emptyTitle": "No suppliers yet",
       "emptyBody": "Add the suppliers you buy stock from to create stock orders.",
       "edit": "Edit supplier",
@@ -323,7 +390,11 @@
       "deleted": "Supplier deleted"
     },
     "supplierDrawer": {
-      "tabs": { "details": "Supplier details", "orders": "Stock orders", "products": "Products" },
+      "tabs": {
+        "details": "Supplier details",
+        "orders": "Stock orders",
+        "products": "Products"
+      },
       "contact": "Contact info",
       "address": "Physical address",
       "name": "Name",
@@ -344,7 +415,11 @@
     "supplierEditor": {
       "addTitle": "Add supplier",
       "editTitle": "Edit supplier",
-      "nav": { "basic": "Basic info", "contact": "Contact info", "address": "Address" },
+      "nav": {
+        "basic": "Basic info",
+        "contact": "Contact info",
+        "address": "Address"
+      },
       "basicSubtitle": "Name and describe this supplier.",
       "contactSubtitle": "Who you speak to when placing orders.",
       "addressSubtitle": "Where this supplier is based.",
@@ -371,7 +446,7 @@
       "country": "Country",
       "added": "Supplier added",
       "edited": "Supplier edited",
-      "fixErrors": "Check the highlighted fields"
+      "fixErrors": "Please correct all form errors."
     }
   }
 }

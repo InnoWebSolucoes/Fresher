@@ -7,10 +7,10 @@ import { Button, Chip, Field, LearnMore, Modal, PageHeader, PageSkeleton, Switch
 import { useCurrentUser } from '@/store/session'
 import { useUiStore, type ThemePreference } from '@/store/ui'
 import { changePassword } from '@/api/auth'
-import { defaultSessions, sendPhoneVerification, setProfileHidden, setSocialLogin, signOutAllDevices, signOutSession, updatePersonalInfo, usePanels, verifyPhone } from '@/api/panels'
+import { createRequest, defaultSessions, sendPhoneVerification, setProfileHidden, setSocialLogin, signOutAllDevices, signOutSession, updatePersonalInfo, usePanels, verifyPhone } from '@/api/panels'
 import { fmtDate } from '@/lib/format'
 import type { User } from '@/types'
-import { DisabledInDemoModal, errorText, SettingsCard, useOnlineProfile } from './shared'
+import { errorText, PendingRequestNote, SettingsCard, useOnlineProfile, usePendingRequest } from './shared'
 
 // ─── Personal settings hub ────────────────────────────────────────────────
 
@@ -303,7 +303,8 @@ export function LoginSecurityPage() {
   const sessions = useMemo(() => storedSessions ?? defaultSessions(), [storedSessions])
   const logins = storedLogins ?? { google: true, apple: false }
   const [passwordOpen, setPasswordOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const deletion = usePendingRequest(user?.id, 'delete_account')
   const [busyProvider, setBusyProvider] = useState<'google' | 'apple' | null>(null)
   const [busySession, setBusySession] = useState<string | null>(null)
   if (loading || !user) return <PageSkeleton rows={5} />
@@ -333,6 +334,20 @@ export function LoginSecurityPage() {
       toast(t('account.security.signedOut'))
     } finally {
       setBusySession(null)
+    }
+  }
+
+  const requestDeletion = async () => {
+    const ok = await confirm({ title: t('account.security.deleteConfirmTitle'), body: t('account.security.deleteConfirmBody', { email: user.email }), confirmLabel: t('account.security.deleteAction'), tone: 'danger' })
+    if (!ok) return
+    setDeleting(true)
+    try {
+      await createRequest(user.id, 'delete_account')
+      toast(t('account.requests.emailed', { email: user.email }))
+    } catch (e) {
+      toast(errorText(e), 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -420,14 +435,17 @@ export function LoginSecurityPage() {
         </SettingsCard>
 
         <SettingsCard title={t('account.security.deleteTitle')} body={t('account.security.deleteBody')}>
-          <Button variant="danger" onClick={() => setDeleteOpen(true)}>
-            {t('account.security.deleteAction')}
-          </Button>
+          {deletion ? (
+            <PendingRequestNote request={deletion} text={t('account.security.deletePending', { email: user.email })} />
+          ) : (
+            <Button variant="danger" loading={deleting} onClick={requestDeletion}>
+              {t('account.security.deleteAction')}
+            </Button>
+          )}
         </SettingsCard>
       </div>
 
       {passwordOpen && <PasswordModal user={user} onClose={() => setPasswordOpen(false)} />}
-      <DisabledInDemoModal open={deleteOpen} action={t('account.security.deleteAction')} onClose={() => setDeleteOpen(false)} />
     </div>
   )
 }

@@ -29,7 +29,7 @@
         "replace": "Choose another file",
         "noFile": "Don't have a file? Fill our template with your client information and upload.",
         "download": "Download template",
-        "downloaded": "Template downloaded",
+        "downloaded": "Download started",
         "ready": "File is ready for column matching.",
         "removeFile": "Remove file",
         "fileMeta": "CSV · {{size}}",

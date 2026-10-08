@@ -142,9 +142,9 @@ export function RegisterPage() {
             <p className="text-body-lg text-ink">{t('sales.register.balance', { name: register.name })}</p>
             {locations.length > 1 && <p className="text-small text-muted">{locationName(register.locationId)}</p>}
           </div>
-          <Chip tone={session ? 'success' : 'warning'} className="h-8 px-4 text-body-strong">
+          <span className={clsx('chip h-8 whitespace-nowrap px-4 text-body-strong', session ? 'bg-success text-white' : 'bg-warning text-ink')}>
             {session ? t('sales.register.open.status') : t('sales.register.closed')}
-          </Chip>
+          </span>
         </div>
         <p className={clsx('mt-2 font-display text-[40px] font-bold leading-[48px] tabular', session ? 'text-ink' : 'text-subtle')}>{money(balance)}</p>
         {session && <p className="mt-1 text-body-lg text-muted">{openedText(session)}</p>}
@@ -252,32 +252,29 @@ export function RegisterPage() {
         <>
           <div className="flex flex-col gap-3">
             {visible.map(({ session, register, balance }) => (
-              <div
-                key={session.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => drawer.open('register-period', { id: session.id })}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') drawer.open('register-period', { id: session.id })
-                }}
-                className="card flex cursor-pointer items-center gap-4 p-5 hover:bg-sunken/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-              >
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-sunken text-ink">
-                  <Wallet size={22} aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-body-strong text-ink">{fmtDate(session.openedAt)}</p>
-                  <p className="text-body text-muted">{sessionTimeRange(session)}</p>
-                  {locations.length > 1 && register && (
-                    <p className="text-small text-subtle">
-                      {register.name} • {locationName(register.locationId)}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-small text-muted">{t('sales.register.balanceLabel')}</p>
-                  <p className="text-body-lg font-semibold text-ink tabular">{money(balance)}</p>
-                </div>
+              <div key={session.id} className="card flex items-center gap-4 p-5 hover:bg-sunken/40">
+                <button
+                  type="button"
+                  onClick={() => drawer.open('register-period', { id: session.id })}
+                  className="flex min-w-0 flex-1 items-center gap-4 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-sunken text-ink">
+                    <Wallet size={22} aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-body-strong text-ink">{fmtDate(session.openedAt)}</span>
+                    <span className="block text-body text-muted">{sessionTimeRange(session)}</span>
+                    {locations.length > 1 && register && (
+                      <span className="block text-small text-subtle">
+                        {register.name} • {locationName(register.locationId)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-right">
+                    <span className="block text-small text-muted">{t('sales.register.balanceLabel')}</span>
+                    <span className="block text-body-lg font-semibold text-ink tabular">{money(balance)}</span>
+                  </span>
+                </button>
                 <Chip tone="outline">{t('sales.register.closed')}</Chip>
                 <Menu label={t('sales.common.actions')} groups={[{ items: [{ label: t('sales.register.view'), onSelect: () => drawer.open('register-period', { id: session.id }) }] }]} />
               </div>

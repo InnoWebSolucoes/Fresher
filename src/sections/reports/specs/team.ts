@@ -354,19 +354,37 @@ const feeDeductionSummary: Spec = {
 
 // ─── Commissions ───────────────────────────────────────────────────────────
 
+/**
+ * Commission rate per line, matching Team › Pay runs (src/sections/team/lib/pay.ts):
+ * services, add-ons, memberships, packages and no-show / late-cancellation fees
+ * use the member's service rate; products and gift cards the product rate.
+ * Packages only earn commission when the package has commission switched on.
+ */
 const commissionRate = (ctx: Ctx, f: LineFact) => {
   const m = f.item.teamMemberId ? ctx.byId.member.get(f.item.teamMemberId) : undefined
   if (!m?.commission.enabled) return 0
-  if (f.item.type === 'service' || f.item.type === 'service_addon') return m.commission.serviceRate
-  if (f.item.type === 'product') return m.commission.productRate
-  return 0
+  switch (f.item.type) {
+    case 'service':
+    case 'service_addon':
+    case 'membership':
+    case 'no_show_fee':
+    case 'late_cancellation_fee':
+      return m.commission.serviceRate
+    case 'package':
+      return ctx.d.packages.find((p) => p.id === f.item.refId)?.commission === false ? 0 : m.commission.serviceRate
+    case 'product':
+    case 'gift_card':
+      return m.commission.productRate
+    default:
+      return 0
+  }
 }
 
 function commissionFacts(ctx: Ctx, p: Params) {
   const deductCost = ctx.d.settings.commissions?.deductServiceCost || ctx.d.settings.commissions?.deductProductCost
   return applyFilters(
     lineFacts(ctx)
-      .filter((f) => !f.giftCard && inR(f.date, p.range))
+      .filter((f) => inR(f.date, p.range))
       .map((f) => {
         const rate = commissionRate(ctx, f)
         const base = round2(f.net - (deductCost ? f.cost : 0))
@@ -546,7 +564,7 @@ const scheduledShifts: Spec = {
 
 const overlap = (a: [number, number], b: [number, number]) => Math.max(0, Math.min(a[1], b[1]) - Math.max(a[0], b[0]))
 
-function workloadFacts(ctx: Ctx, p: Params) {
+export function workloadFacts(ctx: Ctx, p: Params) {
   const out = []
   const appts = new Map<string, number>()
   for (const a of ctx.d.appointments ?? []) {

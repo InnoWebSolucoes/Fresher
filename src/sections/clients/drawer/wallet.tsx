@@ -49,7 +49,7 @@ export function WalletTab() {
       />
       <p className="font-display text-display text-ink tabular">{money(client.walletBalance)}</p>
       <p className="text-body text-muted">
-        {t('clients.wallet.available')} <LearnMore topic="Client wallet" />
+        {t('clients.wallet.available')} <LearnMore topic="Client wallet">{t('clients.common.learnMore')}</LearnMore>
       </p>
       <SectionTitle title={t('clients.wallet.paymentMethods')} />
       {cards.length === 0 ? (

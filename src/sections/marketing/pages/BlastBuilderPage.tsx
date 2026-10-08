@@ -102,7 +102,17 @@ export function BlastBuilderPage() {
   const [busy, setBusy] = useState<'draft' | 'send' | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [clientQuery, setClientQuery] = useState('')
-  const set = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }))
+  const set = (patch: Partial<FormState>) => {
+    setForm((f) => ({ ...f, ...patch }))
+    // Editing a field clears its error.
+    const touched = Object.keys(patch).map((k) => (k === 'channel' ? 'audience' : k === 'scheduleMode' || k === 'date' || k === 'time' ? 'schedule' : k))
+    setErrors((e) => {
+      if (!touched.some((k) => k in e)) return e
+      const next = { ...e }
+      touched.forEach((k) => delete next[k as keyof Errors])
+      return next
+    })
+  }
 
   const audience = useMemo(() => campaignAudience(data, form.audience, form.channel, stats), [data, form.audience, form.channel, stats])
   const recipients = audience.eligible.length

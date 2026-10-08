@@ -1,6 +1,8 @@
+import { X } from 'lucide-react'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DrawerProps } from '@/app/sectionRegistry'
-import { CheckoutProvider, useCheckout, useCheckoutState } from './context'
+import { CheckoutProvider, cartKey, useCheckout, useCheckoutState } from './context'
 import { CartStep } from './CartStep'
 import { TipStep } from './TipStep'
 import { PaymentStep } from './PaymentStep'
@@ -11,8 +13,7 @@ import { CustomTipModal, SplitTipModal } from './TipModals'
 import { CashModal, OtherAmountModal, RedeemFindModal, RedeemModal, SplitSelectModal } from './PaymentModals'
 import { ManualCardModal, QrModal, SelfCheckoutModal, TerminalModal } from './CardFlows'
 import { CartDiscountModal, OpenRegisterModal, ReceiptNoteModal, ServiceChargeModal } from './OptionModals'
-
-const KEY_PARAMS = ['d_appointment', 'd_sale', 'd_client', 'd_add', 'd_mode']
+import { OffersModal } from './OffersModal'
 
 /**
  * Checkout drawer (1249px): Cart › Tip › Payment on the left, summary on the
@@ -20,16 +21,20 @@ const KEY_PARAMS = ['d_appointment', 'd_sale', 'd_client', 'd_add', 'd_mode']
  * opened with different d_* params.
  */
 export function CheckoutDrawer(props: DrawerProps) {
-  const signature = KEY_PARAMS.map((k) => props.params.get(k) ?? '').join('|')
-  return <CheckoutRoot key={signature} {...props} />
+  return <CheckoutRoot key={cartKey(props.params)} {...props} />
 }
 
 function CheckoutRoot({ params, close }: DrawerProps) {
+  const { t } = useTranslation()
   const state = useCheckoutState(params, close)
   return (
     <CheckoutProvider value={state}>
       <div className="flex h-full min-h-0" data-testid="checkout">
-        <div className="min-w-0 flex-1 overflow-y-auto px-10 pb-16 pt-9">
+        <div className="relative min-w-0 flex-1 overflow-y-auto px-10 pb-16 pt-9">
+          {/* The floating close button sits outside the drawer; on narrower screens it would be cut off, so the drawer shows its own. */}
+          <button type="button" onClick={close} aria-label={t('checkout.common.closeCheckout')} className="icon-btn absolute left-1 top-1 z-10 h-9 w-9 min-[1320px]:hidden">
+            <X size={20} aria-hidden />
+          </button>
           <MainArea />
         </div>
         <Summary />
@@ -94,6 +99,8 @@ function ModalHost() {
       return <ServiceChargeModal onClose={close} />
     case 'openRegister':
       return <OpenRegisterModal onClose={close} />
+    case 'offers':
+      return <OffersModal onClose={close} />
     default:
       return null
   }

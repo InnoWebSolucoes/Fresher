@@ -1,0 +1,96 @@
+import clsx from 'clsx'
+import { Folder, Link2, Plus } from 'lucide-react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { REPORTS } from '@/app/reportCatalog'
+import { useUiStore } from '@/store/ui'
+import { useCustomReports, useFolders, useInsights, useInsightsGate } from '../data'
+import { GROUPS, type GroupKey } from './catalog'
+import { FolderModal } from './modals'
+
+/** Report counts per left-panel group (reports.md §1.1). */
+export function useGroupCounts(): Record<GroupKey, number> {
+  const favourites = useUiStore((s) => s.favouriteReports)
+  const custom = useCustomReports()
+  const insights = useInsights()
+  return useMemo(() => {
+    const customCount = insights ? custom.length : 0
+    const known = new Set([...REPORTS.map((r) => r.slug), ...(insights ? custom.map((c) => `custom_${c.id}`) : [])])
+    return {
+      all: REPORTS.length + customCount,
+      favourites: favourites.filter((s) => known.has(s)).length,
+      dashboards: REPORTS.filter((r) => r.group === 'dashboards').length,
+      standard: REPORTS.filter((r) => !r.premium).length,
+      premium: REPORTS.filter((r) => r.premium).length,
+      custom: customCount,
+    }
+  }, [favourites, custom, insights])
+}
+
+/**
+ * Reports landing shell: the white left panel with groups, folders and the
+ * Data connector link (reports.md §1.1), and the page content on the right.
+ */
+export function ReportsLayout({ active, children }: { active: string; children: ReactNode }) {
+  const { t } = useTranslation()
+  const counts = useGroupCounts()
+  const folders = useFolders()
+  const insights = useInsights()
+  const gate = useInsightsGate()
+  const [folderOpen, setFolderOpen] = useState(false)
+  const navigate = useNavigate()
+  const row = (selected: boolean) => clsx('flex h-11 items-center gap-3 rounded-md px-3 text-body transition-colors', selected ? 'bg-primary-subtle font-semibold text-ink' : 'text-ink hover:bg-sunken')
+
+  return (
+    <div className="mx-auto flex w-full max-w-[1440px] gap-8 px-8 py-8">
+      <aside className="w-[280px] shrink-0">
+        <nav className="card sticky top-6 p-4" aria-label={t('reports.landing.navLabel')}>
+          <h2 className="px-3 pb-2 pt-1 font-display text-title-3 text-ink">{t('reports.landing.reports')}</h2>
+          <ul className="flex flex-col gap-0.5">
+            {GROUPS.map(({ id, key, icon: Icon }) => (
+              <li key={id}>
+                <NavLink to={`/reports/report-group/${id}?category=all`} className={row(active === id)} aria-current={active === id ? 'page' : undefined}>
+                  <Icon size={18} aria-hidden className="shrink-0" />
+                  <span className="flex-1 truncate">{t(`reports.landing.groups.${key}`)}</span>
+                  <span className="chip h-6 min-w-[28px] justify-center bg-sunken px-2 text-caption text-muted">{counts[key]}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+          <div className="mx-3 my-3 border-t border-line" />
+          <h3 className="px-3 pb-1 pt-1 text-body-strong text-ink">{t('reports.landing.folders')}</h3>
+          {folders.length > 0 && (
+            <ul className="flex flex-col gap-0.5">
+              {folders.map((f) => {
+                const id = `f_${f.id}`
+                return (
+                  <li key={f.id}>
+                    <NavLink to={`/reports/report-group/${id}?category=all`} className={row(active === id)} aria-current={active === id ? 'page' : undefined}>
+                      <Folder size={18} aria-hidden className="shrink-0" />
+                      <span className="flex-1 truncate">{f.name}</span>
+                      <span className="chip h-6 min-w-[28px] justify-center bg-sunken px-2 text-caption text-muted">{insights ? f.items.length : 0}</span>
+                    </NavLink>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          <button type="button" className="flex h-10 items-center gap-2 rounded-md px-3 text-body-strong text-primary hover:bg-sunken" onClick={() => (insights ? setFolderOpen(true) : gate())}>
+            <Plus size={18} aria-hidden />
+            {t('reports.landing.addFolder')}
+          </button>
+          <div className="mx-3 my-3 border-t border-line" />
+          <NavLink to="/reports/data-connector" className={row(active === 'dc')} aria-current={active === 'dc' ? 'page' : undefined}>
+            <span className="flex h-6 w-6 items-center justify-center rounded-xs bg-success text-white">
+              <Link2 size={14} aria-hidden />
+            </span>
+            {t('reports.landing.dataConnector')}
+          </NavLink>
+        </nav>
+      </aside>
+      <div className="min-w-0 flex-1">{children}</div>
+      <FolderModal open={folderOpen} onClose={() => setFolderOpen(false)} onSaved={(f) => navigate(`/reports/report-group/f_${f.id}?category=all`)} />
+    </div>
+  )
+}

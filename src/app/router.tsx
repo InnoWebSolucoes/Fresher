@@ -11,20 +11,12 @@ import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { StubPage } from '@/pages/StubPage'
-import { SettingsLandingPage } from '@/pages/settings/SettingsLandingPage'
-import { ReportGroupPage } from '@/pages/reports/ReportGroupPage'
 import { PAGES, REDIRECTS, type PageDef, type PageLayout } from './routeRegistry'
 import { SECTION_PAGES, SECTION_ROUTES } from './sectionRegistry'
 
-/** Pages that already render more than the generic stub in Phase 0. */
-const CUSTOM: Record<string, () => JSX.Element> = {
-  setup: () => <SettingsLandingPage />,
-  reportGroup: () => <ReportGroupPage />,
-}
-
 function toRoute(page: PageDef): RouteObject {
   const SectionPage = SECTION_PAGES[page.id]
-  const element = SectionPage ? <SectionPage /> : (CUSTOM[page.id]?.() ?? <StubPage page={page} />)
+  const element = SectionPage ? <SectionPage /> : <StubPage page={page} />
   return {
     path: page.path,
     element: <RequireSection section={page.section}>{element}</RequireSection>,

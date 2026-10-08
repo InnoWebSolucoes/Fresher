@@ -68,6 +68,17 @@ Tailwind token classes: `bg-canvas|surface|raised|sunken`, `text-ink|muted|subtl
 - Desktop-first (1280px+), usable on tablet.
 - Use the exact reference wording for titles, columns, buttons, menu items, options and toasts.
 
+
+## Updates after the first build (read these)
+
+- **Section data with no shared collection** goes in `db.ext[<namespace>]` via `@/api/ext` (`useExt(ns, key, fallback)`, `readExt`, `writeExt` (instant), `setExt` (with latency), `updateExt`). Do **not** create section-local persisted zustand stores: `db.ext` persists, syncs between tabs and is cleared by Reset demo. Typed fields now exist for `settings.extras`, `AddOnState.config/disabledAt/disabledReason`, `Client.photo` and `ServiceCategory.archived` — use them instead of casts.
+- **Drawer params:** only `drawer`, `tab`, `id` and `d_*` belong to drawers. The help drawer uses `d_view` (not `view`), so pages may use `?view=` freely (the calendar does).
+- **Drawers** no longer dim the page (as in the reference); clicking outside closes. `bare: true` hides the floating × so the drawer can draw its own. Escape closes the drawer unless a modal is open on top. Full-screen pages also host drawers now.
+- **Modal** keeps `onClose` in a ref, so inline arrow functions no longer steal focus; workarounds like a custom SettingsModal are unnecessary.
+- **Checkout API:** `CartItem.redeem = { clientPackageId, benefitId }` uses a package session; `CartItem.rewardId` marks a client reward redeemed; `availablePackageBenefits(clientId, serviceId)` and `availableRewards(clientId)` list what a client can apply. Paying an existing sale can change its client.
+- **Exports:** `exportCsv(name, tables, { trailingBlank: false })` for report CSVs (no trailing `""` line, as captured); `exportXlsx(name, tables, { sheetName })` names the sheet.
+- **i18n:** a section may split strings into `en.<part>.json`; all are deep-merged under the section key.
+
 ## Checks before you finish
 
 ```

@@ -10,7 +10,7 @@ import { now } from '@/lib/time'
 import { ApiError } from '@/api/client'
 import { blankClient, createClient, deleteClient, updateClient } from '@/api/clients'
 import { Button, confirm, EmptyState, Field, FullscreenFrame, LearnMore, Menu, SectionNav, Select, Skeleton, Switch, TextInput, toast, usePageLoading } from '@/components/ui'
-import { useClientAvatars, resizeImage } from '../lib/avatars'
+import { resizeImage } from '../lib/avatars'
 import { COUNTRIES, GENDERS, LANGUAGES, MONTHS, PRONOUNS } from '../lib/constants'
 import { clientName, joinPhone, splitPhone } from '../lib/helpers'
 import { ClientAvatar, PhoneField } from '../components/common'
@@ -107,7 +107,7 @@ export function ClientFormPage({ mode }: { mode: 'add' | 'edit' }) {
   const navigate = useNavigate()
   if (loading) {
     return (
-      <FullscreenFrame title={mode === 'add' ? t('clients.form.addTitle') : t('clients.form.editTitle')} onClose={() => navigate('/clients/list')}>
+      <FullscreenFrame closeLabel={t('clients.common.close')} title={mode === 'add' ? t('clients.form.addTitle') : t('clients.form.editTitle')} onClose={() => navigate('/clients/list')}>
         <div className="flex flex-col gap-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-24 w-24 rounded-full" />
@@ -120,7 +120,7 @@ export function ClientFormPage({ mode }: { mode: 'add' | 'edit' }) {
   }
   if (mode === 'edit' && !client) {
     return (
-      <FullscreenFrame title={t('clients.form.editTitle')} onClose={() => navigate('/clients/list')}>
+      <FullscreenFrame closeLabel={t('clients.common.close')} title={t('clients.form.editTitle')} onClose={() => navigate('/clients/list')}>
         <EmptyState icon={<UserRound size={26} aria-hidden />} title={t('clients.drawer.notFound')} body={t('clients.drawer.notFoundBody')} action={<Button onClick={() => navigate('/clients/list')}>{t('clients.form.backToList')}</Button>} />
       </FullscreenFrame>
     )
@@ -134,7 +134,7 @@ function ClientForm({ client }: { client?: Client }) {
   const [params, setParams] = useSearchParams()
   const sources = useDb((s) => s.clientSources)
   const clients = useDb((s) => s.clients)
-  const savedPhoto = useClientAvatars((s) => (client ? s.photos[client.id] : undefined))
+  const savedPhoto = client?.photo
   const [draft, setDraft] = useState<Draft>(() => toDraft(client ?? blankClient()))
   const [photo, setPhoto] = useState<string | null | undefined>(undefined)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -256,6 +256,7 @@ function ClientForm({ client }: { client?: Client }) {
         .filter((c) => c.fullName || c.phone || c.email || c.relationship),
       notifications: draft.notifications,
       marketing: draft.marketing,
+      ...(photo !== undefined ? { photo: photo ?? undefined } : {}),
     }
     setSaving(true)
     try {
@@ -264,7 +265,6 @@ function ClientForm({ client }: { client?: Client }) {
         await updateClient(client.id, patch)
         saved = client
       } else saved = await createClient(patch)
-      if (photo !== undefined) useClientAvatars.getState().set(saved.id, photo)
       toast(client ? t('clients.form.updated') : t('clients.form.created'))
       navigate(returnPath(returnTo, saved.id, Boolean(client)))
     } catch (e) {
@@ -293,8 +293,7 @@ function ClientForm({ client }: { client?: Client }) {
   const sourceOptions = [...sources].filter((s) => s.active || s.id === draft.sourceId).sort((a, b) => a.order - b.order)
 
   return (
-    <FullscreenFrame
-      title={client ? t('clients.form.editTitle') : t('clients.form.addTitle')}
+    <FullscreenFrame closeLabel={t('clients.common.close')}
       onClose={close}
       maxWidth="max-w-4xl"
       nav={
@@ -328,6 +327,7 @@ function ClientForm({ client }: { client?: Client }) {
       }
     >
       <div ref={formRef}>
+        <h1 className="mb-8 font-display text-display text-ink">{client ? t('clients.form.editTitle') : t('clients.form.addTitle')}</h1>
         <div className="mb-6 md:hidden">
           <Select value={section} onChange={(e) => setSection(e.target.value as Section)} options={SECTIONS.map((s) => ({ value: s, label: t(`clients.form.sectionLabels.${s}`) }))} aria-label={t('clients.form.sectionPicker')} />
         </div>
@@ -414,7 +414,7 @@ function ClientForm({ client }: { client?: Client }) {
                   label={t('clients.form.source')}
                   hint={
                     <>
-                      {t('clients.form.sourceHint')} <LearnMore topic="Client sources" />
+                      {t('clients.form.sourceHint')} <LearnMore topic="Client sources">{t('clients.common.learnMore')}</LearnMore>
                     </>
                   }
                 >
@@ -424,7 +424,7 @@ function ClientForm({ client }: { client?: Client }) {
                   label={t('clients.form.referredBy')}
                   hint={
                     <>
-                      {t('clients.form.referredHint')} <LearnMore topic="Referred by" />
+                      {t('clients.form.referredHint')} <LearnMore topic="Referred by">{t('clients.common.learnMore')}</LearnMore>
                     </>
                   }
                 >
@@ -448,7 +448,7 @@ function ClientForm({ client }: { client?: Client }) {
                   label={t('clients.form.language')}
                   hint={
                     <>
-                      {t('clients.form.languageHint')} <LearnMore topic="Preferred language" />
+                      {t('clients.form.languageHint')} <LearnMore topic="Preferred language">{t('clients.common.learnMore')}</LearnMore>
                     </>
                   }
                 >

@@ -141,7 +141,8 @@
     "deleteConfirmBody": "This can't be undone.",
     "noResults": "No results found",
     "copied": "Link copied",
-    "system": "System"
+    "system": "System",
+    "orderUpdated": "Order updated"
   },
   "bill": {
     "setUpNow": "Set up now",
@@ -207,7 +208,15 @@
       "removed": "Bank account removed",
       "holder": "Account holder name",
       "bankName": "Bank name",
-      "ibanHint": "Payouts arrive the next working day."
+      "ibanHint": "Payouts arrive the next working day.",
+      "addTitle": "Add bank account",
+      "addSubtitle": "Payouts from client payments are sent to this account.",
+      "iban": "IBAN",
+      "ibanInvalid": "Enter a valid IBAN",
+      "removeBody": "{{bank}} account ending {{last4}} will no longer receive payouts.",
+      "primaryHint": "Set another account as primary first",
+      "emptyTitle": "No bank accounts yet",
+      "emptyBody": "Add a bank account to receive payouts from client payments."
     },
     "methods": {
       "title": "Payment methods",
@@ -223,14 +232,27 @@
     "comm": {
       "title": "Communication balance",
       "description": "Manage your balance for client communication, like messages and calls.",
-      "credits": "Message credits",
       "topUp": "Top up",
-      "hint": "1 credit per text message, 2 credits per WhatsApp message.",
+      "hint": "Text and WhatsApp messages to clients are paid from this balance.",
       "low": "Your balance is low. Top up to keep sending reminders and campaigns.",
-      "added": "{{count}} credits added",
+      "added": "{{amount}} added to your communication balance",
       "buy": "Pay {{total}}",
-      "pack": "{{count}} credits",
-      "packPrice": "{{price}} excl. IVA"
+      "balance": "Balance",
+      "topUpTitle": "Top up balance",
+      "topUpSubtitle": "Choose an amount to add to your communication balance. It is charged to your card on file.",
+      "exclIva": "excl. IVA",
+      "noCard": "Add a payment method to top up.",
+      "auto": {
+        "title": "Auto top-up",
+        "description": "Top up automatically when your balance runs low, so reminders and automated messages keep sending.",
+        "on": "Top up <b>{{amount}}</b> when the balance falls below <b>{{threshold}}</b>",
+        "off": "Auto top-up is off",
+        "toggle": "Turn on auto top-up",
+        "toggleHint": "Your card on file is charged when the balance falls below the threshold",
+        "threshold": "When the balance falls below",
+        "amount": "Top up amount",
+        "saved": "Auto top-up updated"
+      }
     },
     "invoices": {
       "title": "Invoices and fees",
@@ -284,7 +306,14 @@
       "price": "Price",
       "bookable": "Bookable team members",
       "monthlyTotal": "Monthly total",
-      "paymentMethod": "Payment method"
+      "paymentMethod": "Payment method",
+      "activate": "Activate plan",
+      "activateShort": "Activate",
+      "activated": "Plan activated",
+      "trialBanner_one": "Activate your plan to ensure uninterrupted access after your free trial ends in <b>{{count}} day</b>",
+      "trialBanner_other": "Activate your plan to ensure uninterrupted access after your free trial ends in <b>{{count}} days</b>",
+      "noAddons": "No add-ons yet",
+      "monthlyWithIva": "{{net}} + IVA = {{total}}"
     },
     "change": {
       "title": "Change your plan",
@@ -296,14 +325,17 @@
       "current": "Current plan",
       "forYou_one": "{{total}}/month for {{count}} bookable team member",
       "forYou_other": "{{total}}/month for {{count}} bookable team members",
-      "independentBlocked": "You have {{count}} bookable team members. Make the others non-bookable to switch.",
       "summary": "Summary",
       "bookableCount_one": "{{count}} bookable team member",
       "bookableCount_other": "{{count}} bookable team members",
       "totalMonthly": "Total monthly",
       "dueToday": "Due today (pro-rata)",
       "changeCard": "Change",
-      "addCard": "Add card"
+      "addCard": "Add card",
+      "keepTitle": "Choose who stays bookable",
+      "keepBody_one": "The Independent plan covers one bookable team member. The other {{count}} team member stays in your team but can no longer be booked.",
+      "keepBody_other": "The Independent plan covers one bookable team member. The other {{count}} team members stay in your team but can no longer be booked.",
+      "credit": "Credit for unused time"
     }
   },
   "biz": {
@@ -372,7 +404,10 @@
       "shareTitle": "Create a share link",
       "shareHint": "Share your booking link so clients can book your full service menu online.",
       "shareFor": "Link for",
-      "copyLink": "Copy link"
+      "copyLink": "Copy link",
+      "publishTitle": "Publish your profile",
+      "publishBody": "To create a link for the entire service menu, publish your marketplace profile.",
+      "startNow": "Start now"
     },
     "location": {
       "noAddress": "No business address (mobile and online services only)",
@@ -836,9 +871,8 @@
       "closeFirst": "Close {{name}} before archiving it",
       "archiveTitle": "Archive register?",
       "archiveBody": "{{name}} will no longer be available for cash transactions. You can unarchive it at any time.",
-      "archived": "Register archived",
-      "unarchived": "Register unarchived",
-      "orderSaved": "Register order updated",
+      "archived": "Cash register archived",
+      "unarchived": "Cash register unarchived",
       "addTitle": "Set up register preferences",
       "addSubtitle": "Adding a register to {{location}}",
       "editTitle": "Edit cash register",
@@ -870,8 +904,8 @@
         "autoEmail": "Automatically email report on register count",
         "autoEmailHint": "Once a register is counted or closed a count report will be automatically emailed"
       },
-      "created": "Register created",
-      "updated": "Register updated"
+      "created": "Cash register created",
+      "updated": "Cash register updated"
     },
     "tipping": {
       "title": "Tipping",
@@ -1070,8 +1104,7 @@
       "updated": "Payment method updated",
       "deleted": "Payment method deleted",
       "deleteTitle": "Delete payment method?",
-      "deleteBody": "{{name}} won't be available at checkout anymore. Past payments keep it.",
-      "orderSaved": "Order updated"
+      "deleteBody": "{{name}} won't be available at checkout anymore. Past payments keep it."
     }
   },
   "sched": {
@@ -1516,5 +1549,8 @@
         }
       }
     }
+  },
+  "landing": {
+    "pagesIn": "{{category}} pages"
   }
 }

@@ -6,14 +6,12 @@ import { useSearchParams } from 'react-router-dom'
 import type { Review } from '@/types'
 import { useDb } from '@/store/db'
 import { disconnectGoogle, googleConnected } from '@/api/clients'
-import { Button, Card, IconButton, LearnMore, Menu, Modal, Page, PageHeader, PageSkeleton, UnderlineTabs, confirm, toast, usePageLoading } from '@/components/ui'
+import { useExt, writeExt } from '@/api/ext'
+import { Button, Card, IconButton, LearnMore, Menu, Modal, Page, PageHeader, PageSkeleton, PillTabs, confirm, toast, usePageLoading } from '@/components/ui'
 import { StarBars, Stars } from '../components/common'
-import { storage } from '../lib/helpers'
 import { GoogleConnectModal, GoogleMark } from './GoogleConnectModal'
 import { AllReviewsTab } from './ReviewsTab'
 import { average, ratingCounts } from './reviews'
-
-const TIP_KEY = 'clients.reputation.tipDismissed'
 
 export function OnlineReputationPage() {
   const { t } = useTranslation()
@@ -25,7 +23,7 @@ export function OnlineReputationPage() {
   const connected = googleConnected(addOns)
   const visible = useMemo(() => (connected ? reviews : reviews.filter((r) => r.platform === 'marketplace')), [connected, reviews])
   const [connectOpen, setConnectOpen] = useState(false)
-  const [tipHidden, setTipHidden] = useState(() => storage.get(TIP_KEY) === '1')
+  const tipHidden = useExt<boolean>('clients', 'reputationTipDismissed', false)
   const [video, setVideo] = useState(false)
 
   const setTab = (v: 'overview' | 'all') => {
@@ -59,10 +57,7 @@ export function OnlineReputationPage() {
                   </Button>
                   <Button
                     variant="ghost"
-                    onClick={() => {
-                      storage.set(TIP_KEY, '1')
-                      setTipHidden(true)
-                    }}
+                    onClick={() => writeExt('clients', 'reputationTipDismissed', true)}
                   >
                     {t('clients.more.common.dismiss')}
                   </Button>
@@ -80,7 +75,7 @@ export function OnlineReputationPage() {
             </div>
           )}
 
-          <UnderlineTabs
+          <PillTabs
             className="mb-6"
             value={tab}
             onChange={setTab}

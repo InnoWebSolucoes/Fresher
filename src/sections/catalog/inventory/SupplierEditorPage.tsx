@@ -22,8 +22,8 @@ export function SupplierEditorPage() {
   const supplier = useDb((s) => (id ? s.suppliers.find((x) => x.id === id) : undefined))
   if (id && !supplier)
     return (
-      <FullscreenFrame title={t('catalog.inventory.supplierEditor.editTitle')}>
-        <EmptyState title={t('catalog.inventory.common.notFoundTitle')} body={t('catalog.inventory.common.notFoundBody')} />
+      <FullscreenFrame closeLabel={t('catalog.common.close')} title={t('catalog.inventory.supplierEditor.editTitle')}>
+        <EmptyState title={t('catalog.common.notFoundTitle')} body={t('catalog.common.notFoundBody')} />
       </FullscreenFrame>
     )
   return <SupplierForm key={id ?? 'new'} supplier={supplier} />
@@ -90,12 +90,12 @@ function SupplierForm({ supplier }: { supplier?: Supplier }) {
       actions={
         <>
           {supplier && (
-            <Button variant="ghost" className="text-danger" onClick={() => void remove()}>
+            <Button className="text-danger" onClick={() => void remove()}>
               {t('catalog.common.delete')}
             </Button>
           )}
           <Button variant="primary" loading={saving} onClick={() => void save()}>
-            {t('catalog.inventory.common.save')}
+            {t('catalog.common.save')}
           </Button>
         </>
       }

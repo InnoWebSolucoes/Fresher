@@ -4,8 +4,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui'
-import { SettingsModal } from './SettingsModal'
+import { FullModal } from './FullModal'
 
 export interface OrderItem {
   id: string
@@ -15,8 +14,8 @@ export interface OrderItem {
 
 /**
  * "… order — Drag and drop the order of items, these will be reflected in all
- * lists." with draggable rows (mouse or keyboard: Space, arrows, Space) and
- * Save order.
+ * lists." Full screen with Close / Save order at the top right and one card
+ * per item (drag with the mouse, or Space + arrows + Space on the handle).
  */
 export function OrderModal({
   open,
@@ -32,7 +31,8 @@ export function OrderModal({
   title: ReactNode
   description?: ReactNode
   items: OrderItem[]
-  onSave: (ids: string[]) => Promise<void> | void
+  /** Return false to keep the modal open (e.g. the save failed). */
+  onSave: (ids: string[]) => Promise<unknown> | void
   saveLabel?: string
 }) {
   const { t } = useTranslation()
@@ -53,30 +53,17 @@ export function OrderModal({
   const save = async () => {
     setSaving(true)
     try {
-      await onSave(order)
-      onClose()
+      const result = await onSave(order)
+      if (result !== false) onClose()
     } finally {
       setSaving(false)
     }
   }
   return (
-    <SettingsModal
-      open={open}
-      onClose={onClose}
-      title={title}
-      subtitle={description ?? t('settings.common.orderDescription')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" loading={saving} onClick={save} data-testid="save-order">
-            {saveLabel ?? t('settings.common.saveOrder')}
-          </Button>
-        </>
-      }
-    >
+    <FullModal open={open} onClose={onClose} title={title} subtitle={description ?? t('settings.common.orderDescription')} onSave={() => void save()} saving={saving} saveLabel={saveLabel ?? t('settings.common.saveOrder')} testId="order-modal">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={order} strategy={verticalListSortingStrategy}>
-          <ul className="flex flex-col gap-2 py-1">
+          <ul className="flex flex-col gap-3">
             {order.map((id) => {
               const item = byId.get(id)
               return item ? <SortableRow key={id} item={item} /> : null
@@ -84,7 +71,7 @@ export function OrderModal({
           </ul>
         </SortableContext>
       </DndContext>
-    </SettingsModal>
+    </FullModal>
   )
 }
 
@@ -92,16 +79,12 @@ function SortableRow({ item }: { item: OrderItem }) {
   const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
   return (
-    <li
-      ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-center gap-3 rounded-md border border-line bg-surface px-3 py-3 ${isDragging ? 'z-10 shadow-md' : ''}`}
-    >
+    <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`card flex items-center gap-3 px-6 py-5 ${isDragging ? 'relative z-10 shadow-md' : ''}`} data-testid={`order-row-${item.id}`}>
+      {item.leading}
+      <span className="min-w-0 flex-1 truncate text-body-strong text-ink">{item.label}</span>
       <button type="button" className="cursor-grab touch-none rounded-sm p-1 text-muted hover:bg-sunken active:cursor-grabbing" aria-label={t('settings.common.dragToReorder')} {...attributes} {...listeners}>
         <GripVertical size={18} aria-hidden />
       </button>
-      {item.leading}
-      <span className="min-w-0 flex-1 truncate text-body-strong text-ink">{item.label}</span>
     </li>
   )
 }

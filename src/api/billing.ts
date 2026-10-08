@@ -93,7 +93,7 @@ export function quotePlanChange(from: PlanType, to: PlanType, bookable: number):
   const factor = daysLeft / daysInMonth
   const period = `${format(today, 'd MMM')} – ${format(endOfMonth(today), 'd MMM yyyy')}`
   const label = (type: PlanType) => (type === 'team' ? 'Team plan' : 'Independent plan')
-  const newUnit = PLANS[to].perMember ? PLANS[to].price : PLANS[to].price
+  const newUnit = PLANS[to].price
   const newQty = PLANS[to].perMember ? Math.max(1, bookable) : 1
   const oldQty = PLANS[from].perMember ? Math.max(1, bookable) : 1
   const lines: InvoiceLine[] = [
@@ -103,19 +103,29 @@ export function quotePlanChange(from: PlanType, to: PlanType, bookable: number):
   return { lines, ...invoiceTotals(lines), daysLeft, daysInMonth }
 }
 
-/** Switch plan (Change your plan → Confirm). Creates the pro-rata invoice. */
-export async function changePlan(to: PlanType): Promise<Invoice> {
+/**
+ * Switch plan (Change your plan → Confirm) and create the pro-rata invoice
+ * (a credit when moving to a cheaper plan). The Independent plan covers one
+ * bookable team member: `keepBookableId` stays bookable and the others are
+ * made non-bookable (their profiles, history and logins are kept).
+ */
+export async function changePlan(to: PlanType, keepBookableId?: ID): Promise<Invoice> {
   await latency(600, 1000)
   const data = db()
   const from = data.workspace.plan.type
-  const bookable = bookableCount()
+  const members = bookableMembers(data)
+  const bookable = members.length
   if (from === to) throw new ApiError('same_plan', 'You are already on this plan')
-  if (to === 'independent' && bookable > 1) throw new ApiError('too_many_members', 'The Independent plan is for one bookable team member')
   if (!data.workspace.plan.card) throw new ApiError('no_card', 'Add a payment method before changing your plan')
+  if (to === 'independent' && bookable > 1 && !members.some((m) => m.id === keepBookableId)) throw new ApiError('too_many_members', 'Choose the team member who stays bookable on the Independent plan')
   const quote = quotePlanChange(from, to, bookable)
   commit((d) => {
     d.workspace.plan.type = to
     d.workspace.plan.status = 'active'
+    if (to === 'independent' && bookable > 1)
+      d.teamMembers.forEach((m) => {
+        if (m.bookable && !m.archived && m.id !== keepBookableId) m.bookable = false
+      })
   })
   writeSettingsExtra(PLAN_CANCEL_KEY, null)
   const invoice = addInvoice(quote.lines)
@@ -220,30 +230,23 @@ export async function removeCard(): Promise<void> {
 }
 
 // ─── Communication balance ────────────────────────────────────────────────
+//
+// workspace.messageCredits is the communication balance in euros (Marketing ›
+// Automations shows the same figure); text and WhatsApp messages are paid
+// from it. Auto top-up lives with Marketing (setAutoTopUp in @/api/marketing).
 
-export const CREDIT_PACKS: { id: string; credits: number; price: number }[] = [
-  { id: 'pack_100', credits: 100, price: 9 },
-  { id: 'pack_250', credits: 250, price: 20 },
-  { id: 'pack_500', credits: 500, price: 38 },
-  { id: 'pack_1000', credits: 1000, price: 70 },
-]
+/** One-off top-up amounts (excluding IVA). */
+export const TOP_UP_AMOUNTS = [10, 25, 50, 100]
 
-export async function topUpCredits(packId: string): Promise<Invoice> {
+/** Add `amount` to the communication balance, charged to the card on file (invoice + email). */
+export async function topUpCommunicationBalance(amount: number): Promise<Invoice> {
   await latency(600, 1000)
-  const pack = CREDIT_PACKS.find((p) => p.id === packId)
-  if (!pack) throw new ApiError('not_found', 'Pack not found')
+  if (!(amount > 0)) throw new ApiError('invalid', 'Choose an amount')
   if (!db().workspace.plan.card) throw new ApiError('no_card', 'Add a payment method to top up')
   commit((d) => {
-    d.workspace.messageCredits += pack.credits
+    d.workspace.messageCredits = round2(d.workspace.messageCredits + amount)
   })
-  return addInvoice([{ description: `Text message credits (${pack.credits})`, quantity: 1, unitPrice: pack.price }])
-}
-
-export const AUTO_TOPUP_KEY = 'billing.autoTopUp'
-export interface AutoTopUp {
-  enabled: boolean
-  threshold: number
-  packId: string
+  return addInvoice([{ description: 'Communication balance top-up', quantity: 1, unitPrice: amount }])
 }
 
 // ─── Bank accounts ────────────────────────────────────────────────────────

@@ -1,16 +1,16 @@
-import { Plus, Truck } from 'lucide-react'
+import { Truck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
-import { Avatar, Button, DataTable, EmptyState, LearnMore, Menu, Page, PageHeader, PageSkeleton, SearchInput, confirm, toast, usePageLoading, type Column } from '@/components/ui'
+import { Avatar, Button, DataTable, EmptyState, LearnMore, Menu, Page, PageHeader, PageSkeleton, SearchInput, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDateTimeUS } from '@/lib/format'
 import type { Supplier } from '@/types'
 import { deleteSupplier } from '@/api/catalog'
-import { SortButton, ToolbarCard } from '../ui'
+import { SortButton } from '../ui'
 import { supplierPhone } from './shared'
 
 type Sort = 'nameAsc' | 'nameDesc' | 'updatedDesc' | 'updatedAsc'
@@ -63,7 +63,7 @@ export function SuppliersPage() {
 
   if (loading)
     return (
-      <Page>
+      <Page wide>
         <PageSkeleton />
       </Page>
     )
@@ -89,12 +89,12 @@ export function SuppliersPage() {
       width: '56px',
       cell: (s) => (
         <Menu
-          label={t('catalog.inventory.common.actions')}
+          label={t('catalog.common.actions')}
           groups={[
             {
               items: [
                 { label: t('catalog.inventory.suppliers.edit'), onSelect: () => navigate(`/catalogue/suppliers/edit/${s.id}`) },
-                { label: t('catalog.inventory.suppliers.createOrder'), onSelect: () => navigate(`/catalogue/orders/new?d_supplier=${s.id}`) },
+                { label: t('catalog.inventory.suppliers.createOrder'), onSelect: () => navigate(`/catalogue/orders/new?supplier=${s.id}`) },
               ],
             },
             { items: [{ label: t('catalog.inventory.suppliers.delete'), danger: true, onSelect: () => void confirmDeleteSupplier(s, t) }] },
@@ -105,18 +105,18 @@ export function SuppliersPage() {
   ]
 
   return (
-    <Page>
+    <Page wide>
       <PageHeader
         title={t('catalog.inventory.suppliers.title')}
         count={suppliers.length}
         subtitle={
           <>
-            {t('catalog.inventory.suppliers.subtitle')} <LearnMore topic={t('catalog.inventory.suppliers.title')}>{t('catalog.inventory.common.learnMore')}</LearnMore>
+            {t('catalog.inventory.suppliers.subtitle')} <LearnMore topic={t('catalog.inventory.suppliers.title')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={
-          <Button variant="primary" icon={<Plus size={16} />} onClick={() => navigate('/catalogue/suppliers/add')}>
-            {t('catalog.inventory.common.add')}
+          <Button variant="primary" onClick={() => navigate('/catalogue/suppliers/add')}>
+            {t('catalog.common.add')}
           </Button>
         }
       />
@@ -128,25 +128,25 @@ export function SuppliersPage() {
             body={t('catalog.inventory.suppliers.emptyBody')}
             action={
               <Button variant="primary" onClick={() => navigate('/catalogue/suppliers/add')}>
-                {t('catalog.inventory.common.add')}
+                {t('catalog.common.add')}
               </Button>
             }
           />
         </div>
       ) : (
         <>
-          <ToolbarCard>
+          <Toolbar>
             <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.suppliers.search')} className="max-w-md" />
             <div className="ml-auto">
               <SortButton value={sort} onChange={setSort} options={(['nameAsc', 'nameDesc', 'updatedDesc', 'updatedAsc'] as Sort[]).map((v) => ({ value: v, label: t(`catalog.inventory.suppliers.sort.${v}`) }))} />
             </div>
-          </ToolbarCard>
+          </Toolbar>
           <DataTable
             columns={columns}
             rows={rows}
             rowKey={(s) => s.id}
             onRowClick={(s) => drawer.open('supplier', { id: s.id })}
-            empty={<EmptyState title={t('catalog.inventory.common.noResults')} body={t('catalog.inventory.common.noResultsBody')} />}
+            empty={<EmptyState icon={<Truck size={26} />} title={t('catalog.common.noResults')} body={t('catalog.inventory.common.noResultsBody')} />}
           />
         </>
       )}

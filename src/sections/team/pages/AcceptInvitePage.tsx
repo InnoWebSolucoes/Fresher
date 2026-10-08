@@ -5,14 +5,16 @@ import { useDb } from '@/store/db'
 import { useSessionStore } from '@/store/session'
 import { Button, Field, TextInput, toast } from '@/components/ui'
 import { ApiError } from '@/api/client'
-import { acceptInvite, asRecord } from '@/api/team'
+import { acceptInvite, asRecord, useMemberExtras } from '@/api/team'
 
 /** Accept a team invite: set a password, create the login, sign in (SPEC §8). */
 export function AcceptInvitePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { token = '' } = useParams()
-  const member = useDb((s) => s.teamMembers.find((m) => asRecord(m).inviteToken === token))
+  const extras = useMemberExtras()
+  const teamMembers = useDb((s) => s.teamMembers)
+  const member = token ? teamMembers.find((m) => asRecord(m, extras).inviteToken === token) : undefined
   const workspace = useDb((s) => s.workspace.name)
   const [password, setPassword] = useState('')
   const [confirmPw, setConfirmPw] = useState('')

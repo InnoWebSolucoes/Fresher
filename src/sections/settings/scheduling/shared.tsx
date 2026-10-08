@@ -1,30 +1,16 @@
 import clsx from 'clsx'
 import type { TFunction } from 'i18next'
-import { ArrowDown, ArrowUp, ChevronDown, Lock, Pencil, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import { useId, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Menu, type MenuGroup } from '@/components/ui'
+import type { MenuGroup } from '@/components/ui'
 import { useDismiss } from '@/lib/useDismiss'
+import { PillMenu } from '../components/ui'
 
 /**
- * Small building blocks shared by the Scheduling settings pages
- * (reference/settings-scheduling.md). Everything else comes from
- * ../components/ui and the kit.
+ * Small form and menu building blocks shared by the settings pages (cards,
+ * lists and page headers come from ../components/ui).
  */
-
-/** White card that holds the fields of a full-screen edit overlay. */
-export function FormCard({ children, className, testId }: { children: ReactNode; className?: string; testId?: string }) {
-  return (
-    <section className={clsx('card flex flex-col gap-6 p-6 sm:p-8', className)} data-testid={testId}>
-      {children}
-    </section>
-  )
-}
-
-/** Vertical stack of form cards. */
-export function FormStack({ children }: { children: ReactNode }) {
-  return <div className="flex flex-col gap-6">{children}</div>
-}
 
 /** Heading + description inside a form card. */
 export function FormHeading({ title, description, level = 'title' }: { title: ReactNode; description?: ReactNode; level?: 'title' | 'label' }) {
@@ -36,29 +22,10 @@ export function FormHeading({ title, description, level = 'title' }: { title: Re
   )
 }
 
-/** Plain "Options ⌄" button for the header of edit overlays (reference: Options › Delete). */
+/** "Options ▾" in the header of a full-screen edit form (reference: Options › Delete). */
 export function OverlayOptions({ groups }: { groups: MenuGroup[] }) {
   const { t } = useTranslation()
-  return (
-    <Menu
-      groups={groups}
-      width={220}
-      label={t('settings.common.options')}
-      trigger={({ open, toggle }) => (
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={toggle}
-          className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-body-strong text-ink hover:bg-sunken"
-          data-testid="overlay-options"
-        >
-          {t('settings.common.options')}
-          <ChevronDown size={16} aria-hidden />
-        </button>
-      )}
-    />
-  )
+  return <PillMenu label={t('settings.common.options')} groups={groups} width={220} testId="overlay-options" />
 }
 
 /** Delete item for an Options / Actions menu. */
@@ -91,65 +58,6 @@ export function rowActions(
     })
   }
   return groups
-}
-
-/** One list item rendered as its own card (blocked time types, reasons, statuses, closed periods). */
-export function RowCard({
-  leading,
-  title,
-  subtitle,
-  trailing,
-  onClick,
-  accent,
-  testId,
-}: {
-  leading?: ReactNode
-  title: ReactNode
-  subtitle?: ReactNode
-  trailing?: ReactNode
-  onClick?: () => void
-  /** Colour of a 4px bar on the left edge (appointment statuses). */
-  accent?: string
-  testId?: string
-}) {
-  return (
-    <div
-      className={clsx('card relative flex items-center gap-4 overflow-hidden px-6 py-5', onClick && 'cursor-pointer transition-colors hover:bg-sunken/50')}
-      onClick={onClick}
-      data-testid={testId}
-    >
-      {accent && <span className="absolute inset-y-0 left-0 w-1" style={{ background: accent }} aria-hidden />}
-      {leading && <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-sunken text-title-3 text-ink">{leading}</div>}
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-body-strong text-ink">{title}</div>
-        {subtitle && <div className="mt-0.5 text-body text-muted">{subtitle}</div>}
-      </div>
-      {trailing && (
-        <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          {trailing}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/** Grey padlock shown on rows that can't be edited (system items). */
-export function LockMark({ label }: { label: string }) {
-  return (
-    <span className="flex h-9 w-9 items-center justify-center text-subtle" title={label}>
-      <Lock size={20} aria-hidden />
-      <span className="sr-only">{label}</span>
-    </span>
-  )
-}
-
-/** Stack of row cards. */
-export function RowStack({ children, testId }: { children: ReactNode; testId?: string }) {
-  return (
-    <div className="flex flex-col gap-3" data-testid={testId}>
-      {children}
-    </div>
-  )
 }
 
 /** Radio with label and hint; `children` render nested under it while checked (e.g. "Strategy period"). */

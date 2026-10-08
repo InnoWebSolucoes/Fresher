@@ -1,7 +1,6 @@
 import { create } from 'zustand'
-import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
-import { del, get, set } from 'idb-keyval'
 import { addMinutes } from 'date-fns'
+import { del } from 'idb-keyval'
 import { commit, db, useDb } from '@/store/db'
 import { useSessionStore } from '@/store/session'
 import type { ID, Review } from '@/types'
@@ -17,11 +16,18 @@ import { logout } from './auth'
  *
  * Records the shared data model has no collection for (online profile,
  * notification preferences, support tickets, live chat, login sessions,
- * referrals…) live in a small persisted store of their own, keyed by user.
- * It resets together with the demo (Reset demo changes meta.seededAt).
+ * referrals…) live in db.ext.panels, keyed by user where it matters.
  * Everything else (users, conversations, wallet, payouts, notifications,
  * linked calendars, review replies) is written to the main store.
  */
+
+/** Leftover copy of the section-local store this data used to live in. */
+try {
+  localStorage.removeItem('ib-panels')
+} catch {
+  /* storage can be blocked; nothing to clean up then */
+}
+if (typeof indexedDB !== 'undefined') void del('ib-panels').catch(() => undefined)
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -244,8 +250,20 @@ export interface AccessCode {
   expiresAt: string
 }
 
-interface PanelsData {
-  seededAt: string
+/** Account and workspace changes that wait for an emailed confirmation. */
+export interface PendingRequest {
+  id: ID
+  kind: 'delete_account' | 'delete_workspace' | 'transfer_ownership' | 'create_workspace' | 'join_workspace'
+  userId: ID
+  at: string
+  /** Workspace name, invite code or the new owner's name. */
+  detail?: string
+  /** New owner's user id (transfer). */
+  targetUserId?: ID
+}
+
+export interface PanelsData {
+  requests: PendingRequest[]
   profiles: Record<ID, OnlineProfile>
   prefs: Record<ID, NotificationPrefs>
   tickets: SupportTicket[]
@@ -263,67 +281,74 @@ interface PanelsData {
   accessCode: AccessCode | null
 }
 
-interface PanelsState extends PanelsData {
-  /** Not persisted: the support agent is typing. */
-  chatTyping: boolean
-}
+/**
+ * These records live in db.ext.panels, one key per field: they persist with
+ * the demo, sync between tabs and are cleared by Reset demo. Fallbacks are
+ * frozen module constants so selectors stay referentially stable.
+ */
+export const PANELS_NS = 'panels'
 
-const initialData = (): PanelsData => ({
-  seededAt: '',
-  profiles: {},
-  prefs: {},
-  tickets: [],
-  chat: { status: 'idle', agent: null, messages: [] },
-  sessions: {},
-  logins: {},
-  verifiedPhones: {},
-  pendingPhoneCode: {},
-  inboxIntroSeen: {},
-  inboxTourDone: {},
-  referrals: [],
-  newsRead: [],
-  newsActions: [],
-  guidesCompleted: [],
+const EMPTY_RECORD = Object.freeze({}) as Record<string, never>
+const EMPTY_LIST = Object.freeze([]) as unknown as never[]
+const IDLE_CHAT: LiveChat = Object.freeze({ status: 'idle', agent: null, messages: Object.freeze([]) as unknown as ChatMessage[] }) as LiveChat
+
+const FALLBACK: PanelsData = Object.freeze({
+  requests: EMPTY_LIST,
+  profiles: EMPTY_RECORD,
+  prefs: EMPTY_RECORD,
+  tickets: EMPTY_LIST,
+  chat: IDLE_CHAT,
+  sessions: EMPTY_RECORD,
+  logins: EMPTY_RECORD,
+  verifiedPhones: EMPTY_RECORD,
+  pendingPhoneCode: EMPTY_RECORD,
+  inboxIntroSeen: EMPTY_RECORD,
+  inboxTourDone: EMPTY_RECORD,
+  referrals: EMPTY_LIST,
+  newsRead: EMPTY_LIST,
+  newsActions: EMPTY_LIST,
+  guidesCompleted: EMPTY_LIST,
   accessCode: null,
-})
+}) as PanelsData
 
-const idbStorage: StateStorage = {
-  getItem: async (name) => (await get<string>(name)) ?? null,
-  setItem: async (name, value) => {
-    await set(name, value)
-  },
-  removeItem: async (name) => {
-    await del(name)
-  },
+function view(bag: Record<string, unknown> | undefined): PanelsData {
+  if (!bag) return FALLBACK
+  const out = { ...FALLBACK }
+  ;(Object.keys(FALLBACK) as (keyof PanelsData)[]).forEach((k) => {
+    if (bag[k] !== undefined) (out as Record<string, unknown>)[k] = bag[k]
+  })
+  return out
 }
 
-/** Section-local persisted records (read with `usePanels(selector)`; written only by the functions below). */
-export const usePanels = create<PanelsState>()(
-  persist((): PanelsState => ({ ...initialData(), chatTyping: false }), {
-    name: 'ib-panels',
-    version: 1,
-    storage: createJSONStorage(() => (typeof indexedDB === 'undefined' ? localStorage : idbStorage)),
-    partialize: (state) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { chatTyping, ...data } = state
-      return data as PanelsState
-    },
-    onRehydrateStorage: () => () => syncWithSeed(),
-  }),
-)
+/** Synchronous snapshot of the panels records. */
+export const panelsState = (): PanelsData => view(db().ext?.[PANELS_NS])
 
-/** Reset demo creates a new seed: start these records over too. */
-function syncWithSeed() {
-  const seededAt = db().meta?.seededAt
-  if (!seededAt || !usePanels.persist.hasHydrated()) return
-  const current = usePanels.getState().seededAt
-  if (current === seededAt) return
-  if (current) usePanels.setState({ ...initialData(), seededAt, chatTyping: false })
-  else usePanels.setState({ seededAt })
+/**
+ * React hook over the panels records. Select a stored value (or a primitive)
+ * — never build a new object in the selector.
+ */
+export function usePanels<T>(selector: (s: PanelsData) => T): T {
+  return useDb((s) => selector(view(s.ext?.[PANELS_NS])))
 }
-useDb.subscribe(syncWithSeed)
 
-const patch = (fn: (s: PanelsState) => Partial<PanelsState>) => usePanels.setState((s) => fn(s))
+/** Not persisted: the support agent is typing in the live chat. */
+const useChatTypingStore = create<{ typing: boolean }>()(() => ({ typing: false }))
+export const useChatTyping = () => useChatTypingStore((s) => s.typing)
+const setTyping = (typing: boolean) => useChatTypingStore.setState({ typing })
+
+type PanelsPatch = Partial<PanelsData> & { chatTyping?: boolean }
+
+/** Write several panels records in one commit. */
+function patch(fn: (s: PanelsData) => PanelsPatch): void {
+  const { chatTyping, ...data } = fn(panelsState())
+  if (chatTyping !== undefined) setTyping(chatTyping)
+  if (!Object.keys(data).length) return
+  commit((d) => {
+    if (!d.ext) d.ext = {}
+    if (!d.ext[PANELS_NS]) d.ext[PANELS_NS] = {}
+    Object.assign(d.ext[PANELS_NS], data)
+  })
+}
 
 const currentUserId = () => useSessionStore.getState().currentUserId
 const userById = (id: ID) => db().users.find((u) => u.id === id)
@@ -391,7 +416,7 @@ export async function imageToDataUrl(file: File, max = 900, quality = 0.8): Prom
 export const PORTFOLIO_LIMIT = 24
 
 export async function addPortfolioImages(userId: ID, files: File[]): Promise<number> {
-  const existing = profileOf(usePanels.getState(), userId).portfolio.length
+  const existing = profileOf(panelsState(), userId).portfolio.length
   if (existing + files.length > PORTFOLIO_LIMIT) throw new ApiError('limit', `You can add up to ${PORTFOLIO_LIMIT} images`)
   const images: PortfolioImage[] = []
   for (const file of files) images.push({ id: uid('pf'), src: await imageToDataUrl(file), name: file.name, at: nowISO() })
@@ -458,7 +483,7 @@ export async function sendPhoneVerification(userId: ID): Promise<void> {
 
 export async function verifyPhone(userId: ID, code: string): Promise<void> {
   await latency()
-  const expected = usePanels.getState().pendingPhoneCode[userId]
+  const expected = panelsState().pendingPhoneCode[userId]
   if (!expected || expected !== code.trim()) throw new ApiError('invalid_code', 'That code is not right. Check the latest text message and try again.')
   const phone = userById(userId)?.phone ?? ''
   patch((s) => ({ verifiedPhones: { ...s.verifiedPhones, [userId]: phone }, pendingPhoneCode: omit(s.pendingPhoneCode, userId) }))
@@ -495,6 +520,69 @@ export async function signOutAllDevices(userId: ID): Promise<void> {
 export async function setSocialLogin(userId: ID, provider: 'google' | 'apple', connected: boolean): Promise<void> {
   await latency(700, 1200)
   patch((s) => ({ logins: { ...s.logins, [userId]: { ...(s.logins[userId] ?? { google: true, apple: false }), [provider]: connected } } }))
+}
+
+// ─── Requests confirmed by email (delete, transfer, new workspace) ──────────
+
+const REQUEST_EMAILS: Record<PendingRequest['kind'], { subject: (d: string) => string; body: (name: string, d: string, ws: string) => string; link: string }> = {
+  delete_account: {
+    subject: () => 'Confirm you want to delete your Innoweb account',
+    body: (name) => `Hi ${name},\n\nWe received a request to delete your Innoweb Bookings account and all your personal info. This can't be undone.\n\nIf this was you, confirm with the button below. If not, you can ignore this email and nothing will change.`,
+    link: 'Confirm account deletion',
+  },
+  delete_workspace: {
+    subject: (d) => `Confirm deleting the ${d} workspace`,
+    body: (name, d) => `Hi ${name},\n\nWe received a request to delete the ${d} workspace, including its clients, appointments, sales and team. This can't be undone.\n\nConfirm with the button below within 7 days, or ignore this email to keep the workspace.`,
+    link: 'Confirm workspace deletion',
+  },
+  transfer_ownership: {
+    subject: (d) => `You've been asked to take over ${d}`,
+    body: (name, _d, ws) => `Hi ${name},\n\nYou've been asked to become the owner of ${ws}. As the owner you'll manage billing, permissions and the workspace settings.\n\nAccept below to complete the transfer.`,
+    link: 'Accept ownership',
+  },
+  create_workspace: {
+    subject: (d) => `Finish setting up ${d}`,
+    body: (name, d) => `Hi ${name},\n\nYour new workspace ${d} is almost ready. Finish setting it up to add your services, team and opening hours.`,
+    link: 'Finish setup',
+  },
+  join_workspace: {
+    subject: () => 'Your request to join a workspace',
+    body: (name, d) => `Hi ${name},\n\nWe've sent your request to join the workspace with invite ${d} to its owner. You'll get an email as soon as they accept.`,
+    link: 'View request',
+  },
+}
+
+/** Starts a change that only completes once it's confirmed from the emailed link. */
+export async function createRequest(userId: ID, kind: PendingRequest['kind'], options: { detail?: string; targetUserId?: ID } = {}): Promise<PendingRequest> {
+  await latency(500, 900)
+  const user = userById(userId)
+  if (!user) throw new ApiError('not_found', 'User not found')
+  if (panelsState().requests.some((r) => r.userId === userId && r.kind === kind && r.kind !== 'create_workspace' && r.kind !== 'join_workspace')) throw new ApiError('duplicate', 'This request is already waiting for confirmation')
+  const detail = options.detail?.trim()
+  if ((kind === 'create_workspace' || kind === 'join_workspace') && !detail) throw new ApiError('invalid', kind === 'create_workspace' ? 'Enter a business name' : 'Enter an invite link or code')
+  const target = options.targetUserId ? userById(options.targetUserId) : undefined
+  if (kind === 'transfer_ownership' && !target) throw new ApiError('invalid', 'Choose the new owner')
+  const ws = db().workspace.name
+  const request: PendingRequest = { id: uid('req'), kind, userId, at: nowISO(), detail: kind === 'transfer_ownership' ? `${target!.firstName} ${target!.lastName}` : kind === 'delete_workspace' ? ws : detail, targetUserId: target?.id }
+  const mail = REQUEST_EMAILS[kind]
+  const to = target ?? user
+  queueMessage({
+    clientId: null,
+    to: to.email,
+    toName: `${to.firstName} ${to.lastName}`,
+    channel: 'email',
+    type: 'other',
+    subject: mail.subject(kind === 'transfer_ownership' ? ws : (request.detail ?? ws)),
+    body: mail.body(to.firstName, request.detail ?? ws, ws),
+    link: { label: mail.link, href: `https://innoweb.app/confirm/${request.id}` },
+  })
+  patch((s) => ({ requests: [request, ...s.requests] }))
+  return request
+}
+
+export async function cancelRequest(id: ID): Promise<void> {
+  await latency()
+  patch((s) => ({ requests: s.requests.filter((r) => r.id !== id) }))
 }
 
 // ─── Linked calendars & reviews ───────────────────────────────────────────
@@ -661,7 +749,7 @@ export async function sendReferralInvite(email: string, message: string): Promis
   await latency()
   const to = email.trim().toLowerCase()
   if (!EMAIL_RE.test(to)) throw new ApiError('invalid_email', 'Enter a valid email address')
-  if (usePanels.getState().referrals.some((r) => r.email === to)) throw new ApiError('duplicate', 'You already invited this business')
+  if (panelsState().referrals.some((r) => r.email === to)) throw new ApiError('duplicate', 'You already invited this business')
   const userId = currentUserId() ?? ''
   const user = userById(userId)
   const sender = user ? `${user.firstName} ${user.lastName}` : 'A friend'
@@ -739,12 +827,16 @@ function chatTopic(text: string): string {
 const chatMsg = (m: Omit<ChatMessage, 'id' | 'at'>): ChatMessage => ({ id: uid('chm'), at: nowISO(), ...m })
 
 /** Opens a chat: "Finding you an expert" for a moment, then an agent joins and says hello. */
+let connectTimer: number | undefined
+
 export function startLiveChat(firstName: string): void {
-  const chat = usePanels.getState().chat
-  if (chat.status === 'connecting' || chat.status === 'active') return
+  const chat = panelsState().chat
+  // A "connecting" chat left over from a reload has no timer in this tab: start it again.
+  if (chat.status === 'active' || connectTimer !== undefined) return
   const agent = AGENTS[Math.floor(Math.random() * AGENTS.length)]
   patch(() => ({ chat: { status: 'connecting', agent: null, messages: [] } }))
-  window.setTimeout(() => {
+  connectTimer = window.setTimeout(() => {
+    connectTimer = undefined
     patch((s) => ({
       chat: {
         status: 'active',
@@ -757,14 +849,14 @@ export function startLiveChat(firstName: string): void {
 
 export function sendChatMessage(text: string): void {
   const body = text.trim()
-  const state = usePanels.getState()
+  const state = panelsState()
   if (!body || state.chat.status !== 'active') return
   patch((s) => ({ chat: { ...s.chat, messages: [...s.chat.messages, chatMsg({ from: 'user', text: body })] } }))
   const topic = chatTopic(body)
   window.setTimeout(() => patch(() => ({ chatTyping: true })), 600)
   window.setTimeout(
     () => {
-      if (usePanels.getState().chat.status !== 'active') return patch(() => ({ chatTyping: false }))
+      if (panelsState().chat.status !== 'active') return patch(() => ({ chatTyping: false }))
       patch((s) => ({ chatTyping: false, chat: { ...s.chat, messages: [...s.chat.messages, chatMsg({ from: 'agent', key: `panels.chat.answers.${topic}` })] } }))
     },
     1800 + Math.random() * 1400,
@@ -788,7 +880,7 @@ export function resetLiveChat(): void {
 // ─── News & guides ────────────────────────────────────────────────────────
 
 export function markNewsRead(ids: string[]): void {
-  const read = usePanels.getState().newsRead
+  const read = panelsState().newsRead
   if (ids.every((id) => read.includes(id))) return
   patch((s) => ({ newsRead: Array.from(new Set([...s.newsRead, ...ids])) }))
 }

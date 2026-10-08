@@ -136,7 +136,7 @@ function SplitView() {
           )
         })}
         {c.due > 0.004 && (
-          <button type="button" onClick={() => c.setModal({ kind: 'splitSelect' })} className="flex items-center gap-3 rounded-lg border border-dashed border-line-strong px-6 py-5 text-left text-body-lg font-semibold text-primary hover:bg-primary-subtle/40" data-testid="split-add">
+          <button type="button" onClick={() => c.setModal({ kind: 'splitSelect' })} className="flex items-center gap-3 rounded-lg border border-line px-6 py-5 text-left text-body-lg font-semibold text-primary hover:bg-primary-subtle/40" data-testid="split-add">
             <Plus size={20} aria-hidden />
             {t('checkout.payment.addMethod')}
           </button>

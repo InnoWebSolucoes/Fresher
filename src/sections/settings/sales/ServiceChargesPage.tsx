@@ -6,11 +6,10 @@ import { updateSettings } from '@/api/settings'
 import { uid } from '@/lib/ids'
 import { money2 } from '@/lib/format'
 import type { ServiceCharge, TaxRate } from '@/types'
-import { ActionsPill, ListCard, ListRow, SettingsPage } from '../components/ui'
+import { ActionsPill, FormCard, ListCard, ListRow, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction } from '../components/useAction'
 import { useSettings } from '../hooks'
-import { FormCard } from './shared'
 
 export const ITEM_TYPES = ['services', 'products', 'memberships', 'packages'] as const
 export type ChargeItemType = (typeof ITEM_TYPES)[number]

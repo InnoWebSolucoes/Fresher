@@ -1,5 +1,5 @@
 import { addDays, format, parseISO } from 'date-fns'
-import { commit, db } from '@/store/db'
+import { commit, db, useDb } from '@/store/db'
 import type {
   ActivityEntry,
   ClosedPeriod,
@@ -17,21 +17,30 @@ import type {
   User,
 } from '@/types'
 import type { PermissionRole } from '@/lib/permissions'
+import { useSessionStore } from '@/store/session'
 import { uid } from '@/lib/ids'
 import { nowISO } from '@/lib/time'
-import { round2 } from '@/lib/format'
+import { money2, round2 } from '@/lib/format'
 import { actorName, ApiError, latency } from './client'
+import { readExt, writeExt } from './ext'
 import { queueMessage } from './messaging'
-import { cashMovement } from './register'
+import { cashMovement, currentSession, expectedCash } from './register'
 
 /**
  * Team domain (reference/team.md): team members, invites, scheduled shifts,
  * time off, closed periods, timesheets and pay runs.
  *
- * Fields the shared TeamMember / PayRun types don't have yet are stored as
- * extra properties on the same persisted records (see TeamMemberRecord and
- * PayRunRecord below).
+ * The shared TeamMember and PayRun types hold what other sections read.
+ * Team-only data with no shared field lives in `db.ext.team` (@/api/ext), so
+ * it persists, syncs between tabs and resets with the demo:
+ * - `ext.team.members[memberId]`: MemberExtras (photo, phone codes, addresses,
+ *   emergency contacts, compensation type, timesheet and pay run settings,
+ *   invite token, created/updated times).
+ * - `ext.team.payRuns[payRunId]`: PayRunMeta (included compensation types,
+ *   per-member payment methods, review status and step for drafts…).
  */
+
+export const TEAM_NS = 'team'
 
 export type TriState = 'default' | 'enabled' | 'disabled'
 
@@ -69,17 +78,96 @@ export interface MemberExtras {
   updatedAt?: string
 }
 
-export type TeamMemberRecord = TeamMember & MemberExtras
+const EXTRA_KEYS: (keyof MemberExtras)[] = ['photo', 'phoneCode', 'additionalPhone', 'additionalPhoneCode', 'addresses', 'emergencyContacts', 'compensationType', 'timesheetSettings', 'payRunSettings', 'inviteToken', 'createdAt', 'updatedAt']
 
-export interface PayRunRecord extends PayRun {
-  createdBy?: string
-  locationId?: ID
-  includes?: ('wages' | 'commissions' | 'tips' | 'other')[]
-  /** Per-member payment method when it differs from the run's. */
-  memberMethods?: Record<ID, PayRun['method']>
+/** A team member with its extras merged in (a read-only view, never stored). */
+export type TeamMemberRecord = TeamMember & MemberExtras
+export type MemberExtrasMap = Record<ID, MemberExtras>
+
+const NO_EXTRAS: MemberExtrasMap = Object.freeze({}) as MemberExtrasMap
+
+export const readMemberExtras = (): MemberExtrasMap => readExt<MemberExtrasMap>(TEAM_NS, 'members', NO_EXTRAS)
+
+/** React hook: every member's extras (re-renders when they change). */
+export function useMemberExtras(): MemberExtrasMap {
+  return useDb((s) => (s.ext?.[TEAM_NS]?.members as MemberExtrasMap | undefined) ?? NO_EXTRAS)
 }
 
-export const asRecord = (m: TeamMember): TeamMemberRecord => m as TeamMemberRecord
+/**
+ * Before they moved to db.ext, extras were saved directly on the member
+ * record. Pick those up so older demo data keeps its photos and settings;
+ * the next save moves them to db.ext.
+ */
+function legacyExtras(m: TeamMember): MemberExtras {
+  const bag: Record<string, unknown> = { ...m }
+  const out: Record<string, unknown> = {}
+  for (const key of EXTRA_KEYS) if (bag[key] !== undefined) out[key] = bag[key]
+  return out as MemberExtras
+}
+
+/** Member + extras. Components pass the map from useMemberExtras() so they re-render on changes. */
+export function asRecord(m: TeamMember, extras: MemberExtrasMap = readMemberExtras()): TeamMemberRecord {
+  return { ...m, ...legacyExtras(m), ...(extras[m.id] ?? {}) }
+}
+
+function splitInput(input: Partial<MemberInput>): { core: Partial<TeamMember>; extras: MemberExtras } {
+  const core: Record<string, unknown> = {}
+  const extras: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(input)) {
+    if ((EXTRA_KEYS as string[]).includes(key)) extras[key] = value
+    else core[key] = value
+  }
+  return { core: core as Partial<TeamMember>, extras: extras as MemberExtras }
+}
+
+function patchExtras(memberId: ID, patch: MemberExtras | null): void {
+  const all = readMemberExtras()
+  const next = { ...all }
+  if (patch === null) delete next[memberId]
+  else {
+    const merged: Record<string, unknown> = { ...(all[memberId] ?? {}), ...patch }
+    for (const key of Object.keys(merged)) if (merged[key] === undefined) delete merged[key]
+    next[memberId] = merged as MemberExtras
+  }
+  writeExt(TEAM_NS, 'members', next)
+}
+
+/** Drop legacy extras from the shared record once db.ext holds them. */
+function stripLegacy(m: TeamMember): void {
+  const bag = m as unknown as Record<string, unknown>
+  for (const key of EXTRA_KEYS) delete bag[key]
+}
+
+export type ReviewStatus = 'needs_review' | 'approved' | 'skip'
+export type PayKindKey = 'wages' | 'commissions' | 'tips' | 'other'
+
+/** Pay run details the shared PayRun type has no field for. */
+export interface PayRunMeta {
+  createdBy?: string
+  updatedAt?: string
+  locationId?: ID
+  /** "Pay team member tips" runs started from a cash register. */
+  registerId?: ID
+  includes: PayKindKey[]
+  /** Payment method per member (falls back to the run's method). */
+  memberMethods: Record<ID, PayRun['method']>
+  /** Wizard step a draft resumes on. */
+  step?: number
+  review?: ReviewStatus
+}
+export type PayRunMetaMap = Record<ID, PayRunMeta>
+
+const NO_META: PayRunMetaMap = Object.freeze({}) as PayRunMetaMap
+export const readPayRunMeta = (): PayRunMetaMap => readExt<PayRunMetaMap>(TEAM_NS, 'payRuns', NO_META)
+export function usePayRunMeta(): PayRunMetaMap {
+  return useDb((s) => (s.ext?.[TEAM_NS]?.payRuns as PayRunMetaMap | undefined) ?? NO_META)
+}
+function writePayRunMeta(id: ID, meta: PayRunMeta | null): void {
+  const next = { ...readPayRunMeta() }
+  if (meta === null) delete next[id]
+  else next[id] = meta
+  writeExt(TEAM_NS, 'payRuns', next)
+}
 
 /** Editable fields of a team member (the form's payload). */
 export type MemberInput = Omit<TeamMemberRecord, 'id' | 'order' | 'rating' | 'reviewCount' | 'archived' | 'linkedCalendars' | 'invite' | 'inviteToken' | 'createdAt' | 'updatedAt'>
@@ -101,14 +189,24 @@ export function bookableLimitReached(memberId: ID | null, bookable: boolean): bo
   return data.teamMembers.filter((m) => m.id !== memberId && m.bookable && !m.archived).length >= 1
 }
 
-/** Whether saving these values sends an invite (role above No access, an email, no login yet). */
+/**
+ * Whether saving these values sends an invite (team.md §2.6, SPEC §8): a new
+ * member with a role above No access and an email, Grant access (No access →
+ * another role), a new email address, or a role change while an invite is
+ * still pending. Members who already sign in, or whose email already has a
+ * login, never get one. Existing members with access and no invite yet (e.g.
+ * imported) are invited from the team member drawer instead, so unrelated
+ * edits don't email them.
+ */
 export function inviteWouldSend(memberId: ID | null, role: PermissionRole, email: string): boolean {
   if (role === 'none' || role === 'owner' || !email.trim()) return false
   if (memberId && linkedUser(memberId)) return false
   if (db().users.some((u) => u.email === normaliseEmail(email))) return false
-  const member = memberId ? asRecord(db().teamMembers.find((m) => m.id === memberId)!) : undefined
-  if (member?.invite?.status === 'pending' && normaliseEmail(member.email) === normaliseEmail(email) && member.role === role) return false
-  return true
+  const member = memberId ? db().teamMembers.find((m) => m.id === memberId) : undefined
+  if (!member) return true
+  const emailChanged = normaliseEmail(member.email) !== normaliseEmail(email)
+  if (member.invite?.status === 'pending') return emailChanged || member.role !== role
+  return member.role === 'none' || emailChanged
 }
 
 function sendInviteNow(memberId: ID): void {
@@ -119,11 +217,10 @@ function sendInviteNow(memberId: ID): void {
   const by = actorName()
   const role = data.settings.permissionRoles.find((r) => r.id === member.role)?.name ?? member.role
   commit((d) => {
-    const m = d.teamMembers.find((x) => x.id === memberId) as TeamMemberRecord | undefined
-    if (!m) return
-    m.invite = { status: 'pending', sentAt: nowISO() }
-    m.inviteToken = token
+    const m = d.teamMembers.find((x) => x.id === memberId)
+    if (m) m.invite = { status: 'pending', sentAt: nowISO() }
   })
+  patchExtras(memberId, { inviteToken: token })
   queueMessage({
     clientId: null,
     to: member.email,
@@ -169,8 +266,9 @@ export async function createMember(input: MemberInput): Promise<{ member: TeamMe
   const data = db()
   const order = data.teamMembers.reduce((min, m) => Math.min(min, m.order), 0) - 1
   const at = nowISO()
-  const member: TeamMemberRecord = {
-    ...input,
+  const { core, extras } = splitInput(input)
+  const member = {
+    ...core,
     id: uid('tm'),
     email: input.email.trim(),
     archived: false,
@@ -178,15 +276,14 @@ export async function createMember(input: MemberInput): Promise<{ member: TeamMe
     rating: 0,
     reviewCount: 0,
     linkedCalendars: [],
-    createdAt: at,
-    updatedAt: at,
-  }
+  } as TeamMember
+  const invited = inviteWouldSend(null, member.role, member.email)
   commit((d) => {
     d.teamMembers.push(member)
   })
-  const invited = inviteWouldSend(member.id, member.role, member.email)
+  patchExtras(member.id, { ...extras, createdAt: at, updatedAt: at })
   if (invited) sendInviteNow(member.id)
-  return { member, invited }
+  return { member: asRecord(member), invited }
 }
 
 export async function updateMember(id: ID, input: Partial<MemberInput>): Promise<{ invited: boolean }> {
@@ -196,12 +293,17 @@ export async function updateMember(id: ID, input: Partial<MemberInput>): Promise
   validateMember({ firstName: input.firstName ?? current.firstName, email: input.email ?? current.email }, id)
   if (input.bookable !== undefined && bookableLimitReached(id, input.bookable)) throw new ApiError('plan_limit', 'team.billing.body')
   const invited = inviteWouldSend(id, input.role ?? current.role, input.email ?? current.email)
+  const { core, extras } = splitInput(input)
+  const legacy = legacyExtras(current)
   commit((d) => {
     const m = d.teamMembers.find((x) => x.id === id)
     if (!m) return
-    Object.assign(m, input, { updatedAt: nowISO() })
+    Object.assign(m, core)
+    stripLegacy(m)
     if (m.role === 'none' && m.invite?.status === 'pending') delete m.invite
   })
+  const stillPending = db().teamMembers.find((m) => m.id === id)?.invite?.status === 'pending'
+  patchExtras(id, { ...legacy, ...(readMemberExtras()[id] ?? {}), ...extras, updatedAt: nowISO(), ...(stillPending ? {} : { inviteToken: undefined }) })
   syncLinkedUser(id)
   if (invited) sendInviteNow(id)
   return { invited }
@@ -215,8 +317,9 @@ export async function archiveMember(id: ID): Promise<void> {
   await latency()
   commit((d) => {
     const m = d.teamMembers.find((x) => x.id === id)
-    if (m) Object.assign(m, { archived: true, updatedAt: nowISO() })
+    if (m) m.archived = true
   })
+  patchExtras(id, { updatedAt: nowISO() })
 }
 
 /** Unarchive runs immediately; calendar bookings come back disabled (team.md §1.4). */
@@ -224,8 +327,9 @@ export async function unarchiveMember(id: ID): Promise<void> {
   await latency()
   commit((d) => {
     const m = d.teamMembers.find((x) => x.id === id)
-    if (m) Object.assign(m, { archived: false, bookable: false, updatedAt: nowISO() })
+    if (m) Object.assign(m, { archived: false, bookable: false })
   })
+  patchExtras(id, { updatedAt: nowISO() })
 }
 
 export async function deleteMember(id: ID): Promise<void> {
@@ -238,6 +342,7 @@ export async function deleteMember(id: ID): Promise<void> {
     // Their login goes with them (the owner can't be deleted).
     d.users = d.users.filter((u) => u.teamMemberId !== id || u.role === 'owner')
   })
+  patchExtras(id, null)
 }
 
 export async function reorderMembers(ids: ID[]): Promise<void> {
@@ -253,7 +358,10 @@ export async function reorderMembers(ids: ID[]): Promise<void> {
 // ─── Invites ───────────────────────────────────────────────────────────────
 
 export function memberForInvite(token: string): TeamMemberRecord | undefined {
-  return db().teamMembers.map(asRecord).find((m) => m.inviteToken === token)
+  const extras = readMemberExtras()
+  return db()
+    .teamMembers.map((m) => asRecord(m, extras))
+    .find((m) => Boolean(token) && m.inviteToken === token)
 }
 
 /** Accepting an invite creates the staff login (SPEC §8). */
@@ -267,12 +375,10 @@ export async function acceptInvite(token: string, password: string): Promise<Use
   const user: User = { id: uid('u_inv'), email, password, firstName: member.firstName, lastName: member.lastName, role: member.role, teamMemberId: member.id, phone: member.phone }
   commit((d) => {
     d.users.push(user)
-    const m = d.teamMembers.find((x) => x.id === member.id) as TeamMemberRecord | undefined
-    if (m) {
-      m.invite = { status: 'accepted', sentAt: m.invite?.sentAt ?? nowISO(), userId: user.id }
-      delete m.inviteToken
-    }
+    const m = d.teamMembers.find((x) => x.id === member.id)
+    if (m) m.invite = { status: 'accepted', sentAt: m.invite?.sentAt ?? nowISO(), userId: user.id }
   })
+  patchExtras(member.id, { inviteToken: undefined })
   return user
 }
 
@@ -509,63 +615,114 @@ export async function deletePayAdjustment(id: ID): Promise<void> {
 export interface PayRunInput {
   periodStart: ISODate
   periodEnd: ISODate
+  /** One line per included member: what this run pays for each compensation type. */
   lines: PayRunLine[]
   method: PayRun['method']
   note?: string
   source: PayRun['source']
-  status: PayRun['status']
-  includes: PayRunRecord['includes']
-  memberMethods?: PayRunRecord['memberMethods']
-  locationId?: ID
+  meta: Omit<PayRunMeta, 'createdBy' | 'updatedAt'>
 }
 
-/** "Save and exit" / "Skip": keeps the pay run for later. */
-export async function savePayRunDraft(input: PayRunInput, id?: ID): Promise<PayRunRecord> {
+/** "Oct 5 – 11, 2026" (same format as the Pay runs page). */
+function periodLabel(from: ISODate, to: ISODate): string {
+  const a = parseISO(from)
+  const b = parseISO(to)
+  if (a.getFullYear() !== b.getFullYear()) return `${format(a, 'MMM d, yyyy')} – ${format(b, 'MMM d, yyyy')}`
+  if (a.getMonth() !== b.getMonth()) return `${format(a, 'MMM d')} – ${format(b, 'MMM d, yyyy')}`
+  return `${format(a, 'MMM d')} – ${format(b, 'd, yyyy')}`
+}
+
+const methodOf = (input: Pick<PayRunInput, 'method' | 'meta'>, memberId: ID) => input.meta.memberMethods[memberId] ?? input.method
+
+/**
+ * Keeps an unfinished pay run so it can be resumed from Pay runs:
+ * "Save and exit" (step 2) and "Skip" save a draft, "Needs review" saves it
+ * as needing review (team.md §6.4).
+ */
+export async function savePayRunDraft(input: PayRunInput, status: Exclude<PayRun['status'], 'completed'>, id?: ID): Promise<PayRun> {
   await latency()
-  const record: PayRunRecord = { ...input, id: id ?? uid('pr'), createdAt: nowISO(), createdBy: actorName() }
+  const existing = id ? db().payRuns.find((p) => p.id === id) : undefined
+  if (existing?.status === 'completed') throw new ApiError('closed', 'team.payRunNew.errors.completed')
+  const { meta, ...rest } = input
+  const record: PayRun = { ...rest, status, id: existing?.id ?? uid('pr'), createdAt: existing?.createdAt ?? nowISO() }
+  if (!record.note) delete record.note
   commit((d) => {
     const index = d.payRuns.findIndex((p) => p.id === record.id)
     if (index === -1) d.payRuns.push(record)
     else d.payRuns[index] = record
   })
+  writePayRunMeta(record.id, { ...meta, createdBy: readPayRunMeta()[record.id]?.createdBy ?? actorName(), updatedAt: nowISO() })
   return record
+}
+
+export async function deletePayRunDraft(id: ID): Promise<void> {
+  await latency(200, 400)
+  const run = db().payRuns.find((p) => p.id === id)
+  if (!run || run.status === 'completed') return
+  commit((d) => {
+    d.payRuns = d.payRuns.filter((p) => p.id !== id)
+  })
+  writePayRunMeta(id, null)
 }
 
 let pendingCode: { code: string; expires: number } | null = null
 
-/** Emails a 4-digit verification code to the owner (demo outbox). */
+/** The signed-in user (the code goes to their email), falling back to the owner. */
+function codeRecipient(): User {
+  const data = db()
+  const id = useSessionStore.getState().currentUserId
+  return data.users.find((u) => u.id === id) ?? data.users.find((u) => u.role === 'owner') ?? data.users[0]
+}
+
+/** Emails a 4-digit verification code to the signed-in user (demo outbox), valid for 5 minutes. */
 export async function requestPayRunCode(): Promise<{ to: string }> {
   await latency()
-  const data = db()
-  const owner = data.users.find((u) => u.role === 'owner') ?? data.users[0]
+  const user = codeRecipient()
   const code = String(1000 + Math.floor(Math.random() * 9000))
   pendingCode = { code, expires: Date.now() + 5 * 60 * 1000 }
   queueMessage({
     clientId: null,
-    to: owner.email,
-    toName: `${owner.firstName} ${owner.lastName}`,
+    to: user.email,
+    toName: `${user.firstName} ${user.lastName}`,
     channel: 'email',
     type: 'pay_run',
     subject: `Your verification code is ${code}`,
     body: `Use this code to complete your pay run on Innoweb Bookings:\n\n${code}\n\nIt expires in 5 minutes. If you didn't request it, you can ignore this email.`,
   })
-  return { to: owner.email }
+  return { to: user.email }
 }
 
-export async function completePayRun(input: Omit<PayRunInput, 'status'> & { code: string; registerSessionId?: ID }, draftId?: ID): Promise<PayRunRecord> {
+const KIND_LABELS: Record<PayKindKey, string> = { wages: 'Wages', commissions: 'Commissions', tips: 'Tips', other: 'Other' }
+const METHOD_LABELS: Record<PayRun['method'], string> = { manual: 'Paid manually', cash_register: 'Paid from cash register', wallet: 'Paid from your Innoweb wallet' }
+
+/**
+ * Complete a pay run after the emailed code is entered: takes cash out of the
+ * register for members paid from it, debits the wallet for members paid from
+ * it, records the run as completed (it then shows in Settlements and as Paid
+ * in each breakdown) and emails each member their earnings statement.
+ */
+export async function completePayRun(input: PayRunInput & { code: string }, draftId?: ID): Promise<PayRun> {
   await latency()
-  if (!pendingCode || pendingCode.code !== input.code || Date.now() > pendingCode.expires) throw new ApiError('invalid_code', 'team.payRunNew.code.invalid')
+  if (!pendingCode || pendingCode.code !== input.code.trim() || Date.now() > pendingCode.expires) throw new ApiError('invalid_code', 'team.payRunNew.code.invalid')
+  const lines = input.lines.filter((l) => l.paid > 0)
+  if (!lines.length) throw new ApiError('validation', 'team.payRunNew.errors.nothingToPay')
+  const cashTotal = round2(lines.filter((l) => methodOf(input, l.teamMemberId) === 'cash_register').reduce((s, l) => s + l.paid, 0))
+  const walletTotal = round2(lines.filter((l) => methodOf(input, l.teamMemberId) === 'wallet').reduce((s, l) => s + l.paid, 0))
+  const data = db()
+  const session = cashTotal > 0 && input.meta.registerId ? currentSession(input.meta.registerId) : undefined
+  if (cashTotal > 0 && !session) throw new ApiError('register_closed', 'team.payRunNew.errors.registerClosed')
+  if (session && cashTotal > expectedCash(session) + 0.004) throw new ApiError('not_enough_cash', 'team.payRunNew.errors.notEnoughCash')
+  if (walletTotal > data.wallet.available + 0.004) throw new ApiError('not_enough_wallet', 'team.payRunNew.errors.notEnoughWallet')
   pendingCode = null
-  if (input.method === 'cash_register' && input.registerSessionId) {
-    const cashTotal = round2(input.lines.filter((l) => (input.memberMethods?.[l.teamMemberId] ?? input.method) === 'cash_register').reduce((s, l) => s + l.paid, 0))
-    if (cashTotal > 0) await cashMovement(input.registerSessionId, 'cash_out', 'Pay team member tips', cashTotal, input.note)
-  }
+
+  if (session && cashTotal > 0) await cashMovement(session.id, 'cash_out', 'Pay team member tips', cashTotal, input.note)
   const at = nowISO()
-  const { code: _code, registerSessionId: _session, ...rest } = input
+  const by = actorName()
+  const existing = draftId ? data.payRuns.find((p) => p.id === draftId && p.status !== 'completed') : undefined
+  const { meta, code: _code, ...rest } = input
   void _code
-  void _session
-  const record: PayRunRecord = { ...rest, id: draftId ?? uid('pr'), status: 'completed', createdAt: at, completedAt: at, createdBy: actorName() }
-  const walletTotal = round2(input.lines.filter((l) => (input.memberMethods?.[l.teamMemberId] ?? input.method) === 'wallet').reduce((s, l) => s + l.paid, 0))
+  const record: PayRun = { ...rest, lines, id: existing?.id ?? uid('pr'), status: 'completed', createdAt: existing?.createdAt ?? at, completedAt: at }
+  if (!record.note) delete record.note
   commit((d) => {
     const index = d.payRuns.findIndex((p) => p.id === record.id)
     if (index === -1) d.payRuns.push(record)
@@ -573,15 +730,27 @@ export async function completePayRun(input: Omit<PayRunInput, 'status'> & { code
     if (walletTotal > 0) {
       d.wallet.balance = round2(d.wallet.balance - walletTotal)
       d.wallet.available = round2(d.wallet.available - walletTotal)
-      d.wallet.transactions.unshift({ id: uid('wt'), at, type: 'payout', description: 'Team pay run', amount: -walletTotal })
+      d.wallet.transactions.unshift({ id: uid('wt'), at, type: 'payout', description: `Team pay run · ${periodLabel(input.periodStart, input.periodEnd)}`, amount: -walletTotal })
     }
   })
-  return record
-}
+  writePayRunMeta(record.id, { ...meta, review: 'approved', createdBy: readPayRunMeta()[record.id]?.createdBy ?? by, updatedAt: at })
 
-export async function deletePayRunDraft(id: ID): Promise<void> {
-  await latency(200, 400)
-  commit((d) => {
-    d.payRuns = d.payRuns.filter((p) => !(p.id === id && p.status !== 'completed'))
-  })
+  // Earnings statement for each member paid (team.md §6 intro: "Share detailed earning reports").
+  const period = periodLabel(input.periodStart, input.periodEnd)
+  const workspace = data.workspace.name
+  for (const line of lines) {
+    const member = data.teamMembers.find((m) => m.id === line.teamMemberId)
+    if (!member?.email.trim()) continue
+    const parts = (Object.keys(KIND_LABELS) as PayKindKey[]).filter((k) => line[k] !== 0).map((k) => `${KIND_LABELS[k]}: ${money2(line[k])}`)
+    queueMessage({
+      clientId: null,
+      to: member.email,
+      toName: `${member.firstName} ${member.lastName}`.trim(),
+      channel: 'email',
+      type: 'pay_run',
+      subject: `Your pay for ${period} from ${workspace}`,
+      body: `Hi ${member.firstName},\n\n${workspace} has paid you ${money2(line.paid)} for the pay period ${period}.\n\n${parts.join('\n')}\nTotal paid: ${money2(line.paid)}\nPayment method: ${METHOD_LABELS[methodOf(input, line.teamMemberId)]}${input.note ? `\n\nNote: ${input.note}` : ''}\n\nSent by ${by} on Innoweb Bookings.`,
+    })
+  }
+  return record
 }

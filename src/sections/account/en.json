@@ -12,10 +12,7 @@
     "learnMore": "Learn more",
     "setUpNow": "Set up now",
     "copy": "Copy",
-    "copied": "Copied",
-    "gotIt": "Got it",
-    "disabledTitle": "Not available in the demo",
-    "disabledBody": "{{action}} is disabled in this demo so the shared workspace stays usable for everyone. In a live account this permanently changes your data, so we'd ask you to confirm by email first."
+    "copied": "Copied"
   },
   "profile": {
     "title": "My profile",
@@ -282,8 +279,22 @@
       "basic": "Basic access",
       "none": "No access"
     },
-    "addTitle": "Add a workspace",
-    "addBody": "Creating a new business or joining another workspace with an invite link is disabled in this demo. You can keep exploring Studio Aliados with every feature unlocked."
+    "pending": "Pending",
+    "createBody": "Set up another business on Innoweb. We'll email you a link to finish setting it up.",
+    "createAction": "Create workspace",
+    "businessName": "Business name",
+    "businessNamePlaceholder": "e.g. Studio Aliados Braga",
+    "joinBody": "Paste the invite link or code you received from the workspace owner.",
+    "joinAction": "Send request",
+    "invite": "Invite link or code",
+    "invitePlaceholder": "https://innoweb.app/join/… or ABC123",
+    "codeError": "Enter a valid invite link or a code of at least 6 characters",
+    "joinTitle": "Invite {{code}}",
+    "joinSentToast": "Request sent to the workspace owner",
+    "setupPending": "Setup pending",
+    "setupPendingBody": "Created {{date}}. Open the link we emailed you to finish setting it up.",
+    "requestSent": "Request sent",
+    "requestSentBody": "Requested {{date}}. You'll get an email when the owner accepts."
   },
   "settings": {
     "breadcrumb": "Workspaces",
@@ -326,7 +337,18 @@
       "title": "Workspace notifications",
       "summaryAll": "You have chosen to be notified about <b>activity concerning all team members</b>, and have <b>{{count}} notifications</b> settings turned on.",
       "summaryMe": "You have chosen to be notified about <b>activity concerning only you</b>, and have <b>{{count}} notifications</b> settings turned on."
-    }
+    },
+    "transferBody": "The new owner manages billing, permissions and workspace settings. They'll get an email to accept, and you stay the owner until they do.",
+    "transferAction": "Send transfer request",
+    "newOwner": "New owner",
+    "newOwnerHint": "Only people with a login to this workspace can become the owner",
+    "noCandidates": "Add a team member with a login first, then transfer the workspace to them.",
+    "transferSent": "Transfer request sent to {{name}}",
+    "transferPending": "Ownership transfer to {{name}} completes once they accept the emailed invite.",
+    "deleteTitle": "Delete workspace?",
+    "deleteBody": "Deleting {{name}} permanently removes its clients, appointments, sales and team. We'll email you a link to confirm, and nothing is deleted until you do.",
+    "typeName": "Type {{name}} to continue",
+    "deletePending": "Open the link we emailed to {{email}} to delete the workspace, or cancel the request to keep it."
   },
   "prefs": {
     "title": "Notification preferences",
@@ -372,45 +394,150 @@
       "cancelled": "Cancelled"
     },
     "sections": {
-      "appointments": { "title": "Appointments", "body": "Receive notifications when appointments are created or changed" },
-      "sales": { "title": "Sales", "body": "Receive notifications about sales and tips" },
-      "reviews": { "title": "Reviews", "body": "Receive notifications when clients leave reviews" },
-      "messaging": { "title": "Messaging", "body": "Receive notifications about client and team conversations" },
-      "inventory": { "title": "Inventory", "body": "Receive notifications about stock levels" },
-      "insights": { "title": "Insights", "body": "Receive business performance summaries. You will only receive this if you have access to reports." }
+      "appointments": {
+        "title": "Appointments",
+        "body": "Receive notifications when appointments are created or changed"
+      },
+      "sales": {
+        "title": "Sales",
+        "body": "Receive notifications about sales and tips"
+      },
+      "reviews": {
+        "title": "Reviews",
+        "body": "Receive notifications when clients leave reviews"
+      },
+      "messaging": {
+        "title": "Messaging",
+        "body": "Receive notifications about client and team conversations"
+      },
+      "inventory": {
+        "title": "Inventory",
+        "body": "Receive notifications about stock levels"
+      },
+      "insights": {
+        "title": "Insights",
+        "body": "Receive business performance summaries. You will only receive this if you have access to reports."
+      }
     },
     "groups": {
-      "clientActivity": { "title": "Client activity", "body": "When clients book and manage appointments online" },
-      "teamActivity": { "title": "Team member activity", "body": "When team members take actions in the calendar" },
-      "clientConnect": { "title": "Client Connect", "body": "Conversations with your clients" },
-      "teamConnect": { "title": "Team Connect", "body": "Conversations with your team" }
+      "clientActivity": {
+        "title": "Client activity",
+        "body": "When clients book and manage appointments online"
+      },
+      "teamActivity": {
+        "title": "Team member activity",
+        "body": "When team members take actions in the calendar"
+      },
+      "clientConnect": {
+        "title": "Client Connect",
+        "body": "Conversations with your clients"
+      },
+      "teamConnect": {
+        "title": "Team Connect",
+        "body": "Conversations with your team"
+      }
     },
     "rows": {
-      "newAppointment": { "title": "New appointment", "body": "When a client books a new appointment online" },
-      "appointmentConfirmed": { "title": "Appointment confirmed", "body": "When a client confirms an appointment with a card or deposit" },
-      "clientReschedules": { "title": "Appointment reschedules", "body": "When a client reschedules an appointment online" },
-      "clientCancellations": { "title": "Appointment cancellations", "body": "When a client cancels an appointment online" },
-      "clientWaitlist": { "title": "Waitlist entries", "body": "When a client joins the waitlist online" },
-      "teamNew": { "title": "New appointments", "body": "When a team member books a new appointment" },
-      "teamReschedules": { "title": "Appointment reschedules", "body": "When a team member reschedules an appointment" },
-      "teamCancellations": { "title": "Appointment cancellations", "body": "When a team member cancels an appointment" },
-      "teamNoShows": { "title": "Appointment no-shows", "body": "When a team member marks an appointment as a no-show" },
-      "teamStatusUpdates": { "title": "Appointment status updates", "body": "When an appointment changes to one of {{statuses}}." },
-      "teamWaitlist": { "title": "Waitlist entries", "body": "When a team member creates a new waitlist entry" },
-      "onlineProductSales": { "title": "Online product sales", "body": "When a client buys a product online" },
-      "onlineMembershipSales": { "title": "Online membership and package sales", "body": "When a client buys a membership or package online" },
-      "tips": { "title": "Tips", "body": "When a client leaves {{who}} a tip." },
-      "newReview": { "title": "New review received", "body": "When a client leaves {{who}} a review." },
-      "newClientMessage": { "title": "New client message", "body": "When a client sends you a message" },
-      "directMessages": { "title": "Direct messages", "body": "When a team member sends you a direct message" },
-      "mentions": { "title": "Mentions", "body": "When you're @mentioned in a channel" },
-      "threadReplies": { "title": "Thread replies", "body": "When someone replies to a thread you follow" },
-      "channelMessage": { "title": "Channel message", "body": "When a new message is posted in a channel you're in" },
-      "lowStockAlerts": { "title": "Low stock alerts", "body": "When a product reaches its low stock level" },
-      "lowStockSummary": { "title": "Low stock summary", "body": "Receive a {{frequency}} summary of products with low stock." },
-      "dailySummary": { "title": "Daily summary", "body": "Yesterday's sales, appointments and occupancy" },
-      "weeklySummary": { "title": "Weekly summary", "body": "Last week's performance compared with the week before" },
-      "monthlySummary": { "title": "Monthly summary", "body": "Last month's performance compared with the month before" }
+      "newAppointment": {
+        "title": "New appointment",
+        "body": "When a client books a new appointment online"
+      },
+      "appointmentConfirmed": {
+        "title": "Appointment confirmed",
+        "body": "When a client confirms an appointment with a card or deposit"
+      },
+      "clientReschedules": {
+        "title": "Appointment reschedules",
+        "body": "When a client reschedules an appointment online"
+      },
+      "clientCancellations": {
+        "title": "Appointment cancellations",
+        "body": "When a client cancels an appointment online"
+      },
+      "clientWaitlist": {
+        "title": "Waitlist entries",
+        "body": "When a client joins the waitlist online"
+      },
+      "teamNew": {
+        "title": "New appointments",
+        "body": "When a team member books a new appointment"
+      },
+      "teamReschedules": {
+        "title": "Appointment reschedules",
+        "body": "When a team member reschedules an appointment"
+      },
+      "teamCancellations": {
+        "title": "Appointment cancellations",
+        "body": "When a team member cancels an appointment"
+      },
+      "teamNoShows": {
+        "title": "Appointment no-shows",
+        "body": "When a team member marks an appointment as a no-show"
+      },
+      "teamStatusUpdates": {
+        "title": "Appointment status updates",
+        "body": "When an appointment changes to one of {{statuses}}."
+      },
+      "teamWaitlist": {
+        "title": "Waitlist entries",
+        "body": "When a team member creates a new waitlist entry"
+      },
+      "onlineProductSales": {
+        "title": "Online product sales",
+        "body": "When a client buys a product online"
+      },
+      "onlineMembershipSales": {
+        "title": "Online membership and package sales",
+        "body": "When a client buys a membership or package online"
+      },
+      "tips": {
+        "title": "Tips",
+        "body": "When a client leaves {{who}} a tip."
+      },
+      "newReview": {
+        "title": "New review received",
+        "body": "When a client leaves {{who}} a review."
+      },
+      "newClientMessage": {
+        "title": "New client message",
+        "body": "When a client sends you a message"
+      },
+      "directMessages": {
+        "title": "Direct messages",
+        "body": "When a team member sends you a direct message"
+      },
+      "mentions": {
+        "title": "Mentions",
+        "body": "When you're @mentioned in a channel"
+      },
+      "threadReplies": {
+        "title": "Thread replies",
+        "body": "When someone replies to a thread you follow"
+      },
+      "channelMessage": {
+        "title": "Channel message",
+        "body": "When a new message is posted in a channel you're in"
+      },
+      "lowStockAlerts": {
+        "title": "Low stock alerts",
+        "body": "When a product reaches its low stock level"
+      },
+      "lowStockSummary": {
+        "title": "Low stock summary",
+        "body": "Receive a {{frequency}} summary of products with low stock."
+      },
+      "dailySummary": {
+        "title": "Daily summary",
+        "body": "Yesterday's sales, appointments and occupancy"
+      },
+      "weeklySummary": {
+        "title": "Weekly summary",
+        "body": "Last week's performance compared with the week before"
+      },
+      "monthlySummary": {
+        "title": "Monthly summary",
+        "body": "Last month's performance compared with the month before"
+      }
     },
     "whoAnyone": "anyone",
     "whoMe": "you"
@@ -418,9 +545,18 @@
   "personal": {
     "title": "Account settings",
     "subtitle": "Manage settings for your personal area.",
-    "info": { "title": "Personal info", "body": "Customize your personal details and how we can contact you" },
-    "security": { "title": "Login & security", "body": "Update your password and secure your account" },
-    "appearance": { "title": "Appearance", "body": "Select the look and feel of your platform" }
+    "info": {
+      "title": "Personal info",
+      "body": "Customize your personal details and how we can contact you"
+    },
+    "security": {
+      "title": "Login & security",
+      "body": "Update your password and secure your account"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "body": "Select the look and feel of your platform"
+    }
   },
   "info": {
     "title": "Personal info",
@@ -497,7 +633,10 @@
     "signOutAllBody": "You'll be signed out everywhere, including this device, and will need to log in again.",
     "deleteTitle": "Delete account",
     "deleteBody": "You will delete all your personal info and won't be able to retrieve it. Are you sure you want to delete your account?",
-    "deleteAction": "Delete your account"
+    "deleteAction": "Delete your account",
+    "deleteConfirmTitle": "Delete your account?",
+    "deleteConfirmBody": "We'll email a confirmation link to {{email}}. Your account and personal info are deleted only after you confirm.",
+    "deletePending": "Open the link we emailed to {{email}} to delete your account."
   },
   "appearance": {
     "title": "Appearance",
@@ -509,5 +648,11 @@
     "system": "System",
     "systemHint": "Matches your device settings",
     "saved": "Theme updated"
+  },
+  "requests": {
+    "pending": "Waiting for confirmation since {{date}}.",
+    "cancel": "Cancel request",
+    "canceled": "Request canceled",
+    "emailed": "We've emailed {{email}} a link to confirm"
   }
 }

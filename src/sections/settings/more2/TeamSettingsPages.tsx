@@ -8,9 +8,9 @@ import { Button, Checkbox, Field, Select, Switch } from '@/components/ui'
 import { now } from '@/lib/time'
 import { useDb } from '@/store/db'
 import type { Settings, Weekday } from '@/types'
-import { SettingsModal } from '../components/SettingsModal'
-import { EditCard, SectionHeading, SettingsPage, SummaryList } from '../components/ui'
-import { useAction } from '../components/useAction'
+import { FullModal } from '../components/FullModal'
+import { EditCard, FormCard, FormStack, SettingsPage, SummaryList } from '../components/ui'
+import { useAction, usePending } from '../components/useAction'
 import { EXTRA_RADIUS, EXTRA_STARTS_FROM } from '../team/data'
 import { StateChip } from '../team/parts'
 
@@ -20,7 +20,7 @@ const RADII = [50, 100, 200, 500, 1000]
 function ViewButton({ to, children }: { to: string; children: ReactNode }) {
   const navigate = useNavigate()
   return (
-    <Button className="rounded-full px-5" iconRight={<ExternalLink size={14} aria-hidden />} onClick={() => navigate(to)}>
+    <Button iconRight={<ExternalLink size={14} aria-hidden />} onClick={() => navigate(to)}>
       {children}
     </Button>
   )
@@ -75,60 +75,48 @@ function TimesheetsModal({ value, radius, onClose }: { value: Settings['timeshee
       onClose,
     )
   return (
-    <SettingsModal
-      open
-      onClose={onClose}
-      size="lg"
-      title={t('settings.more2.timesheets.modalTitle')}
-      footer={
-        <>
-          <p className="mr-auto text-small text-muted">{t('settings.more2.timesheets.footerNote')}</p>
-          <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          <Button variant="primary" loading={busy} onClick={() => void save()} data-testid="timesheets-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-6">
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <h3 className="font-display text-title-3 text-ink">{t('settings.more2.timesheets.proximity')}</h3>
-            <StateChip on={draft.proximity} onLabel={t('settings.common.on')} offLabel={t('settings.common.off')} />
-          </div>
-          <p className="text-body text-muted">
-            {t('settings.more2.timesheets.proximityBody')}{' '}
-            <button
-              type="button"
-              className="text-body-strong text-primary hover:underline"
-              onClick={() => {
-                onClose()
-                navigate(LOCATIONS_PATH)
-              }}
-            >
-              {t('settings.more2.timesheets.businessLocation')}
-            </button>
-          </p>
+    <FullModal open onClose={onClose} title={t('settings.more2.timesheets.modalTitle')} onSave={() => void save()} saving={busy} testId="timesheets-modal">
+      <FormStack>
+        <FormCard
+          title={
+            <span className="flex items-center gap-2">
+              {t('settings.more2.timesheets.proximity')}
+              <StateChip on={draft.proximity} onLabel={t('settings.common.on')} offLabel={t('settings.common.off')} />
+            </span>
+          }
+          description={
+            <>
+              {t('settings.more2.timesheets.proximityBody')}{' '}
+              <button
+                type="button"
+                className="text-body-strong text-primary hover:underline"
+                onClick={() => {
+                  onClose()
+                  navigate(LOCATIONS_PATH)
+                }}
+              >
+                {t('settings.more2.timesheets.businessLocation')}
+              </button>
+            </>
+          }
+        >
           <Checkbox checked={draft.proximity} onChange={(v) => set({ proximity: v })} label={t('settings.more2.timesheets.enableLocation')} />
           {draft.proximity && (
             <Field label={t('settings.more2.timesheets.distance')} className="ml-8 max-w-xs">
-              {(id) => (
-                <Select id={id} value={String(distance)} onChange={(e) => setDistance(Number(e.target.value))} options={RADII.map((r) => ({ value: String(r), label: t('settings.more2.timesheets.metres', { count: r }) }))} />
-              )}
+              {(id) => <Select id={id} value={String(distance)} onChange={(e) => setDistance(Number(e.target.value))} options={RADII.map((r) => ({ value: String(r), label: t('settings.more2.timesheets.metres', { count: r }) }))} />}
             </Field>
           )}
-        </section>
-        <hr className="border-line" />
-        <section className="flex flex-col gap-3">
-          <SectionHeading title={t('settings.more2.timesheets.automations')} description={t('settings.more2.timesheets.automationsBody')} />
-          <p className="mt-1 text-body-strong text-ink">{t('settings.more2.timesheets.scheduledShifts')}</p>
+        </FormCard>
+        <FormCard title={t('settings.more2.timesheets.automations')} description={t('settings.more2.timesheets.automationsBody')}>
+          <p className="text-body-strong text-ink">{t('settings.more2.timesheets.scheduledShifts')}</p>
           <Checkbox checked={draft.autoClockIn} onChange={(v) => set({ autoClockIn: v })} label={t('settings.more2.timesheets.autoIn')} hint={t('settings.more2.timesheets.autoInHint')} />
           <Checkbox checked={draft.autoClockOut} onChange={(v) => set({ autoClockOut: v })} label={t('settings.more2.timesheets.autoOut')} hint={t('settings.more2.timesheets.autoOutHint')} />
-          <p className="mt-1 text-body-strong text-ink">{t('settings.more2.timesheets.scheduledBreaks')}</p>
+          <p className="text-body-strong text-ink">{t('settings.more2.timesheets.scheduledBreaks')}</p>
           <Checkbox checked={draft.autoBreaks} onChange={(v) => set({ autoBreaks: v })} label={t('settings.more2.timesheets.autoBreaks')} hint={t('settings.more2.timesheets.autoBreaksHint')} />
-        </section>
-      </div>
-    </SettingsModal>
+        </FormCard>
+        <p className="text-small text-muted">{t('settings.more2.timesheets.footerNote')}</p>
+      </FormStack>
+    </FullModal>
   )
 }
 
@@ -168,21 +156,11 @@ function ShiftsModal({ value, onClose }: { value: boolean; onClose: () => void }
       onClose,
     )
   return (
-    <SettingsModal
-      open
-      onClose={onClose}
-      title={t('settings.more2.shifts.modalTitle')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          <Button variant="primary" loading={busy} onClick={() => void save()} data-testid="shifts-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
-    >
-      <Checkbox checked={auto} onChange={setAuto} label={t('settings.more2.shifts.autoCreate')} hint={t('settings.more2.shifts.autoCreateHint')} />
-    </SettingsModal>
+    <FullModal open onClose={onClose} title={t('settings.more2.shifts.modalTitle')} onSave={() => void save()} saving={busy} testId="shifts-modal">
+      <FormCard>
+        <Checkbox checked={auto} onChange={setAuto} label={t('settings.more2.shifts.autoCreate')} hint={t('settings.more2.shifts.autoCreateHint')} />
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -293,23 +271,9 @@ function PayRunsModal({ value, startsFrom, onClose }: { value: PayRuns; startsFr
   )
 
   return (
-    <SettingsModal
-      open
-      onClose={onClose}
-      size="lg"
-      title={t('settings.more2.payRuns.modalTitle')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          <Button variant="primary" loading={busy} onClick={() => void save()} data-testid="pay-runs-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-6">
-        <section className="flex flex-col gap-4">
-          <SectionHeading title={t('settings.more2.payRuns.period')} description={t('settings.more2.payRuns.periodBody')} />
+    <FullModal open onClose={onClose} title={t('settings.more2.payRuns.modalTitle')} onSave={() => void save()} saving={busy} testId="pay-runs-modal">
+      <FormStack>
+        <FormCard title={t('settings.more2.payRuns.period')} description={t('settings.more2.payRuns.periodBody')}>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label={t('settings.more2.payRuns.frequency')}>
               {(id) => <Select id={id} value={draft.frequency} onChange={(e) => set({ frequency: e.target.value as PayRuns['frequency'] })} options={FREQUENCIES.map((f) => ({ value: f, label: t(`settings.more2.payRuns.freq.${f}`) }))} />}
@@ -356,15 +320,13 @@ function PayRunsModal({ value, startsFrom, onClose }: { value: PayRuns; startsFr
               </div>
             </dl>
           </div>
-        </section>
-        <hr className="border-line" />
-        <section className="flex flex-col gap-3">
-          <SectionHeading title={t('settings.more2.payRuns.automatic')} description={t('settings.more2.payRuns.automaticBody')} />
+        </FormCard>
+        <FormCard title={t('settings.more2.payRuns.automatic')} description={t('settings.more2.payRuns.automaticBody')}>
           {autoRow(t('settings.more2.payRuns.autoPay'), draft.autoPay, (v) => set({ autoPay: v }))}
           {autoRow(t('settings.more2.payRuns.autoTips'), draft.autoTips, (v) => set({ autoTips: v }))}
-        </section>
-      </div>
-    </SettingsModal>
+        </FormCard>
+      </FormStack>
+    </FullModal>
   )
 }
 
@@ -377,14 +339,17 @@ export function CommissionsSettingsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const commissions = useDb((s) => s.settings.commissions)
-  const [busy, run] = useAction()
+  const [, run] = useAction()
+  const [shown, pending] = usePending<string>()
   const toggle = (key: string, on: boolean) =>
-    run(
-      () =>
-        updateSettings((s) => {
-          s.commissions[key] = on
-        }),
-      t('settings.more2.commissions.toast'),
+    pending(key, on, () =>
+      run(
+        () =>
+          updateSettings((s) => {
+            s.commissions[key] = on
+          }),
+        t('settings.more2.commissions.toast'),
+      ),
     )
   return (
     <SettingsPage title={t('settings.more2.commissions.title')} description={t('settings.more2.commissions.description')} learnMore="Commissions">
@@ -392,8 +357,7 @@ export function CommissionsSettingsPage() {
         {COMMISSION_KEYS.map((key) => (
           <Checkbox
             key={key}
-            checked={Boolean(commissions[key])}
-            disabled={busy}
+            checked={shown(key, Boolean(commissions[key]))}
             onChange={(v) => void toggle(key, v)}
             label={t(`settings.more2.commissions.items.${key}.label`)}
             hint={t(`settings.more2.commissions.items.${key}.hint`)}

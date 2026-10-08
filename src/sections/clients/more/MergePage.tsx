@@ -211,7 +211,7 @@ function ConfirmMerge({ keep, others, onClose, onDone }: { keep: Client; others:
       )
       onDone()
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e))
+      toast(e instanceof Error ? e.message : String(e), 'error')
       setSaving(false)
     }
   }

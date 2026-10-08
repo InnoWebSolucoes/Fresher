@@ -47,9 +47,11 @@ function RepeatingForm({ locationId, memberId, date }: { locationId: string; mem
   const { member, location, patterns } = useDb(
     useShallow((s) => ({ member: s.teamMembers.find((m) => m.id === memberId)!, location: s.locations.find((l) => l.id === locationId)!, patterns: s.shiftPatterns })),
   )
-  const existing = useMemo(() => {
+  // The pattern in force on this date; otherwise the latest one, used only to prefill the days.
+  const { existing, covering } = useMemo(() => {
     const mine = patterns.filter((p) => p.teamMemberId === memberId && p.locationId === locationId)
-    return mine.find((p) => p.startDate <= date && (!p.endDate || date <= p.endDate)) ?? mine.sort((a, b) => b.startDate.localeCompare(a.startDate))[0]
+    const current = mine.find((p) => p.startDate <= date && (!p.endDate || date <= p.endDate))
+    return { existing: current ?? [...mine].sort((a, b) => b.startDate.localeCompare(a.startDate))[0], covering: current }
   }, [patterns, memberId, locationId, date])
 
   const [scheduleType, setScheduleType] = useState<1 | 2 | 3 | 4>(existing?.scheduleType ?? 1)
@@ -61,8 +63,8 @@ function RepeatingForm({ locationId, memberId, date }: { locationId: string; mem
   })
   const tomorrow = shiftDate(todayISO(), 1)
   const [startDate, setStartDate] = useState(date > tomorrow ? date : tomorrow)
-  const [ends, setEnds] = useState<'' | 'never' | 'date'>(existing?.endDate ? 'date' : existing ? 'never' : '')
-  const [endDate, setEndDate] = useState(existing?.endDate ?? '')
+  const [ends, setEnds] = useState<'' | 'never' | 'date'>(covering?.endDate ? 'date' : covering ? 'never' : '')
+  const [endDate, setEndDate] = useState(covering?.endDate ?? '')
   const [saving, setSaving] = useState(false)
   const [touched, setTouched] = useState(false)
 

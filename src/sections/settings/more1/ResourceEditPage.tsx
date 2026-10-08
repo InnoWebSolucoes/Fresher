@@ -9,7 +9,8 @@ import { useLocations, useSettings } from '../hooks'
 import { ColorSwatches } from '../components/pickers'
 import { useAction } from '../components/useAction'
 import { ResourceTypeModal } from '../scheduling/ResourceTypeModal'
-import { FieldError, FormCard, FormHeading, FormStack, MultiSelect, OverlayOptions, RadioRow, deleteItem } from '../scheduling/shared'
+import { FieldError, FormHeading, MultiSelect, OverlayOptions, RadioRow, deleteItem } from '../scheduling/shared'
+import { FormCard, FormStack } from '../components/ui'
 import { CLOCK_TIMES, RESOURCE_SUGGESTIONS, formatClock, orderedWeek, weekdayName } from '../scheduling/options'
 import { M } from './shared'
 
@@ -144,7 +145,7 @@ function ResourceForm({ resource }: { resource: ResourceRecord | null }) {
       actions={
         <>
           {resource && <OverlayOptions groups={[{ items: [deleteItem(t('settings.common.delete'), () => void remove())] }]} />}
-          <Button variant="primary" className="rounded-full px-6" loading={saving} onClick={save} data-testid="resource-save">
+          <Button variant="primary" className="px-6" loading={saving} onClick={save} data-testid="resource-save">
             {t('settings.common.save')}
           </Button>
         </>
@@ -152,7 +153,7 @@ function ResourceForm({ resource }: { resource: ResourceRecord | null }) {
     >
       <div className="mb-4 flex gap-2 md:hidden">
         {(['basic', 'availability'] as const).map((s) => (
-          <Button key={s} size="sm" variant={section === s ? 'primary' : 'secondary'} className="rounded-full" onClick={() => setParams(s === 'basic' ? {} : { section: s }, { replace: true })}>
+          <Button key={s} size="sm" variant={section === s ? 'primary' : 'secondary'} onClick={() => setParams(s === 'basic' ? {} : { section: s }, { replace: true })}>
             {t(`${R}.${s}`)}
           </Button>
         ))}

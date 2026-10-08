@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Chip, confirm, IntroPage, Menu, Modal, Page, PageHeader, PageSkeleton, RadioGroup, Select, Switch, toast, usePageLoading } from '@/components/ui'
 import { useDb } from '@/store/db'
-import { connectFacebook, disconnectFacebook, facebookSignIn, useOnlineState } from '@/api/online'
+import { connectFacebook, disconnectFacebook, facebookSignIn, useFacebookConnection } from '@/api/online'
 import { fmtDateTime } from '@/lib/format'
 import type { Location } from '@/types'
 import { addressLine, PhoneArt, ProfileGateModal, sampleImage } from './shared'
@@ -29,7 +29,7 @@ export function MarketplaceProfilePage() {
           body={t('online.profile.intro.subtitle')}
           bullets={[t('online.profile.intro.b1'), t('online.profile.intro.b2'), t('online.profile.intro.b3')]}
           primary={{ label: t('online.common.startNow'), onClick: () => navigate(wizardUrl(firstUnlisted)) }}
-          art={<PhoneArt name={firstUnlisted.name} lines={[t('online.profile.art.instant'), t('online.profile.art.pay'), t('online.profile.art.access')]} />}
+          art={<PhoneArt name={firstUnlisted.name} city={firstUnlisted.address.city} lines={[t('online.profile.art.instant'), t('online.profile.art.pay'), t('online.profile.art.access')]} />}
         />
       ) : (
         <PageHeader title={t('online.profile.title')} subtitle={t('online.profile.subtitle')} />
@@ -88,7 +88,7 @@ export function FacebookSetupPage() {
   const navigate = useNavigate()
   const loading = usePageLoading()
   const locations = useDb((s) => s.locations)
-  const { facebook } = useOnlineState()
+  const facebook = useFacebookConnection()
   const [gate, setGate] = useState(false)
   const [flow, setFlow] = useState<null | 'signin' | 'pick'>(null)
   const [pages, setPages] = useState<string[]>([])
@@ -185,7 +185,7 @@ export function FacebookSetupPage() {
         body={t('online.facebook.introBody')}
         bullets={[t('online.facebook.b1'), t('online.facebook.b2'), t('online.facebook.b3')]}
         primary={{ label: t('online.facebook.setUpNow'), onClick: () => void start(), loading: flow === 'signin' }}
-        art={<PhoneArt name={locations[0]?.name ?? ''} lines={[t('online.facebook.art1'), t('online.facebook.art2')]} />}
+        art={<PhoneArt name={locations[0]?.name ?? ''} city={locations[0]?.address.city} lines={[t('online.facebook.art1'), t('online.facebook.art2')]} />}
       />
       <ProfileGateModal open={gate} onClose={() => setGate(false)} title={t('online.facebook.gateTitle')} locations={locations} />
       <Modal

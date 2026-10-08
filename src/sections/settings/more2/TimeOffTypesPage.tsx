@@ -6,9 +6,10 @@ import { Button, Field, TextInput, confirm } from '@/components/ui'
 import { uid } from '@/lib/ids'
 import { db, useDb } from '@/store/db'
 import type { TimeOffType } from '@/types'
+import { FullModal } from '../components/FullModal'
 import { OrderModal } from '../components/OrderModal'
-import { SettingsModal } from '../components/SettingsModal'
-import { ActionsPill, ListCard, ListRow, PillMenu, SettingsPage } from '../components/ui'
+import { ActionsPill, FormCard, ListCard, ListRow, LockMark, ModalForm, PillMenu, SettingsPage } from '../components/ui'
+import { OverlayOptions, deleteItem } from '../scheduling/shared'
 import { useAction } from '../components/useAction'
 
 type ModalState = { kind: 'add' } | { kind: 'edit'; type: TimeOffType } | { kind: 'order' } | null
@@ -25,7 +26,7 @@ export function TimeOffTypesPage() {
     const target = index + dir
     if (target < 0 || target >= ids.length) return
     ;[ids[index], ids[target]] = [ids[target], ids[index]]
-    void run(() => reorderTimeOffTypes(ids), t('settings.more2.timeOff.toast.ordered'))
+    void run(() => reorderTimeOffTypes(ids), t('settings.common.orderUpdated'))
   }
 
   const remove = async (type: TimeOffType, after?: () => void) => {
@@ -56,7 +57,7 @@ export function TimeOffTypesPage() {
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={220} groups={[{ items: [{ label: t('settings.common.changeOrder'), icon: <ListOrdered size={16} />, onSelect: () => setModal({ kind: 'order' }) }] }]} />
-          <Button variant="primary" className="rounded-full px-5" onClick={() => setModal({ kind: 'add' })} data-testid="time-off-add">
+          <Button variant="primary" onClick={() => setModal({ kind: 'add' })} data-testid="time-off-add">
             {t('settings.common.add')}
           </Button>
         </>
@@ -72,7 +73,9 @@ export function TimeOffTypesPage() {
             subtitle={type.system ? t('settings.common.system') : undefined}
             onClick={type.system ? undefined : () => setModal({ kind: 'edit', type })}
             trailing={
-              type.system ? undefined : (
+              type.system ? (
+                <LockMark label={t('settings.more2.timeOff.systemHint')} />
+              ) : (
                 <ActionsPill
                   groups={[
                     {
@@ -104,7 +107,7 @@ export function TimeOffTypesPage() {
         title={t('settings.more2.timeOff.orderTitle')}
         items={types.map((x) => ({ id: x.id, label: x.name }))}
         onSave={async (ids) => {
-          await run(() => reorderTimeOffTypes(ids), t('settings.more2.timeOff.toast.ordered'))
+          await run(() => reorderTimeOffTypes(ids), t('settings.common.orderUpdated'))
         }}
       />
     </SettingsPage>
@@ -137,36 +140,24 @@ function TypeModal({ type, types, onClose, onDelete }: { type: TimeOffType | nul
   }
 
   return (
-    <SettingsModal
+    <FullModal
       open
       onClose={onClose}
       title={t(type ? 'settings.more2.timeOff.editTitle' : 'settings.more2.timeOff.addTitle')}
       subtitle={type ? undefined : t('settings.more2.timeOff.addSubtitle')}
-      footer={
-        <>
-          {type ? (
-            <Button variant="danger" className="mr-auto" icon={<Trash2 size={16} aria-hidden />} onClick={() => onDelete(type)}>
-              {t('settings.common.delete')}
-            </Button>
-          ) : (
-            <Button onClick={onClose}>{t('settings.common.cancel')}</Button>
-          )}
-          <Button variant="primary" loading={busy} onClick={save} data-testid="time-off-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
+      onSave={save}
+      saving={busy}
+      saveLabel={type ? undefined : t('settings.common.add')}
+      actions={type && <OverlayOptions groups={[{ items: [deleteItem(t('settings.common.delete'), () => onDelete(type))] }]} />}
+      testId="time-off-modal"
     >
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          save()
-        }}
-      >
-        <Field label={t('settings.more2.timeOff.reason')} error={error} counter={{ value: name.length, max: 50 }}>
-          {(id) => <TextInput id={id} value={name} maxLength={50} placeholder={t('settings.more2.timeOff.reasonPlaceholder')} onChange={(e) => setName(e.target.value)} onBlur={() => setTouched(true)} invalid={Boolean(error)} />}
-        </Field>
-      </form>
-    </SettingsModal>
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t('settings.more2.timeOff.reason')} error={error} counter={{ value: name.length, max: 50 }}>
+            {(id) => <TextInput id={id} value={name} maxLength={50} placeholder={t('settings.more2.timeOff.reasonPlaceholder')} onChange={(e) => setName(e.target.value)} onBlur={() => setTouched(true)} invalid={Boolean(error)} data-testid="time-off-name" />}
+          </Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }

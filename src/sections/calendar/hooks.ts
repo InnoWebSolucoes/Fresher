@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
@@ -6,14 +6,12 @@ import { now, todayISO, useNow } from '@/lib/time'
 import type { AvailabilityData } from '@/lib/availability'
 import type { ID, PaletteColor } from '@/types'
 import { isCalView, isISODate, type CalView, type ToneLookups } from './lib'
-import { useCalendarUi } from './store'
 
 export const TEAM_PARAM = 'calendar_selected_resources'
 
 /** Calendar URL state: date, view, location_id and the team selection. */
 export function useCalendarParams() {
   const [params, setParams] = useSearchParams()
-  const lastView = useCalendarUi((s) => s.lastView)
   const locations = useDb((s) => s.locations)
   const members = useDb((s) => s.teamMembers)
   const user = useCurrentUser()
@@ -21,7 +19,7 @@ export function useCalendarParams() {
   const rawDate = params.get('date')
   const date = isISODate(rawDate) ? rawDate : todayISO()
   const rawView = params.get('view')
-  const view: CalView = isCalView(rawView) ? rawView : lastView
+  const view: CalView = isCalView(rawView) ? rawView : 'day'
   const defaultLocation = useMemo(() => {
     const own = members.find((m) => m.id === user?.teamMemberId)
     return own?.locationIds[0] ?? locations[0]?.id ?? ''
@@ -32,7 +30,6 @@ export function useCalendarParams() {
 
   const patch = useCallback(
     (values: Record<string, string | undefined>) => {
-      if (isCalView(values.view)) useCalendarUi.getState().setLastView(values.view)
       setParams(
         (prev) => {
           const next = new URLSearchParams(prev)
@@ -117,11 +114,21 @@ export function useLookups() {
     }
   }, [categories, calendarSettings.colorSource, statuses, services, members, resources])
 
-  return { clientsById, servicesById, membersById, salesById, notedAppointments, tones }
+  // One object per data change, so memoised grid columns don't re-render on every page render.
+  return useMemo(() => ({ clientsById, servicesById, membersById, salesById, notedAppointments, tones }), [clientsById, servicesById, membersById, salesById, notedAppointments, tones])
 }
 
 export type Lookups = ReturnType<typeof useLookups>
 
 export function usePaymentsActive(): boolean {
   return useDb((s) => s.addOns.find((a) => a.slug === 'payments')?.status === 'active')
+}
+
+/** A callback with a stable identity that always runs the latest closure (keeps memoised children stable). */
+export function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
+  const ref = useRef(fn)
+  useLayoutEffect(() => {
+    ref.current = fn
+  })
+  return useCallback((...args: A) => ref.current(...args), [])
 }

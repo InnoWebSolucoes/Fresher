@@ -8,8 +8,9 @@ import { createPortal } from 'react-dom'
 import type { Client, ClientAllergy, FormResponse, PatchTest } from '@/types'
 import { useDb } from '@/store/db'
 import { todayISO } from '@/lib/time'
-import { Button, Field, Modal, Segmented, Select, TextArea, TextInput, toast } from '@/components/ui'
+import { Button, Field, LearnMore, Modal, Segmented, Select, TextArea, TextInput, toast } from '@/components/ui'
 import { patchTestExpiry, saveAllergy, savePatchTest, sendClientForm, setStaffAlert } from '@/api/clients'
+import { startConversation } from '@/api/panels'
 import { ALLERGY_REACTIONS, SEVERITY_COLORS } from '../lib/constants'
 import { fmtLongDate } from '../lib/helpers'
 import { useClientDrawer, useEscape } from './context'
@@ -257,10 +258,31 @@ export function MessagesIntroModal({ client, onClose }: { client: Client; onClos
   const { t } = useTranslation()
   const navigate = useNavigate()
   const conversation = useDb((s) => s.conversations.find((c) => c.clientId === client.id))
+  const workspaceName = useDb((s) => s.workspace.name)
   const { close } = useClientDrawer()
+  const [composing, setComposing] = useState(false)
+  const [text, setText] = useState('')
+  const [error, setError] = useState(false)
+  const [sending, setSending] = useState(false)
   useEscape(onClose)
+  const openInbox = (conversationId: string) => {
+    onClose()
+    close()
+    navigate(`/connect/conversations/${conversationId}`)
+  }
+  const send = async () => {
+    if (!text.trim()) return setError(true)
+    setSending(true)
+    try {
+      const id = await startConversation(client.id, text)
+      toast(t('clients.messages.sent'))
+      openInbox(id)
+    } finally {
+      setSending(false)
+    }
+  }
   return createPortal(
-    <div className="fixed inset-0 z-[85] flex overflow-y-auto bg-surface" role="dialog" aria-modal="true" aria-label={t('clients.messages.title')}>
+    <div className="fixed inset-0 z-[75] flex overflow-y-auto bg-surface" role="dialog" aria-modal="true" aria-label={t('clients.messages.title')}>
       <button type="button" onClick={onClose} aria-label={t('clients.common.close')} className="icon-btn absolute right-6 top-6 z-10">
         <X size={22} aria-hidden />
       </button>
@@ -277,28 +299,47 @@ export function MessagesIntroModal({ client, onClose }: { client: Client; onClos
               </li>
             ))}
           </ul>
-          <div className="mt-8 flex items-center gap-4">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => {
-                onClose()
-                close()
-                navigate(conversation ? `/connect/conversations/${conversation.id}` : `/connect?client=${client.id}`)
-              }}
-            >
-              {t('clients.messages.goToInbox')}
-            </Button>
-            <Button size="lg" variant="ghost" onClick={() => navigate('/connect')}>
-              {t('clients.common.learnMore')}
-            </Button>
-          </div>
+          {composing ? (
+            <div className="mt-8 rounded-lg border border-line bg-surface p-5">
+              <Field label={t('clients.messages.newTo', { name: client.firstName })} error={error ? t('clients.messages.required') : undefined}>
+                {(id) => (
+                  <TextArea
+                    id={id}
+                    autoFocus
+                    value={text}
+                    maxLength={1000}
+                    invalid={error}
+                    placeholder={t('clients.messages.placeholder')}
+                    onChange={(e) => {
+                      setText(e.target.value)
+                      setError(false)
+                    }}
+                  />
+                )}
+              </Field>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button onClick={() => setComposing(false)}>{t('clients.common.cancel')}</Button>
+                <Button variant="primary" loading={sending} onClick={() => void send()}>
+                  {t('clients.messages.send')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-8 flex items-center gap-4">
+              <Button variant="primary" size="lg" onClick={() => (conversation ? openInbox(conversation.id) : setComposing(true))}>
+                {t('clients.messages.goToInbox')}
+              </Button>
+              <LearnMore topic="Client messaging">
+                <span className="text-body-strong">{t('clients.common.learnMore')}</span>
+              </LearnMore>
+            </div>
+          )}
         </div>
         <div className="hidden justify-center lg:flex">
           <div className="relative h-[520px] w-[280px] rounded-[44px] border-[10px] border-ink bg-gradient-to-b from-primary to-primary-active p-5 shadow-lg">
             <p className="mt-10 text-center font-display text-[56px] font-bold text-white">9:41</p>
             <div className="absolute bottom-16 left-4 right-4 flex flex-col gap-2">
-              {[client.firstName, 'Studio Aliados'].map((who, i) => (
+              {[client.firstName, workspaceName].map((who, i) => (
                 <div key={who} className="rounded-xl bg-white/85 p-3 shadow-sm">
                   <p className="flex items-center gap-2 text-small font-semibold text-ink">
                     <MessagesSquare size={14} aria-hidden /> {who}

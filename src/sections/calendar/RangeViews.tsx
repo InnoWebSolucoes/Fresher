@@ -21,12 +21,15 @@ interface MultiDayProps {
   blockedByDate: Map<ISODate, BlockedTime[]>
   lookups: Lookups
   mode: GridMode
+  selectedIds: Set<string>
   showRange: boolean
   onAppointment: (appt: Appointment) => void
   onBlocked: (block: BlockedTime) => void
   onCell: (memberId: ID, date: ISODate) => void
   onDay: (date: ISODate) => void
 }
+
+type CellEntry = { kind: 'appt'; start: string; appt: Appointment } | { kind: 'block'; start: string; block: BlockedTime }
 
 /** 3 day and Week views: rows = team members, columns = days, compact chips. */
 export function MultiDayView(p: MultiDayProps) {
@@ -39,12 +42,16 @@ export function MultiDayView(p: MultiDayProps) {
     () =>
       p.members.map((m) => {
         const cells = p.days.map((date) => {
-          const appts = (p.byDate.get(date) ?? []).filter((a) => a.items.some((i) => i.teamMemberId === m.id)).sort((a, b) => apptStart(a).localeCompare(apptStart(b)))
+          const appts = (p.byDate.get(date) ?? []).filter((a) => a.items.some((i) => i.teamMemberId === m.id))
           const blocks = (p.blockedByDate.get(date) ?? []).filter((b) => b.teamMemberId === m.id)
+          const entries: CellEntry[] = [
+            ...appts.map((appt) => ({ kind: 'appt' as const, start: (appt.items.find((i) => i.teamMemberId === m.id) ?? appt.items[0]).start, appt })),
+            ...blocks.map((block) => ({ kind: 'block' as const, start: block.start, block })),
+          ].sort((a, b) => a.start.localeCompare(b.start))
           const working = workingWindows(schedule, m.id, date, p.locationId).length > 0
-          return { date, appts, blocks, working }
+          return { date, entries, working }
         })
-        const most = Math.max(0, ...cells.map((c) => c.appts.length + c.blocks.length))
+        const most = Math.max(0, ...cells.map((c) => c.entries.length))
         return { member: m, cells, height: Math.max(150, most * 32 + 20) }
       }),
     [p.members, p.days, p.byDate, p.blockedByDate, schedule, p.locationId],
@@ -87,7 +94,28 @@ export function MultiDayView(p: MultiDayProps) {
                 style={{ minHeight: row.height, ...(cell.working ? {} : { backgroundImage: HATCH }) }}
                 aria-label={t('calendar.grid.cellLabel', { name: memberName(row.member), date: format(parseISO(cell.date), 'EEE d MMM') })}
               >
-                {cell.appts.map((appt) => {
+                {cell.entries.map((entry) => {
+                  if (entry.kind === 'block') {
+                    const b = entry.block
+                    const type = btTypes.find((x) => x.id === b.typeId)
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          p.onBlocked(b)
+                        }}
+                        className={clsx('flex h-7 w-full shrink-0 items-center truncate rounded-xs px-1.5 text-left text-small', p.mode !== 'normal' && 'pointer-events-none opacity-40')}
+                        style={{ background: BLOCKED_TONE.fill, color: BLOCKED_TONE.text }}
+                      >
+                        <span className="truncate tabular">
+                          {p.showRange ? `${b.start} - ${b.end}` : b.start} <b>{b.title || type?.name}</b> {type?.emoji}
+                        </span>
+                      </button>
+                    )
+                  }
+                  const appt = entry.appt
                   const item = appt.items.find((i) => i.teamMemberId === row.member.id) ?? appt.items[0]
                   const name = fullName(appt.clientId ? p.lookups.clientsById.get(appt.clientId) : undefined, t('calendar.walkIn'))
                   return (
@@ -96,7 +124,8 @@ export function MultiDayView(p: MultiDayProps) {
                       appt={appt}
                       lookups={p.lookups}
                       tone={toneFor(appt, item, p.lookups.tones)}
-                      faded={p.mode === 'pick'}
+                      faded={p.mode === 'pick' && !p.selectedIds.has(appt.id)}
+                      selected={p.selectedIds.has(appt.id)}
                       onClick={() => p.onAppointment(appt)}
                       label={
                         <>
@@ -104,25 +133,6 @@ export function MultiDayView(p: MultiDayProps) {
                         </>
                       }
                     />
-                  )
-                })}
-                {cell.blocks.map((b) => {
-                  const type = btTypes.find((x) => x.id === b.typeId)
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        p.onBlocked(b)
-                      }}
-                      className={clsx('flex h-7 w-full items-center truncate rounded-xs px-1.5 text-left text-small', p.mode === 'pick' && 'opacity-40')}
-                      style={{ background: BLOCKED_TONE.fill, color: BLOCKED_TONE.text }}
-                    >
-                      <span className="truncate tabular">
-                        {p.showRange ? `${b.start} - ${b.end}` : b.start} <b>{b.title || type?.name}</b> {type?.emoji}
-                      </span>
-                    </button>
                   )
                 })}
               </div>
@@ -146,12 +156,13 @@ interface MonthProps {
   byDate: Map<ISODate, Appointment[]>
   lookups: Lookups
   mode: GridMode
+  selectedIds: Set<string>
   onAppointment: (appt: Appointment) => void
   onDay: (date: ISODate) => void
 }
 
 const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const MAX_CHIPS = 4
+const MAX_CHIPS = 3
 
 /** Month view: Monday-first grid, closed days hatched, chips per appointment. */
 export function MonthView(p: MonthProps) {
@@ -171,7 +182,7 @@ export function MonthView(p: MonthProps) {
           </span>
         ))}
       </div>
-      <div className="grid min-h-[600px] flex-1 grid-cols-7" style={{ gridTemplateRows: `repeat(${weeks}, minmax(120px, 1fr))` }}>
+      <div className="grid shrink-0 grid-cols-7" style={{ gridTemplateRows: `repeat(${weeks}, minmax(150px, auto))` }}>
         {p.days.map((date) => {
           const d = parseISO(date)
           const inMonth = isSameMonth(d, month)
@@ -198,7 +209,8 @@ export function MonthView(p: MonthProps) {
                     appt={appt}
                     lookups={p.lookups}
                     tone={toneFor(appt, item, p.lookups.tones)}
-                    faded={p.mode === 'pick'}
+                    faded={p.mode === 'pick' && !p.selectedIds.has(appt.id)}
+                    selected={p.selectedIds.has(appt.id)}
                     onClick={() => p.onAppointment(appt)}
                     label={
                       <>

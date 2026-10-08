@@ -8,11 +8,11 @@ import { useDb } from '@/store/db'
 import { PALETTE } from '@/styles/palette'
 import type { PaletteColor, ResourceType } from '@/types'
 import { useLocations } from '../hooks'
-import { ActionsPill, PillMenu, SectionHeading, SettingsPage } from '../components/ui'
+import { ActionsPill, ListCard, ListRow, PillMenu, SectionHeading, SettingsPage } from '../components/ui'
 import { IconFor } from '../components/pickers'
 import { useAction } from '../components/useAction'
 import { ResourceTypeModal } from './ResourceTypeModal'
-import { RowCard, RowStack, rowActions } from './shared'
+import { rowActions } from './shared'
 
 const K = 'settings.sched.resources'
 
@@ -79,7 +79,7 @@ export function ResourcesPage() {
             title={t(`${K}.emptyTitle`)}
             body={t(`${K}.emptyBody`)}
             action={
-              <Button variant="primary" className="rounded-full px-5" icon={<Plus size={16} aria-hidden />} onClick={() => addResource()}>
+              <Button variant="primary" icon={<Plus size={16} aria-hidden />} onClick={() => addResource()}>
                 {t(`${K}.addResourceButton`)}
               </Button>
             }
@@ -97,18 +97,19 @@ export function ResourcesPage() {
                   </Button>
                 </div>
               )}
-              <RowStack>
+              <ListCard>
                 {items.map((r) => {
                   const type = typesById.get(r.typeId)
                   const palette = PALETTE[r.color as PaletteColor] ?? PALETTE.orange
                   const parts = [type?.name ?? t(`${K}.noType`), capacity(r)]
                   if (r.availability === 'specific') parts.push(t(`${K}.specificTimes`))
                   return (
-                    <RowCard
+                    <ListRow
                       key={r.id}
                       testId={`resource-${r.id}`}
+                      tile={false}
                       leading={
-                        <span className="flex h-12 w-12 items-center justify-center rounded-md" style={{ background: palette.fill, color: palette.text }}>
+                        <span className="flex h-11 w-11 items-center justify-center rounded-md" style={{ background: palette.fill, color: palette.text }}>
                           <IconFor name={type?.icon ?? 'sparkles'} size={22} />
                         </span>
                       }
@@ -119,7 +120,7 @@ export function ResourcesPage() {
                     />
                   )
                 })}
-              </RowStack>
+              </ListCard>
             </section>
           ))}
         </div>
@@ -145,13 +146,13 @@ export function ResourcesPage() {
             />
           </div>
         ) : (
-          <RowStack>
+          <ListCard>
             {types.map((type) => {
               const used = resources.filter((r) => r.typeId === type.id).length
               const usedByServices = services.filter((s) => s.resourceTypeIds.includes(type.id)).length
               const subtitle = [t(`${K}.resourceCount`, { count: used }), usedByServices ? t(`${K}.serviceCount`, { count: usedByServices }) : null, type.description || null].filter(Boolean).join(' • ')
               return (
-                <RowCard
+                <ListRow
                   key={type.id}
                   testId={`resource-type-${type.id}`}
                   leading={<IconFor name={type.icon} size={22} />}
@@ -170,7 +171,7 @@ export function ResourcesPage() {
                 />
               )
             })}
-          </RowStack>
+          </ListCard>
         )}
       </section>
 

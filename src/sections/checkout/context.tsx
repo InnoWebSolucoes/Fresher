@@ -1,15 +1,25 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import { ApiError } from '@/api/client'
 import { checkout, salePaid, type PaymentInput } from '@/api/sales'
+import { clearSavedCart, readLineOffers, readSavedCart, rememberLineOffers, saveCart } from '@/api/checkout'
 import { db, useDb } from '@/store/db'
+import { printReceipt } from './receipt'
 import { useCurrentUser } from '@/store/session'
 import { useDrawer } from '@/lib/drawer'
 import { round2 } from '@/lib/format'
+import { uid } from '@/lib/ids'
+import { todayISO } from '@/lib/time'
 import { toast } from '@/components/ui'
 import type { GiftCard, ID, Sale, TeamMember } from '@/types'
-import { cartTotals, linesFromAppointment, linesFromSale, newKey, toCartItems, toPaymentInputs, type Line, type PendingPayment, type Step, type Tip } from './model'
+import { applyOffer, basePrice, cartTotals, lineOfferOf, linesFromAppointment, linesFromSale, newKey, offersForLine, toCartItems, toPaymentInputs, type Line, type Offer, type OfferLabels, type PendingPayment, type Step, type Tip } from './model'
+
+/** Drawer params that identify a checkout; a different set starts a new cart. */
+export const KEY_PARAMS = ['d_appointment', 'd_group', 'd_sale', 'd_client', 'd_add', 'd_mode']
+
+/** Key of the in-progress cart for these drawer params (db.ext.checkout.carts). */
+export const cartKey = (params: URLSearchParams) => KEY_PARAMS.map((k) => params.get(k) ?? '').join('|')
 
 export type TipChoice = { kind: 'none' } | { kind: 'percent'; value: number } | { kind: 'custom' }
 
@@ -38,6 +48,7 @@ export type CheckoutModal =
   | { kind: 'quickSale' }
   | { kind: 'quickPayment' }
   | { kind: 'sellCustom'; type: 'package' | 'membership' }
+  | { kind: 'offers' }
 
 export type FinalizeMode = 'pay' | 'unpaid' | 'draft'
 
@@ -50,6 +61,9 @@ export interface CheckoutState {
   addLine: (line: Omit<Line, 'key'>) => string
   updateLine: (key: string, patch: Partial<Line>) => void
   removeLine: (key: string) => void
+  /** Apply a reward, package session or deal to a line (null removes it). */
+  applyLineOffer: (key: string, offer: Offer | null) => void
+  offerLabels: OfferLabels
   appointmentId?: ID
   linkAppointment: (appointmentId: ID) => boolean
   feeOnly: boolean
@@ -120,10 +134,15 @@ interface Init {
   step: Step
   modal: CheckoutModal | null
   paidSaleId?: ID
+  tipChoice?: TipChoice
+  payments?: PendingPayment[]
 }
 
+/** What is saved in db.ext.checkout so a refresh mid-checkout keeps the cart. */
+type PersistedCart = Pick<Init, 'locationId' | 'clientId' | 'lines' | 'appointmentId' | 'feeOnly' | 'tips' | 'cartDiscount' | 'serviceCharges' | 'receiptNote'> & { tipChoice: TipChoice; payments: PendingPayment[] }
+
 /** Build the starting cart from the drawer params (d_appointment, d_sale, d_client, d_add, d_mode). */
-function initialState(params: URLSearchParams, userMemberId: ID | undefined): Init {
+function initialState(params: URLSearchParams, userMemberId: ID | undefined, labels: OfferLabels): Init {
   const data = db()
   const memberLocation = data.teamMembers.find((m) => m.id === userMemberId)?.locationIds[0]
   const fallbackLocation = params.get('d_location') ?? memberLocation ?? data.locations[0]?.id ?? ''
@@ -132,7 +151,7 @@ function initialState(params: URLSearchParams, userMemberId: ID | undefined): In
 
   const loadSale = (sale: Sale) => {
     init.existingSaleId = sale.id
-    init.lines = linesFromSale(sale)
+    init.lines = linesFromSale(sale, readLineOffers())
     init.clientId = sale.clientId
     init.locationId = sale.locationId
     init.appointmentId = sale.appointmentId
@@ -147,8 +166,26 @@ function initialState(params: URLSearchParams, userMemberId: ID | undefined): In
   const sale = saleId ? data.sales.find((s) => s.id === saleId) : undefined
   const apptId = params.get('d_appointment')
   const appt = apptId ? data.appointments.find((a) => a.id === apptId) : undefined
+  // "Checkout group": every unpaid, attended appointment of a group in one sale.
+  const groupId = params.get('d_group')
+  const groupAppts = groupId
+    ? data.appointments.filter(
+        (a) =>
+          a.groupId === groupId &&
+          a.status !== 'cancelled' &&
+          a.status !== 'no_show' &&
+          !(a.saleId && data.sales.find((s) => s.id === a.saleId)?.status === 'completed'),
+      )
+    : []
 
-  if (sale) {
+  if (groupAppts.length) {
+    const organiser = data.groups.find((g) => g.id === groupId)?.organiserClientId ?? groupAppts[0].clientId
+    for (const a of groupAppts) init.lines.push(...attachBookedOffers(linesFromAppointment(a).lines, a.clientId, labels))
+    init.appointmentId = groupAppts[0].id
+    init.clientId = organiser
+    init.locationId = groupAppts[0].locationId
+    init.step = tipping ? 'tip' : 'payment'
+  } else if (sale) {
     if (sale.status === 'completed' || sale.status === 'refunded' || sale.status === 'voided') init.paidSaleId = sale.id
     else loadSale(sale)
   } else if (appt) {
@@ -157,7 +194,7 @@ function initialState(params: URLSearchParams, userMemberId: ID | undefined): In
     else if (linked && linked.status !== 'voided') loadSale(linked)
     else {
       const { lines, feeOnly } = linesFromAppointment(appt)
-      init.lines = lines
+      init.lines = attachBookedOffers(lines, appt.clientId, labels)
       init.feeOnly = feeOnly
       init.appointmentId = appt.id
       init.clientId = appt.clientId
@@ -201,24 +238,48 @@ function initialState(params: URLSearchParams, userMemberId: ID | undefined): In
   return init
 }
 
+/**
+ * Appointment lines booked at a "Package benefit" or "Manual reward" price
+ * (calendar.md §10.10) get the matching package session or reward attached,
+ * so checkout marks it used.
+ */
+function attachBookedOffers(lines: Line[], clientId: ID | null, labels: OfferLabels): Line[] {
+  if (!clientId) return lines
+  const out: Line[] = []
+  lines.forEach((line, index) => {
+    const kind = line.benefitNote === labels.packageBenefit ? 'benefit' : line.benefitNote === labels.manualReward ? 'reward' : null
+    const offer = kind ? offersForLine(line, [...out, ...lines.slice(index)], clientId, [], todayISO()).find((o) => o.kind === kind) : undefined
+    if (offer?.kind === 'benefit') out.push({ ...line, redeem: { clientPackageId: offer.clientPackageId, benefitId: offer.benefitId } })
+    else if (offer?.kind === 'reward') out.push({ ...line, rewardId: offer.reward.id })
+    else out.push(line)
+  })
+  return out
+}
+
 export function useCheckoutState(params: URLSearchParams, close: () => void): CheckoutState {
   const { t } = useTranslation()
   const drawer = useDrawer()
   const user = useCurrentUser()
-  const [init] = useState(() => initialState(params, user?.teamMemberId))
+  const offerLabels = useMemo<OfferLabels>(() => ({ packageBenefit: t('checkout.offers.packageBenefit'), manualReward: t('checkout.offers.manualReward') }), [t])
+  const key = cartKey(params)
+  const [init] = useState<Init>(() => {
+    const fresh = initialState(params, user?.teamMemberId, offerLabels)
+    const saved = fresh.paidSaleId ? undefined : readSavedCart<PersistedCart>(key)
+    return saved ? { ...fresh, ...saved, modal: null } : fresh
+  })
   const data = useDb(useShallow((s) => ({ teamMembers: s.teamMembers, services: s.services, sales: s.sales, payments: s.payments, appointments: s.appointments, settings: s.settings })))
 
   const [locationId, setLocationId] = useState(init.locationId)
-  const [clientId, setClientId] = useState<ID | null>(init.clientId)
+  const [clientId, setClientIdState] = useState<ID | null>(init.clientId)
   const [lines, setLines] = useState<Line[]>(init.lines)
   const [appointmentId, setAppointmentId] = useState<ID | undefined>(init.appointmentId)
   const [feeOnly] = useState(init.feeOnly)
   const [tips, setTipsState] = useState<Tip[]>(init.tips)
-  const [tipChoice, setTipChoice] = useState<TipChoice>(init.tips.length ? { kind: 'custom' } : { kind: 'none' })
+  const [tipChoice, setTipChoice] = useState<TipChoice>(init.tipChoice ?? (init.tips.length ? { kind: 'custom' } : { kind: 'none' }))
   const [cartDiscount, setCartDiscount] = useState<Sale['cartDiscount']>(init.cartDiscount)
   const [serviceCharges, setServiceCharges] = useState<Sale['serviceCharges']>(init.serviceCharges)
   const [receiptNote, setReceiptNote] = useState(init.receiptNote)
-  const [payments, setPayments] = useState<PendingPayment[]>([])
+  const [payments, setPayments] = useState<PendingPayment[]>(init.payments ?? [])
   const [view, setView] = useState<MainView>('step')
   const [category, setCategory] = useState<CartCategory>(null)
   const [modal, setModal] = useState<CheckoutModal | null>(init.modal)
@@ -232,9 +293,16 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
 
   const existingSale = init.existingSaleId ? data.sales.find((s) => s.id === init.existingSaleId) : undefined
   const alreadyPaid = existingSale ? salePaid(existingSale, data.payments) : 0
-  const appointment = appointmentId ? data.appointments.find((a) => a.id === appointmentId) : undefined
-  const depositPayment = !existingSale && appointment?.deposit?.paymentId ? data.payments.find((p) => p.id === appointment.deposit?.paymentId && p.kind === 'deposit' && !p.saleId) : undefined
-  const deposit = depositPayment?.amount ?? 0
+  // Deposits held on every appointment in the cart (one, or a whole group); the API applies the same set.
+  const cartAppointmentIds = [...new Set([appointmentId, ...lines.map((l) => l.appointmentId)].filter((x): x is ID => Boolean(x)))]
+  const deposit = existingSale
+    ? 0
+    : round2(
+        cartAppointmentIds
+          .map((id) => data.appointments.find((a) => a.id === id)?.deposit?.paymentId)
+          .map((pid) => data.payments.find((p) => p.id === pid && p.kind === 'deposit' && !p.saleId)?.amount ?? 0)
+          .reduce((s, x) => s + x, 0),
+      )
 
   const totals = useMemo(() => cartTotals(lines, tips, cartDiscount, serviceCharges), [lines, tips, cartDiscount, serviceCharges])
   const pendingTotal = round2(payments.reduce((s, p) => s + p.amount, 0))
@@ -257,7 +325,7 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
     const inc = tipping.include
     const allowed = (type: Line['type']) =>
       (type === 'service' && inc.services) || (type === 'service_addon' && inc.addons) || (type === 'product' && inc.products) || (type === 'membership' && inc.memberships) || (type === 'package' && inc.packages) || (type === 'gift_card' && inc.giftCards) || type === 'manual' || type === 'no_show_fee' || type === 'late_cancellation_fee'
-    const sum = lines.filter((l) => allowed(l.type)).reduce((s, l) => s + (inc.discounts ? cartTotals([l], [], undefined, []).itemsTotal : l.unitPrice * l.quantity), 0)
+    const sum = lines.filter((l) => allowed(l.type)).reduce((s, l) => s + (inc.discounts ? cartTotals([l], [], undefined, []).itemsTotal : basePrice(l) * l.quantity), 0)
     return round2(sum)
   }, [lines, tipping.include])
 
@@ -286,20 +354,31 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
   )
 
   const addLine = useCallback((line: Omit<Line, 'key'>) => {
-    const key = newKey()
+    const lineKey = newKey()
     setLines((prev) => {
       if (line.type === 'product' && line.refId) {
-        const same = prev.find((l) => l.type === 'product' && l.refId === line.refId && !l.discount && l.unitPrice === line.unitPrice)
+        const same = prev.find((l) => l.type === 'product' && l.refId === line.refId && !l.discount && !l.rewardId && l.unitPrice === line.unitPrice)
         if (same) return prev.map((l) => (l.key === same.key ? { ...l, quantity: l.quantity + line.quantity } : l))
       }
-      return [...prev, { ...line, key }]
+      return [...prev, { ...line, key: lineKey }]
     })
-    return key
+    return lineKey
   }, [])
-  const updateLine = useCallback((key: string, patch: Partial<Line>) => setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l))), [])
+  const updateLine = useCallback((lineKey: string, patch: Partial<Line>) => setLines((prev) => prev.map((l) => (l.key === lineKey ? { ...l, ...patch } : l))), [])
+  const applyLineOffer = useCallback((lineKey: string, offer: Offer | null) => setLines((prev) => prev.map((l) => (l.key === lineKey ? { ...l, ...applyOffer(l, offer, offerLabels) } : l))), [offerLabels])
+
+  // Rewards and package sessions belong to the client: changing the client drops them.
+  const setClientId = useCallback(
+    (id: ID | null) => {
+      if (id === clientId) return
+      setClientIdState(id)
+      setLines((current) => current.map((l) => (l.redeem || l.rewardId ? { ...l, ...applyOffer(l, null, offerLabels) } : l)))
+    },
+    [clientId, offerLabels],
+  )
   const removeLine = useCallback(
-    (key: string) => {
-      const next = lines.filter((l) => l.key !== key)
+    (lineKey: string) => {
+      const next = lines.filter((l) => l.key !== lineKey)
       setLines(next)
       if (appointmentId && !next.some((l) => l.appointmentId === appointmentId)) setAppointmentId(undefined)
     },
@@ -315,13 +394,15 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
         return false
       }
       const { lines: apptLines } = linesFromAppointment({ ...appt, status: appt.status === 'no_show' || appt.status === 'cancelled' ? 'booked' : appt.status })
-      setLines((prev) => [...prev.filter((l) => l.appointmentId !== id), ...apptLines])
+      const owner = clientId ?? appt.clientId
+      setLines((prev) => [...prev.filter((l) => l.appointmentId !== id), ...(owner === appt.clientId ? attachBookedOffers(apptLines, owner, offerLabels) : apptLines)])
       setAppointmentId(id)
       setLocationId(appt.locationId)
-      if (!clientId && appt.clientId) setClientId(appt.clientId)
+      // No client yet, so there are no rewards to drop: set it directly.
+      if (!clientId && appt.clientId) setClientIdState(appt.clientId)
       return true
     },
-    [appointmentId, clientId, t],
+    [appointmentId, clientId, offerLabels, t],
   )
 
   const setTips = useCallback((next: Tip[]) => setTipsState(next.filter((x) => x.amount > 0)), [])
@@ -334,13 +415,15 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
       if (!clientId && lines.some((l) => (l.type === 'package' || l.type === 'membership') && l.refId)) throw new ApiError('client_required', t('checkout.errors.clientRequired'))
       if (lines.some((l) => l.quantity <= 0 || !Number.isFinite(l.unitPrice))) throw new ApiError('invalid', t('checkout.errors.invalidLine'))
       setBusy(true)
+      // Line ids are set here so rewards and package sessions on an unpaid sale can be remembered.
+      const withIds = lines.map((l) => (l.id ? l : { ...l, id: uid('si') }))
       try {
-        return await checkout({
+        const sale = await checkout({
           saleId: existingSale?.id,
           clientId,
           locationId,
           appointmentId: feeOnly ? undefined : appointmentId,
-          items: toCartItems(lines),
+          items: toCartItems(withIds),
           tips: tips.filter((x) => x.amount > 0),
           cartDiscount,
           serviceCharges,
@@ -348,6 +431,8 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
           payments: mode === 'draft' ? [] : [...toPaymentInputs(payments), ...extra],
           saveAs: mode === 'draft' ? 'draft' : 'unpaid',
         })
+        rememberLineOffers(Object.fromEntries(withIds.map((l) => [l.id!, sale.status === 'completed' ? {} : lineOfferOf(l)])))
+        return sale
       } finally {
         setBusy(false)
       }
@@ -366,9 +451,32 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
               ? t('checkout.toasts.savedPartPaid')
               : t('checkout.toasts.savedUnpaid')
       toast(message)
+      clearSavedCart(key)
+      // Settings › Sales › Receipts: "Automatically print receipts upon sale completion".
+      if (sale.status === 'completed' && db().settings.receipts.autoPrint) printReceipt(sale.id)
       drawer.open('sale', { id: sale.id })
     },
-    [drawer, t],
+    [drawer, t, key],
+  )
+
+  // Keep the cart in db.ext so a refresh mid-checkout doesn't lose it.
+  useEffect(() => {
+    if (init.paidSaleId) return
+    const timer = setTimeout(() => {
+      if (!lines.length && !clientId && !payments.length) clearSavedCart(key)
+      else saveCart(key, { locationId, clientId, lines, appointmentId, feeOnly, tips, tipChoice, cartDiscount, serviceCharges, receiptNote, payments } satisfies PersistedCart)
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [init.paidSaleId, key, locationId, clientId, lines, appointmentId, feeOnly, tips, tipChoice, cartDiscount, serviceCharges, receiptNote, payments])
+
+  // Closing the drawer discards the cart; leaving the page (e.g. to set up payments) keeps it for Back.
+  const mountedPath = useRef(window.location.pathname)
+  useEffect(
+    () => () => {
+      const closed = !new URLSearchParams(window.location.search).get('drawer') && window.location.pathname === mountedPath.current
+      if (closed) clearSavedCart(key)
+    },
+    [key],
   )
 
   const submit = useCallback(
@@ -392,6 +500,8 @@ export function useCheckoutState(params: URLSearchParams, close: () => void): Ch
     addLine,
     updateLine,
     removeLine,
+    applyLineOffer,
+    offerLabels,
     appointmentId,
     linkAppointment,
     feeOnly,

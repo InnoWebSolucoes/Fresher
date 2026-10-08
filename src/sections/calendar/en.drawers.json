@@ -1,0 +1,81 @@
+{
+  "filters": {
+    "title": "All filters",
+    "savedFilters": "Saved filters",
+    "noSaved": "No saved filters",
+    "noSavedHint": "Save your filters as a preset",
+    "pill": "Filters",
+    "clear": "Clear filters",
+    "clearGroup": "Clear",
+    "apply": "Apply",
+    "edit": "Edit",
+    "options": "Options",
+    "saveAsPreset": "Save as new filter preset",
+    "manage": "Manage saved filters",
+    "groups": { "status": "Appointment status", "type": "Type", "channel": "Channel", "payment": "Payment status", "services": "Services", "created": "Appointment creation date", "requested": "Requested team member", "segments": "Client segments" },
+    "values": {
+      "booked": "Booked", "confirmed": "Confirmed", "arrived": "Arrived", "started": "Started", "completed": "Completed", "no_show": "No-show",
+      "single": "Single client appointment", "group": "Group appointment", "blocked": "Blocked time",
+      "online": "Online bookings", "offline": "Offline bookings",
+      "unpaid": "Unpaid", "part_paid": "Part paid", "paid": "Fully paid",
+      "requested": "Requested", "no_preference": "No preference"
+    },
+    "hints": { "requested": "Specific team member requested", "no_preference": "Client has no preference for a specific team member" },
+    "created": { "any": "Any time", "today": "Today", "1h": "Last 1 hour", "3h": "Last 3 hours", "12h": "Last 12 hours", "24h": "Last 24 hours", "2d": "Last 2 days", "3d": "Last 3 days", "gt3d": "More than 3 days ago" },
+    "servicesModal": { "title": "Services", "search": "Search by name", "selectAll": "Select all", "selected_one": "{{count}} selected item", "selected_other": "{{count}} selected items", "empty": "No services found" },
+    "segmentsModal": { "title": "Client segments", "subtitle": "Create and manage your segments in", "link": "Client segments", "search": "Search", "all": "All segments", "selected": "{{count}} selected", "empty": "No segments found" },
+    "preset": {
+      "createTitle": "Create a new filter preset", "createSubtitle": "Save a custom preset to bulk apply filters", "name": "Preset name", "placeholder": "E.g. Unpaid appointments", "save": "Save",
+      "editTitle": "Edit saved filter", "manageTitle": "Manage filter presets", "emptyTitle": "You have no saved filters", "emptyBody": "To create a preset, go to calendar filters and select at least one filter",
+      "removeTitle": "Remove saved filter", "removeBody": "Are you sure you want to delete this saved filter? You will no longer be able to apply this saved filter to your calendar", "delete": "Delete",
+      "editAria": "Edit {{name}}", "deleteAria": "Delete {{name}}", "needFilter": "Select at least one filter first", "nameTaken": "A saved filter with this name already exists"
+    }
+  },
+  "settings": { "title": "Your calendar settings", "zoom": "Calendar zoom", "zoomLevels": { "0": "Small", "1": "Medium small", "2": "Medium", "3": "Large" }, "quick": "Show quick actions on calendar", "quickHint": "Quickly add appointments or blocked time by clicking on a calendar slot", "apply": "Apply changes" },
+  "waitlist": {
+    "title": "Waitlist", "add": "Add", "more": "More options", "viewReports": "View reports", "settings": "Settings",
+    "period": { "all": "All upcoming", "today": "Today", "3d": "Next 3 days", "7d": "Next 7 days", "30d": "Next 30 days", "calendarDate": "Calendar date" },
+    "sort": { "created_asc": "Created (oldest first)", "created_desc": "Created (newest first)", "price_desc": "Price (highest first)", "price_asc": "Price (lowest first)", "requested_asc": "Requested date (nearest first)", "requested_desc": "Requested date (furthest first)" },
+    "sortLabel": "Sort",
+    "tabs": { "waiting": "Waiting", "expired": "Expired", "booked": "Booked" },
+    "sections": { "waiting": "Awaiting availability", "expired": "Expired", "booked": "Booked" },
+    "emptyTitle": "No waitlist entries", "emptyBody": "You don't have any clients on the waitlist",
+    "anyTime": "Any time", "anyMember": "Any team member", "actions": "Actions", "bookNow": "Book now", "editPreferences": "Edit preferences", "remove": "Remove from waitlist", "viewAppointment": "View appointment",
+    "removeBody": "{{name}} will be removed from the waitlist.", "removeConfirm": "Remove",
+    "bookedFor": "Booked for {{date}}", "online": "Online", "inPerson": "In person",
+    "steps": { "label": "Waitlist steps", "client": "Client", "datetime": "Date and time", "service": "Service", "addons": "Service add-ons" },
+    "selectClient": "Select a client", "searchClient": "Search client or leave empty for walk-in", "addNewClient": "Add new client", "walkIn": "Walk-In", "noClients": "No clients found",
+    "selectDateTime": "Select date and time", "date": "Date", "startTime": "Start time", "addTime": "Add another time", "deleteTime": "Delete time", "next": "Next",
+    "time": { "any": "Any time", "morning": "Morning", "afternoon": "Afternoon", "evening": "Evening", "from": "From", "to": "To", "clear": "Clear", "apply": "Apply", "rangeError": "Choose an end time after the start time" },
+    "selectService": "Select a service", "searchService": "Search by service name", "noServices": "No services found",
+    "selectAddOns": "Select add-ons", "addOnsFor": "Optional extras for {{service}}", "required": "Required", "chooseOne": "Choose one", "chooseAny": "Choose any", "continue": "Continue", "skip": "Skip",
+    "newTitle": "New waitlist entry", "editTitle": "Edit waitlist entry", "preferred": "Preferred date and time", "services": "Services", "addService": "Add service", "notes": "Notes", "notesPlaceholder": "Add a note",
+    "save": "Save", "back": "Back", "edit": "Edit", "removeService": "Remove", "needService": "Add at least one service", "needTime": "Add at least one preferred date",
+    "viewProfile": "View profile", "changeClient": "Change client",
+    "editService": "Edit service", "teamMember": "Team member", "apply": "Apply", "addOnsLine": "+ {{names}}"
+  },
+  "group": {
+    "title": "Group appointment", "subtitle": "{{date}} • Organised by {{name}}", "createNew": "Create new appointment", "createGroup": "Create new group", "selectExisting": "Select existing appointment",
+    "addToGroup": "Add to group", "actions": "Actions", "viewAppointment": "View appointment", "removeFromGroup": "Remove from group", "total": "Group total", "moreOptions": "More options",
+    "checkout": "Checkout group", "ungroup": "Ungroup appointments", "noShowAll": "No-show all", "cancelAll": "Cancel all", "close": "Close",
+    "alreadyIn": "This appointment is already in the group", "notFoundTitle": "Group not found", "notFoundBody": "This group appointment no longer exists.", "empty": "No appointments in this group yet",
+    "noShowAllTitle": "Mark all as no-show?", "noShowAllBody_one": "{{count}} appointment in this group will be marked as no-show and the client notified.", "noShowAllBody_other": "{{count}} appointments in this group will be marked as no-show and the clients notified.",
+    "cancelAllTitle": "Cancel all appointments?", "cancelAllBody_one": "{{count}} appointment in this group will be canceled and the client notified.", "cancelAllBody_other": "{{count}} appointments in this group will be canceled and the clients notified.",
+    "allPaid": "Every appointment in this group is already paid", "nothingToUpdate": "There are no open appointments in this group", "paid": "Paid"
+  },
+  "blocked": {
+    "addTitle": "Add blocked time", "editTitle": "Edit Blocked time", "title": "Blocked time", "unavailable": "Unavailable", "actions": "Actions", "addType": "Add blocked time type", "settings": "Settings",
+    "type": "Block time type", "custom": "Custom", "customHint": "New blocked time", "newType": "New type", "newTypeHint": "Add a blocked time type", "prev": "Previous", "next": "Next", "paid": "Paid", "unpaid": "Unpaid",
+    "titleField": "Title", "titlePlaceholder": "e.g. Lunch meeting", "date": "Date", "start": "Start time", "end": "End time", "duration": "{{duration}} duration", "endError": "End time must be after the start time",
+    "member": "Team members", "frequency": "Frequency", "description": "Description", "online": "Online booking allowed during blocked time", "save": "Save", "delete": "Delete",
+    "deleteTitle": "Delete blocked time", "deleteBody": "Are you sure you want to delete this blocked time? This action cannot be undone.", "notFound": "This blocked time no longer exists.",
+    "typeModal": { "title": "Add a blocked time type", "subtitle": "Create a new blocked time type", "type": "Type", "placeholder": "e.g. Training break, Coffee break", "chooseEmoji": "Choose emoji", "duration": "Duration", "compensation": "Compensation", "paid": "Paid", "unpaid": "Unpaid", "close": "Close", "save": "Save", "nameError": "Enter a name for the type" },
+    "emoji": { "search": "Search", "pick": "Pick an emoji…", "noResults": "No emoji found", "categories": { "frequent": "Frequently used", "people": "Smileys & People", "nature": "Animals & Nature", "food": "Food & Drink", "activity": "Activity", "travel": "Travel & Places", "objects": "Objects", "symbols": "Symbols", "flags": "Flags" } }
+  },
+  "toasts": {
+    "presetSaved": "Filter preset saved", "presetUpdated": "Saved filter updated", "presetDeleted": "Saved filter deleted", "presetApplied": "{{name}} applied", "filtersCleared": "Filters cleared",
+    "waitlistAdded": "Added to the waitlist", "waitlistUpdated": "Waitlist entry updated",
+    "removedFromGroup": "Appointment removed from group", "noShowAll": "Appointments marked as no-show",
+    "blockedUpdated": "Blocked time updated", "typeAdded": "Blocked time type created"
+  }
+}

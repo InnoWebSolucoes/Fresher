@@ -1,15 +1,15 @@
 import { Plus } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Button, EmptyState, Field, LearnMore, Menu, Modal, SearchInput, Select, Switch, TextInput, toast } from '@/components/ui'
+import { Button, EmptyState, Field, LearnMore, Menu, Modal, SearchInput, Select, Switch, TextInput, toast, usePageLoading } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { durationLong } from '@/lib/time'
 import { money, round2 } from '@/lib/format'
 import { PALETTE } from '@/styles/palette'
 import type { Bundle, ExtraTime, ID, Service } from '@/types'
 import { saveBundle, type BundleInput } from '@/api/catalog'
-import { useCatalogPrefs } from '../prefs'
+import { readBundleExtras } from '../catalogExt'
 import { bundleBasePrice, bundleDuration, bundlePrice, generateDescription, totalExtra } from '../lib'
 import { AiDescription, CategoryModal, DotSelect, EditorFrame, ImageUploader, OnOffChip, SectionCard } from '../ui'
 import { ExtraTimeRows } from './serviceParts'
@@ -23,9 +23,6 @@ export function BundleEditorPage() {
   const bundles = useDb((s) => s.bundles)
   const services = useDb((s) => s.services)
   const categories = useDb((s) => s.serviceCategories)
-  const prefsExtra = useCatalogPrefs((s) => s.bundleExtraTime)
-  const prefsImages = useCatalogPrefs((s) => s.bundleImages)
-  const setBundleExtras = useCatalogPrefs((s) => s.setBundleExtras)
 
   const existing = id ? bundles.find((b) => b.id === id) : undefined
   const duplicateOf = params.get('duplicate')
@@ -36,32 +33,22 @@ export function BundleEditorPage() {
     if (source) {
       const { id: _id, ...rest } = source
       void _id
-      return existing ? { ...rest } : { ...rest, name: `Copy of ${source.name}`, archived: false }
+      return existing ? { ...rest } : { ...rest, name: t('catalog.common.copyOf', { name: source.name }), archived: false }
     }
     if (id) return null
-    return { name: '', categoryId: params.get('category') ?? [...categories].sort((a, b) => a.order - b.order)[0]?.id ?? '', description: '', serviceIds: [], schedule: 'sequence', priceType: 'service', onlineBooking: true, availableFor: 'all', archived: false }
+    return { name: '', categoryId: params.get('category') ?? [...categories].filter((c) => !c.archived).sort((a, b) => a.order - b.order)[0]?.id ?? '', description: '', serviceIds: [], schedule: 'sequence', priceType: 'service', onlineBooking: true, availableFor: 'all', archived: false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, duplicateOf])
 
   const [form, setForm] = useState<BundleInput | null>(initial)
-  const [extra, setExtra] = useState<Record<ID, ExtraTime[]>>(() => ({ ...(prefsExtra[sourceId] ?? {}) }))
-  const [images, setImages] = useState<string[]>(() => [...(prefsImages[sourceId] ?? [])])
+  const [extra, setExtra] = useState<Record<ID, ExtraTime[]>>(() => ({ ...readBundleExtras(sourceId).extraTime }))
+  const [images, setImages] = useState<string[]>(() => [...readBundleExtras(sourceId).images])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [extraFor, setExtraFor] = useState<Service | null>(null)
   const [categoryModal, setCategoryModal] = useState(false)
-  const [loading, setLoading] = useState(true)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Section prefs hydrate from IndexedDB asynchronously; pick them up once loaded.
-      const prefs = useCatalogPrefs.getState()
-      setExtra((prev) => (Object.keys(prev).length ? prev : { ...(prefs.bundleExtraTime[sourceId] ?? {}) }))
-      setImages((prev) => (prev.length ? prev : [...(prefs.bundleImages[sourceId] ?? [])]))
-      setLoading(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [sourceId])
+  const loading = usePageLoading(300)
 
   const close = () => navigate('/catalogue/services')
   if (!form) {
@@ -95,8 +82,7 @@ export function BundleEditorPage() {
     setErrors(next)
     if (Object.keys(next).length) return
     setSaving(true)
-    const saved: Bundle = await saveBundle(existing?.id ?? null, { ...form, name: form.name.trim() })
-    setBundleExtras(saved.id, Object.fromEntries(Object.entries(extra).filter(([sid]) => form.serviceIds.includes(sid))), images)
+    await saveBundle(existing?.id ?? null, { ...form, name: form.name.trim() }, { extraTime: Object.fromEntries(Object.entries(extra).filter(([sid]) => form.serviceIds.includes(sid))), images })
     setSaving(false)
     toast(existing ? t('catalog.toasts.bundleUpdated') : t('catalog.toasts.bundleCreated'))
     navigate('/catalogue/services')
@@ -132,7 +118,7 @@ export function BundleEditorPage() {
                 id={fid}
                 value={form.categoryId}
                 placeholder={t('catalog.service.selectCategory')}
-                options={[...categories].sort((a, b) => a.order - b.order).map((c) => ({ value: c.id, label: c.name, color: c.color }))}
+                options={[...categories].filter((c) => !c.archived || c.id === form.categoryId).sort((a, b) => a.order - b.order).map((c) => ({ value: c.id, label: c.name, color: c.color }))}
                 onChange={(v) => set({ categoryId: v })}
                 footer={{ label: t('catalog.menu.addCategory'), onClick: () => setCategoryModal(true) }}
               />
@@ -290,6 +276,7 @@ export function ServicePickerModal({ open, onClose, onPick, exclude = [], title 
   const [query, setQuery] = useState('')
   const q = query.trim().toLowerCase()
   const groups = [...categories]
+    .filter((c) => !c.archived)
     .sort((a, b) => a.order - b.order)
     .map((c) => ({
       category: c,

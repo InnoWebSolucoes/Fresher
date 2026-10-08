@@ -1,13 +1,18 @@
 import clsx from 'clsx'
-import { CheckCircle2, ChevronDown, Info, MinusCircle, TriangleAlert, X } from 'lucide-react'
+import { CheckCircle2, Info, Lock, MinusCircle, TriangleAlert, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, LearnMore, Menu, MenuButton, PageSkeleton, usePageLoading, type MenuGroup } from '@/components/ui'
 
 /**
- * Shared building blocks for the settings pages (reference
- * settings-business-setup.md §0: title, description "… Learn more.", then
- * white cards each with a heading and an Edit button).
+ * Shared building blocks for every settings page (reference
+ * settings-business-setup.md "Settings sub-page layout"): page title and
+ * description "… Learn more.", header actions (Options ▾ + Add), white cards
+ * each with a heading and an Edit button, and lists where every row is its
+ * own card with an Actions ▾ menu (or a padlock for system rows).
+ *
+ * Edit and Add forms open full screen (./FullModal: Close + Save/Add at the
+ * top right); previews, pickers and confirmations use the kit's Modal.
  */
 
 /** Right-hand content of a settings sub-page: header + skeleton on first render. */
@@ -38,8 +43,8 @@ export function SettingsPage({
               {description}
               {learnMore && (
                 <>
-                  {' '}
-                  <LearnMore topic={learnMore} />
+                  {description ? ' ' : ''}
+                  <LearnMore topic={learnMore} />.
                 </>
               )}
             </p>
@@ -49,6 +54,15 @@ export function SettingsPage({
       </header>
       {loading ? <PageSkeleton rows={skeletonRows} /> : children}
     </div>
+  )
+}
+
+/** The small secondary "Edit" (or custom label) button at the top right of a card. */
+export function CardButton({ onClick, children, testId, disabled }: { onClick: () => void; children: ReactNode; testId?: string; disabled?: boolean }) {
+  return (
+    <Button size="sm" onClick={onClick} disabled={disabled} data-testid={testId}>
+      {children}
+    </Button>
   )
 }
 
@@ -79,8 +93,8 @@ export function EditCard({
 }) {
   const { t } = useTranslation()
   return (
-    <section className={clsx('card overflow-hidden', className)} data-testid={testId}>
-      {banner && <div className="border-b border-line bg-sunken px-6 py-3 text-body text-ink">{banner}</div>}
+    <section className={clsx('card', className)} data-testid={testId}>
+      {banner && <div className="rounded-t-lg border-b border-line bg-sunken px-6 py-3 text-body text-ink">{banner}</div>}
       <div className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -97,17 +111,32 @@ export function EditCard({
               </p>
             )}
           </div>
-          {action ??
-            (onEdit && (
-              <Button size="sm" className="rounded-full px-4" onClick={onEdit}>
-                {editLabel ?? t('settings.common.edit')}
-              </Button>
-            ))}
+          {action ?? (onEdit && <CardButton onClick={onEdit}>{editLabel ?? t('settings.common.edit')}</CardButton>)}
         </div>
         {children && <div className="mt-5">{children}</div>}
       </div>
     </section>
   )
+}
+
+/** White card holding the fields of a full-screen edit form. */
+export function FormCard({ title, description, children, className, testId }: { title?: ReactNode; description?: ReactNode; children?: ReactNode; className?: string; testId?: string }) {
+  return (
+    <section className={clsx('card flex flex-col gap-5 p-6 sm:p-8', className)} data-testid={testId}>
+      {(title || description) && (
+        <header>
+          {title && <h2 className="font-display text-title-2 text-ink">{title}</h2>}
+          {description && <p className="mt-1 text-body text-muted">{description}</p>}
+        </header>
+      )}
+      {children}
+    </section>
+  )
+}
+
+/** Vertical stack of form cards. */
+export function FormStack({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-6">{children}</div>
 }
 
 /** Label (ink) over value (muted) pairs in one or two columns. */
@@ -233,70 +262,65 @@ function PromoArt({ kind }: { kind: 'cards' | 'phone' | 'terminal' }) {
   )
 }
 
-/** "Options ▾" (or any label) pill menu. */
-export function PillMenu({ label, groups, primary, align = 'right', width = 280 }: { label: ReactNode; groups: MenuGroup[]; primary?: boolean; align?: 'left' | 'right'; width?: number }) {
+/** "Options ▾" (or any label) menu button for page headers. */
+export function PillMenu({ label, groups, primary, align = 'right', width = 280, testId }: { label: ReactNode; groups: MenuGroup[]; primary?: boolean; align?: 'left' | 'right'; width?: number; testId?: string }) {
   return (
     <Menu
       groups={groups}
       align={align}
       width={width}
       trigger={({ open, toggle }) => (
-        <MenuButton open={open} toggle={toggle} primary={primary}>
-          {label}
-        </MenuButton>
+        <span data-testid={testId} className="contents">
+          <MenuButton open={open} toggle={toggle} primary={primary}>
+            {label}
+          </MenuButton>
+        </span>
       )}
     />
   )
 }
 
-/** Small "Actions ⌄" pill used on cards and list rows. */
-export function ActionsPill({ groups, label, width = 220 }: { groups: MenuGroup[]; label?: string; width?: number }) {
+/** "Actions ▾" menu used on cards and list rows (same look as Options ▾). */
+export function ActionsPill({ groups, label, width = 240, testId }: { groups: MenuGroup[]; label?: string; width?: number; testId?: string }) {
   const { t } = useTranslation()
+  return <PillMenu label={label ?? t('settings.common.actions')} groups={groups} width={width} testId={testId} />
+}
+
+/** A list of rows; each row is its own card (reference: Cancellation reasons, Registers…). */
+export function ListCard({ children, className, testId }: { children: ReactNode; className?: string; testId?: string }) {
   return (
-    <Menu
-      groups={groups}
-      width={width}
-      label={label ?? t('settings.common.actions')}
-      trigger={({ open, toggle }) => (
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={toggle}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong bg-surface px-4 text-body-strong text-ink hover:bg-sunken"
-        >
-          {label ?? t('settings.common.actions')}
-          <ChevronDown size={16} aria-hidden />
-        </button>
-      )}
-    />
+    <div className={clsx('flex flex-col gap-3', className)} data-testid={testId}>
+      {children}
+    </div>
   )
 }
 
-/** A card containing a list of rows. */
-export function ListCard({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={clsx('card divide-y divide-line', className)}>{children}</div>
-}
-
-/** One row: leading tile, title, subtitle and trailing actions. */
+/** One row card: leading tile, title, subtitle and trailing actions. */
 export function ListRow({
   leading,
+  tile = true,
   title,
   subtitle,
   trailing,
   onClick,
+  accent,
   testId,
 }: {
   leading?: ReactNode
+  /** Wrap `leading` in the grey 44px tile (false when it brings its own). */
+  tile?: boolean
   title: ReactNode
   subtitle?: ReactNode
   trailing?: ReactNode
   onClick?: () => void
+  /** Colour of a 4px bar on the left edge (appointment statuses). */
+  accent?: string
   testId?: string
 }) {
   return (
-    <div className={clsx('flex items-center gap-4 px-5 py-4', onClick && 'cursor-pointer hover:bg-sunken/60')} onClick={onClick} data-testid={testId}>
-      {leading && <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-sunken text-title-3 text-ink">{leading}</div>}
+    <div className={clsx('card relative flex items-center gap-4 px-6 py-5', onClick && 'cursor-pointer transition-colors hover:bg-sunken/50')} onClick={onClick} data-testid={testId}>
+      {accent && <span className="absolute inset-y-0 left-0 w-1 rounded-l-lg" style={{ background: accent }} aria-hidden />}
+      {leading && (tile ? <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-sunken text-title-3 text-ink">{leading}</div> : <div className="shrink-0">{leading}</div>)}
       <div className="min-w-0 flex-1">
         <div className="truncate text-body-strong text-ink">{title}</div>
         {subtitle && <div className="mt-0.5 text-body text-muted">{subtitle}</div>}
@@ -307,6 +331,15 @@ export function ListRow({
         </div>
       )}
     </div>
+  )
+}
+
+/** Grey padlock shown instead of Actions on rows that can't be edited (system items). */
+export function LockMark({ label }: { label: string }) {
+  return (
+    <span className="flex h-10 w-10 items-center justify-center text-subtle" title={label} role="img" aria-label={label}>
+      <Lock size={20} aria-hidden />
+    </span>
   )
 }
 
@@ -333,5 +366,24 @@ export function AddLink({ onClick, children }: { onClick: () => void; children?:
     <button type="button" onClick={onClick} className="text-body-strong text-primary hover:underline">
       {children ?? t('settings.common.add')}
     </button>
+  )
+}
+
+/** Divider used between groups inside cards. */
+export const Rule = ({ className }: { className?: string }) => <hr className={clsx('border-line', className)} />
+
+/** Form wrapper that submits on Enter (used inside full-screen forms). */
+export function ModalForm({ onSubmit, children, className }: { onSubmit: () => void; children: ReactNode; className?: string }) {
+  return (
+    <form
+      className={clsx('flex flex-col gap-5', className)}
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSubmit()
+      }}
+    >
+      {children}
+      <button type="submit" hidden aria-hidden tabIndex={-1} />
+    </form>
   )
 }

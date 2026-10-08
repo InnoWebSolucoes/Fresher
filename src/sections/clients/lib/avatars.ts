@@ -1,33 +1,4 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-
-/**
- * Client profile photos. The shared Client type has no photo field, so the
- * Clients section keeps small (96px) JPEG data URLs in its own persisted
- * store, keyed by client id.
- */
-interface AvatarState {
-  photos: Record<string, string>
-  set: (clientId: string, dataUrl: string | null) => void
-}
-
-export const useClientAvatars = create<AvatarState>()(
-  persist(
-    (set) => ({
-      photos: {},
-      set: (clientId, dataUrl) =>
-        set((s) => {
-          const photos = { ...s.photos }
-          if (dataUrl) photos[clientId] = dataUrl
-          else delete photos[clientId]
-          return { photos }
-        }),
-    }),
-    { name: 'ib-client-avatars', version: 1 },
-  ),
-)
-
-/** Resize an image file to a square JPEG data URL. */
+/** Resize an image file to a square JPEG data URL (stored on `Client.photo`). */
 export function resizeImage(file: File, size = 96): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()

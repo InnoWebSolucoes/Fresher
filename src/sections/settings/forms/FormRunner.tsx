@@ -75,11 +75,11 @@ export function FormRunner({
           <h2 className="font-display text-title-2 text-ink">{t('settings.frm.preview.doneTitle')}</h2>
           <p className="max-w-sm text-body text-muted">{t('settings.frm.preview.doneBody')}</p>
           <div className="mt-3 flex gap-2">
-            <Button className="rounded-full" onClick={restart}>
+            <Button onClick={restart}>
               {t('settings.frm.preview.startAgain')}
             </Button>
             {onClose && (
-              <Button variant="primary" className="rounded-full" onClick={onClose}>
+              <Button variant="primary" onClick={onClose}>
                 {t('settings.common.close')}
               </Button>
             )}
@@ -115,17 +115,17 @@ export function FormRunner({
           <div className="flex items-center justify-between gap-3 px-8 pb-8 pt-4">
             <div>
               {step > 0 && (
-                <Button className="rounded-full" icon={<ArrowLeft size={16} aria-hidden />} onClick={() => go(step - 1)}>
+                <Button icon={<ArrowLeft size={16} aria-hidden />} onClick={() => go(step - 1)}>
                   {t('settings.frm.preview.previous')}
                 </Button>
               )}
             </div>
             {last ? (
-              <Button variant="primary" size="lg" className="rounded-full px-6" loading={phase === 'submitting'} onClick={submit} data-testid="form-preview-submit">
+              <Button variant="primary" size="lg" className="px-6" loading={phase === 'submitting'} onClick={submit} data-testid="form-preview-submit">
                 {t('settings.frm.preview.submit')}
               </Button>
             ) : (
-              <Button variant="primary" size="lg" className="rounded-full px-6" onClick={() => go(step + 1)} data-testid="form-preview-next">
+              <Button variant="primary" size="lg" className="px-6" onClick={() => go(step + 1)} data-testid="form-preview-next">
                 {t('settings.frm.preview.next')}
               </Button>
             )}

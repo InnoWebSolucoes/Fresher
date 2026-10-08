@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Field, TextArea, TextInput } from '@/components/ui'
+import { Button, Field, Modal, TextArea, TextInput } from '@/components/ui'
 import { resourceTypesApi } from '@/api/settings'
 import { useDb } from '@/store/db'
 import type { ResourceType } from '@/types'
-import { SettingsModal } from '../components/SettingsModal'
 import { IconPicker } from '../components/pickers'
 import { useAction } from '../components/useAction'
 
@@ -50,12 +49,12 @@ export function ResourceTypeModal({ type, initialName = '', initialIcon = 'door-
   }
 
   return (
-    <SettingsModal
+    <Modal
       open
       onClose={onClose}
       title={t(type ? `${K}.editTypeTitle` : `${K}.newTypeTitle`)}
       footer={
-        <Button variant="primary" className="rounded-full px-6" disabled={!trimmed || duplicate} loading={saving} onClick={save} data-testid="resource-type-save">
+        <Button variant="primary" className="px-6" disabled={!trimmed || duplicate} loading={saving} onClick={save} data-testid="resource-type-save">
           {t(type ? 'settings.common.save' : 'settings.common.add')}
         </Button>
       }
@@ -79,6 +78,6 @@ export function ResourceTypeModal({ type, initialName = '', initialIcon = 'door-
           {(id) => <TextArea id={id} value={description} maxLength={1000} onChange={(e) => setDescription(e.target.value)} />}
         </Field>
       </form>
-    </SettingsModal>
+    </Modal>
   )
 }

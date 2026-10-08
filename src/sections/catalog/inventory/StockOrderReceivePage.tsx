@@ -20,17 +20,17 @@ export function StockOrderReceivePage() {
 
   if (!order)
     return (
-      <FullscreenFrame onClose={() => navigate('/catalogue/orders')}>
-        <EmptyState title={t('catalog.inventory.common.notFoundTitle')} body={t('catalog.inventory.common.notFoundBody')} />
+      <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={() => navigate('/catalogue/orders')}>
+        <EmptyState title={t('catalog.common.notFoundTitle')} body={t('catalog.common.notFoundBody')} />
       </FullscreenFrame>
     )
   if (doneId === order.id) return <ReceivedView order={order} />
   if (order.status !== 'ordered')
     return (
-      <FullscreenFrame onClose={() => navigate('/catalogue/orders')}>
+      <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={() => navigate('/catalogue/orders')}>
         <EmptyState
           title={t('catalog.inventory.receive.notReceivable')}
-          action={<Button onClick={() => navigate(`/catalogue/orders?drawer=stock-order&id=${order.id}`)}>{t('catalog.inventory.common.back')}</Button>}
+          action={<Button onClick={() => navigate(`/catalogue/orders?drawer=stock-order&id=${order.id}`)}>{t('catalog.common.back')}</Button>}
         />
       </FullscreenFrame>
     )
@@ -63,8 +63,7 @@ function ReceiveForm({ order, onDone }: { order: StockOrder; onDone: () => void 
   }
 
   return (
-    <FullscreenFrame
-      title={t('catalog.inventory.receive.title', { number: order.number })}
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       onClose={() => navigate(`/catalogue/orders?drawer=stock-order&id=${order.id}`)}
       maxWidth="max-w-5xl"
       actions={
@@ -169,7 +168,7 @@ function ReceivedView({ order }: { order: StockOrder }) {
   const received = order.items.reduce((s, i) => s + (i.receivedQty ?? 0), 0)
   const done = () => navigate('/catalogue/orders')
   return (
-    <FullscreenFrame onClose={done} progress={1} maxWidth="max-w-2xl">
+    <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={done} progress={1} maxWidth="max-w-2xl">
       <div className="py-6">
         <SuccessHero title={t('catalog.inventory.receive.doneTitle')} subtitle={t('catalog.inventory.receive.doneSubtitle', { number: order.number })} />
         <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-line bg-surface p-6">
@@ -184,6 +183,7 @@ function ReceivedView({ order }: { order: StockOrder }) {
               setBusy(true)
               try {
                 await downloadOrderPdf(order, { products, suppliers, locations }, t)
+                toast(t('catalog.toasts.downloaded'))
               } finally {
                 setBusy(false)
               }

@@ -13,8 +13,16 @@ const NEUTRALS = [
   { key: 'lightGrey', color: '#A9B5B3' },
 ]
 
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0]?.toUpperCase())
+    .slice(0, 2)
+    .join('')
+
 /** "Add a note" rich-text modal (calendar.md §7.4). */
-export function NoteModal({ open, title, initialHtml = '', clientName, onClose, onSave }: { open: boolean; title?: string; initialHtml?: string; clientName?: string; onClose: () => void; onSave: (html: string) => Promise<void> | void }) {
+export function NoteModal({ open, title, initialHtml = '', clientName, clientPhoto, onClient, onClose, onSave }: { open: boolean; title?: string; initialHtml?: string; clientName?: string; clientPhoto?: string; onClient?: () => void; onClose: () => void; onSave: (html: string) => Promise<void> | void }) {
   const { t } = useTranslation()
   const editor = useRef<HTMLDivElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -65,7 +73,20 @@ export function NoteModal({ open, title, initialHtml = '', clientName, onClose, 
       title={title ?? t('calendar.note.title')}
       footer={
         <div className="flex w-full items-center justify-between gap-3">
-          {clientName ? <span className="chip bg-primary-subtle text-primary">{clientName}</span> : <span />}
+          {clientName ? (
+            <button type="button" onClick={onClient} disabled={!onClient} className="inline-flex h-9 items-center gap-2 rounded-full border border-line-strong pl-1 pr-3 text-body text-ink hover:bg-sunken disabled:cursor-default" data-testid="note-client-chip">
+              {clientPhoto ? (
+                <img src={clientPhoto} alt="" aria-hidden className="h-7 w-7 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-subtle text-caption font-semibold text-primary" aria-hidden>
+                  {initials(clientName)}
+                </span>
+              )}
+              {clientName}
+            </button>
+          ) : (
+            <span />
+          )}
           <div className="flex gap-2">
             <Button onClick={onClose}>{t('calendar.common.cancel')}</Button>
             <Button variant="primary" disabled={empty} loading={busy} onClick={save} data-testid="note-save">

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { AddOnIntroPage, PaymentsProcessingPage } from './AddOnIntroPage'
+import { AddOnIntroPage } from './AddOnIntroPage'
 import { AddOnManagePage } from './AddOnManagePage'
 import { AddOnSetupPage } from './AddOnSetupPage'
 import { AddOnsPage } from './AddOnsPage'
@@ -14,5 +14,4 @@ export const pages: Record<string, ComponentType> = {
   addonManage: AddOnManagePage,
   integrationIntro: IntegrationIntroPage,
   paymentsOnboarding: PaymentsOnboardingPage,
-  paymentsProcessing: PaymentsProcessingPage,
 }

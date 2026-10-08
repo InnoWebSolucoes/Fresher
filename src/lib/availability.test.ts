@@ -129,6 +129,41 @@ describe('availability engine', () => {
     expect(getAvailableSlots(world(), q({ online: false, items: [{ serviceId: 'offline', teamMemberId: 'ana' }] })).length).toBeGreaterThan(0)
   })
 
+  it('only offers gap-free times with "Eliminate calendar gaps"', () => {
+    const data = world()
+    data.settings = { ...data.settings, scheduleOptimization: { intervalMin: 15, mode: 'eliminate' } }
+    data.appointments = [appt('ana', '11:00', 60)]
+    // Shift 10:00–13:00, booked 11:00–12:00: only 10:00 (ends at 11:00) and 12:00 (starts at 12:00) touch an edge.
+    expect(getAvailableSlots(data, q()).map((s) => s.start)).toEqual(['10:00', '12:00'])
+  })
+
+  it('avoids leaving short gaps with "Reduce calendar gaps"', () => {
+    const data = world()
+    data.settings = { ...data.settings, scheduleOptimization: { intervalMin: 15, mode: 'reduce' } }
+    // The shortest online service here is 60 min, so any slot leaving a 15–45 min gap
+    // against the 10:00–13:00 shift edges can never be filled and is hidden.
+    expect(getAvailableSlots(data, q()).map((s) => s.start)).toEqual(['10:00', '11:00', '12:00'])
+  })
+
+  it('follows the dynamic assignment strategy for any professional', () => {
+    const data = world()
+    const anyCut = { items: [{ serviceId: 'cut', teamMemberId: null }] }
+    data.settings = { ...data.settings, dynamicAssignment: { ...data.settings.dynamicAssignment, strategy: 'priority' } }
+    data.teamMembers = data.teamMembers.map((m) => ({ ...m, order: m.id === 'bia' ? 0 : 1 }))
+    expect(getAvailableSlots(data, q(anyCut)).find((s) => s.start === '11:00')?.assignments[0].teamMemberId).toBe('bia')
+    data.settings = { ...data.settings, dynamicAssignment: { ...data.settings.dynamicAssignment, strategy: 'ratings' } }
+    data.teamMembers = data.teamMembers.map((m) => ({ ...m, reviewCount: m.id === 'ana' ? 0 : 10 }))
+    expect(getAvailableSlots(data, q(anyCut)).find((s) => s.start === '11:00')?.assignments[0].teamMemberId).toBe('ana')
+  })
+
+  it('keeps returning clients with their last team member when asked to', () => {
+    const data = world()
+    data.settings = { ...data.settings, dynamicAssignment: { ...data.settings.dynamicAssignment, strategy: 'fill', prioritizeLast: true } }
+    data.appointments = [{ ...appt('bia', '11:00', 30, '2026-10-05'), clientId: 'client-1' }]
+    const slot = getAvailableSlots(data, q({ items: [{ serviceId: 'cut', teamMemberId: null }], clientId: 'client-1' })).find((s) => s.start === '11:00')
+    expect(slot?.assignments[0].teamMemberId).toBe('bia')
+  })
+
   it('finds the next available dates', () => {
     const found = nextAvailableDates(world(), { locationId: 'loc', items: [{ serviceId: 'cut', teamMemberId: 'bia' }], online: true, now }, '2026-10-08', 14)
     expect(found[0].date).toBe(MONDAY)

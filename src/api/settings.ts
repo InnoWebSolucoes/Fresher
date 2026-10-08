@@ -20,23 +20,24 @@ import { ApiError, crud, latency } from './client'
 /** Apply a recipe to `db.settings`. */
 export async function updateSettings(recipe: (settings: Draft<Settings>) => void): Promise<void> {
   await latency()
-  commit((d) => recipe(d.settings))
+  commit((d) => {
+    recipe(d.settings)
+  })
 }
 
 /** Apply a recipe to `db.workspace` (business name, links, plan…). */
 export async function updateWorkspace(recipe: (workspace: Draft<Workspace>) => void): Promise<void> {
   await latency()
-  commit((d) => recipe(d.workspace))
+  commit((d) => {
+    recipe(d.workspace)
+  })
 }
 
 // ─── Extras (fields the shared types don't cover) ─────────────────────────
 
-type WithExtras = { extras?: Record<string, unknown> }
-
 /** Synchronous read of one extras value. */
 export function readSettingsExtra<T>(key: string, fallback: T): T {
-  const extras = (db().settings as unknown as WithExtras).extras
-  return (extras?.[key] as T | undefined) ?? fallback
+  return (db().settings.extras?.[key] as T | undefined) ?? fallback
 }
 
 /**
@@ -44,16 +45,14 @@ export function readSettingsExtra<T>(key: string, fallback: T): T {
  * constant as fallback so the returned reference stays stable.
  */
 export function useSettingsExtra<T>(key: string, fallback: T): T {
-  const value = useDb((s) => (s.settings as unknown as WithExtras | undefined)?.extras?.[key]) as T | undefined
+  const value = useDb((s) => s.settings?.extras?.[key]) as T | undefined
   return value ?? fallback
 }
 
 /** Commit an extras value without latency (use inside other api functions). */
 export function writeSettingsExtra<T>(key: string, value: T): void {
   commit((d) => {
-    const s = d.settings as unknown as WithExtras
-    if (!s.extras) s.extras = {}
-    s.extras[key] = value as unknown
+    d.settings.extras = { ...d.settings.extras, [key]: value }
   })
 }
 
@@ -66,6 +65,23 @@ export async function setSettingsExtra<T>(key: string, value: T): Promise<void> 
 export async function updateSettingsExtra<T>(key: string, fallback: T, update: (current: T) => T): Promise<void> {
   await latency()
   writeSettingsExtra(key, update(readSettingsExtra(key, fallback)))
+}
+
+// ─── Online booking ───────────────────────────────────────────────────────
+
+/**
+ * Save "New appointment assignment". The excluded members are mirrored on
+ * TeamMember.excludeAutoAssign, which online availability reads when a
+ * client picks "Any professional" (and the team member form edits).
+ */
+export async function saveDynamicAssignment(value: Settings['dynamicAssignment']): Promise<void> {
+  await latency()
+  commit((d) => {
+    d.settings.dynamicAssignment = { ...value, excluded: [...value.excluded] }
+    d.teamMembers.forEach((m) => {
+      m.excludeAutoAssign = value.excluded.includes(m.id)
+    })
+  })
 }
 
 // ─── Collections ─────────────────────────────────────────────────────────

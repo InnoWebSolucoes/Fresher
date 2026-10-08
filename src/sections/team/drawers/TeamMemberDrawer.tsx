@@ -14,7 +14,7 @@ import { PALETTE } from '@/styles/palette'
 import { money, money2 } from '@/lib/format'
 import { todayISO } from '@/lib/time'
 import { Button, EmptyState, Select, Skeleton, toast } from '@/components/ui'
-import { asRecord, linkedUser, sendInvite, type TriState } from '@/api/team'
+import { asRecord, linkedUser, sendInvite, useMemberExtras, type TriState } from '@/api/team'
 import { ActionsPill, MemberAvatar, PortalMenu } from '../components/common'
 import { useMemberActions } from '../components/useMemberActions'
 import { memberName, roleName } from '../lib/members'
@@ -82,6 +82,25 @@ export function TeamMemberDrawer({ id, close }: DrawerProps) {
               ) : (
                 <>
                   <p className="text-body text-ink">{t('team.drawer.roleInfo', { name: member.firstName, role: roleName(roles, member.role) })}</p>
+                  {member.role !== 'none' && !hasLogin && member.email.trim() && (
+                    <>
+                      <p className="mt-1 text-small text-muted">{t('team.drawer.notInvited', { name: member.firstName })}</p>
+                      <button
+                        type="button"
+                        disabled={inviting}
+                        className="mt-3 inline-flex items-center gap-2 text-body-strong text-primary hover:underline disabled:opacity-50"
+                        onClick={async () => {
+                          setInviting(true)
+                          await sendInvite(member.id)
+                          setInviting(false)
+                          toast(t('team.toasts.inviteSent'))
+                        }}
+                      >
+                        {t('team.drawer.sendInvite')}
+                        <ArrowRight size={16} aria-hidden />
+                      </button>
+                    </>
+                  )}
                   {member.role === 'none' ? (
                     <button type="button" className="mt-3 inline-flex items-center gap-2 text-body-strong text-primary hover:underline" onClick={() => edit('settings', '&focus=role')}>
                       {t('team.drawer.grantAccess')}
@@ -220,7 +239,7 @@ function OverviewTab({ member }: { member: TeamMember }) {
 
 function PersonalTab({ member, onEdit }: { member: TeamMember; onEdit: () => void }) {
   const { t } = useTranslation()
-  const rec = asRecord(member)
+  const rec = asRecord(member, useMemberExtras())
   const birthday = member.birthday ? (member.birthday.startsWith('0000') ? format(parseISO(`2000${member.birthday.slice(4)}`), 'MMM d') : format(parseISO(member.birthday), 'MMM d, yyyy')) : ''
   return (
     <>
@@ -298,7 +317,7 @@ function WorkspaceTab({ member, onEdit }: { member: TeamMember; onEdit: () => vo
 
 function PayTab({ member, onEdit }: { member: TeamMember; onEdit: () => void }) {
   const { t } = useTranslation()
-  const rec = asRecord(member)
+  const rec = asRecord(member, useMemberExtras())
   const ts = rec.timesheetSettings
   const tri = (v: TriState | undefined) => (v === 'enabled' ? t('team.form.wages.enabled') : v === 'disabled' ? t('team.form.wages.disabled') : t('team.form.wages.default'))
   const prs = rec.payRunSettings

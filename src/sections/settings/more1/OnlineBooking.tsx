@@ -2,15 +2,15 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trans, useTranslation } from 'react-i18next'
 import { Checkbox, Field, Select, TextArea } from '@/components/ui'
-import { updateSettings } from '@/api/settings'
+import { saveDynamicAssignment, updateSettings } from '@/api/settings'
 import type { Settings } from '@/types'
 import { useSettings, useTeamMembers } from '../hooks'
-import { EditCard, SettingsPage, SummaryList } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
+import { EditCard, FormCard, FormStack, SettingsPage, SummaryList } from '../components/ui'
+import { FullModal } from '../components/FullModal'
 import { useAction, useDraft } from '../components/useAction'
 import { MultiSelect, RadioRow, FieldError } from '../scheduling/shared'
 import { ADVANCE_DAYS, CANCEL_MINUTES, NOTICE_MINUTES, REASSIGN_CUTOFFS, SLOT_INTERVALS, EMAIL_RE, minutesLabel, periodLabel, withValue } from '../scheduling/options'
-import { B, M, ModalFooter } from './shared'
+import { B, M } from './shared'
 
 const b = { b: <B /> }
 
@@ -19,9 +19,20 @@ const b = { b: <B /> }
 const DA = `${M}.dynamic`
 type Dynamic = Settings['dynamicAssignment']
 
+/**
+ * Members excluded from "Any professional": TeamMember.excludeAutoAssign is
+ * what online booking reads (and what the team member form edits), so it is
+ * the source of truth for the "Exclude team member" field.
+ */
+function useExcluded(): string[] {
+  const members = useTeamMembers()
+  return useMemo(() => members.filter((m) => m.excludeAutoAssign && !m.archived).map((m) => m.id), [members])
+}
+
 export function DynamicAssignmentPage() {
   const { t } = useTranslation()
   const da = useSettings().dynamicAssignment
+  const excluded = useExcluded()
   const [modal, setModal] = useState<'assign' | 'reassign' | null>(null)
   const assignLine = da.strategy === 'fill' ? t(`${DA}.summary.fill_${da.period}`) : t(`${DA}.summary.${da.strategy}`)
   const reassignItems = [] as { text: ReactNode; key: string }[]
@@ -38,7 +49,7 @@ export function DynamicAssignmentPage() {
             { key: 'strategy', text: assignLine },
             ...(da.prioritizeLast ? [{ key: 'last', text: t(`${DA}.summary.prioritizeLast`) }] : []),
             ...(da.split ? [{ key: 'split', text: t(`${DA}.summary.split`) }] : []),
-            ...(da.excluded.length ? [{ key: 'excluded', text: t(`${DA}.summary.excluded`, { count: da.excluded.length }) }] : []),
+            ...(excluded.length ? [{ key: 'excluded', text: t(`${DA}.summary.excluded`, { count: excluded.length }) }] : []),
           ]}
         />
       </EditCard>
@@ -62,14 +73,15 @@ function AssignModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const settings = useSettings()
   const members = useTeamMembers()
-  const [draft, patch] = useDraft<Dynamic>(settings.dynamicAssignment)
-  const [saving, save] = useSaveSettings<Dynamic>((s, v) => (s.dynamicAssignment = v), `${M}.saved`, onClose)
+  const excluded = useExcluded()
+  const [draft, patch] = useDraft<Dynamic>({ ...settings.dynamicAssignment, excluded })
+  const [saving, run] = useAction()
   const options = useMemo(() => members.filter((m) => m.bookable && !m.archived).map((m) => ({ value: m.id, label: `${m.firstName} ${m.lastName}`.trim() })), [members])
+  const save = () => void run(() => saveDynamicAssignment(draft), t(`${DA}.saved`), onClose)
   return (
-    <SettingsModal open onClose={onClose} size="lg" title={t(`${DA}.assignTitle`)} subtitle={t(`${DA}.assignModalText`)} footer={<ModalFooter onCancel={onClose} onSave={() => void save(draft)} saving={saving} testId="assign-save" />}>
-      <div className="flex flex-col gap-6 pb-2">
-        <div className="flex flex-col gap-4">
-          <p className="text-body-strong text-ink">{t(`${DA}.strategy`)}</p>
+    <FullModal open onClose={onClose} title={t(`${DA}.assignTitle`)} subtitle={t(`${DA}.assignModalText`)} onSave={save} saving={saving} testId="assign-modal">
+      <FormStack>
+        <FormCard title={t(`${DA}.strategy`)}>
           {(['fill', 'turns', 'ratings', 'priority'] as const).map((v) => (
             <RadioRow key={v} name="assign-strategy" checked={draft.strategy === v} onSelect={() => patch({ strategy: v })} label={<strong>{t(`${DA}.strategies.${v}.label`)}</strong>} hint={t(`${DA}.strategies.${v}.hint`)} testId={`strategy-${v}`}>
               {v === 'fill' && (
@@ -82,19 +94,18 @@ function AssignModal({ onClose }: { onClose: () => void }) {
               )}
             </RadioRow>
           ))}
-        </div>
-        <Checkbox checked={draft.prioritizeLast} onChange={(prioritizeLast) => patch({ prioritizeLast })} label={t(`${DA}.prioritizeLast`)} hint={t(`${DA}.prioritizeLastHint`)} />
-        <div className="flex flex-col gap-4 border-t border-line pt-5">
-          <p className="font-display text-title-3 text-ink">{t(`${M}.advanced`)}</p>
+          <Checkbox checked={draft.prioritizeLast} onChange={(prioritizeLast) => patch({ prioritizeLast })} label={t(`${DA}.prioritizeLast`)} hint={t(`${DA}.prioritizeLastHint`)} />
+        </FormCard>
+        <FormCard title={t(`${M}.advanced`)}>
           <div>
             <p className="text-body-strong text-ink">{t(`${DA}.exclude`)}</p>
             <p className="mb-2 text-small text-muted">{t(`${DA}.excludeHint`)}</p>
-            <MultiSelect options={options} value={draft.excluded} onChange={(excluded) => patch({ excluded })} placeholder={t(`${DA}.selectMembers`)} ariaLabel={t(`${DA}.exclude`)} testId="assign-exclude" />
+            <MultiSelect options={options} value={draft.excluded} onChange={(next) => patch({ excluded: next })} placeholder={t(`${DA}.selectMembers`)} ariaLabel={t(`${DA}.exclude`)} testId="assign-exclude" />
           </div>
           <Checkbox checked={draft.split} onChange={(split) => patch({ split })} label={t(`${DA}.split`)} hint={t(`${DA}.splitHint`)} />
-        </div>
-      </div>
-    </SettingsModal>
+        </FormCard>
+      </FormStack>
+    </FullModal>
   )
 }
 
@@ -102,14 +113,12 @@ function ReassignModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const settings = useSettings()
   const [draft, patch] = useDraft<Dynamic>(settings.dynamicAssignment)
-  const [saving, save] = useSaveSettings<Dynamic>((s, v) => (s.dynamicAssignment = v), `${M}.saved`, onClose)
+  const [saving, save] = useSaveSettings<Dynamic>((s, v) => {
+    s.dynamicAssignment = { ...v, excluded: s.dynamicAssignment.excluded }
+  }, `${DA}.saved`, onClose)
   return (
-    <SettingsModal open onClose={onClose} size="lg" title={t(`${DA}.reassignTitle`)} subtitle={t(`${DA}.reassignModalText`)} footer={<ModalFooter onCancel={onClose} onSave={() => void save(draft)} saving={saving} testId="reassign-save" />}>
-      <div className="flex flex-col gap-5 pb-2">
-        <div>
-          <p className="text-body-strong text-ink">{t(`${DA}.maximize`)}</p>
-          <p className="text-small text-muted">{t(`${DA}.maximizeHint`)}</p>
-        </div>
+    <FullModal open onClose={onClose} title={t(`${DA}.reassignTitle`)} subtitle={t(`${DA}.reassignModalText`)} onSave={() => void save(draft)} saving={saving} testId="reassign-modal">
+      <FormCard title={t(`${DA}.maximize`)} description={t(`${DA}.maximizeHint`)}>
         <div className="flex flex-col gap-3">
           <p className="text-body-strong text-ink">{t(`${DA}.reassignTypes`)}</p>
           <Checkbox checked={draft.reassignOnline} onChange={(reassignOnline) => patch({ reassignOnline })} label={t(`${DA}.reassignOnline`)} />
@@ -125,8 +134,8 @@ function ReassignModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-      </div>
-    </SettingsModal>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -172,14 +181,14 @@ function WindowModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const settings = useSettings()
   const [draft, patch] = useDraft<Avail>(settings.availability)
-  const [saving, save] = useSaveSettings<Avail>((s, v) => (s.availability = v), `${AV}.saved`, onClose)
+  const [saving, save] = useSaveSettings<Avail>((s, v) => {
+    s.availability = v
+  }, `${AV}.saved`, onClose)
   return (
-    <SettingsModal open onClose={onClose} size="lg" title={t(`${AV}.windowTitle`)} footer={<ModalFooter onCancel={onClose} onSave={() => void save(draft)} saving={saving} testId="window-save" />}>
-      <div className="flex flex-col gap-6 pb-2">
-        <div>
-          <p className="text-body-strong text-ink">{t(`${AV}.online`)}</p>
-          <p className="text-small text-muted">{t(`${AV}.onlineHint`)}</p>
-          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <FullModal open onClose={onClose} title={t(`${AV}.windowTitle`)} onSave={() => void save(draft)} saving={saving} testId="window-modal">
+      <FormStack>
+        <FormCard title={t(`${AV}.online`)} description={t(`${AV}.onlineHint`)}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t(`${AV}.canBook`)}>
               {(id) => (
                 <Select id={id} value={String(draft.advanceDays)} onChange={(e) => patch({ advanceDays: Number(e.target.value) })} options={withValue(ADVANCE_DAYS, draft.advanceDays).map((d) => ({ value: String(d), label: t(`${AV}.upToAdvance`, { value: periodLabel(t, d) }) }))} data-testid="window-advance" />
@@ -197,11 +206,9 @@ function WindowModal({ onClose }: { onClose: () => void }) {
               )}
             </Field>
           </div>
-        </div>
-        <div className="border-t border-line pt-5">
-          <p className="text-body-strong text-ink">{t(`${AV}.cancelTitle`)}</p>
-          <p className="text-small text-muted">{t(`${AV}.cancelHint`)}</p>
-          <Field className="mt-3" label={t(`${AV}.canCancel`)}>
+        </FormCard>
+        <FormCard title={t(`${AV}.cancelTitle`)} description={t(`${AV}.cancelHint`)}>
+          <Field label={t(`${AV}.canCancel`)}>
             {(id) => (
               <Select
                 id={id}
@@ -212,10 +219,10 @@ function WindowModal({ onClose }: { onClose: () => void }) {
               />
             )}
           </Field>
-          <Checkbox className="mt-4" checked={draft.showContact} onChange={(showContact) => patch({ showContact })} label={t(`${AV}.showContact`)} hint={t(`${AV}.showContactHint`)} />
-        </div>
-      </div>
-    </SettingsModal>
+          <Checkbox checked={draft.showContact} onChange={(showContact) => patch({ showContact })} label={t(`${AV}.showContact`)} hint={t(`${AV}.showContactHint`)} />
+        </FormCard>
+      </FormStack>
+    </FullModal>
   )
 }
 
@@ -223,26 +230,26 @@ function OptimModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const settings = useSettings()
   const [draft, patch] = useDraft<Optim>(settings.scheduleOptimization)
-  const [saving, save] = useSaveSettings<Optim>((s, v) => (s.scheduleOptimization = v), `${AV}.optimSaved`, onClose)
+  const [saving, save] = useSaveSettings<Optim>((s, v) => {
+    s.scheduleOptimization = v
+  }, `${AV}.optimSaved`, onClose)
   return (
-    <SettingsModal open onClose={onClose} size="lg" title={t(`${AV}.optimTitle`)} footer={<ModalFooter onCancel={onClose} onSave={() => void save(draft)} saving={saving} testId="optim-save" />}>
-      <div className="flex flex-col gap-6 pb-2">
-        <Field label={t(`${AV}.interval`)}>
-          {(id) => (
-            <Select
-              id={id}
-              value={String(draft.intervalMin)}
-              onChange={(e) => patch({ intervalMin: Number(e.target.value) })}
-              options={withValue(SLOT_INTERVALS, draft.intervalMin).map((m) => ({ value: String(m), label: m === 5 ? t(`${AV}.intervalMax`, { value: minutesLabel(t, m) }) : minutesLabel(t, m) }))}
-              data-testid="optim-interval"
-            />
-          )}
-        </Field>
-        <div className="flex flex-col gap-4 border-t border-line pt-5">
-          <div>
-            <p className="text-body-strong text-ink">{t(`${AV}.intelligent`)}</p>
-            <p className="text-small text-muted">{t(`${AV}.intelligentHint`)}</p>
-          </div>
+    <FullModal open onClose={onClose} title={t(`${AV}.optimTitle`)} subtitle={t(`${AV}.optimDescription`)} onSave={() => void save(draft)} saving={saving} testId="optim-modal">
+      <FormStack>
+        <FormCard>
+          <Field label={t(`${AV}.interval`)}>
+            {(id) => (
+              <Select
+                id={id}
+                value={String(draft.intervalMin)}
+                onChange={(e) => patch({ intervalMin: Number(e.target.value) })}
+                options={withValue(SLOT_INTERVALS, draft.intervalMin).map((m) => ({ value: String(m), label: m === 5 ? t(`${AV}.intervalMax`, { value: minutesLabel(t, m) }) : minutesLabel(t, m) }))}
+                data-testid="optim-interval"
+              />
+            )}
+          </Field>
+        </FormCard>
+        <FormCard title={t(`${AV}.intelligent`)} description={t(`${AV}.intelligentHint`)}>
           {(['regular', 'reduce', 'eliminate'] as const).map((v) => (
             <RadioRow
               key={v}
@@ -255,9 +262,9 @@ function OptimModal({ onClose }: { onClose: () => void }) {
               testId={`optim-${v}`}
             />
           ))}
-        </div>
-      </div>
-    </SettingsModal>
+        </FormCard>
+      </FormStack>
+    </FullModal>
   )
 }
 
@@ -297,13 +304,7 @@ export function BookingOptionsPage() {
           </p>
         )}
       </EditCard>
-      <EditCard
-        title={t(`${BO}.infoTitle`)}
-        description={t(`${BO}.infoDescription`)}
-        onEdit={() => setModal('info')}
-        editLabel={o.importantInfo ? undefined : t('settings.common.add')}
-        testId="booking-info"
-      >
+      <EditCard title={t(`${BO}.infoTitle`)} description={t(`${BO}.infoDescription`)} onEdit={() => setModal('info')} editLabel={o.importantInfo ? undefined : t('settings.common.add')} testId="booking-info">
         {o.importantInfo ? <p className="whitespace-pre-line text-body text-ink">{o.importantInfo}</p> : null}
       </EditCard>
       <EditCard title={t(`${BO}.emailTitle`)} description={t(`${BO}.emailDescription`)} onEdit={() => setModal('email')} testId="booking-email">
@@ -325,7 +326,9 @@ function BookingOptionsModal({ kind, onClose }: { kind: BookingModal; onClose: (
   const settings = useSettings()
   const [draft, patch] = useDraft<Booking>(settings.bookingOptions)
   const [emailsOn, setEmailsOn] = useState(!!settings.bookingOptions.emailAddresses)
-  const [saving, save] = useSaveSettings<Booking>((s, v) => (s.bookingOptions = v), `${M}.saved`, onClose)
+  const [saving, save] = useSaveSettings<Booking>((s, v) => {
+    s.bookingOptions = v
+  }, `${BO}.saved`, onClose)
   const emails = draft.emailAddresses
     .split(',')
     .map((x) => x.trim())
@@ -336,12 +339,13 @@ function BookingOptionsModal({ kind, onClose }: { kind: BookingModal; onClose: (
     void save(kind === 'email' ? { ...draft, emailAddresses: emailsOn ? emails.join(', ') : '' } : { ...draft, importantInfo: draft.importantInfo.trim() })
   }
   const titles: Record<BookingModal, string> = { team: `${BO}.teamTitle`, menu: `${BO}.menuTitle`, group: `${BO}.groupTitle`, info: `${BO}.infoTitle`, email: `${BO}.emailTitle` }
-  const box = (key: keyof Booking, label: string, extra?: { disabled?: boolean }) => (
-    <Checkbox checked={draft[key] as boolean} disabled={extra?.disabled} onChange={(v) => patch({ [key]: v } as Partial<Booking>)} label={t(`${BO}.opts.${label}.label`)} hint={t(`${BO}.opts.${label}.hint`)} />
+  const descriptions: Record<BookingModal, string> = { team: `${BO}.teamDescription`, menu: `${BO}.menuDescription`, group: `${BO}.groupDescription`, info: `${BO}.infoDescription`, email: `${BO}.emailDescription` }
+  const box = (key: keyof Booking, label: string) => (
+    <Checkbox checked={draft[key] as boolean} onChange={(v) => patch({ [key]: v } as Partial<Booking>)} label={t(`${BO}.opts.${label}.label`)} hint={t(`${BO}.opts.${label}.hint`)} />
   )
   return (
-    <SettingsModal open onClose={onClose} size="lg" title={t(titles[kind])} footer={<ModalFooter onCancel={onClose} onSave={submit} saving={saving} disabled={!!emailError} testId="booking-save" />}>
-      <div className="flex flex-col gap-5 pb-2">
+    <FullModal open onClose={onClose} title={t(titles[kind])} subtitle={t(descriptions[kind])} onSave={submit} saving={saving} saveDisabled={!!emailError} testId="booking-modal">
+      <FormCard>
         {kind === 'team' && (
           <>
             {box('bookSpecific', 'bookSpecific')}
@@ -379,8 +383,7 @@ function BookingOptionsModal({ kind, onClose }: { kind: BookingModal; onClose: (
             )}
           </>
         )}
-      </div>
-    </SettingsModal>
+      </FormCard>
+    </FullModal>
   )
 }
-

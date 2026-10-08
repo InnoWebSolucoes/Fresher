@@ -103,17 +103,55 @@ export function lineTotal(item: Pick<SaleItem, 'unitPrice' | 'quantity' | 'disco
 }
 
 /** Totals for a cart or sale (prices are tax inclusive). */
+/**
+ * Tax rate (fraction, e.g. 0.23) for a sale line: the item's own tax rate,
+ * else the workspace tax default for its kind (Settings › Sales › Tax rates).
+ * Gift cards are not taxed at sale (tax applies when redeemed).
+ */
+export function taxRateFor(type: SaleItem['type'], refId?: ID): number {
+  if (type === 'gift_card') return 0
+  const data = db()
+  const settings = data.settings
+  if (!settings) return 0.23
+  const defaults = settings.taxDefaults
+  let taxRateId: ID | null | undefined
+  if (type === 'service' || type === 'service_addon' || type === 'late_cancellation_fee' || type === 'no_show_fee' || type === 'manual') {
+    taxRateId = (type === 'service' ? data.services.find((s) => s.id === refId)?.taxRateId : undefined) ?? defaults.services
+  } else if (type === 'product' || type === 'shipping') {
+    taxRateId = (type === 'product' ? data.products.find((p) => p.id === refId)?.taxRateId : undefined) ?? defaults.products
+  } else if (type === 'package') {
+    taxRateId = data.packages.find((p) => p.id === refId)?.taxRateId ?? defaults.services
+  } else if (type === 'membership') {
+    taxRateId = defaults.memberships
+  }
+  const rate = settings.taxRates.find((r) => r.id === taxRateId)?.rate
+  return rate === undefined ? 0 : rate / 100
+}
+
+/**
+ * Totals for a cart or sale. Each line is taxed at its own rate. With "Retail
+ * prices include tax" (the seed's setting) tax is contained in the price;
+ * with "exclude tax" it is added on top.
+ */
 export function computeTotals(sale: Pick<Sale, 'items' | 'tips' | 'cartDiscount' | 'serviceCharges'>) {
   const itemsTotal = round2(sale.items.reduce((s, i) => s + lineTotal(i), 0))
   const itemsBeforeDiscounts = round2(sale.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0))
   const cartDiscount = sale.cartDiscount ? round2(sale.cartDiscount.type === 'percent' ? (itemsTotal * sale.cartDiscount.value) / 100 : sale.cartDiscount.value) : 0
   const subtotal = round2(itemsTotal - cartDiscount)
   const serviceCharges = round2((sale.serviceCharges ?? []).reduce((s, c) => s + c.amount, 0))
-  const taxable = sale.items.filter((i) => i.taxRate > 0)
-  const taxBase = round2(taxable.reduce((s, i) => s + lineTotal(i), 0) * (itemsTotal ? subtotal / itemsTotal : 1))
-  const tax = round2((taxBase * 0.23) / 1.23)
+  // The cart discount is spread over lines in proportion to their value.
+  const discountFactor = itemsTotal ? subtotal / itemsTotal : 1
+  const inclusive = (db().workspace?.taxCalculation ?? 'inclusive') === 'inclusive'
+  const tax = round2(
+    sale.items.reduce((s, i) => {
+      const rate = i.taxRate ?? 0
+      if (rate <= 0) return s
+      const base = lineTotal(i) * discountFactor
+      return s + (inclusive ? (base * rate) / (1 + rate) : base * rate)
+    }, 0),
+  )
   const tips = round2(sale.tips.reduce((s, t) => s + t.amount, 0))
-  const total = round2(subtotal + serviceCharges + tips)
+  const total = round2(subtotal + (inclusive ? 0 : tax) + serviceCharges + tips)
   return { itemsBeforeDiscounts, itemsTotal, cartDiscount, subtotal, serviceCharges, tax, tips, total }
 }
 
@@ -169,7 +207,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
     const { giftCard: _giftCard, redeem, rewardId: _rewardId, ...line } = c
     void _giftCard
     void _rewardId
-    return { ...line, ...(redeem ? { clientPackageId: redeem.clientPackageId } : {}), id: c.id ?? uid('si'), taxRate: c.type === 'gift_card' ? 0 : 0.23 } as SaleItem
+    return { ...line, ...(redeem ? { clientPackageId: redeem.clientPackageId } : {}), id: c.id ?? uid('si'), taxRate: taxRateFor(c.type, c.refId) } as SaleItem
   })
   const draft: Sale = existing
     ? { ...existing, clientId: input.clientId, items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote }
@@ -194,10 +232,18 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
         activity: [],
       }
   const totals = computeTotals(draft)
-  // Deposit held on the appointment is applied automatically.
-  const deposit = appointment?.deposit && !existing ? data.payments.find((p) => p.id === appointment.deposit?.paymentId && p.kind === 'deposit') : undefined
+  // Every appointment in the cart (one, or a whole group) is completed by this sale.
+  const appointmentIds = [...new Set([input.appointmentId, ...input.items.map((i) => i.appointmentId)].filter((x): x is ID => Boolean(x)))]
+  // Deposits held on those appointments are applied automatically.
+  const deposits = existing
+    ? []
+    : appointmentIds
+        .map((apptId) => data.appointments.find((a) => a.id === apptId)?.deposit?.paymentId)
+        .map((paymentId) => data.payments.find((p) => p.id === paymentId && p.kind === 'deposit' && !p.saleId))
+        .filter((p): p is Payment => Boolean(p))
+  const depositTotal = round2(deposits.reduce((s, p) => s + p.amount, 0))
   const alreadyPaid = existing ? salePaid(existing) : 0
-  const newPaid = round2(input.payments.reduce((s, p) => s + p.amount, 0) + (deposit?.amount ?? 0))
+  const newPaid = round2(input.payments.reduce((s, p) => s + p.amount, 0) + depositTotal)
   const paid = round2(alreadyPaid + newPaid)
   const status: SaleStatus = paid + 0.004 >= totals.total ? 'completed' : paid > 0 ? 'part_paid' : input.saveAs === 'draft' ? 'draft' : 'unpaid'
 
@@ -232,7 +278,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
     } else {
       Object.assign(sale, { clientId: input.clientId, items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote })
     }
-    if (deposit) {
+    for (const deposit of deposits) {
       const dep = d.payments.find((p) => p.id === deposit.id)!
       dep.saleId = sale.id
       sale.paymentIds.push(dep.id)
@@ -328,8 +374,8 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
           }
         }
       })
-      if (input.appointmentId) {
-        const appt = d.appointments.find((a) => a.id === input.appointmentId)
+      for (const apptId of appointmentIds) {
+        const appt = d.appointments.find((a) => a.id === apptId)
         if (appt) {
           appt.status = 'completed'
           appt.saleId = sale.id
@@ -339,14 +385,18 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
       if (sale.tips.length) {
         d.notifications.unshift({ id: uid('nt'), tab: 'tips', title: 'New tip', body: `€${round2(sale.tips.reduce((s, t) => s + t.amount, 0)).toFixed(2)} tip in sale ${sale.number}`, at, read: false, link: `/sales/sales-list?drawer=sale&id=${sale.id}` })
       }
-    } else if (input.appointmentId) {
-      const appt = d.appointments.find((a) => a.id === input.appointmentId)
-      if (appt) appt.saleId = sale.id
+    } else {
+      for (const apptId of appointmentIds) {
+        const appt = d.appointments.find((a) => a.id === apptId)
+        if (appt) appt.saleId = sale.id
+      }
     }
   })
 
   const saved = db().sales.find((s) => s.id === draft.id)!
-  if (status === 'completed' && appointment) notifyAppointment(db().appointments.find((a) => a.id === appointment.id)!, 'thank_you')
+  if (status === 'completed') {
+    for (const apptId of appointmentIds) notifyAppointment(db().appointments.find((a) => a.id === apptId)!, 'thank_you')
+  }
   for (const [index, cartItem] of input.items.entries()) {
     const card = issuedCards.find((g) => g.id === saved.items[index]?.giftCardId)
     if (card && cartItem.giftCard?.sendEmail && input.clientId) {
@@ -392,7 +442,7 @@ export async function refundSale(input: RefundInput): Promise<Sale> {
     const paymentId = uid('pay')
     const items: SaleItem[] = lines.length
       ? lines.map((l) => ({ ...l, id: uid('si'), unitPrice: -round2((lineTotal(l) / l.quantity) * (amount / (lines.reduce((s, x) => s + lineTotal(x), 0) || 1))), discount: undefined }))
-      : [{ id: uid('si'), type: 'manual', name: 'Refund amount', quantity: 1, unitPrice: -amount, teamMemberId: null, taxRate: 0.23 }]
+      : [{ id: uid('si'), type: 'manual', name: 'Refund amount', quantity: 1, unitPrice: -amount, teamMemberId: null, taxRate: taxRateFor('manual') }]
     d.sales.push({
       id: refundId,
       number,

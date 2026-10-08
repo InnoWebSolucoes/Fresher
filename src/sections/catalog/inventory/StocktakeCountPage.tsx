@@ -4,13 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { formatDistance, parseISO } from 'date-fns'
-import { Button, EmptyState, FullscreenFrame, Menu, SearchInput, Select, Switch, TextInput, toast } from '@/components/ui'
+import { Button, EmptyState, FullscreenFrame, Menu, SearchInput, Select, Switch, TextInput, Toolbar, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { now, nowISO } from '@/lib/time'
 import type { Stocktake, StocktakeItem } from '@/types'
 import { saveStocktakeItems, setStocktakeStatus } from '@/api/catalog'
-import { LocationCard, ProductThumb, SortButton, ToolbarCard } from '../ui'
+import { LocationCard, ProductThumb, SortButton } from '../ui'
 import { productSku } from './shared'
 
 type Sort = 'nameAsc' | 'nameDesc' | 'expectedDesc' | 'expectedAsc'
@@ -23,8 +23,8 @@ export function StocktakeCountPage() {
   const stocktake = useDb((s) => s.stocktakes.find((x) => x.id === id))
   if (!stocktake)
     return (
-      <FullscreenFrame title={t('catalog.inventory.count.title')}>
-        <EmptyState title={t('catalog.inventory.common.notFoundTitle')} body={t('catalog.inventory.common.notFoundBody')} />
+      <FullscreenFrame closeLabel={t('catalog.common.close')} title={t('catalog.inventory.count.title')}>
+        <EmptyState title={t('catalog.common.notFoundTitle')} body={t('catalog.common.notFoundBody')} />
       </FullscreenFrame>
     )
   if (stocktake.status === 'completed' || stocktake.status === 'cancelled') return <Navigate to={`/catalogue/stocktakes/${stocktake.id}`} replace />
@@ -174,7 +174,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
   const selectedIds = [...selected]
 
   return (
-    <FullscreenFrame
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       title={t('catalog.inventory.count.title')}
       onClose={() => void leave('close')}
       maxWidth="max-w-[1440px]"
@@ -206,11 +206,11 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
               <ScanBarcode size={22} className="shrink-0 text-primary" aria-hidden />
               <TextInput autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder={t('catalog.inventory.count.scanPlaceholder')} aria-label={t('catalog.inventory.count.scanPlaceholder')} className="flex-1" />
               <Button type="submit" variant="primary">
-                {t('catalog.inventory.common.add')}
+                {t('catalog.common.add')}
               </Button>
             </form>
           )}
-          <ToolbarCard className="bg-sunken">
+          <Toolbar>
             <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.count.search')} className="max-w-xs" />
             <Select
               aria-label={t('catalog.inventory.count.filterTitle')}
@@ -227,7 +227,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
             <div className="ml-auto">
               <SortButton value={sort} onChange={setSort} options={(['nameAsc', 'nameDesc', 'expectedDesc', 'expectedAsc'] as Sort[]).map((v) => ({ value: v, label: t(`catalog.inventory.count.sort.${v}`) }))} />
             </div>
-          </ToolbarCard>
+          </Toolbar>
 
           {selected.size > 0 && (
             <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-primary-subtle/50 px-4 py-2">
@@ -242,7 +242,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
                 {t('catalog.inventory.count.exclude')}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
-                {t('catalog.inventory.common.cancel')}
+                {t('catalog.common.cancel')}
               </Button>
             </div>
           )}
@@ -323,7 +323,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
                       </td>
                       <td className="px-3 py-4 text-right">
                         <Menu
-                          label={t('catalog.inventory.common.actions')}
+                          label={t('catalog.common.actions')}
                           groups={[
                             {
                               items: [

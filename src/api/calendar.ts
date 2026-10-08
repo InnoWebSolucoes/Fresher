@@ -145,11 +145,32 @@ export async function setAppointmentRepeat(id: ID, rule: RepeatRule): Promise<nu
 
 export async function createBlockedTimeType(input: Omit<BlockedTimeType, 'id'>): Promise<BlockedTimeType> {
   await latency()
-  const record: BlockedTimeType = { ...input, id: uid('btt') }
+  const name = input.name.trim()
+  if (!name) throw new ApiError('invalid', 'Enter a name for the type')
+  const record: BlockedTimeType = { ...input, name, id: uid('btt') }
   commit((d) => {
     d.blockedTimeTypes.push(record)
   })
   return record
+}
+
+/**
+ * Change the repeat rule of a saved blocked time. Turning repeat on adds the
+ * following occurrences (the shared saveBlockedTime only repeats new blocks).
+ * Returns how many occurrences were added.
+ */
+export async function setBlockedTimeRepeat(id: ID, rule: RepeatRule): Promise<number> {
+  await latency(200, 450)
+  const block = db().blockedTimes.find((b) => b.id === id)
+  if (!block) throw new ApiError('not_found', 'Blocked time not found')
+  const repeating = rule.frequency !== 'none'
+  const dates = repeating && !block.repeat ? repeatDates(block.date, rule).slice(1) : []
+  commit((d) => {
+    const b = d.blockedTimes.find((x) => x.id === id)
+    if (b) b.repeat = repeating ? rule : undefined
+    for (const date of dates) d.blockedTimes.push({ ...block, id: uid('bt'), date, repeat: rule })
+  })
+  return dates.length
 }
 
 // ─── Client quick actions from the appointment drawer ──────────────────

@@ -2,7 +2,7 @@ import { ArrowRight, ChevronDown, FileText, Plus, Puzzle, Search, Users } from '
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Avatar, Button, Checkbox, Chip, EmptyState, Field, LearnMore, Menu, MoneyInput, Segmented, Select, Switch, TextArea, TextInput, toast } from '@/components/ui'
+import { Avatar, Button, Checkbox, Chip, EmptyState, Field, LearnMore, Menu, MoneyInput, Segmented, Select, Switch, TextArea, TextInput, toast, usePageLoading } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { uid } from '@/lib/ids'
 import { durationLong, now, todayISO } from '@/lib/time'
@@ -10,8 +10,8 @@ import { addDays, format } from 'date-fns'
 import { money, round2 } from '@/lib/format'
 import { PALETTE } from '@/styles/palette'
 import type { ID, Service, ServiceAddOnGroup, ServiceVariant, TimeRange, Weekday } from '@/types'
-import { saveService, type ServiceInput } from '@/api/catalog'
-import { DEFAULT_UPSELLING, useCatalogPrefs, type Upselling } from '../prefs'
+import { saveService, type ServiceInput, type Upselling } from '@/api/catalog'
+import { readUpselling } from '../catalogExt'
 import { generateDescription } from '../lib'
 import { AiDescription, CategoryModal, DotSelect, DurationSelect, EditorFrame, ImageUploader, OnOffChip, SectionCard, TreatmentCombobox } from '../ui'
 import { AddOnGroupModal, AdvancedPricingModal, ExtraTimeRows, FormsPickerModal, VariantModal, VariantRow, usePriceTypeOptions, type PriceType } from './serviceParts'
@@ -34,7 +34,6 @@ export function ServiceEditorPage() {
   const resources = useDb((s) => s.resources)
   const formTemplates = useDb((s) => s.formTemplates)
   const settings = useDb((s) => s.settings)
-  const setUpsellingPref = useCatalogPrefs((s) => s.setUpselling)
   const priceTypes = usePriceTypeOptions()
 
   const existing = id ? services.find((s) => s.id === id) : undefined
@@ -48,10 +47,10 @@ export function ServiceEditorPage() {
       void _id
       void _order
       if (existing) return structuredClone(rest)
-      return { ...structuredClone(rest), name: `Copy of ${source.name}`.slice(0, 255), archived: false, variants: rest.variants.map((v) => ({ ...v, id: uid('var') })), addOnGroups: rest.addOnGroups.map((g) => ({ ...g, id: uid('aog'), options: g.options.map((o) => ({ ...o, id: uid('ao') })) })) }
+      return { ...structuredClone(rest), name: t('catalog.common.copyOf', { name: source.name }).slice(0, 255), archived: false, variants: rest.variants.map((v) => ({ ...v, id: uid('var') })), addOnGroups: rest.addOnGroups.map((g) => ({ ...g, id: uid('aog'), options: g.options.map((o) => ({ ...o, id: uid('ao') })) })) }
     }
     if (id) return null
-    const categoryId = params.get('category') ?? [...categories].sort((a, b) => a.order - b.order)[0]?.id ?? ''
+    const categoryId = params.get('category') ?? [...categories].filter((c) => !c.archived).sort((a, b) => a.order - b.order)[0]?.id ?? ''
     return {
       name: '',
       categoryId,
@@ -82,7 +81,7 @@ export function ServiceEditorPage() {
   }, [id, duplicateOf])
 
   const [form, setForm] = useState<ServiceInput | null>(initial)
-  const [upselling, setUpselling] = useState<Upselling>(DEFAULT_UPSELLING)
+  const [upselling, setUpselling] = useState<Upselling>(() => readUpselling(id ?? duplicateOf))
   const [rebook, setRebook] = useState(() => {
     const w = initial?.rebookReminderWeeks
     if (w === undefined) return { on: false, value: 4, unit: 'weeks' as 'weeks' | 'days' }
@@ -98,17 +97,7 @@ export function ServiceEditorPage() {
   const [groupEdit, setGroupEdit] = useState<ServiceAddOnGroup | null>(null)
   const [formsOpen, setFormsOpen] = useState(false)
   const [commissionQuery, setCommissionQuery] = useState('')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Section prefs hydrate from IndexedDB asynchronously; pick them up once loaded.
-      const saved = id ? useCatalogPrefs.getState().upselling[id] : undefined
-      if (saved) setUpselling(saved)
-      setLoading(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [id])
+  const loading = usePageLoading(300)
   useEffect(() => {
     const section = params.get('section')
     if (!loading && section) setTimeout(() => document.getElementById(`sec-${section}`)?.scrollIntoView({ block: 'start' }), 50)
@@ -171,16 +160,19 @@ export function ServiceEditorPage() {
     }
     setSaving(true)
     const cost = costValue === '' ? undefined : costMode === 'percent' ? round2((form.price * costValue) / 100) : costValue
-    const saved = await saveService(editing ? id! : null, {
-      ...form,
-      name: form.name.trim(),
-      price: form.priceType === 'free' ? 0 : form.price,
-      cost,
-      sku: form.sku?.trim() || undefined,
-      aftercare: form.aftercare?.trim() ? form.aftercare : undefined,
-      rebookReminderWeeks: rebook.on ? (rebook.unit === 'weeks' ? rebook.value : rebook.value / 7) : undefined,
-    })
-    setUpsellingPref(saved.id, upselling)
+    await saveService(
+      editing ? id! : null,
+      {
+        ...form,
+        name: form.name.trim(),
+        price: form.priceType === 'free' ? 0 : form.price,
+        cost,
+        sku: form.sku?.trim() || undefined,
+        aftercare: form.aftercare?.trim() ? form.aftercare : undefined,
+        rebookReminderWeeks: rebook.on ? (rebook.unit === 'weeks' ? rebook.value : rebook.value / 7) : undefined,
+      },
+      upselling,
+    )
     setSaving(false)
     toast(editing ? t('catalog.toasts.serviceUpdated') : t('catalog.toasts.serviceCreated'))
     navigate('/catalogue/services')
@@ -237,7 +229,7 @@ export function ServiceEditorPage() {
                   value={form.categoryId}
                   invalid={Boolean(errors.category)}
                   placeholder={t('catalog.service.selectCategory')}
-                  options={[...categories].sort((a, b) => a.order - b.order).map((c) => ({ value: c.id, label: c.name, color: c.color }))}
+                  options={[...categories].filter((c) => !c.archived || c.id === form.categoryId).sort((a, b) => a.order - b.order).map((c) => ({ value: c.id, label: c.name, color: c.color }))}
                   onChange={(v) => set({ categoryId: v })}
                   footer={{ label: t('catalog.menu.addCategory'), onClick: () => setCategoryModal(true) }}
                 />
@@ -320,7 +312,7 @@ export function ServiceEditorPage() {
                     items: [
                       { label: t('catalog.variant.moveUp'), disabled: i === 0, onSelect: () => moveVariant(i, -1) },
                       { label: t('catalog.variant.moveDown'), disabled: i === form.variants.length - 1, onSelect: () => moveVariant(i, 1) },
-                      { label: t('catalog.common.duplicate'), onSelect: () => set({ variants: [...form.variants.slice(0, i + 1), { ...v, id: uid('var'), name: `${v.name} (copy)`.slice(0, 50) }, ...form.variants.slice(i + 1)] }) },
+                      { label: t('catalog.common.duplicate'), onSelect: () => set({ variants: [...form.variants.slice(0, i + 1), { ...v, id: uid('var'), name: t('catalog.common.copySuffix', { name: v.name }).slice(0, 50) }, ...form.variants.slice(i + 1)] }) },
                       { label: t('catalog.common.delete'), danger: true, onSelect: () => set({ variants: form.variants.filter((x) => x.id !== v.id) }) },
                     ],
                   },

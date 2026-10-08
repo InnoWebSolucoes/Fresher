@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Wordmark } from './Wordmark'
 import { UserMenu } from './UserMenu'
 import { useDrawer } from '@/lib/drawer'
-import { canAccess } from '@/lib/permissions'
+import { canAccess, usePermissionRoles } from '@/lib/permissions'
 import { initials, useCurrentUser } from '@/store/session'
 import { useDismiss } from '@/lib/useDismiss'
 import { useDb } from '@/store/db'
@@ -14,6 +14,7 @@ import { useDb } from '@/store/db'
 export function TopBar({ minimal = false }: { minimal?: boolean }) {
   const { t } = useTranslation()
   const user = useCurrentUser()
+  usePermissionRoles()
   const drawer = useDrawer()
   const [menuOpen, setMenuOpen] = useState(false)
   const avatarRef = useRef<HTMLButtonElement>(null)

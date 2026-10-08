@@ -4,13 +4,11 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Client } from '@/types'
 import { Select } from '@/components/ui'
-import { useClientAvatars } from '../lib/avatars'
 import { COUNTRY_CODES, SWATCHES, swatchFor } from '../lib/constants'
 
-/** Round client avatar: uploaded photo, otherwise the initial(s) on a soft teal circle. */
-export function ClientAvatar({ client, size = 40, initials = false, className }: { client: Pick<Client, 'id' | 'firstName' | 'lastName'>; size?: number; initials?: boolean; className?: string }) {
-  const photo = useClientAvatars((s) => s.photos[client.id])
-  if (photo) return <img src={photo} alt="" className={clsx('shrink-0 rounded-full object-cover', className)} style={{ width: size, height: size }} />
+/** Round client avatar: the profile photo (`Client.photo`), otherwise the initial(s) on a soft circle. */
+export function ClientAvatar({ client, size = 40, initials = false, className }: { client: Pick<Client, 'firstName' | 'lastName' | 'photo'>; size?: number; initials?: boolean; className?: string }) {
+  if (client.photo) return <img src={client.photo} alt="" className={clsx('shrink-0 rounded-full object-cover', className)} style={{ width: size, height: size }} />
   const text = initials ? `${client.firstName[0] ?? ''}${client.lastName[0] ?? ''}` : (client.firstName[0] ?? client.lastName[0] ?? '?')
   return (
     <span

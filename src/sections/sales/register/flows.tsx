@@ -91,7 +91,7 @@ function SetupRegisterFlow({ locationId, onClose }: { locationId?: string; onClo
   }
 
   const option = (key: keyof typeof settings, label: string, hint: string) => (
-    <Checkbox key={key} label={<span className="font-semibold">{label}</span>} hint={hint} checked={settings[key]} onChange={(v) => setSettings((s) => ({ ...s, [key]: v }))} />
+    <Checkbox key={key} label={label} hint={hint} checked={settings[key]} onChange={(v) => setSettings((s) => ({ ...s, [key]: v }))} />
   )
 
   return (
@@ -118,7 +118,7 @@ function SetupRegisterFlow({ locationId, onClose }: { locationId?: string; onClo
           <div className="flex flex-col gap-5">
             {option('requireOpen', t('sales.register.setup.requireOpen'), t('sales.register.setup.requireOpenHint'))}
             <div>
-              <Checkbox label={<span className="font-semibold">{t('sales.register.setup.minFloat')}</span>} hint={t('sales.register.setup.minFloatHint')} checked={minOn} onChange={setMinOn} />
+              <Checkbox label={t('sales.register.setup.minFloat')} hint={t('sales.register.setup.minFloatHint')} checked={minOn} onChange={setMinOn} />
               {minOn && (
                 <div className="mt-4 grid gap-4 pl-8 sm:grid-cols-2">
                   <Field label={t('sales.register.setup.amount')} error={errors.amount}>

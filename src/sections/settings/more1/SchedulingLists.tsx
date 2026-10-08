@@ -10,13 +10,21 @@ import { useDb } from '@/store/db'
 import { PALETTE } from '@/styles/palette'
 import type { CancellationReason, ClosedPeriod, CustomStatus, PaletteColor } from '@/types'
 import { useLocations, useSettings } from '../hooks'
-import { PillMenu, ActionsPill, SettingsPage, Banner } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
+import { ActionsPill, Banner, FormCard, ListCard, ListRow, LockMark, ModalForm, PillMenu, SettingsPage } from '../components/ui'
+import { FullModal } from '../components/FullModal'
 import { OrderModal } from '../components/OrderModal'
 import { ColorSwatches, IconFor, IconPicker } from '../components/pickers'
 import { useAction } from '../components/useAction'
-import { LockMark, RowCard, RowStack, OverlayOptions, deleteItem, rowActions } from '../scheduling/shared'
-import { M, ModalFooter, ModalForm } from './shared'
+import { OverlayOptions, deleteItem, rowActions } from '../scheduling/shared'
+import { M } from './shared'
+
+const ORDER_UPDATED = 'settings.common.orderUpdated'
+
+/** Options › Delete in the header of an edit form. */
+function DeleteOptions({ onDelete }: { onDelete: () => void }) {
+  const { t } = useTranslation()
+  return <OverlayOptions groups={[{ items: [deleteItem(t('settings.common.delete'), onDelete)] }]} />
+}
 
 // ─── Cancellation reasons (§5) ───────────────────────────────────────────
 
@@ -32,14 +40,14 @@ export function CancellationReasonsPage() {
 
   const remove = async (r: CancellationReason) => {
     const ok = await confirm({ title: t(`${CR}.deleteTitle`), body: t(`${CR}.deleteBody`, { name: r.name }), confirmLabel: t('settings.common.delete'), tone: 'danger' })
-    if (ok)
-      await run(
-        () =>
-          updateSettings((s) => {
-            s.cancellationReasons = s.cancellationReasons.filter((x) => x.id !== r.id)
-          }),
-        t(`${CR}.deleted`),
-      )
+    if (!ok) return false
+    return run(
+      () =>
+        updateSettings((s) => {
+          s.cancellationReasons = s.cancellationReasons.filter((x) => x.id !== r.id)
+        }),
+      t(`${CR}.deleted`),
+    )
   }
 
   return (
@@ -50,7 +58,7 @@ export function CancellationReasonsPage() {
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={200} groups={[{ items: [{ label: t('settings.common.changeOrder'), onSelect: () => setOrdering(true), disabled: reasons.length < 2 }] }]} />
-          <Button variant="primary" className="rounded-full px-5" onClick={() => setEditing('new')} data-testid="reason-add">
+          <Button variant="primary" onClick={() => setEditing('new')} data-testid="reason-add">
             {t('settings.common.add')}
           </Button>
         </>
@@ -58,12 +66,12 @@ export function CancellationReasonsPage() {
     >
       {reasons.length === 0 ? (
         <div className="card">
-          <EmptyState title={t(`${CR}.emptyTitle`)} body={t(`${CR}.emptyBody`)} action={<Button onClick={() => setEditing('new')}>{t('settings.common.add')}</Button>} />
+          <EmptyState title={t(`${CR}.emptyTitle`)} body={t(`${CR}.emptyBody`)} action={<Button variant="primary" onClick={() => setEditing('new')}>{t('settings.common.add')}</Button>} />
         </div>
       ) : (
-        <RowStack testId="reasons-list">
+        <ListCard testId="reasons-list">
           {reasons.map((r, i) => (
-            <RowCard
+            <ListRow
               key={r.id}
               testId={`reason-${r.id}`}
               title={r.name}
@@ -76,29 +84,29 @@ export function CancellationReasonsPage() {
                     move: {
                       canUp: i > 0,
                       canDown: i < reasons.length - 1,
-                      onUp: () => void run(() => moveSettingsListItem('cancellationReasons', r.id, -1), t(`${CR}.moved`)),
-                      onDown: () => void run(() => moveSettingsListItem('cancellationReasons', r.id, 1), t(`${CR}.moved`)),
+                      onUp: () => void run(() => moveSettingsListItem('cancellationReasons', r.id, -1), t(ORDER_UPDATED)),
+                      onDown: () => void run(() => moveSettingsListItem('cancellationReasons', r.id, 1), t(ORDER_UPDATED)),
                     },
                   })}
                 />
               }
             />
           ))}
-        </RowStack>
+        </ListCard>
       )}
-      {editing && <ReasonModal reason={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={(r) => void remove(r)} />}
+      {editing && <ReasonModal reason={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={remove} />}
       <OrderModal
         open={ordering}
         onClose={() => setOrdering(false)}
         title={t(`${CR}.orderTitle`)}
         items={reasons.map((r) => ({ id: r.id, label: r.name }))}
-        onSave={(ids) => run(() => reorderSettingsList('cancellationReasons', ids), t('settings.more1.orderSaved')).then(() => undefined)}
+        onSave={(ids) => run(() => reorderSettingsList('cancellationReasons', ids), t(ORDER_UPDATED))}
       />
     </SettingsPage>
   )
 }
 
-function ReasonModal({ reason, onClose, onDelete }: { reason: CancellationReason | null; onClose: () => void; onDelete: (r: CancellationReason) => void }) {
+function ReasonModal({ reason, onClose, onDelete }: { reason: CancellationReason | null; onClose: () => void; onDelete: (r: CancellationReason) => Promise<boolean> }) {
   const { t } = useTranslation()
   const [name, setName] = useState(reason?.name ?? '')
   const [touched, setTouched] = useState(false)
@@ -120,38 +128,24 @@ function ReasonModal({ reason, onClose, onDelete }: { reason: CancellationReason
     )
   }
   return (
-    <SettingsModal
+    <FullModal
       open
       onClose={onClose}
       title={t(reason ? `${CR}.editTitle` : `${CR}.addTitle`)}
-      footer={
-        <>
-          {reason && (
-            <div className="mr-auto">
-              <OverlayOptions
-                groups={[
-                  {
-                    items: [
-                      deleteItem(t('settings.common.delete'), () => {
-                        onClose()
-                        onDelete(reason)
-                      }),
-                    ],
-                  },
-                ]}
-              />
-            </div>
-          )}
-          <ModalFooter onCancel={onClose} onSave={save} saving={saving} saveLabel={reason ? undefined : t('settings.common.add')} testId="reason-save" />
-        </>
-      }
+      onSave={save}
+      saving={saving}
+      saveLabel={reason ? undefined : t('settings.common.add')}
+      actions={reason && <DeleteOptions onDelete={() => void onDelete(reason).then((ok) => ok && onClose())} />}
+      testId="reason-modal"
     >
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${CR}.name`)} error={error}>
-          {(id) => <TextInput id={id} value={name} maxLength={100} invalid={!!error} placeholder={t(`${CR}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} data-testid="reason-name" />}
-        </Field>
-      </ModalForm>
-    </SettingsModal>
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${CR}.name`)} error={error}>
+            {(id) => <TextInput id={id} value={name} maxLength={100} invalid={!!error} placeholder={t(`${CR}.namePlaceholder`)} onChange={(e) => setName(e.target.value)} data-testid="reason-name" />}
+          </Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -169,14 +163,14 @@ export function AppointmentStatusesPage() {
 
   const remove = async (s: CustomStatus) => {
     const ok = await confirm({ title: t(`${ST}.deleteTitle`), body: t(`${ST}.deleteBody`, { name: s.name }), confirmLabel: t('settings.common.delete'), tone: 'danger' })
-    if (ok)
-      await run(
-        () =>
-          updateSettings((d) => {
-            d.appointmentStatuses = d.appointmentStatuses.filter((x) => x.id !== s.id)
-          }),
-        t(`${ST}.deleted`),
-      )
+    if (!ok) return false
+    return run(
+      () =>
+        updateSettings((d) => {
+          d.appointmentStatuses = d.appointmentStatuses.filter((x) => x.id !== s.id)
+        }),
+      t(`${ST}.deleted`),
+    )
   }
   const move = (s: CustomStatus, direction: -1 | 1) => {
     const ids = custom.map((x) => x.id)
@@ -185,7 +179,7 @@ export function AppointmentStatusesPage() {
     if (target < 0 || target >= ids.length) return
     ;[ids[index], ids[target]] = [ids[target], ids[index]]
     const system = statuses.filter((x) => x.system).map((x) => x.id)
-    void run(() => reorderSettingsList('appointmentStatuses', [...system, ...ids]), t(`${ST}.moved`))
+    void run(() => reorderSettingsList('appointmentStatuses', [...system, ...ids]), t(ORDER_UPDATED))
   }
 
   return (
@@ -194,22 +188,23 @@ export function AppointmentStatusesPage() {
       description={t(`${ST}.description`)}
       learnMore="Appointment statuses"
       actions={
-        <Button variant="primary" className="rounded-full px-5" onClick={() => setEditing('new')} data-testid="status-add">
+        <Button variant="primary" onClick={() => setEditing('new')} data-testid="status-add">
           {t('settings.common.add')}
         </Button>
       }
     >
-      <RowStack testId="statuses-list">
+      <ListCard testId="statuses-list">
         {statuses.map((s) => {
           const palette = PALETTE[s.color] ?? PALETTE.orange
           const index = custom.findIndex((x) => x.id === s.id)
           return (
-            <RowCard
+            <ListRow
               key={s.id}
               testId={`status-${s.id}`}
               accent={palette.edge}
+              tile={false}
               leading={
-                <span className="flex h-12 w-12 items-center justify-center rounded-md" style={{ background: palette.fill, color: palette.text }}>
+                <span className="flex h-11 w-11 items-center justify-center rounded-md" style={{ background: palette.fill, color: palette.text }}>
                   <IconFor name={s.icon} size={22} />
                 </span>
               }
@@ -232,13 +227,13 @@ export function AppointmentStatusesPage() {
             />
           )
         })}
-      </RowStack>
-      {editing && <StatusModal status={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={(s) => void remove(s)} />}
+      </ListCard>
+      {editing && <StatusModal status={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={remove} />}
     </SettingsPage>
   )
 }
 
-function StatusModal({ status, onClose, onDelete }: { status: CustomStatus | null; onClose: () => void; onDelete: (s: CustomStatus) => void }) {
+function StatusModal({ status, onClose, onDelete }: { status: CustomStatus | null; onClose: () => void; onDelete: (s: CustomStatus) => Promise<boolean> }) {
   const { t } = useTranslation()
   const all = useSettings().appointmentStatuses
   const [name, setName] = useState(status?.name ?? '')
@@ -265,47 +260,33 @@ function StatusModal({ status, onClose, onDelete }: { status: CustomStatus | nul
     )
   }
   return (
-    <SettingsModal
+    <FullModal
       open
       onClose={onClose}
       title={t(status ? `${ST}.editTitle` : `${ST}.addTitle`)}
-      footer={
-        <>
-          {status && (
-            <div className="mr-auto">
-              <OverlayOptions
-                groups={[
-                  {
-                    items: [
-                      deleteItem(t('settings.common.delete'), () => {
-                        onClose()
-                        onDelete(status)
-                      }),
-                    ],
-                  },
-                ]}
-              />
-            </div>
-          )}
-          <ModalFooter onCancel={onClose} onSave={save} saving={saving} saveLabel={status ? undefined : t('settings.common.add')} testId="status-save" />
-        </>
-      }
+      onSave={save}
+      saving={saving}
+      saveLabel={status ? undefined : t('settings.common.add')}
+      actions={status && <DeleteOptions onDelete={() => void onDelete(status).then((ok) => ok && onClose())} />}
+      testId="status-modal"
     >
-      <ModalForm onSubmit={save}>
-        <Field label={t(`${ST}.nameIcon`)} counter={{ value: name.length, max: 20 }} error={error}>
-          {(id) => (
-            <div className="flex gap-2.5">
-              <IconPicker value={icon} onChange={setIcon} />
-              <TextInput id={id} className="flex-1" value={name} maxLength={20} invalid={!!error} onChange={(e) => setName(e.target.value)} data-testid="status-name" />
-            </div>
-          )}
-        </Field>
-        <div>
-          <p className="mb-2 text-body-strong text-ink">{t(`${ST}.color`)}</p>
-          <ColorSwatches value={color} onChange={setColor} label={t(`${ST}.color`)} />
-        </div>
-      </ModalForm>
-    </SettingsModal>
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t(`${ST}.nameIcon`)} counter={{ value: name.length, max: 20 }} error={error}>
+            {(id) => (
+              <div className="flex gap-2.5">
+                <IconPicker value={icon} onChange={setIcon} />
+                <TextInput id={id} className="flex-1" value={name} maxLength={20} invalid={!!error} onChange={(e) => setName(e.target.value)} data-testid="status-name" />
+              </div>
+            )}
+          </Field>
+          <div>
+            <p className="mb-2 text-body-strong text-ink">{t(`${ST}.color`)}</p>
+            <ColorSwatches value={color} onChange={setColor} label={t(`${ST}.color`)} />
+          </div>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -325,7 +306,8 @@ export function ClosedPeriodsPage() {
   const when = (p: ClosedPeriod) => (p.startDate === p.endDate ? fmtDayLong(p.startDate) : `${fmtDayLong(p.startDate)} – ${fmtDayLong(p.endDate)}`)
   const remove = async (p: ClosedPeriod) => {
     const ok = await confirm({ title: t(`${CP}.deleteTitle`), body: t(`${CP}.deleteBody`, { name: p.description || when(p) }), confirmLabel: t('settings.common.delete'), tone: 'danger' })
-    if (ok) await run(() => closedPeriodsApi.remove(p.id), t(`${CP}.deleted`))
+    if (!ok) return false
+    return run(() => closedPeriodsApi.remove(p.id), t(`${CP}.deleted`))
   }
 
   return (
@@ -334,7 +316,7 @@ export function ClosedPeriodsPage() {
       description={t(`${CP}.description`)}
       learnMore="Closed periods"
       actions={
-        <Button variant="primary" className="rounded-full px-5" onClick={() => setEditing('new')} data-testid="closed-add">
+        <Button variant="primary" onClick={() => setEditing('new')} data-testid="closed-add">
           {t('settings.common.add')}
         </Button>
       }
@@ -346,16 +328,16 @@ export function ClosedPeriodsPage() {
             title={t(`${CP}.emptyTitle`)}
             body={t(`${CP}.emptyBody`)}
             action={
-              <Button icon={<Plus size={16} aria-hidden />} onClick={() => setEditing('new')}>
+              <Button variant="primary" icon={<Plus size={16} aria-hidden />} onClick={() => setEditing('new')}>
                 {t(`${CP}.addTitle`)}
               </Button>
             }
           />
         </div>
       ) : (
-        <RowStack testId="closed-list">
+        <ListCard testId="closed-list">
           {periods.map((p) => (
-            <RowCard
+            <ListRow
               key={p.id}
               testId={`closed-${p.id}`}
               title={when(p)}
@@ -369,14 +351,14 @@ export function ClosedPeriodsPage() {
               trailing={<ActionsPill groups={rowActions(t, { onEdit: () => setEditing(p), onDelete: () => void remove(p) })} />}
             />
           ))}
-        </RowStack>
+        </ListCard>
       )}
-      {editing && <ClosedModal period={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={(p) => void remove(p)} />}
+      {editing && <ClosedModal period={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onDelete={remove} />}
     </SettingsPage>
   )
 }
 
-function ClosedModal({ period, onClose, onDelete }: { period: ClosedPeriod | null; onClose: () => void; onDelete: (p: ClosedPeriod) => void }) {
+function ClosedModal({ period, onClose, onDelete }: { period: ClosedPeriod | null; onClose: () => void; onDelete: (p: ClosedPeriod) => Promise<boolean> }) {
   const { t } = useTranslation()
   const locations = useLocations()
   const today = todayISO()
@@ -392,54 +374,41 @@ function ClosedModal({ period, onClose, onDelete }: { period: ClosedPeriod | nul
     void run(() => (period ? closedPeriodsApi.update(period.id, input) : closedPeriodsApi.create(input)), t(period ? `${CP}.updated` : `${CP}.added`), onClose)
   }
   return (
-    <SettingsModal
+    <FullModal
       open
       onClose={onClose}
       title={t(period ? `${CP}.editTitle` : `${CP}.addTitle`)}
       subtitle={t(`${CP}.subtitle`)}
-      footer={
-        <>
-          {period && (
-            <div className="mr-auto">
-              <OverlayOptions
-                groups={[
-                  {
-                    items: [
-                      deleteItem(t('settings.common.delete'), () => {
-                        onClose()
-                        onDelete(period)
-                      }),
-                    ],
-                  },
-                ]}
-              />
-            </div>
-          )}
-          <ModalFooter onCancel={onClose} onSave={save} saving={saving} disabled={!start || !end || !!rangeError} testId="closed-save" />
-        </>
-      }
+      onSave={save}
+      saving={saving}
+      saveDisabled={!start || !end || !!rangeError}
+      saveLabel={period ? undefined : t('settings.common.add')}
+      actions={period && <DeleteOptions onDelete={() => void onDelete(period).then((ok) => ok && onClose())} />}
+      testId="closed-modal"
     >
-      <ModalForm onSubmit={save}>
-        <Banner tone="info">{t(`${CP}.info`)}</Banner>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t(`${CP}.start`)}>{(id) => <TextInput id={id} type="date" value={start} onChange={(e) => setStart(e.target.value)} data-testid="closed-start" />}</Field>
-          <Field label={t(`${CP}.end`)} error={rangeError}>
-            {(id) => <TextInput id={id} type="date" value={end} min={start} invalid={!!rangeError} onChange={(e) => setEnd(e.target.value)} data-testid="closed-end" />}
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Banner tone="info">{t(`${CP}.info`)}</Banner>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t(`${CP}.start`)}>{(id) => <TextInput id={id} type="date" value={start} onChange={(e) => setStart(e.target.value)} data-testid="closed-start" />}</Field>
+            <Field label={t(`${CP}.end`)} error={rangeError}>
+              {(id) => <TextInput id={id} type="date" value={end} min={start} invalid={!!rangeError} onChange={(e) => setEnd(e.target.value)} data-testid="closed-end" />}
+            </Field>
+          </div>
+          <Field label={t(`${CP}.descriptionLabel`)}>
+            {(id) => <TextInput id={id} value={description} maxLength={100} placeholder={t(`${CP}.descriptionPlaceholder`)} onChange={(e) => setDescription(e.target.value)} data-testid="closed-description" />}
           </Field>
-        </div>
-        <Field label={t(`${CP}.descriptionLabel`)}>
-          {(id) => <TextInput id={id} value={description} maxLength={100} placeholder={t(`${CP}.descriptionPlaceholder`)} onChange={(e) => setDescription(e.target.value)} data-testid="closed-description" />}
-        </Field>
-        {locations.length > 1 && (
-          <Field label={t(`${CP}.location`)}>
-            {(id) => <Select id={id} value={location} onChange={(e) => setLocation(e.target.value)} options={[{ value: '', label: t('settings.common.allLocations') }, ...locations.map((l) => ({ value: l.id, label: l.name }))]} />}
-          </Field>
-        )}
-        <p className="flex items-center gap-2 text-small text-muted">
-          <Info size={14} aria-hidden />
-          {t(`${CP}.calendarHint`)}
-        </p>
-      </ModalForm>
-    </SettingsModal>
+          {locations.length > 1 && (
+            <Field label={t(`${CP}.location`)}>
+              {(id) => <Select id={id} value={location} onChange={(e) => setLocation(e.target.value)} options={[{ value: '', label: t('settings.common.allLocations') }, ...locations.map((l) => ({ value: l.id, label: l.name }))]} />}
+            </Field>
+          )}
+          <p className="flex items-center gap-2 text-small text-muted">
+            <Info size={14} aria-hidden />
+            {t(`${CP}.calendarHint`)}
+          </p>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }

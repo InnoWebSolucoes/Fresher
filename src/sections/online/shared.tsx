@@ -146,7 +146,8 @@ export function LinkWithQr({ url, fileName, showQr = true }: { url: string; file
 }
 
 /** Phone mock-up artwork for intro pages (original, no third-party art). */
-export function PhoneArt({ name, lines }: { name: string; lines: string[] }) {
+export function PhoneArt({ name, lines, cta, city }: { name: string; lines: string[]; cta?: string; city?: string }) {
+  const { t } = useTranslation()
   return (
     <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-primary-subtle">
       <div className="absolute -right-12 -top-12 h-56 w-56 rounded-full bg-accent/40" />
@@ -154,14 +155,14 @@ export function PhoneArt({ name, lines }: { name: string; lines: string[] }) {
       <div className="relative w-56 rounded-[28px] border-4 border-ink/80 bg-surface p-3 shadow-lg">
         <div className="mb-3 h-24 rounded-lg" style={{ backgroundImage: `url("${sampleImage(1)}")`, backgroundSize: 'cover' }} />
         <p className="text-body-strong text-ink">{name}</p>
-        <p className="mb-2 text-caption text-muted">★ 4.9 · Porto</p>
+        <p className="mb-2 text-caption text-muted">★ 4.9{city ? ` · ${city}` : ''}</p>
         {lines.map((l) => (
           <p key={l} className="flex items-center gap-1.5 text-caption text-ink">
             <Check size={12} className="text-primary" aria-hidden />
             {l}
           </p>
         ))}
-        <div className="mt-3 rounded-md bg-ink py-1.5 text-center text-caption font-semibold text-surface">Book now</div>
+        <div className="mt-3 rounded-md bg-ink py-1.5 text-center text-caption font-semibold text-surface">{cta ?? t('online.preview.bookNow')}</div>
       </div>
     </div>
   )

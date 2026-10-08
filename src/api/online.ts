@@ -1,19 +1,18 @@
 import { format, getDaysInMonth } from 'date-fns'
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { useMemo } from 'react'
 import { commit, db, useDb } from '@/store/db'
 import type { ActivityEntry, AddOnState, Address, DbData, ID, Location, OpeningHours } from '@/types'
 import { uid } from '@/lib/ids'
 import { now, nowISO } from '@/lib/time'
 import { round2 } from '@/lib/format'
 import { ApiError, actorName, latency } from './client'
+import { readExt, useExt, writeExt } from './ext'
 
 /**
  * Online presence: marketplace profile, Facebook/Instagram connection, link
  * builder, Smart Website and product store. Everything that has a home in
  * DbData is written there; the rest (site design, generated links, store
- * product visibility, profile activity) lives in a small section-local store
- * that resets together with the demo seed.
+ * product visibility, profile activity) lives in db.ext.online.
  */
 
 export const BOOKING_BASE = 'https://book.innoweb.example'
@@ -43,6 +42,13 @@ function upsertAddOn(d: DbData, slug: string, status: AddOnState['status']) {
 }
 
 export const addOnStatus = (addOns: AddOnState[] | undefined, slug: string) => addOns?.find((a) => a.slug === slug)?.status
+
+/** Leftover copy of the section-local store this data used to live in. */
+try {
+  localStorage.removeItem('ib-online-local')
+} catch {
+  /* storage can be blocked; nothing to clean up then */
+}
 
 // ─── Section-local state ───────────────────────────────────────────────────
 
@@ -93,47 +99,36 @@ export interface StoreConfig {
   shippingFee: number
 }
 
-interface OnlineLocal {
-  seededAt: string | null
-  website: WebsiteConfig | null
-  links: BookingLink[]
-  facebook: FacebookConnection | null
-  store: StoreConfig
-  profileActivity: Record<string, ActivityEntry[]>
+// Section data lives in db.ext.online (persists, syncs between tabs and is
+// cleared by Reset demo). The Facebook connection is kept on its add-on
+// record (AddOnState.config).
+export const ONLINE_NS = 'online'
+const FB_SLUG = 'fb-and-ig-bookings'
+
+export const DEFAULT_STORE: StoreConfig = Object.freeze({ hiddenProductIds: [], pickup: true, shipping: true, shippingFee: 4.5 }) as StoreConfig
+const NO_LINKS: BookingLink[] = Object.freeze([]) as unknown as BookingLink[]
+const NO_ACTIVITY: Record<string, ActivityEntry[]> = Object.freeze({}) as Record<string, ActivityEntry[]>
+
+const readWebsite = () => readExt<WebsiteConfig | null>(ONLINE_NS, 'website', null)
+const readLinks = () => readExt<BookingLink[]>(ONLINE_NS, 'links', NO_LINKS)
+const readStore = () => readExt<StoreConfig>(ONLINE_NS, 'store', DEFAULT_STORE)
+const readActivity = () => readExt<Record<string, ActivityEntry[]>>(ONLINE_NS, 'profileActivity', NO_ACTIVITY)
+
+function facebookOf(addOns: AddOnState[] | undefined): FacebookConnection | null {
+  const a = addOns?.find((x) => x.slug === FB_SLUG)
+  if (a?.status !== 'active' || !a.config?.pageName) return null
+  return a.config as unknown as FacebookConnection
 }
 
-const ONLINE_DEFAULTS: OnlineLocal = {
-  seededAt: null,
-  website: null,
-  links: [],
-  facebook: null,
-  store: { hiddenProductIds: [], pickup: true, shipping: true, shippingFee: 4.5 },
-  profileActivity: {},
-}
+export const useWebsite = () => useExt<WebsiteConfig | null>(ONLINE_NS, 'website', null)
+export const useBookingLinks = () => useExt<BookingLink[]>(ONLINE_NS, 'links', NO_LINKS)
+export const useStoreConfig = () => useExt<StoreConfig>(ONLINE_NS, 'store', DEFAULT_STORE)
+export const useProfileActivity = () => useExt<Record<string, ActivityEntry[]>>(ONLINE_NS, 'profileActivity', NO_ACTIVITY)
 
-const useOnlineLocal = create<OnlineLocal>()(persist(() => ({ ...ONLINE_DEFAULTS }), { name: 'ib-online-local', version: 1 }))
-
-function local(): OnlineLocal {
-  const seededAt = db().meta?.seededAt ?? null
-  const state = useOnlineLocal.getState()
-  if (state.seededAt !== seededAt) {
-    const fresh = { ...ONLINE_DEFAULTS, seededAt }
-    useOnlineLocal.setState(fresh)
-    return fresh
-  }
-  return state
-}
-
-function setLocal(patch: Partial<OnlineLocal> | ((s: OnlineLocal) => Partial<OnlineLocal>)) {
-  const current = local()
-  useOnlineLocal.setState(typeof patch === 'function' ? patch(current) : patch)
-}
-
-/** React hook over the section-local state for the current seed. */
-export function useOnlineState(): OnlineLocal {
-  const seededAt = useDb((s) => s.meta?.seededAt ?? null)
-  const state = useOnlineLocal()
-  return state.seededAt === seededAt ? state : { ...ONLINE_DEFAULTS, seededAt }
+/** Facebook and Instagram connection (null when not connected). */
+export function useFacebookConnection(): FacebookConnection | null {
+  const addOns = useDb((s) => s.addOns)
+  return useMemo(() => facebookOf(addOns), [addOns])
 }
 
 // ─── Marketplace profile ───────────────────────────────────────────────────
@@ -148,10 +143,42 @@ export interface ProfilePatch {
   marketplace?: Partial<Location['marketplace']>
 }
 
+/** Activity titles are i18n keys (online.activity.*), rendered by the dashboard. */
 function logProfile(locationId: ID, title: string) {
-  setLocal((s) => ({
-    profileActivity: { ...s.profileActivity, [locationId]: [{ id: uid('act'), at: nowISO(), by: actorName(), title }, ...(s.profileActivity[locationId] ?? [])].slice(0, 50) },
-  }))
+  ensureProfileActivity(locationId)
+  const all = readActivity()
+  writeExt(ONLINE_NS, 'profileActivity', { ...all, [locationId]: [{ id: uid('act'), at: nowISO(), by: actorName(), title }, ...(all[locationId] ?? [])].slice(0, 50) })
+}
+
+/**
+ * First use: start the profile's "Latest activity" with the edits that built
+ * the seeded profile (written to db.ext so they persist like real entries).
+ */
+export function ensureProfileActivity(locationId: ID): void {
+  const all = readActivity()
+  if (all[locationId]) return
+  const data = db()
+  const loc = data.locations.find((l) => l.id === locationId)
+  if (!loc) return
+  const owner = data.users.find((u) => u.role === 'owner')
+  const by = owner ? `${owner.firstName} ${owner.lastName}` : actorName()
+  const m = loc.marketplace
+  const steps: [string, boolean][] = [
+    ['online.activity.essentials', Boolean(loc.name && loc.phone)],
+    ['online.activity.location', Boolean(loc.address.line1)],
+    ['online.activity.hours', Object.values(loc.openingHours).some((d) => d.open)],
+    ['online.activity.images', m.images.length > 0],
+    ['online.activity.features', m.amenities.length + m.highlights.length + m.values.length > 0],
+    ['online.activity.description', m.description.length > 0],
+    ['online.activity.listed', m.listed],
+  ]
+  // A first setup session a while before the demo started, a few minutes per step.
+  const start = new Date(data.meta?.seededAt ?? nowISO()).getTime() - 118 * 864e5 - 3 * 36e5
+  const entries: ActivityEntry[] = steps
+    .filter(([, done]) => done)
+    .map(([title], i) => ({ id: `act_seed_${locationId}_${i}`, at: new Date(start + i * 4 * 6e4).toISOString(), by, title }))
+    .reverse()
+  writeExt(ONLINE_NS, 'profileActivity', { ...all, [locationId]: entries })
 }
 
 /** Save one or more profile sections (wizard step or dashboard edit). */
@@ -182,7 +209,7 @@ export async function setProfileListed(locationId: ID, listed: boolean): Promise
     l.marketplace.listed = listed
     l.marketplace.step = listed ? undefined : l.marketplace.step
   })
-  logProfile(locationId, listed ? 'Listed profile on the marketplace' : 'Unlisted profile')
+  logProfile(locationId, listed ? 'online.activity.listed' : 'online.activity.unlisted')
 }
 
 /** "✨ Generate with AI" (simulated): a description built from the venue's own data. */
@@ -216,14 +243,22 @@ export async function facebookSignIn(): Promise<string[]> {
 
 export async function connectFacebook(connection: Omit<FacebookConnection, 'connectedAt'>): Promise<void> {
   await latency(900, 1400)
-  commit((d) => upsertAddOn(d, 'fb-and-ig-bookings', 'active'))
-  setLocal({ facebook: { ...connection, connectedAt: nowISO() } })
+  commit((d) => {
+    upsertAddOn(d, FB_SLUG, 'active')
+    const a = d.addOns.find((x) => x.slug === FB_SLUG)!
+    a.config = { ...connection, connectedAt: nowISO() }
+    a.disabledAt = undefined
+  })
 }
 
 export async function disconnectFacebook(): Promise<void> {
   await latency()
-  commit((d) => upsertAddOn(d, 'fb-and-ig-bookings', 'inactive'))
-  setLocal({ facebook: null })
+  commit((d) => {
+    upsertAddOn(d, FB_SLUG, 'inactive')
+    const a = d.addOns.find((x) => x.slug === FB_SLUG)!
+    a.config = undefined
+    a.disabledAt = nowISO()
+  })
 }
 
 // ─── Link builder ──────────────────────────────────────────────────────────
@@ -261,13 +296,13 @@ export function bookingLinkUrl(input: Omit<BookingLinkInput, 'name'>, workspaceN
 export async function createBookingLink(input: BookingLinkInput): Promise<BookingLink> {
   await latency()
   const link: BookingLink = { ...input, id: uid('lnk'), url: bookingLinkUrl(input, db().workspace.name), createdAt: nowISO() }
-  setLocal((s) => ({ links: [link, ...s.links] }))
+  writeExt(ONLINE_NS, 'links', [link, ...readLinks()])
   return link
 }
 
 export async function deleteBookingLink(id: string): Promise<void> {
   await latency()
-  setLocal((s) => ({ links: s.links.filter((l) => l.id !== id) }))
+  writeExt(ONLINE_NS, 'links', readLinks().filter((l) => l.id !== id))
 }
 
 // ─── Smart Website ─────────────────────────────────────────────────────────
@@ -299,7 +334,9 @@ export function defaultWebsite(data: Pick<DbData, 'workspace' | 'services'>): We
 
 export async function saveWebsite(config: WebsiteConfig, silent = false): Promise<void> {
   await latency(silent ? 150 : 300, silent ? 300 : 700)
-  setLocal({ website: config })
+  // Keep the publish date of a live site when its draft is saved again.
+  const current = readWebsite()
+  writeExt(ONLINE_NS, 'website', { ...config, publishedAt: config.publishedAt ?? current?.publishedAt })
 }
 
 const TAKEN = ['salon', 'studio', 'beauty', 'hair', 'nails', 'test', 'aliados', 'porto', 'barber']
@@ -354,18 +391,19 @@ export async function activateSmartWebsite(config: WebsiteConfig, billing: Billi
       total: payNow,
       status: 'paid',
     })
-    if (!d.workspace.plan.billingDetails) {
-      d.workspace.plan.billingDetails = { accountType: billing.accountType, firstName: billing.firstName, lastName: billing.lastName, businessName: billing.businessName, address: billing.address, vatNumber: billing.vatNumber || undefined }
-    }
+    d.workspace.plan.billingDetails = { accountType: billing.accountType, firstName: billing.firstName, lastName: billing.lastName, businessName: billing.businessName, address: billing.address, vatNumber: billing.vatNumber || undefined }
+    const digits = billing.cardNumber.replace(/\D/g, '')
+    d.workspace.plan.card = { brand: /^5[1-5]|^2[2-7]/.test(digits) ? 'Mastercard' : /^3[47]/.test(digits) ? 'Amex' : 'Visa', last4: digits.slice(-4), expiry: billing.expiry.replace(/\s+/g, '') }
     d.workspace.externalLinks.website = config.domain
   })
-  setLocal({ website: { ...config, publishedAt: nowISO() } })
+  writeExt(ONLINE_NS, 'website', { ...config, publishedAt: nowISO() })
 }
 
 export async function cancelSmartWebsite(): Promise<void> {
   await latency()
   commit((d) => upsertAddOn(d, 'smart-website', 'inactive'))
-  setLocal((s) => ({ website: s.website ? { ...s.website, publishedAt: undefined } : null }))
+  const website = readWebsite()
+  writeExt(ONLINE_NS, 'website', website ? { ...website, publishedAt: undefined } : null)
 }
 
 // ─── Product store ─────────────────────────────────────────────────────────
@@ -377,12 +415,11 @@ export async function setStoreActive(active: boolean): Promise<void> {
 
 export async function setProductOnline(productId: ID, online: boolean): Promise<void> {
   await latency(200, 400)
-  setLocal((s) => ({
-    store: { ...s.store, hiddenProductIds: online ? s.store.hiddenProductIds.filter((id) => id !== productId) : [...new Set([...s.store.hiddenProductIds, productId])] },
-  }))
+  const store = readStore()
+  writeExt(ONLINE_NS, 'store', { ...store, hiddenProductIds: online ? store.hiddenProductIds.filter((id) => id !== productId) : [...new Set([...store.hiddenProductIds, productId])] })
 }
 
 export async function saveStoreSettings(patch: Partial<StoreConfig>): Promise<void> {
   await latency()
-  setLocal((s) => ({ store: { ...s.store, ...patch } }))
+  writeExt(ONLINE_NS, 'store', { ...readStore(), ...patch })
 }

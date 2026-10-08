@@ -603,7 +603,7 @@ function MessageMenu({ text, onDelete }: { text: string; onDelete?: () => void }
                 label: t('panels.inbox.copyText'),
                 icon: <Copy size={16} />,
                 onSelect: () => {
-                  void navigator.clipboard?.writeText(text)
+                  void navigator.clipboard?.writeText(text).catch(() => undefined)
                   toast(t('panels.inbox.copied'))
                 },
               },
@@ -892,7 +892,7 @@ function ContactPageModal({ open, onClose }: { open: boolean; onClose: () => voi
             size="sm"
             icon={<Copy size={14} />}
             onClick={() => {
-              void navigator.clipboard?.writeText(link)
+              void navigator.clipboard?.writeText(link).catch(() => undefined)
               toast(t('panels.inbox.contactModal.copied'))
             }}
           >

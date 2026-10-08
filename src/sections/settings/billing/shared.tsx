@@ -2,13 +2,13 @@ import { CreditCard, Download } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO } from 'date-fns'
-import { Button, Chip, Field, TextInput, toast } from '@/components/ui'
+import { Button, Chip, Field, Modal, TextInput, toast } from '@/components/ui'
 import { ApiError } from '@/api/client'
 import { IVA_RATE, expiryValid, invoicePdf, luhnValid, updateCard } from '@/api/billing'
 import { downloadBlob } from '@/lib/export'
 import { money2, round2 } from '@/lib/format'
 import type { Invoice, PlanType } from '@/types'
-import { SettingsModal } from '../components/SettingsModal'
+import { ModalForm } from '../components/ui'
 import { useWorkspace } from '../hooks'
 
 export const planName = (t: (k: string) => string, type: PlanType) => t(`settings.bill.plans.${type}.name`)
@@ -83,7 +83,7 @@ export function UpdateCardModal({ open, onClose, onSaved }: { open: boolean; onC
     }
   }
   return (
-    <SettingsModal
+    <Modal
       open={open}
       onClose={onClose}
       title={t('settings.bill.card.updateTitle')}
@@ -97,24 +97,28 @@ export function UpdateCardModal({ open, onClose, onSaved }: { open: boolean; onC
         </>
       }
     >
-      <div className="flex flex-col gap-4">
-        {apiError && <p className="rounded-md bg-danger-subtle px-4 py-3 text-body text-danger" role="alert">{apiError}</p>}
+      <ModalForm onSubmit={() => void save()} className="pb-2">
+        {apiError && (
+          <p className="rounded-md bg-danger-subtle px-4 py-3 text-body text-danger" role="alert">
+            {apiError}
+          </p>
+        )}
         <Field label={t('settings.bill.card.name')} error={e.name}>
-          {(id) => <TextInput id={id} autoComplete="cc-name" value={form.name} invalid={Boolean(e.name)} onChange={(ev) => setForm({ ...form, name: ev.target.value })} />}
+          {(id) => <TextInput id={id} autoComplete="cc-name" value={form.name} invalid={Boolean(e.name)} onChange={(ev) => setForm({ ...form, name: ev.target.value })} data-testid="card-name" />}
         </Field>
         <Field label={t('settings.bill.card.number')} error={e.number} hint={t('settings.bill.card.demoHint')}>
-          {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-number" prefix={<CreditCard size={16} aria-hidden />} placeholder="1234 1234 1234 1234" value={form.number} invalid={Boolean(e.number)} onChange={(ev) => setForm({ ...form, number: groupDigits(ev.target.value) })} />}
+          {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-number" prefix={<CreditCard size={16} aria-hidden />} placeholder="1234 1234 1234 1234" value={form.number} invalid={Boolean(e.number)} onChange={(ev) => setForm({ ...form, number: groupDigits(ev.target.value) })} data-testid="card-number" />}
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label={t('settings.bill.card.expiry')} error={e.expiry}>
-            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-exp" placeholder="MM/YY" value={form.expiry} invalid={Boolean(e.expiry)} onChange={(ev) => setForm({ ...form, expiry: formatExpiry(ev.target.value) })} />}
+            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-exp" placeholder="MM/YY" value={form.expiry} invalid={Boolean(e.expiry)} onChange={(ev) => setForm({ ...form, expiry: formatExpiry(ev.target.value) })} data-testid="card-expiry" />}
           </Field>
           <Field label={t('settings.bill.card.cvc')} error={e.cvc}>
-            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-csc" placeholder="123" maxLength={4} value={form.cvc} invalid={Boolean(e.cvc)} onChange={(ev) => setForm({ ...form, cvc: ev.target.value.replace(/\D/g, '') })} />}
+            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-csc" placeholder="123" maxLength={4} value={form.cvc} invalid={Boolean(e.cvc)} onChange={(ev) => setForm({ ...form, cvc: ev.target.value.replace(/\D/g, '') })} data-testid="card-cvc" />}
           </Field>
         </div>
-      </div>
-    </SettingsModal>
+      </ModalForm>
+    </Modal>
   )
 }
 
@@ -140,7 +144,7 @@ export function InvoicePreviewModal({ invoice, onClose }: { invoice: Invoice | n
     }
   }
   return (
-    <SettingsModal
+    <Modal
       open={Boolean(invoice)}
       onClose={onClose}
       size="lg"
@@ -234,6 +238,6 @@ export function InvoicePreviewModal({ invoice, onClose }: { invoice: Invoice | n
           <p className="mt-6 text-[11px] text-[#5B6B69]">{workspace.plan.card ? t('settings.bill.invoices.paidWith', { brand: workspace.plan.card.brand, last4: workspace.plan.card.last4 }) : t('settings.bill.invoices.paidWithCard')}</p>
         </article>
       )}
-    </SettingsModal>
+    </Modal>
   )
 }

@@ -7,6 +7,9 @@ import { useDb } from '@/store/db'
 import { useDismiss } from '@/lib/useDismiss'
 import type { PermissionRole } from '@/lib/permissions'
 
+/** Built-in roles, described with the member form's wording (team.md §2.6). */
+const SYSTEM_ROLES = ['none', 'basic', 'low', 'medium', 'high']
+
 /** Permission role listbox with descriptions and "+ Add new permission role" (team.md §2.6, team-67). */
 export const RoleSelect = forwardRef<HTMLButtonElement, { value: string; onChange: (role: PermissionRole) => void; disabled?: boolean; id?: string; inline?: boolean }>(function RoleSelect({ value, onChange, disabled, id, inline }, ref) {
   const { t } = useTranslation()
@@ -48,7 +51,7 @@ export const RoleSelect = forwardRef<HTMLButtonElement, { value: string; onChang
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block text-body-strong text-ink">{r.name}</span>
-                    <span className="block text-small text-muted">{r.description}</span>
+                    <span className="block text-small text-muted">{SYSTEM_ROLES.includes(r.id) ? t(`team.form.settings.roleDescriptions.${r.id}`) : r.description}</span>
                   </span>
                   {r.id === value && <Check size={16} className="mt-1 text-primary" aria-hidden />}
                 </button>

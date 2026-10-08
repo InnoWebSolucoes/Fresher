@@ -275,7 +275,14 @@
       "calendarName": "Calendar name",
       "removeTitle": "Remove linked calendar?",
       "removeBody": "Events will stop syncing with this calendar.",
-      "removed": "Linked calendar removed"
+      "removed": "Linked calendar removed",
+      "roleDescriptions": {
+        "none": "No access to workspace features.",
+        "basic": "Partial access to Calendar, Sales, and Reports.",
+        "low": "Partial access to Calendar, Sales, Clients, Catalog, Online profile, Marketing, Reports, and Workspace.",
+        "medium": "Partial access to Calendar, Sales, Clients, Catalog, Online profile, Marketing, Reports, and Workspace.",
+        "high": "Full access to Calendar, Clients, Online profile, Marketing, and Workspace. Partial access to Sales, Catalog, Team, Reports, and Payments and wallet."
+      }
     },
     "wages": {
       "enable": "Enable wages and timesheets",
@@ -727,7 +734,9 @@
     "newClientFees": "New client fees",
     "cashAdvances": "Cash advances",
     "businessPays": "Business pays",
-    "memberPays": "Deducted from team member"
+    "memberPays": "Deducted from team member",
+    "notInvited": "{{name}} hasn't been invited to sign in yet.",
+    "sendInvite": "Send invite"
   },
   "pay": {
     "title": "Pay runs",
@@ -842,7 +851,9 @@
       "tipCreated": "Tip created",
       "feeCreated": "Fee applied",
       "adjustment": "Adjustment",
-      "payRun": "Pay run"
+      "payRun": "Pay run",
+      "commissionReversed": "Commission reversed",
+      "cashAdvance": "Cash advance"
     },
     "types": {
       "timesheet": "Timesheet",
@@ -852,6 +863,7 @@
       "productsCommission": "Products commission",
       "giftCardCommission": "Gift card commission",
       "membershipsCommission": "Memberships commission",
+      "packagesCommission": "Packages commission",
       "voucherCommission": "Voucher commission",
       "cancellationCommission": "Cancellation commission",
       "noShowCommission": "No-show commission",
@@ -887,7 +899,31 @@
       "manual": "Paid manually",
       "cash_register": "Cash register",
       "wallet": "Innoweb wallet"
-    }
+    },
+    "view": "View",
+    "filterKindsLabel": "Compensation type",
+    "noNote": "No note added",
+    "deleteAdjustmentTitle": "Delete adjustment",
+    "deleteAdjustmentBody": "This adjustment will be removed from the pay period. This action cannot be undone.",
+    "toastAdjustmentDeleted": "Adjustment deleted",
+    "drafts": {
+      "title": "Saved pay runs",
+      "name": "Pay run",
+      "tipsName": "Tips pay run · {{register}}",
+      "status": {
+        "draft": "Draft",
+        "needs_review": "Needs review",
+        "approved": "Approved"
+      },
+      "saved": "Saved by {{by}} · {{at}}",
+      "resume": "Continue",
+      "delete": "Delete pay run",
+      "deleteTitle": "Delete pay run?",
+      "deleteBody": "This saved pay run will be deleted. The earnings stay unpaid and can be included in a new pay run.",
+      "toastDeleted": "Pay run deleted"
+    },
+    "allLocations": "All locations",
+    "allMethods": "All payment methods"
   },
   "payRunNew": {
     "leaveTitle": "Leave pay run",
@@ -907,11 +943,8 @@
     "summaryBody": "Choose team members to pay and add adjustments",
     "tipsTitle": "Choose team member tips to pay",
     "tipsBody": "Tip amount includes all tips from all payment methods",
-    "periodLine": "Pay period: {{period}} · Team members: {{count}}",
-    "cashInRegister": "Cash in register {{cash}} ({{remaining}} remaining)",
     "registerClosed": "Open the register before paying tips from it.",
     "payWith": "Pay with",
-    "totalToPay": "Total to pay {{total}}",
     "reviewTitle": "Review pay run",
     "reviewBody": "Review and choose how you want to pay your team members",
     "available": "{{amount}} available",
@@ -931,19 +964,75 @@
       "skip": "Save changes for later"
     },
     "saveExit": "Save and exit",
-    "reviewed": "{{n}} of 1 Reviewed",
+    "reviewed": "{{n}} of {{total}} Reviewed",
     "code": {
       "title": "Enter verification code",
       "subtitle": "This helps us keep your account secure.",
-      "sent": "A 4 digit code has been emailed to {{email}}",
       "sending": "Sending your code…",
       "digit": "Digit {{n}}",
-      "expires": "Code expires in {{time}}",
       "trouble": "Having trouble?",
-      "resend": "Resend code",
+      "resend": "Resend or try another way",
       "resent": "Code sent",
       "demoHint": "Demo: open the demo outbox (Ctrl+Shift+D) to read the code.",
-      "invalid": "That code isn't right or has expired. Check the email and try again."
+      "invalid": "That code isn't right or has expired. Check the email and try again.",
+      "sentTo": "A 4 digit code has been emailed to",
+      "expired": "This code has expired. Resend a new code."
+    },
+    "draftMissing": "This pay run was already completed or deleted",
+    "toastNeedsReview": "Pay run saved for review",
+    "toastMethods": "Payment methods updated",
+    "searchMembers": "Search team members",
+    "totalTips": "Total tips to pay",
+    "cashInRegisterLabel": "Cash in register",
+    "walletBalance": "Wallet balance",
+    "remaining": "{{amount}} remaining",
+    "info": {
+      "totalTip": "Unpaid tips of the team members included in this pay run",
+      "cashTip": "Cash expected in the {{name}} register right now",
+      "walletTip": "Balance available in your Innoweb wallet",
+      "earnings": "Wages, commissions and tips earned this pay period by the team members included",
+      "other": "Fees deducted and other adjustments",
+      "total": "Earnings plus other",
+      "paid": "Already paid in earlier pay runs or taken as cash advances",
+      "toPay": "Left to pay to the team members included"
+    },
+    "noTipsTitle": "No unpaid tips",
+    "noTipsBody": "All tips for {{period}} have been paid.",
+    "includeAll": "Include all team members",
+    "includeMember": "Include {{name}}",
+    "unpaidTips": "Unpaid tips",
+    "payWithFor": "Pay {{name}} with",
+    "periodLabel": "Pay period: {{period}}",
+    "membersLabel": "Team members: {{count}}",
+    "noMatches": "No team members match your search",
+    "nothingToPay": "Nothing to pay for this team member",
+    "amountLink": "{{kind}} for {{name}}: {{amount}}. View breakdown",
+    "methodSummary": {
+      "manual": "Paid manually",
+      "cash_register": "Paid from cash register",
+      "wallet": "Paid from Innoweb wallet"
+    },
+    "methodModal": {
+      "title": "Payment method",
+      "manual": "Paid manually",
+      "manualHint": "Mark as paid outside Innoweb",
+      "cash_register": "Cash register",
+      "cash_registerHint": "Paid with cash from the register",
+      "wallet": "Innoweb wallet",
+      "walletHint": "Pay from your wallet balance ({{amount}} available)",
+      "walletShort": "Not enough wallet balance ({{amount}} available)"
+    },
+    "editMethodTitle": "Edit payment method",
+    "methodFor": "Payment method for {{name}}",
+    "reviewSub": "Mark as ready to send",
+    "noteActions": "Note actions",
+    "errors": {
+      "noTypes": "Select at least one compensation type",
+      "completed": "This pay run is already completed",
+      "nothingToPay": "Choose at least one team member to pay",
+      "registerClosed": "Open the register before paying tips from it.",
+      "notEnoughCash": "There isn't enough cash in the register. Pay some team members from the wallet or leave them out.",
+      "notEnoughWallet": "Your wallet balance doesn't cover the amounts paid from it."
     }
   },
   "invite": {

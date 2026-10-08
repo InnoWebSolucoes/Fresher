@@ -6,11 +6,11 @@ import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, LearnMore, Select } from '@/components/ui'
 import { updateSettings, updateSettingsExtra, useSettingsExtra } from '@/api/settings'
 import type { Settings } from '@/types'
-import { Banner, PromoCard, SettingsPage } from '../components/ui'
+import { Banner, CardButton, FormCard, PromoCard, Rule, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
-import { useAction } from '../components/useAction'
+import { useAction, usePending } from '../components/useAction'
 import { useSettings } from '../hooks'
-import { FormCard, Rule, SwitchRow, ValueRowsEditor, newValueRow, usePaymentsActive, valueRows, type ValueDraft } from './shared'
+import { SwitchRow, ValueRowsEditor, newValueRow, usePaymentsActive, valueRows, type ValueDraft } from './shared'
 
 type Tipping = Settings['tipping']
 type Include = Tipping['include']
@@ -43,17 +43,21 @@ export function TippingPage() {
   const [valuesOpen, setValuesOpen] = useState(false)
   const [calcOpen, setCalcOpen] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const [busy, run] = useAction()
+  const [, run] = useAction()
+  const [shown, pending] = usePending<string>()
 
   const toggle = (key: 'pos' | 'terminal' | 'online', value: boolean) =>
-    void run(
-      () =>
-        updateSettings((s) => {
-          s.tipping[key] = value
-        }),
-      t('settings.sale.tipping.saved'),
+    void pending(key, value, () =>
+      run(
+        () =>
+          updateSettings((s) => {
+            s.tipping[key] = value
+          }),
+        t('settings.sale.tipping.saved'),
+      ),
     )
-  const toggleAdvanced = (key: keyof TippingAdvanced, value: boolean) => void run(() => updateSettingsExtra<TippingAdvanced>(TIPPING_ADVANCED_KEY, ADVANCED_DEFAULTS, (cur) => ({ ...cur, [key]: value })), t('settings.sale.tipping.saved'))
+  const toggleAdvanced = (key: keyof TippingAdvanced, value: boolean) =>
+    void pending(key, value, () => run(() => updateSettingsExtra<TippingAdvanced>(TIPPING_ADVANCED_KEY, ADVANCED_DEFAULTS, (cur) => ({ ...cur, [key]: value })), t('settings.sale.tipping.saved')))
 
   const count = includedCount(tipping.include)
   const total = CART_ITEMS.length + BASE_ITEMS.length
@@ -80,11 +84,11 @@ export function TippingPage() {
       <section className="card p-6 sm:p-8" data-testid="tipping-options">
         <h2 className="font-display text-title-2 text-ink">{t('settings.sale.tipping.optionsTitle')}</h2>
         <div className="mt-3 divide-y divide-line">
-          <SwitchRow label={t('settings.sale.tipping.pos')} hint={<LearnMore topic={t('settings.sale.tipping.pos')} />} checked={tipping.pos} disabled={busy} onChange={(v) => toggle('pos', v)} testId="tip-pos" />
-          <SwitchRow label={t('settings.sale.tipping.terminal')} hint={<LearnMore topic={t('settings.sale.tipping.terminal')} />} checked={payments && tipping.terminal} disabled={busy || !payments} onChange={(v) => toggle('terminal', v)} testId="tip-terminal" />
-          <SwitchRow label={t('settings.sale.tipping.online')} hint={t('settings.sale.tipping.onlineHint')} checked={payments && tipping.online} disabled={busy || !payments} onChange={(v) => toggle('online', v)} testId="tip-online" />
+          <SwitchRow label={t('settings.sale.tipping.pos')} hint={<LearnMore topic={t('settings.sale.tipping.pos')} />} checked={shown('pos', tipping.pos)} onChange={(v) => toggle('pos', v)} testId="tip-pos" />
+          <SwitchRow label={t('settings.sale.tipping.terminal')} hint={<LearnMore topic={t('settings.sale.tipping.terminal')} />} checked={payments && shown('terminal', tipping.terminal)} disabled={!payments} onChange={(v) => toggle('terminal', v)} testId="tip-terminal" />
+          <SwitchRow label={t('settings.sale.tipping.online')} hint={t('settings.sale.tipping.onlineHint')} checked={payments && shown('online', tipping.online)} disabled={!payments} onChange={(v) => toggle('online', v)} testId="tip-online" />
         </div>
-        <Rule />
+        <Rule className="my-5" />
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -93,9 +97,9 @@ export function TippingPage() {
                 {tipping.values.map((v) => `${v}%`).join(' • ')}
               </p>
             </div>
-            <Button size="sm" className="rounded-full px-4" onClick={() => setValuesOpen(true)} data-testid="edit-tip-values">
+            <CardButton onClick={() => setValuesOpen(true)} testId="edit-tip-values">
               {t('settings.common.edit')}
-            </Button>
+            </CardButton>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -104,21 +108,21 @@ export function TippingPage() {
                 {count === total ? t('settings.sale.tipping.allIncluded') : t('settings.sale.tipping.someIncluded', { count })}
               </p>
             </div>
-            <Button size="sm" className="rounded-full px-4" onClick={() => setCalcOpen(true)} data-testid="edit-tip-calc">
+            <CardButton onClick={() => setCalcOpen(true)} testId="edit-tip-calc">
               {t('settings.common.edit')}
-            </Button>
+            </CardButton>
           </div>
         </div>
-        <Rule />
+        <Rule className="my-5" />
         <button type="button" className="inline-flex items-center gap-1.5 text-body-strong text-primary hover:underline" aria-expanded={showAdvanced} onClick={() => setShowAdvanced((v) => !v)} data-testid="tip-advanced">
           {t('settings.sale.tipping.advanced')}
           <ChevronDown size={16} aria-hidden className={clsx('transition-transform', showAdvanced && 'rotate-180')} />
         </button>
         {showAdvanced && (
           <div className="mt-2 divide-y divide-line">
-            <SwitchRow label={t('settings.sale.tipping.customAmounts')} hint={t('settings.sale.tipping.customAmountsHint')} checked={advanced.customAmounts} disabled={busy} onChange={(v) => toggleAdvanced('customAmounts', v)} />
-            <SwitchRow label={t('settings.sale.tipping.noTipButton')} hint={t('settings.sale.tipping.noTipButtonHint')} checked={advanced.noTipButton} disabled={busy} onChange={(v) => toggleAdvanced('noTipButton', v)} />
-            <SwitchRow label={t('settings.sale.tipping.roundUp')} hint={t('settings.sale.tipping.roundUpHint')} checked={advanced.roundUp} disabled={busy} onChange={(v) => toggleAdvanced('roundUp', v)} />
+            <SwitchRow label={t('settings.sale.tipping.customAmounts')} hint={t('settings.sale.tipping.customAmountsHint')} checked={shown('customAmounts', advanced.customAmounts)} onChange={(v) => toggleAdvanced('customAmounts', v)} />
+            <SwitchRow label={t('settings.sale.tipping.noTipButton')} hint={t('settings.sale.tipping.noTipButtonHint')} checked={shown('noTipButton', advanced.noTipButton)} onChange={(v) => toggleAdvanced('noTipButton', v)} />
+            <SwitchRow label={t('settings.sale.tipping.roundUp')} hint={t('settings.sale.tipping.roundUpHint')} checked={shown('roundUp', advanced.roundUp)} onChange={(v) => toggleAdvanced('roundUp', v)} />
           </div>
         )}
       </section>

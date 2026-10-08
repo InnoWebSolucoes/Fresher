@@ -6,14 +6,14 @@ import { useNavigate } from 'react-router-dom'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Button, Chip, DataTable, EmptyState, IntroPage, LearnMore, Menu, MenuButton, Modal, Page, PageHeader, PillTabs, SearchInput, SideDrawer, TextInput, confirm, toast, usePageLoading, type Column } from '@/components/ui'
+import { Button, Chip, DataTable, EmptyState, IntroPage, LearnMore, Menu, Modal, Page, PageHeader, PillTabs, SearchInput, SideDrawer, TextInput, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDate, money } from '@/lib/format'
 import type { ClientPackage, ID, PackageDef } from '@/types'
 import { deletePackage, savePackageOrder, setPackageArchived } from '@/api/catalog'
 import { themeOf } from '../lib'
-import { CardsSkeleton, CategoryModal, CountBadge, FiltersButton, PillButton, SortButton, ToolbarCard } from '../ui'
+import { CardsSkeleton, CategoryModal, CountBadge, FiltersButton, PillButton, SortButton, ToolbarCard, useIntroProps } from '../ui'
 
 type Tri = 'all' | 'yes' | 'no'
 interface PackageFilters {
@@ -60,6 +60,7 @@ export function PackagesPage() {
   const navigate = useNavigate()
   const drawer = useDrawer()
   const loading = usePageLoading()
+  const intro = useIntroProps('Packages')
   const packages = useDb((s) => s.packages)
   const categories = useDb((s) => s.serviceCategories)
   const clientPackages = useDb((s) => s.clientPackages)
@@ -117,6 +118,7 @@ export function PackagesPage() {
     return (
       <Page wide>
         <IntroPage
+          {...intro}
           title={t('catalog.packages.introTitle')}
           body={t('catalog.packages.introBody')}
           bullets={[t('catalog.packages.introB1'), t('catalog.packages.introB2'), t('catalog.packages.introB3')]}
@@ -137,22 +139,9 @@ export function PackagesPage() {
           </>
         }
         actions={
-          <Menu
-            width={220}
-            trigger={({ open, toggle }) => (
-              <MenuButton open={open} toggle={toggle} primary>
-                {t('catalog.common.add')}
-              </MenuButton>
-            )}
-            groups={[
-              {
-                items: [
-                  { label: t('catalog.packages.addPackage'), onSelect: () => navigate('/catalogue/packages/add') },
-                  { label: t('catalog.menu.addCategory'), onSelect: () => setCategoryOpen(true) },
-                ],
-              },
-            ]}
-          />
+          <Button variant="primary" onClick={() => navigate('/catalogue/packages/add')}>
+            {t('catalog.common.add')}
+          </Button>
         }
       />
       <PillTabs
@@ -301,7 +290,7 @@ function HoldersTab({ holders, packages, clientName, onOpenClient }: { holders: 
   ]
   return (
     <>
-      <ToolbarCard>
+      <Toolbar>
         <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-[300px]" />
         <Menu
           align="left"
@@ -325,7 +314,7 @@ function HoldersTab({ holders, packages, clientName, onOpenClient }: { holders: 
             ]}
           />
         </div>
-      </ToolbarCard>
+      </Toolbar>
       <DataTable columns={columns} rows={rows} rowKey={(h) => h.id} onRowClick={(h) => onOpenClient(h.clientId)} empty={<EmptyState icon={<Users size={26} />} title={t('catalog.packages.noHoldersTitle')} body={t('catalog.packages.noHoldersBody')} />} />
     </>
   )

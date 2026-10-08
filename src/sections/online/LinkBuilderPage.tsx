@@ -3,7 +3,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, Checkbox, confirm, DataTable, EmptyState, Field, LearnMore, Menu, Modal, Page, PageHeader, PageSkeleton, SearchInput, Select, TextInput, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
-import { bookingLinkUrl, createBookingLink, deleteBookingLink, useOnlineState, type BookingLink } from '@/api/online'
+import { bookingLinkUrl, createBookingLink, deleteBookingLink, useBookingLinks, type BookingLink } from '@/api/online'
 import { fmtDate } from '@/lib/format'
 import { copyText, LinkWithQr, ProfileGateModal } from './shared'
 
@@ -21,7 +21,7 @@ export function LinkBuilderPage() {
   const { t } = useTranslation()
   const loading = usePageLoading()
   const locations = useDb((s) => s.locations)
-  const { links } = useOnlineState()
+  const links = useBookingLinks()
   const [gate, setGate] = useState<Kind | null>(null)
   const [creating, setCreating] = useState<Kind | null>(null)
   const [result, setResult] = useState<BookingLink | null>(null)

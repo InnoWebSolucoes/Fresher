@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 import type { TeamMember } from '@/types'
 import { useDb } from '@/store/db'
+import { useMemberExtras } from '@/api/team'
 import { exportCsv, exportedFileName, exportXlsx } from '@/lib/export'
 import { todayISO } from '@/lib/time'
 import { Button, Checkbox, Chip, DataTable, EmptyState, Menu, MenuButton, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, Toolbar, toast, usePageLoading, type Column } from '@/components/ui'
@@ -34,6 +35,7 @@ export function TeamMembersPage() {
   const [locationFilter, setLocationFilter] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<MemberType[]>([])
   const actions = useMemberActions()
+  const extras = useMemberExtras()
 
   // `?d_timeoff=<memberId>` opens Add time off directly (calendar links here).
   const timeOffParam = params.get('d_timeoff')
@@ -55,8 +57,8 @@ export function TeamMembersPage() {
       if (q && !`${memberName(m)} ${m.email} ${m.phone ?? ''} ${m.jobTitle}`.toLowerCase().includes(q)) return false
       return true
     })
-    return sortMembers(list, sort)
-  }, [teamMembers, status, locationFilter, typeFilter, search, sort])
+    return sortMembers(list, sort, extras)
+  }, [teamMembers, status, locationFilter, typeFilter, search, sort, extras])
 
   const filterCount = (status !== 'active' ? 1 : 0) + (locationFilter.length ? 1 : 0) + (typeFilter.length ? 1 : 0)
 

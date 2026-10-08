@@ -8,7 +8,7 @@ import { useDrawer } from '@/lib/drawer'
 import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
 import { Button, Field, Select, TextArea, TextInput, confirm, toast } from '@/components/ui'
-import { createSupportTicket, endLiveChat, generateAccessCode, resetLiveChat, sendChatMessage, startLiveChat, usePanels, type ChatMessage, type SupportTicket } from '@/api/panels'
+import { createSupportTicket, endLiveChat, generateAccessCode, resetLiveChat, sendChatMessage, startLiveChat, panelsState, useChatTyping, usePanels, type ChatMessage, type SupportTicket } from '@/api/panels'
 import { ApiError } from '@/api/client'
 import { now } from '@/lib/time'
 import { AgentAvatars, PanelHeader, Spinner, useTimeAgo } from '../shared'
@@ -464,7 +464,7 @@ function PhoneSupport() {
                 size="sm"
                 icon={<Copy size={14} />}
                 onClick={() => {
-                  void navigator.clipboard?.writeText(access.code)
+                  void navigator.clipboard?.writeText(access.code).catch(() => undefined)
                   toast(t('panels.help.phone.copied'))
                 }}
               >
@@ -493,14 +493,15 @@ function LiveChatView() {
   const drawer = useDrawer()
   const user = useCurrentUser()
   const chat = usePanels((s) => s.chat)
-  const typing = usePanels((s) => s.chatTyping)
+  const typing = useChatTyping()
   const [text, setText] = useState('')
   const [ending, setEnding] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
   const firstName = user?.firstName ?? ''
 
   useEffect(() => {
-    if (usePanels.getState().chat.status === 'idle') startLiveChat(firstName)
+    const status = panelsState().chat.status
+    if (status === 'idle' || status === 'connecting') startLiveChat(firstName)
   }, [firstName])
 
   useEffect(() => {

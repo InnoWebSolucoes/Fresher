@@ -54,7 +54,7 @@ export function ClientPicker() {
         <div className="my-2 border-t border-line" />
         {list.map((x) => (
           <button key={x.id} type="button" onClick={() => choose(x.id)} className="flex items-center gap-4 rounded-md px-3 py-3 text-left hover:bg-sunken/60" data-testid="client-option">
-            <Avatar name={fullName(x)} size={48} />
+            <Avatar name={fullName(x)} photo={x.photo} size={48} />
             <span className="min-w-0">
               <span className="block truncate text-body-lg text-ink">{fullName(x)}</span>
               <span className="block truncate text-body text-muted">{x.email || x.phone}</span>

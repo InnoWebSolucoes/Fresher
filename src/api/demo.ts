@@ -59,6 +59,7 @@ export function findOnlineSlots(q: OnlineBookingQuery, excludeAppointmentId?: ID
     online: true,
     now: now(),
     excludeAppointmentId,
+    clientId: q.clientId,
   })
 }
 

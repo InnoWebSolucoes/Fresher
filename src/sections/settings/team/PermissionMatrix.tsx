@@ -233,7 +233,7 @@ function AreaPanel({
       </div>
 
       {area.insightsNote && !query && (
-        <Banner tone="neutral" className="mt-8 items-center" action={onGoToInsights && <Button className="rounded-full" size="sm" iconRight={<ArrowRight size={16} aria-hidden />} onClick={onGoToInsights}>{t('settings.tm.matrix.goToInsights')}</Button>}>
+        <Banner tone="neutral" className="mt-8 items-center" action={onGoToInsights && <Button size="sm" iconRight={<ArrowRight size={16} aria-hidden />} onClick={onGoToInsights}>{t('settings.tm.matrix.goToInsights')}</Button>}>
           {t('settings.tm.matrix.insightsNote')}
         </Banner>
       )}

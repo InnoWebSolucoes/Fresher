@@ -135,7 +135,7 @@ export function SearchDialog({ close }: DrawerProps) {
 
   const results = useMemo<Result[]>(() => {
     const q = query.trim().toLowerCase()
-    if (!q || q === '/' || !user) return []
+    if (!q || q.startsWith('/') || !user) return []
     const words = q.split(/\s+/)
     const match = (...fields: (string | undefined)[]) => {
       const hay = fields.filter(Boolean).join(' ').toLowerCase()
@@ -283,11 +283,14 @@ export function SearchDialog({ close }: DrawerProps) {
     })
   }, [results, category])
 
-  const filtersOpen = showFilters || query === '/'
-  const filterOptions = allowed.filter((c) => t(`panels.search.categories.${c.key}`).toLowerCase().includes(filterQuery.trim().toLowerCase()))
+  // "/" in the search box opens the category filter; what follows the slash filters it.
+  const slashFilter = query.startsWith('/')
+  const filtersOpen = showFilters || slashFilter
+  const filterText = slashFilter ? query.slice(1) : filterQuery
+  const filterOptions = allowed.filter((c) => t(`panels.search.categories.${c.key}`).toLowerCase().includes(filterText.trim().toLowerCase()))
   const q = query.trim()
 
-  const footer = q && q !== '/' ? [
+  const footer = q && !slashFilter ? [
     { key: 'help', icon: CircleHelp, label: t('panels.search.searchHelp', { query: q }), run: () => openDrawer('resources', { tab: 'help', d_view: 'help-center', d_q: q }) },
     { key: 'chat', icon: MessageCircle, label: t('panels.search.chatSupport'), run: () => openDrawer('resources', { tab: 'help', d_view: 'chat' }) },
   ] : []
@@ -297,7 +300,7 @@ export function SearchDialog({ close }: DrawerProps) {
     setCategory(c)
     setShowFilters(false)
     setFilterQuery('')
-    if (query === '/') setQuery('')
+    if (query.startsWith('/')) setQuery('')
     setActive(0)
     inputRef.current?.focus()
   }
@@ -329,7 +332,8 @@ export function SearchDialog({ close }: DrawerProps) {
       e.nativeEvent.stopImmediatePropagation()
       if (filtersOpen) {
         setShowFilters(false)
-        if (query === '/') setQuery('')
+        if (query.startsWith('/')) setQuery('')
+        inputRef.current?.focus()
       } else setCategory(null)
     }
   }
@@ -396,16 +400,19 @@ export function SearchDialog({ close }: DrawerProps) {
                 <p className="flex-1 text-body-strong text-ink">{t('panels.search.filterBy')}</p>
                 <kbd className="rounded-xs border border-line px-1.5 text-caption text-muted">/</kbd>
               </div>
-              <input
-                value={filterQuery}
-                onChange={(e) => {
-                  setFilterQuery(e.target.value)
-                  setActive(0)
-                }}
-                placeholder={t('panels.search.searchFilter')}
-                aria-label={t('panels.search.searchFilter')}
-                className="input mx-3 mb-2 h-10 w-[calc(100%-24px)]"
-              />
+              {!slashFilter && (
+                <input
+                  autoFocus
+                  value={filterQuery}
+                  onChange={(e) => {
+                    setFilterQuery(e.target.value)
+                    setActive(0)
+                  }}
+                  placeholder={t('panels.search.searchFilter')}
+                  aria-label={t('panels.search.searchFilter')}
+                  className="input mx-3 mb-2 h-10 w-[calc(100%-24px)]"
+                />
+              )}
               {filterOptions.map((c, i) => (
                 <button key={c.key} id={`search-row-${i}`} data-index={i} type="button" role="option" aria-selected={active === i} onMouseEnter={() => setActive(i)} onClick={() => pickCategory(c.key)} className={rowClass(i)}>
                   <span className="chip bg-surface text-ink ring-1 ring-line-strong">{t(`panels.search.categories.${c.key}`)}</span>

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ChevronRight, History, Package, Pencil, Receipt, Truck } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Button, EmptyState, Menu, MenuButton, Select, confirm, toast } from '@/components/ui'
@@ -12,7 +12,7 @@ import { fmtDate, fmtDateTimeUS, fullName, money, round2 } from '@/lib/format'
 import { now } from '@/lib/time'
 import type { Product } from '@/types'
 import { deleteProducts } from '@/api/catalog'
-import { InfoCard } from '../ui'
+import { InfoCard, PaneTitle, TwoPaneDrawer } from '../ui'
 import { StockModal, useReasonLabel } from './parts'
 
 const P = 'catalog.products2'
@@ -70,7 +70,7 @@ export function ProductDrawer({ id, params, close }: DrawerProps) {
               items: [
                 { label: t(`${P}.actions.addStock`), onSelect: () => setStockMode('add') },
                 { label: t(`${P}.actions.removeStock`), onSelect: () => setStockMode('remove'), disabled: !product.trackStock },
-                { label: t(`${P}.actions.orderStock`), onSelect: () => navigate(`/catalogue/orders/new?d_product=${product.id}`) },
+                { label: t(`${P}.actions.orderStock`), onSelect: () => navigate(`/catalogue/orders/new?product=${product.id}`) },
                 { label: t(`${P}.actions.sellProduct`), onSelect: () => drawer.open('checkout', { d_add: `product:${product.id}` }), disabled: !product.retailSales },
                 { label: t(`${P}.actions.editProduct`), onSelect: () => navigate(`/catalogue/products/edit/${product.id}`) },
               ],
@@ -84,7 +84,7 @@ export function ProductDrawer({ id, params, close }: DrawerProps) {
 
   return (
     <>
-      <ProductPanes
+      <TwoPaneDrawer
         hero={hero}
         tab={tab}
         onTab={(next) => drawer.update({ tab: next === 'details' ? undefined : next })}
@@ -99,44 +99,9 @@ export function ProductDrawer({ id, params, close }: DrawerProps) {
         {tab === 'orders' && <OrdersTab product={product} />}
         {tab === 'sales' && <SalesTab product={product} />}
         {tab === 'history' && <HistoryTab product={product} />}
-      </ProductPanes>
+      </TwoPaneDrawer>
       <StockModal product={product} mode={stockMode ?? 'add'} open={stockMode !== null} onClose={() => setStockMode(null)} />
     </>
-  )
-}
-
-/** Left hero + vertical tabs, grey right pane (narrower left column than TwoPaneDrawer to fit 720px). */
-function ProductPanes({ hero, tabs, tab, onTab, children }: { hero: ReactNode; tabs: { value: Tab; label: string }[]; tab: Tab; onTab: (t: Tab) => void; children: ReactNode }) {
-  return (
-    <div className="flex h-full min-h-0">
-      <div className="flex w-[250px] shrink-0 flex-col overflow-y-auto border-r border-line bg-surface">
-        <div className="flex flex-col items-center gap-2 border-b border-line px-5 pb-6 pt-8 text-center">{hero}</div>
-        <nav className="flex flex-col gap-1 p-3" role="tablist" aria-orientation="vertical">
-          {tabs.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              role="tab"
-              aria-selected={tab === item.value}
-              onClick={() => onTab(item.value)}
-              className={clsx('flex h-11 items-center rounded-md px-4 text-left text-body', tab === item.value ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-      <div className="min-w-0 flex-1 overflow-y-auto bg-sunken px-6 py-8">{children}</div>
-    </div>
-  )
-}
-
-function TabTitle({ title, action }: { title: string; action?: ReactNode }) {
-  return (
-    <div className="mb-6 flex items-center justify-between gap-4">
-      <h2 className="font-display text-title-2 text-ink">{title}</h2>
-      {action}
-    </div>
   )
 }
 
@@ -157,7 +122,7 @@ function DetailsTab({ product }: { product: Product }) {
   const stock = Math.max(0, product.stock)
   return (
     <>
-      <TabTitle
+      <PaneTitle
         title={t(`${P}.tabs.details`)}
         action={
           <Button size="sm" iconRight={<Pencil size={14} aria-hidden />} onClick={() => navigate(`/catalogue/products/edit/${product.id}`)}>
@@ -210,10 +175,10 @@ function OrdersTab({ product }: { product: Product }) {
   const list = useMemo(() => orders.filter((o) => o.items.some((i) => i.productId === product.id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)), [orders, product.id])
   return (
     <>
-      <TabTitle
+      <PaneTitle
         title={t(`${P}.tabs.orders`)}
         action={
-          <Button size="sm" onClick={() => navigate(`/catalogue/orders/new?d_product=${product.id}`)}>
+          <Button size="sm" onClick={() => navigate(`/catalogue/orders/new?product=${product.id}`)}>
             {t(`${P}.actions.orderStock`)}
           </Button>
         }
@@ -263,7 +228,7 @@ function SalesTab({ product }: { product: Product }) {
   }, [sales, product.id, period])
   return (
     <>
-      <TabTitle title={t(`${P}.tabs.sales`)} action={<Select aria-label={t('catalog.common.filters')} className="w-44" value={period} onChange={(e) => setPeriod(e.target.value as typeof period)} options={[{ value: 'all', label: t(`${P}.salesPeriod.all`) }, { value: '30', label: t(`${P}.salesPeriod.d30`) }, { value: '90', label: t(`${P}.salesPeriod.d90`) }]} />} />
+      <PaneTitle title={t(`${P}.tabs.sales`)} action={<Select aria-label={t('catalog.common.filters')} className="w-44" value={period} onChange={(e) => setPeriod(e.target.value as typeof period)} options={[{ value: 'all', label: t(`${P}.salesPeriod.all`) }, { value: '30', label: t(`${P}.salesPeriod.d30`) }, { value: '90', label: t(`${P}.salesPeriod.d90`) }]} />} />
       {list.length === 0 ? (
         <div className="rounded-lg border border-line bg-surface">
           <EmptyState icon={<Receipt size={26} />} title={t(`${P}.salesEmpty`)} />
@@ -311,7 +276,7 @@ function HistoryTab({ product }: { product: Product }) {
   }
   return (
     <>
-      <TabTitle
+      <PaneTitle
         title={t(`${P}.tabs.history`)}
         action={
           <Menu

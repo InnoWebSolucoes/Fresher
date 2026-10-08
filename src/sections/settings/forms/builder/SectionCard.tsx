@@ -173,7 +173,7 @@ function BlocksEditor({ section, onChange, errorState, blocksError }: { section:
             },
           ]}
           trigger={({ open, toggle }) => (
-            <Button className="rounded-full" icon={<Plus size={16} aria-hidden />} onClick={toggle} aria-haspopup="menu" aria-expanded={open} data-testid="add-question">
+            <Button icon={<Plus size={16} aria-hidden />} onClick={toggle} aria-haspopup="menu" aria-expanded={open} data-testid="add-question">
               {t('settings.frm.builder.addQuestion')}
             </Button>
           )}

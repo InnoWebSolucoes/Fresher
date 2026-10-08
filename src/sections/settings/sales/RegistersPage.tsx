@@ -8,12 +8,11 @@ import { reorderRegisters } from '@/api/settings'
 import { useDrawer } from '@/lib/drawer'
 import { useDb } from '@/store/db'
 import type { CashRegister, ID, RegisterSettings } from '@/types'
-import { ActionsPill, ListCard, ListRow, PillMenu, SectionHeading, SettingsPage } from '../components/ui'
+import { ActionsPill, FormCard, ListCard, ListRow, PillMenu, SectionHeading, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { OrderModal } from '../components/OrderModal'
 import { useAction } from '../components/useAction'
 import { useLocations } from '../hooks'
-import { FormCard } from './shared'
 
 type Filter = 'active' | 'archived'
 type FloatWhen = NonNullable<RegisterSettings['minFloat']>['when']
@@ -71,7 +70,7 @@ export function RegistersPage() {
     const a = ids.indexOf(reg.id)
     const b = ids.indexOf(neighbour.id)
     ;[ids[a], ids[b]] = [ids[b], ids[a]]
-    void run(() => reorderRegisters(ids), t('settings.sale.registers.orderSaved'))
+    void run(() => reorderRegisters(ids), t('settings.common.orderUpdated'))
   }
 
   const archive = async (reg: CashRegister) => {
@@ -209,10 +208,7 @@ export function RegistersPage() {
               </span>
             ),
           }))}
-        onSave={async (ids) => {
-          const archivedIds = sorted.filter((r) => r.archived).map((r) => r.id)
-          await run(() => reorderRegisters([...ids, ...archivedIds]), t('settings.sale.registers.orderSaved'))
-        }}
+        onSave={(ids) => run(() => reorderRegisters([...ids, ...sorted.filter((r) => r.archived).map((r) => r.id)]), t('settings.common.orderUpdated'))}
       />
     </SettingsPage>
   )

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Button, EmptyState, Field, FullscreenFrame, TextArea, TextInput, toast } from '@/components/ui'
+import { Button, EmptyState, Field, FullscreenFrame, LearnMore, TextArea, TextInput, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { createStocktake } from '@/api/catalog'
 import { LocationCard, LocationPicker } from '../ui'
@@ -32,8 +32,7 @@ export function StocktakeNewPage() {
   }
 
   return (
-    <FullscreenFrame
-      title={t('catalog.inventory.stocktakeNew.frameTitle')}
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       onClose={() => navigate('/catalogue/stocktakes')}
       progress={0.5}
       actions={
@@ -42,8 +41,11 @@ export function StocktakeNewPage() {
         </Button>
       }
     >
-      <h1 className="font-display text-display text-ink">{t('catalog.inventory.stocktakeNew.title')}</h1>
-      <p className="mt-2 text-body-lg text-muted">{t('catalog.inventory.stocktakeNew.subtitle')}</p>
+      <p className="text-body text-muted">{t('catalog.inventory.stocktakeNew.eyebrow')}</p>
+      <h1 className="mt-1 font-display text-display text-ink">{t('catalog.inventory.stocktakeNew.title')}</h1>
+      <p className="mt-2 text-body-lg text-muted">
+        {t('catalog.inventory.stocktakeNew.subtitle')} <LearnMore topic="Stocktakes">{t('catalog.common.learnMore')}</LearnMore>
+      </p>
       {!tracked ? (
         <EmptyState
           className="mt-8 card"
@@ -62,10 +64,8 @@ export function StocktakeNewPage() {
             void start()
           }}
         >
-          <div>
-            <p className="mb-2 text-body-strong text-ink">{t('catalog.inventory.stocktakeNew.location')}</p>
-            <LocationCard location={location} onChange={locations.length > 1 ? () => setPickerOpen(true) : undefined} />
-          </div>
+          <LocationCard location={location} onChange={locations.length > 1 ? () => setPickerOpen(true) : undefined} />
+          <h2 className="mt-4 font-display text-title-2 text-ink">{t('catalog.inventory.stocktakeNew.info')}</h2>
           <Field label={t('catalog.inventory.stocktakeNew.name')} optional>
             {(id) => <TextInput id={id} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} placeholder={t('catalog.inventory.stocktakeNew.namePlaceholder')} />}
           </Field>
@@ -73,11 +73,7 @@ export function StocktakeNewPage() {
             {(id) => <TextArea id={id} value={description} maxLength={200} onChange={(e) => setDescription(e.target.value)} placeholder={t('catalog.inventory.stocktakeNew.descriptionPlaceholder')} />}
           </Field>
           <p className="text-small text-muted">{t('catalog.inventory.stocktakeNew.trackedCount', { count: tracked })}</p>
-          <div>
-            <Button type="submit" variant="primary" size="lg" loading={busy}>
-              {t('catalog.inventory.stocktakeNew.start')}
-            </Button>
-          </div>
+          <button type="submit" hidden aria-hidden tabIndex={-1} />
         </form>
       )}
       <LocationPicker open={pickerOpen} onClose={() => setPickerOpen(false)} locations={locations} value={locationId} onChange={setLocationId} />

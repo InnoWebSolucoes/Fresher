@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, ChevronUp, Footprints, ReceiptText, Percent, ShoppingCart, Trash2, UserPlus, Coins } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, ReceiptText, Percent, ShoppingCart, Sparkles, Trash2, UserPlus, Coins } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
@@ -10,7 +10,8 @@ import { fullName, money } from '@/lib/format'
 import { lineTotal } from '@/api/sales'
 import { discardDraftSale } from '@/api/checkout'
 import { useCheckout } from './context'
-import { giftDetail, lineColor, lineDuration, type Line } from './model'
+import { appliedOfferKey, giftDetail, lineColor, lineDuration, type Line } from './model'
+import { OfferTag, useCartOffers } from './OffersModal'
 import { DropMenu, TotalRow } from './ui'
 
 /** Right-hand summary column: client, cart lines, totals and footer buttons. */
@@ -45,6 +46,7 @@ export function Summary() {
           </div>
         )}
       </div>
+      {c.lines.length > 0 && <OffersBar />}
       <Totals />
     </aside>
   )
@@ -68,7 +70,6 @@ function ClientCard() {
       </button>
     )
   }
-  const canChange = !c.existingSale
   return (
     <div className="rounded-lg border border-line p-5">
       <div className="flex items-start justify-between gap-4">
@@ -76,7 +77,7 @@ function ClientCard() {
           <p className="truncate text-body-lg font-semibold text-ink">{fullName(client)}</p>
           <p className="truncate text-body text-muted">{client.email || client.phone}</p>
         </div>
-        <Avatar name={fullName(client)} size={56} />
+        <Avatar name={fullName(client)} photo={client?.photo} size={56} />
       </div>
       <div className="mt-4">
         <Menu
@@ -90,12 +91,8 @@ function ClientCard() {
             {
               items: [
                 { label: t('checkout.client.viewProfile'), onSelect: () => drawer.open('client', { id: client.id }) },
-                ...(canChange
-                  ? [
-                      { label: t('checkout.client.change'), onSelect: () => c.setView('client') },
-                      { label: t('checkout.client.remove'), danger: true, onSelect: () => c.setClientId(null) },
-                    ]
-                  : []),
+                { label: t('checkout.client.change'), onSelect: () => c.setView('client') },
+                { label: t('checkout.client.remove'), danger: true, onSelect: () => c.setClientId(null) },
               ],
             },
           ]}
@@ -132,10 +129,10 @@ function CartLine({ line }: { line: Line }) {
         <span className="min-w-0 flex-1">
           <span className="block text-body-lg text-ink">
             {line.quantity > 1 && line.type !== 'product' ? `${line.quantity} × ` : ''}
-            {line.type === 'gift_card' && line.giftCard ? `${money(line.giftCard.value)} - ${line.name}` : line.name}
+            {line.name}
           </span>
           {sub && <span className="mt-0.5 block text-body text-muted">{sub}</span>}
-          {(line.discount || line.benefitNote) && <span className="mt-1 inline-flex rounded-full bg-success-subtle px-2 py-0.5 text-caption text-success">{line.benefitNote ?? t('checkout.summary.discountApplied')}</span>}
+          {(appliedOfferKey(line) || line.benefitNote) && <OfferTag className="mt-1.5" label={line.benefitNote ?? t('checkout.summary.discountApplied')} />}
         </span>
         <span className="flex flex-col items-end">
           <span className="text-body-lg text-ink tabular">{total === 0 && line.type !== 'manual' ? t('checkout.summary.free') : money(total)}</span>
@@ -144,6 +141,29 @@ function CartLine({ line }: { line: Line }) {
         </span>
       </button>
     </li>
+  )
+}
+
+/** "Apply rewards or discounts" bar above the totals (calendar.md §10.9). */
+function OffersBar() {
+  const { t } = useTranslation()
+  const c = useCheckout()
+  const rows = useCartOffers()
+  const available = rows.reduce((n, r) => n + r.offers.filter((o) => o.key !== appliedOfferKey(r.line)).length, 0)
+  const applied = c.lines.filter((l) => appliedOfferKey(l)).length
+  return (
+    <div className="px-8 pb-7 pt-2">
+      <button type="button" onClick={() => c.setModal({ kind: 'offers' })} className="flex w-full items-center gap-3 rounded-lg border border-primary/30 bg-primary-subtle/60 px-4 py-3 text-left text-body-strong text-primary hover:bg-primary-subtle" data-testid="apply-offers">
+        <Sparkles size={20} aria-hidden />
+        <span className="flex-1">{t('checkout.offers.title')}</span>
+        {applied > 0 ? (
+          <span className="rounded-full bg-primary px-2 py-0.5 text-caption text-on-primary">{t('checkout.offers.appliedCount', { count: applied })}</span>
+        ) : available > 0 ? (
+          <span className="rounded-full bg-surface px-2 py-0.5 text-caption text-primary">{t('checkout.offers.availableCount', { count: available })}</span>
+        ) : null}
+        <ChevronRight size={18} aria-hidden />
+      </button>
+    </div>
   )
 }
 
@@ -326,7 +346,6 @@ function Totals() {
         />
         {primary}
       </div>
-      {!c.clientId && c.step === 'payment' && <p className="mt-3 flex items-center justify-center gap-1.5 text-small text-muted"><Footprints size={14} aria-hidden />{t('checkout.summary.walkInNote')}</p>}
     </div>
   )
 }

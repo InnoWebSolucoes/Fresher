@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { EyeOff, Heart, NotebookText, Play, Tag, Users } from 'lucide-react'
+import { Ban, EyeOff, Heart, NotebookText, Play, Tag, Users } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -88,7 +88,7 @@ export function AppointmentHoverCard({ appt, rect, lookups, client, note }: { ap
         <span>{status.label}</span>
       </div>
       <div className="flex items-center gap-3 px-5 pt-4">
-        <ClientAvatar name={client ? client.firstName : null} walkIn={!client} size={44} />
+        <ClientAvatar name={client ? client.firstName : null} photo={client?.photo} walkIn={!client} size={44} />
         <div className="min-w-0">
           <p className="truncate text-body-lg text-ink">{fullName(client, t('calendar.walkIn'))}</p>
           {client && <p className="truncate text-small text-muted">{client.email}</p>}
@@ -130,7 +130,10 @@ export function BlockedHoverCard({ block, type, rect, memberLabel }: { block: Bl
         <span className="tabular">
           {block.start} - {block.end}
         </span>
-        <span>{t('calendar.blocked.unavailable')}</span>
+        <span className="flex items-center gap-1.5">
+          {t('calendar.blocked.unavailable')}
+          <Ban size={16} aria-hidden />
+        </span>
       </div>
       <div className="px-5 py-4">
         <p className="text-body-lg text-ink">
@@ -147,7 +150,7 @@ export function BlockedHoverCard({ block, type, rect, memberLabel }: { block: Bl
 }
 
 /** Small chip used by the 3 day, week and month views. */
-export function AppointmentChip({ appt, lookups, label, onClick, faded, tone }: { appt: Appointment; lookups: Lookups; label: ReactNode; onClick?: () => void; faded?: boolean; tone: { fill: string; text: string } }) {
+export function AppointmentChip({ appt, lookups, label, onClick, faded, selected, tone }: { appt: Appointment; lookups: Lookups; label: ReactNode; onClick?: () => void; faded?: boolean; selected?: boolean; tone: { fill: string; text: string } }) {
   return (
     <button
       type="button"
@@ -155,7 +158,8 @@ export function AppointmentChip({ appt, lookups, label, onClick, faded, tone }: 
         e.stopPropagation()
         onClick?.()
       }}
-      className={clsx('flex h-7 w-full items-center gap-1.5 rounded-xs px-1.5 text-left text-small transition-opacity hover:brightness-95', faded && 'opacity-40')}
+      className={clsx('flex h-7 w-full shrink-0 items-center gap-1.5 rounded-xs px-1.5 text-left text-small transition-opacity hover:brightness-95', faded && 'pointer-events-none opacity-40', selected && 'ring-2 ring-inset ring-primary')}
+      data-testid="appointment-chip"
       style={{ background: tone.fill, color: tone.text }}
     >
       <span className="min-w-0 flex-1 truncate tabular">{label}</span>

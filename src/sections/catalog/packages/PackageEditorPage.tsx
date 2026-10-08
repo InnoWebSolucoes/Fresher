@@ -34,7 +34,7 @@ export function PackageEditorPage() {
       const { id: _id, order: _order, ...rest } = structuredClone(source)
       void _id
       void _order
-      return existing ? rest : { ...rest, name: `Copy of ${source.name}`, archived: false, benefits: rest.benefits.map((b) => ({ ...b, id: uid('pb') })) }
+      return existing ? rest : { ...rest, name: t('catalog.common.copyOf', { name: source.name }), archived: false, benefits: rest.benefits.map((b) => ({ ...b, id: uid('pb') })) }
     }
     if (id) return null
     return { name: '', theme: PACKAGE_THEMES[0].name, categoryId: undefined, description: '', benefits: [], price: 0, expiresValue: 6, expiresUnit: 'months', onlineSale: true, giftable: true, terms: '', commission: true, taxRateId: null, archived: false }
@@ -397,6 +397,7 @@ function BenefitWizard({ benefit, onClose, onApply }: { benefit?: PackageBenefit
               <div className="mt-6 flex flex-col gap-6">
                 {type.startsWith('service')
                   ? [...categories]
+                      .filter((c) => !c.archived)
                       .sort((a, b) => a.order - b.order)
                       .map((c) => {
                         const list = services.filter((s) => s.categoryId === c.id && !s.archived && (!q || s.name.toLowerCase().includes(q)))

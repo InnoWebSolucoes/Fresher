@@ -42,7 +42,7 @@ import { defaultPermissionRoles } from './permissionRoles'
  * 2 locations, 6 team members, 40 services, 200 clients, 10 weeks of history
  * and 3 weeks of upcoming bookings, generated relative to `today`.
  */
-export const SEED_VERSION = 2
+export const SEED_VERSION = 3
 const TAX = 0.23
 const PAST_DAYS = 70
 const FUTURE_DAYS = 21
@@ -283,7 +283,15 @@ export function buildSeed(todayDate: Date): DbData {
     { id: 'u_owner', email: 'owner@demo.app', password: 'demo1234', firstName: 'Marta', lastName: 'Ribeiro', role: 'owner', teamMemberId: 'tm_marta', phone: '+351 912 000 001' },
     { id: 'u_staff', email: 'staff@demo.app', password: 'demo1234', firstName: 'João', lastName: 'Pereira', role: 'low', teamMemberId: 'tm_joao', phone: '+351 912 000 002' },
     { id: 'u_stylist', email: 'stylist@demo.app', password: 'demo1234', firstName: 'Inês', lastName: 'Carvalho', role: 'basic', teamMemberId: 'tm_ines', phone: '+351 912 000 003' },
+    // Team members with an access role have a login too (their invite was accepted).
+    { id: 'u_rui', email: 'rui@studioaliados.example.com', password: 'demo1234', firstName: 'Rui', lastName: 'Fonseca', role: 'basic', teamMemberId: 'tm_rui' },
+    { id: 'u_sofia', email: 'sofia@studioaliados.example.com', password: 'demo1234', firstName: 'Sofia', lastName: 'Almeida', role: 'low', teamMemberId: 'tm_sofia' },
+    { id: 'u_beatriz', email: 'beatriz@studioaliados.example.com', password: 'demo1234', firstName: 'Beatriz', lastName: 'Costa', role: 'low', teamMemberId: 'tm_beatriz' },
   ]
+  for (const user of users) {
+    const member = teamMembers.find((m) => m.id === user.teamMemberId)
+    if (member && member.role !== 'owner') member.invite = { status: 'accepted', sentAt: subDays(todayDate, 380).toISOString(), userId: user.id }
+  }
 
   const patternStart = iso(subDays(todayDate, PAST_DAYS + 14))
   const week = (days: Partial<Record<Weekday, TimeRange[]>>) => days

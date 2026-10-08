@@ -24,10 +24,12 @@ interface Initial {
   fees: StockOrder['fees']
   expectedAt?: string
   draftId: ID | null
+  /** Editing an order that has already been placed (`?edit=`). */
+  editing?: boolean
   pendingProduct?: ID
 }
 
-/** Create stock order: supplier → products → ready (catalog.md §6). Supports ?d_product, ?d_supplier, ?d_draft. */
+/** Create stock order: supplier → products → ready (catalog.md §6). Supports ?product, ?supplier, ?draft and ?edit (placed order). */
 export function StockOrderNewPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -43,14 +45,16 @@ export function StockOrderNewPage() {
       const p = products.find((x) => x.id === id)
       return p ? [{ productId: p.id, qty: Math.max(1, p.reorderQty || 1), unitCost: p.supplyPrice }] : []
     }
-    const draft = orders.find((o) => o.id === params.get('d_draft') && o.status === 'draft')
+    const placed = orders.find((o) => o.id === params.get('edit') && o.status === 'ordered')
+    if (placed) return { ...base, step: 'products', supplierId: placed.supplierId, locationId: placed.locationId, items: placed.items, fees: placed.fees, expectedAt: placed.expectedAt, draftId: placed.id, editing: true }
+    const draft = orders.find((o) => o.id === params.get('draft') && o.status === 'draft')
     if (draft) return { ...base, step: 'products', supplierId: draft.supplierId, locationId: draft.locationId, items: draft.items, fees: draft.fees, expectedAt: draft.expectedAt, draftId: draft.id }
-    const product = products.find((p) => p.id === params.get('d_product'))
+    const product = products.find((p) => p.id === params.get('product'))
     if (product) {
       if (product.supplierId && suppliers.some((s) => s.id === product.supplierId)) return { ...base, step: 'products', supplierId: product.supplierId, items: lineFor(product.id) }
       return { ...base, pendingProduct: product.id }
     }
-    const supplier = suppliers.find((s) => s.id === params.get('d_supplier'))
+    const supplier = suppliers.find((s) => s.id === params.get('supplier'))
     if (supplier) return { ...base, step: 'products', supplierId: supplier.id }
     return base
   })
@@ -80,9 +84,9 @@ export function StockOrderNewPage() {
   const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
   const productCount = (sid: ID) => products.filter((p) => !p.archived && p.supplierId === sid).length
 
-  // Autosave the order as a draft while it is being built.
+  // Autosave the order as a draft while it is being built (placed orders save on "Save").
   useEffect(() => {
-    if (step !== 'products' || !supplierId || !items.length) return
+    if (init.editing || step !== 'products' || !supplierId || !items.length) return
     const timer = setTimeout(() => {
       const input = { supplierId, locationId, items, fees, expectedAt }
       chain.current = chain.current.then(async () => {
@@ -92,7 +96,7 @@ export function StockOrderNewPage() {
       })
     }, 700)
     return () => clearTimeout(timer)
-  }, [step, supplierId, locationId, items, fees, expectedAt])
+  }, [init.editing, step, supplierId, locationId, items, fees, expectedAt])
 
   const subtotal = orderSubtotal(items)
   const feesTotal = orderFeesTotal(fees, subtotal)
@@ -125,6 +129,16 @@ export function StockOrderNewPage() {
 
   const create = async () => {
     setCreating(true)
+    if (init.editing && draftId.current) {
+      try {
+        await saveStockOrder(draftId.current, { supplierId, locationId, items, fees, expectedAt })
+        toast(t('catalog.inventory.orderNew.updated'))
+        navigate(`/catalogue/orders?drawer=stock-order&id=${draftId.current}`)
+      } finally {
+        setCreating(false)
+      }
+      return
+    }
     try {
       const input = { supplierId, locationId, items, fees, expectedAt }
       const placed = (chain.current = chain.current.then(() => saveStockOrder(draftId.current, input, { place: true })))
@@ -146,7 +160,7 @@ export function StockOrderNewPage() {
       setEmailSent(true)
       toast(t('catalog.inventory.orderNew.ready.emailed', { email }))
     } catch (e) {
-      toast(e instanceof ApiError ? t('catalog.inventory.orderNew.ready.noEmail') : String(e))
+      toast(e instanceof ApiError ? t('catalog.inventory.orderNew.ready.noEmail') : String(e), 'error')
     } finally {
       setEmailing(false)
     }
@@ -157,17 +171,18 @@ export function StockOrderNewPage() {
     setDownloading(true)
     try {
       await downloadOrderPdf(created, { products, suppliers, locations }, t)
+      toast(t('catalog.toasts.downloaded'))
     } finally {
       setDownloading(false)
     }
   }
 
   const progress = step === 'supplier' ? 1 / 3 : step === 'products' ? 2 / 3 : 1
-  const close = () => navigate('/catalogue/orders')
+  const close = () => navigate(init.editing && init.draftId ? `/catalogue/orders?drawer=stock-order&id=${init.draftId}` : '/catalogue/orders')
 
   if (step === 'ready' && created)
     return (
-      <FullscreenFrame onClose={close} progress={1} maxWidth="max-w-2xl">
+      <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={close} progress={1} maxWidth="max-w-2xl">
         <div className="py-6">
           <SuccessHero title={t('catalog.inventory.orderNew.ready.title')} subtitle={t('catalog.inventory.orderNew.ready.subtitle')} />
           <section className="mt-8 rounded-lg border border-line bg-surface p-6">
@@ -217,7 +232,7 @@ export function StockOrderNewPage() {
 
   if (step === 'supplier' || !supplier)
     return (
-      <FullscreenFrame title={t('catalog.inventory.orderNew.frameTitle')} onClose={close} progress={progress} maxWidth="max-w-3xl">
+      <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={close} progress={progress} maxWidth="max-w-3xl">
         <h1 className="font-display text-display text-ink">{t('catalog.inventory.orderNew.supplierTitle')}</h1>
         <p className="mt-2 text-body-lg text-muted">
           {t('catalog.inventory.orderNew.supplierSubtitle')}{' '}
@@ -259,23 +274,28 @@ export function StockOrderNewPage() {
     )
 
   return (
-    <FullscreenFrame
-      title={t('catalog.inventory.orderNew.frameTitle')}
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       onClose={close}
       progress={progress}
       maxWidth="max-w-[1320px]"
       actions={
         <>
-          {lastSaved && <span className="hidden text-small text-muted md:inline">{t('catalog.inventory.orderNew.lastSaved', { date: fmtDateTimeUS(parseISO(lastSaved)) })}</span>}
-          <Button variant="primary" iconRight={<ArrowRight size={16} aria-hidden />} disabled={!items.length} loading={creating} onClick={() => void create()}>
-            {t('catalog.inventory.orderNew.create')}
-          </Button>
+          {lastSaved && !init.editing && <span className="hidden text-small text-muted md:inline">{t('catalog.inventory.orderNew.lastSaved', { date: fmtDateTimeUS(parseISO(lastSaved)) })}</span>}
+          {init.editing ? (
+            <Button variant="primary" disabled={!items.length} loading={creating} onClick={() => void create()}>
+              {t('catalog.common.save')}
+            </Button>
+          ) : (
+            <Button variant="primary" iconRight={<ArrowRight size={16} aria-hidden />} disabled={!items.length} loading={creating} onClick={() => void create()}>
+              {t('catalog.inventory.orderNew.create')}
+            </Button>
+          )}
         </>
       }
     >
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0">
-          <h1 className="font-display text-title-1 text-ink">{t('catalog.inventory.orderNew.productsTitle')}</h1>
+          <h1 className="font-display text-title-1 text-ink">{init.editing ? t('catalog.inventory.orderNew.editTitle', { number: orders.find((o) => o.id === init.draftId)?.number ?? '' }) : t('catalog.inventory.orderNew.productsTitle')}</h1>
           <p className="mb-6 mt-1 text-body-lg text-muted">{t('catalog.inventory.orderNew.productsSubtitle')}</p>
           {items.length ? (
             <>
@@ -366,12 +386,12 @@ export function StockOrderNewPage() {
               <div className="flex items-center gap-2">
                 <input type="date" aria-label={t('catalog.inventory.orderNew.expectedBy')} value={expectedAt} min={format(now(), 'yyyy-MM-dd')} onChange={(e) => setExpectedAt(e.target.value || undefined)} className="input flex-1" />
                 <Button variant="ghost" onClick={() => setExpectedAt(undefined)}>
-                  {t('catalog.inventory.common.remove')}
+                  {t('catalog.common.remove')}
                 </Button>
               </div>
             ) : (
               <Button icon={<Plus size={16} />} className="rounded-full" onClick={() => setExpectedAt(format(addDays(now(), 7), 'yyyy-MM-dd'))}>
-                {t('catalog.inventory.common.add')}
+                {t('catalog.common.add')}
               </Button>
             )}
           </section>
@@ -380,7 +400,7 @@ export function StockOrderNewPage() {
               <h2 className="font-display text-title-3 text-ink">{t('catalog.inventory.orderNew.fees')}</h2>
               {fees.length > 0 && (
                 <Button variant="link" onClick={() => setFeesOpen(true)}>
-                  {t('catalog.inventory.common.edit')}
+                  {t('catalog.common.edit')}
                 </Button>
               )}
             </div>
@@ -398,7 +418,7 @@ export function StockOrderNewPage() {
               </ul>
             ) : (
               <Button icon={<Plus size={16} />} className="rounded-full" onClick={() => setFeesOpen(true)}>
-                {t('catalog.inventory.common.add')}
+                {t('catalog.common.add')}
               </Button>
             )}
           </section>

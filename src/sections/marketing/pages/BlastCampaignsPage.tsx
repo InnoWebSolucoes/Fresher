@@ -73,7 +73,7 @@ export function BlastCampaignsPage() {
       header: t('marketing.campaigns.col.campaign'),
       sortValue: (c) => c.name.toLowerCase(),
       cell: (c) => (
-        <div className="min-w-[220px] max-w-[360px]">
+        <div className="min-w-[150px] max-w-[210px]">
           <p className="truncate text-body-strong text-ink">{c.name}</p>
           <p className="truncate text-small text-muted">{c.channel === 'email' ? c.subject || c.heading : c.body}</p>
         </div>
@@ -81,14 +81,14 @@ export function BlastCampaignsPage() {
     },
     { key: 'status', header: t('marketing.campaigns.col.status'), sortValue: (c) => c.status, cell: (c) => <CampaignStatusChip status={c.status} /> },
     { key: 'channel', header: t('marketing.campaigns.col.channel'), cell: (c) => <ChannelLabel channel={c.channel} /> },
-    { key: 'audience', header: t('marketing.campaigns.col.audience'), cell: (c) => <span className="block max-w-[200px] truncate text-body text-ink">{audienceLabel(c)}</span> },
+    { key: 'audience', header: t('marketing.campaigns.col.audience'), cell: (c) => <span className="block max-w-[120px] truncate text-body text-ink" title={audienceLabel(c)}>{audienceLabel(c)}</span> },
     { key: 'recipients', header: t('marketing.campaigns.col.recipients'), align: 'right', sortValue: (c) => c.recipients, cell: (c) => (c.status === 'draft' && !c.recipients ? '-' : c.recipients) },
     {
       key: 'date',
       header: t('marketing.campaigns.col.date'),
       sortValue: (c) => c.sentAt ?? c.scheduledAt ?? c.createdAt,
       cell: (c) => (
-        <div className="text-body">
+        <div className="whitespace-nowrap text-body">
           <p className="text-ink">{fmtDateTimeUS(c.sentAt ?? c.scheduledAt ?? c.createdAt)}</p>
           <p className="text-small text-muted">{t(`marketing.campaigns.dateKind.${c.sentAt ? 'sent' : c.scheduledAt ? 'scheduled' : 'created'}`)}</p>
         </div>
@@ -99,7 +99,7 @@ export function BlastCampaignsPage() {
       header: t('marketing.campaigns.col.performance'),
       cell: (c) =>
         c.status === 'sent' ? (
-          <div className="text-body">
+          <div className="whitespace-nowrap text-body">
             <p className="text-ink">{t('marketing.campaigns.openedRate', { value: pct(c.stats.opened, c.stats.delivered) })}</p>
             <p className="text-small text-muted">{t('marketing.campaigns.bookingsValue', { count: c.stats.bookings, value: money(c.stats.revenue) })}</p>
           </div>

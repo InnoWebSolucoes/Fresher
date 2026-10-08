@@ -6,11 +6,11 @@ import { Button, EmptyState, Field, MoneyInput, Select } from '@/components/ui'
 import { updateSettings } from '@/api/settings'
 import { money } from '@/lib/format'
 import type { Settings } from '@/types'
-import { Banner, EditCard, InfoGrid, PillMenu, PromoCard, SettingsPage } from '../components/ui'
+import { Banner, EditCard, FormCard, InfoGrid, PillMenu, PromoCard, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction } from '../components/useAction'
 import { useSettings } from '../hooks'
-import { FormCard, SwitchRow, ToggleCard, ValueRowsEditor, newValueRow, usePaymentsActive, valueRows, type ValueDraft } from './shared'
+import { SwitchRow, ToggleCard, ValueRowsEditor, newValueRow, usePaymentsActive, valueRows, type ValueDraft } from './shared'
 
 type GiftCards = Settings['giftCards']
 

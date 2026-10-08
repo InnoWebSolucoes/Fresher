@@ -4,11 +4,10 @@ import { Checkbox, Field, LearnMore, Select } from '@/components/ui'
 import { updateSettings } from '@/api/settings'
 import type { Settings, Weekday } from '@/types'
 import { useSettings } from '../hooks'
-import { EditCard, InfoGrid, SettingsPage } from '../components/ui'
+import { EditCard, FormCard, InfoGrid, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction, useDraft } from '../components/useAction'
 import { TIME_ZONES, WEEK_SUNDAY_FIRST, weekdayName } from './options'
-import { FormCard } from './shared'
 
 const K = 'settings.sched.time'
 const COLOR_SOURCES: Settings['calendar']['colorSource'][] = ['team_member', 'category', 'status', 'resource']

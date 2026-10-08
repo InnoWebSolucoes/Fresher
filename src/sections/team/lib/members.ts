@@ -1,5 +1,5 @@
 import type { PaletteColor, PermissionLevel, TeamMember } from '@/types'
-import type { TeamMemberRecord } from '@/api/team'
+import type { MemberExtrasMap, TeamMemberRecord } from '@/api/team'
 import { asRecord } from '@/api/team'
 import { todayISO } from '@/lib/time'
 
@@ -19,9 +19,12 @@ export function roleName(roles: PermissionLevel[], id: string): string {
 export const MEMBER_SORTS = ['custom', 'nameAsc', 'nameDesc', 'surnameAsc', 'surnameDesc', 'startedAsc', 'startedDesc', 'ratingDesc', 'ratingAsc', 'updatedAsc', 'updatedDesc'] as const
 export type MemberSort = (typeof MEMBER_SORTS)[number]
 
-export function sortMembers<T extends TeamMember>(list: T[], sort: MemberSort): T[] {
+export function sortMembers<T extends TeamMember>(list: T[], sort: MemberSort, extras?: MemberExtrasMap): T[] {
   const by = (fn: (a: T, b: T) => number) => [...list].sort((a, b) => fn(a, b) || a.order - b.order)
-  const updated = (m: T) => asRecord(m).updatedAt ?? asRecord(m).createdAt ?? m.startDate
+  const updated = (m: T) => {
+    const rec = asRecord(m, extras)
+    return rec.updatedAt ?? rec.createdAt ?? m.startDate
+  }
   switch (sort) {
     case 'custom':
       return by((a, b) => a.order - b.order)

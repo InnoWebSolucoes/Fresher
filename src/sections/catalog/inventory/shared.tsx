@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
-import type { ReactNode } from 'react'
-import { Chip, UnderlineTabs } from '@/components/ui'
+import { Chip } from '@/components/ui'
 import { exportCsv, exportPdf, type ExportTable } from '@/lib/export'
 import { fmtDate, money2 } from '@/lib/format'
 import type { DbData, Product, StockOrder, Stocktake, Supplier } from '@/types'
@@ -72,17 +71,4 @@ export async function downloadOrderPdf(order: StockOrder, data: Pick<DbData, 'pr
 
 export function downloadOrderCsv(order: StockOrder, data: Pick<DbData, 'products'>, t: TFunction): void {
   exportCsv(`stock_order_${order.number}`, orderTables(order, data, t))
-}
-
-/** Drawer body for the 720px stock order / supplier drawers: hero on top, underline tabs, grey content. */
-export function InventoryDrawerFrame<T extends string>({ hero, tabs, tab, onTab, children }: { hero: ReactNode; tabs: { value: T; label: string }[]; tab: T; onTab: (t: T) => void; children: ReactNode }) {
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0 border-b border-line bg-surface px-8 pt-8">
-        <div className="flex flex-wrap items-start justify-between gap-4 pb-5">{hero}</div>
-        <UnderlineTabs value={tab} onChange={onTab} items={tabs} />
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto bg-sunken px-8 py-6">{children}</div>
-    </div>
-  )
 }

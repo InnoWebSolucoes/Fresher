@@ -3,7 +3,7 @@ import { BadgeCheck, CalendarCheck, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Button, EmptyState, IntroPage, LearnMore, Menu, Page, PageHeader, PillTabs, SearchInput, confirm, toast, usePageLoading } from '@/components/ui'
+import { Button, EmptyState, IntroPage, LearnMore, Menu, Modal, Page, PageHeader, PillTabs, SearchInput, confirm, toast, usePageLoading } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { money } from '@/lib/format'
@@ -11,7 +11,7 @@ import { PALETTE } from '@/styles/palette'
 import type { Membership, Service } from '@/types'
 import { deleteMembership, setMembershipArchived } from '@/api/catalog'
 import { isPalette } from '../lib'
-import { CardsSkeleton, ToolbarCard } from '../ui'
+import { CardsSkeleton, ToolbarCard, useIntroProps } from '../ui'
 
 const P = 'catalog.products2.memberships'
 
@@ -34,10 +34,29 @@ export function MembershipsPage() {
   const navigate = useNavigate()
   const drawer = useDrawer()
   const loading = usePageLoading()
+  const intro = useIntroProps('Memberships')
   const memberships = useDb((s) => s.memberships)
   const services = useDb((s) => s.services)
   const clientMemberships = useDb((s) => s.clientMemberships)
   const benefitLines = useBenefitLines()
+  const paymentsOn = useDb((s) => s.addOns.some((a) => a.slug === 'payments' && a.status === 'active'))
+  const [gateOpen, setGateOpen] = useState(false)
+  // Memberships charge saved cards, so creating one needs Payments (catalog.md §3).
+  const startAdd = () => (paymentsOn ? navigate('/catalogue/memberships/add') : setGateOpen(true))
+  const gate = (
+    <Modal
+      open={gateOpen}
+      onClose={() => setGateOpen(false)}
+      title={t(`${P}.gateTitle`)}
+      footer={
+        <Button variant="primary" onClick={() => navigate('/add-ons/add-on/payments/intro')}>
+          {t(`${P}.gateContinue`)}
+        </Button>
+      }
+    >
+      <p className="pb-2 text-body-lg text-ink">{t(`${P}.gateBody`)}</p>
+    </Modal>
+  )
   const [tab, setTab] = useState<'active' | 'archived'>('active')
   const [query, setQuery] = useState('')
 
@@ -71,10 +90,11 @@ export function MembershipsPage() {
     return (
       <Page wide>
         <IntroPage
+          {...intro}
           title={t(`${P}.introTitle`)}
           body={t(`${P}.introBody`)}
           bullets={[t(`${P}.introB1`), t(`${P}.introB2`), t(`${P}.introB3`)]}
-          primary={{ label: t('catalog.common.startNow'), onClick: () => navigate('/catalogue/memberships/add') }}
+          primary={{ label: t('catalog.common.startNow'), onClick: startAdd }}
           art={
             <div className="mx-auto flex max-w-xs flex-col gap-3 py-8">
               {[
@@ -89,6 +109,7 @@ export function MembershipsPage() {
             </div>
           }
         />
+        {gate}
       </Page>
     )
   }
@@ -104,7 +125,7 @@ export function MembershipsPage() {
           </>
         }
         actions={
-          <Button variant="primary" onClick={() => navigate('/catalogue/memberships/add')}>
+          <Button variant="primary" onClick={startAdd}>
             {t('catalog.common.add')}
           </Button>
         }
@@ -129,7 +150,7 @@ export function MembershipsPage() {
             body={tab === 'active' && !query ? t(`${P}.emptyBody`) : undefined}
             action={
               tab === 'active' && !query ? (
-                <Button variant="primary" onClick={() => navigate('/catalogue/memberships/add')}>
+                <Button variant="primary" onClick={startAdd}>
                   {t(`${P}.add`)}
                 </Button>
               ) : undefined
@@ -200,6 +221,7 @@ export function MembershipsPage() {
           ))}
         </div>
       )}
+      {gate}
     </Page>
   )
 }

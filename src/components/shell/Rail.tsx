@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { HELP_ICON, RAIL_ITEMS, matchesPrefix, type RailItem } from '@/app/navigation'
-import { canAccess } from '@/lib/permissions'
+import { canAccess, usePermissionRoles } from '@/lib/permissions'
 import { useCurrentUser } from '@/store/session'
 import { useDrawer } from '@/lib/drawer'
 
@@ -33,6 +33,7 @@ export function Rail({ flyoutId, onPanelItem }: RailProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const user = useCurrentUser()
+  usePermissionRoles()
   const drawer = useDrawer()
   const items = RAIL_ITEMS.filter((item) => user && canAccess(user.role, item.id))
 

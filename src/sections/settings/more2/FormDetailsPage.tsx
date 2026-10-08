@@ -2,12 +2,11 @@ import { ArrowLeft, ClipboardList, Inbox } from 'lucide-react'
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button, Chip, EmptyState } from '@/components/ui'
+import { Button, Chip, EmptyState, Modal } from '@/components/ui'
 import { fmtDate, fullName } from '@/lib/format'
 import { now } from '@/lib/time'
 import { useDb } from '@/store/db'
 import type { FormResponse, FormTemplate } from '@/types'
-import { SettingsModal } from '../components/SettingsModal'
 import { EditCard, InfoGrid, PillMenu, SettingsPage } from '../components/ui'
 import { FormTemplatesPage } from '../forms/FormTemplatesPage'
 import { FormRunner } from '../forms/FormRunner'
@@ -42,7 +41,7 @@ export function FormDetailsPage() {
             icon={<ClipboardList size={26} aria-hidden />}
             title={t('settings.more2.forms.notFound')}
             action={
-              <Button variant="primary" className="rounded-full" onClick={() => navigate(FORMS_BASE)}>
+              <Button variant="primary" onClick={() => navigate(FORMS_BASE)}>
                 {t('settings.more2.forms.backToTemplates')}
               </Button>
             }
@@ -103,11 +102,11 @@ function Details({ template }: { template: FormTemplate }) {
           <>
             <PillMenu label={t('settings.common.options')} width={240} groups={menuGroups(template, { overview: false, afterDelete: () => navigate(FORMS_BASE) })} />
             {template.status === 'active' ? (
-              <Button className="rounded-full px-5" loading={busy} onClick={() => void deactivate(template)} data-testid="form-deactivate">
+              <Button loading={busy} onClick={() => void deactivate(template)} data-testid="form-deactivate">
                 {t('settings.frm.actions.deactivate')}
               </Button>
             ) : (
-              <Button variant="primary" className="rounded-full px-5" loading={busy} onClick={() => void activate(template)} data-testid="form-activate">
+              <Button variant="primary" loading={busy} onClick={() => void activate(template)} data-testid="form-activate">
                 {t('settings.frm.actions.activate')}
               </Button>
             )}
@@ -146,7 +145,7 @@ function Details({ template }: { template: FormTemplate }) {
         <EditCard
           title={t('settings.more2.forms.requests')}
           action={
-            <Button size="sm" className="rounded-full px-4" onClick={() => navigate(templatePath(template.id, 'preview'))}>
+            <Button size="sm" onClick={() => navigate(templatePath(template.id, 'preview'))}>
               {t('settings.frm.actions.preview')}
             </Button>
           }
@@ -198,13 +197,13 @@ export function FormPreviewPage() {
   return (
     <>
       <FormTemplatesPage />
-      <SettingsModal open onClose={close} size="lg" title={t('settings.more2.forms.formPreview')} subtitle={template?.name}>
+      <Modal open onClose={close} size="lg" title={t('settings.more2.forms.formPreview')} subtitle={template?.name}>
         {template ? (
           <FormRunner sections={template.sections} signatureRequired={template.signatureRequired} onClose={close} className="shadow-none" testId="template-preview" />
         ) : (
           <EmptyState title={t('settings.more2.forms.notFound')} action={<Button onClick={close}>{t('settings.more2.forms.backToTemplates')}</Button>} />
         )}
-      </SettingsModal>
+      </Modal>
     </>
   )
 }

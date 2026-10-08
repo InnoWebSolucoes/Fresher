@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useCurrentUser } from '@/store/session'
-import { canAccess, landingPath, type SectionId } from '@/lib/permissions'
+import { canAccess, landingPath, usePermissionRoles, type SectionId } from '@/lib/permissions'
 import { ForbiddenPage } from '@/pages/ForbiddenPage'
 
 /** Protected routes: anyone not logged in goes to /login and comes back after. */
@@ -17,6 +17,7 @@ export function RequireAuth() {
 
 export function RequireSection({ section, children }: { section: SectionId; children: ReactNode }) {
   const user = useCurrentUser()
+  usePermissionRoles()
   if (!user || !canAccess(user.role, section)) return <ForbiddenPage />
   return <>{children}</>
 }

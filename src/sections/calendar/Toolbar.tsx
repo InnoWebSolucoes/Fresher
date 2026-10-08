@@ -22,6 +22,8 @@ interface ToolbarProps {
   filterCount: number
   waitlistCount: number
   pickMode: boolean
+  /** Group pick modes keep the group's day: date navigation and view are disabled. */
+  lockDate?: boolean
   onPatch: (values: Record<string, string | undefined>) => void
   onFilters: () => void
   onSettings: () => void
@@ -34,13 +36,15 @@ export function CalendarToolbar(p: ToolbarProps) {
   const today = todayISO()
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-canvas px-4 py-3" data-testid="calendar-toolbar">
-      <Pill onClick={() => p.onPatch({ date: today })}>{t('calendar.toolbar.today')}</Pill>
-      <div className="inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface">
-        <button type="button" className="flex w-10 items-center justify-center rounded-l-full hover:bg-sunken" aria-label={t('calendar.toolbar.prev')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, -1) })}>
+      <Pill disabled={p.lockDate} onClick={() => p.onPatch({ date: today })}>
+        {t('calendar.toolbar.today')}
+      </Pill>
+      <div className={clsx('inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface', p.lockDate && 'pointer-events-none opacity-50')} aria-disabled={p.lockDate || undefined}>
+        <button type="button" disabled={p.lockDate} className="flex w-10 items-center justify-center rounded-l-full hover:bg-sunken" aria-label={t('calendar.toolbar.prev')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, -1) })}>
           <ChevronLeft size={18} aria-hidden />
         </button>
         <DatePopover date={p.date} view={p.view} onSelect={(date) => p.onPatch({ date })} />
-        <button type="button" className="flex w-10 items-center justify-center rounded-r-full hover:bg-sunken" aria-label={t('calendar.toolbar.next')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, 1) })}>
+        <button type="button" disabled={p.lockDate} className="flex w-10 items-center justify-center rounded-r-full hover:bg-sunken" aria-label={t('calendar.toolbar.next')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, 1) })}>
           <ChevronRight size={18} aria-hidden />
         </button>
       </div>
@@ -57,9 +61,10 @@ export function CalendarToolbar(p: ToolbarProps) {
           <CalendarClock size={18} aria-hidden />
           {p.waitlistCount > 0 && <CountBadge value={p.waitlistCount} />}
         </Pill>
-        <div className="inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface">
+        <div className={clsx('inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface', p.lockDate && 'pointer-events-none opacity-50')} aria-disabled={p.lockDate || undefined}>
           <button
             type="button"
+            disabled={p.lockDate}
             onClick={() => p.onPatch({ date: today, view: 'day', calendar_selected_resources: 'e-working' })}
             className="flex w-10 items-center justify-center rounded-l-full border-r border-line hover:bg-sunken"
             aria-label={t('calendar.toolbar.resetAria')}
@@ -128,8 +133,8 @@ function DatePopover({ date, view, onSelect }: { date: ISODate; view: CalView; o
         }
         return (
           <div>
-            <MonthsPicker value={date} onSelect={pick} />
-            <div className="mt-6 flex flex-wrap items-center gap-2">
+            <MonthsPicker value={date} onSelect={pick} wide />
+            <div className="mt-6 flex flex-nowrap items-center gap-2">
               {SHORTCUTS.map((w) => (
                 <Pill key={w} onClick={() => pick(toISODate(addWeeks(parseISO(todayISO()), w)))}>
                   {t('calendar.toolbar.inWeeks', { count: w })}

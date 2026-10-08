@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Truck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
@@ -8,8 +8,8 @@ import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDate, money } from '@/lib/format'
 import { orderTotal } from '@/api/catalog'
-import { InfoCard, ProductThumb } from '../ui'
-import { InventoryDrawerFrame, InventoryStatus, productSku, supplierManager, supplierPhone } from './shared'
+import { InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
+import { InventoryStatus, productSku, supplierManager, supplierPhone } from './shared'
 import { confirmDeleteSupplier } from './SuppliersPage'
 
 type Tab = 'details' | 'orders' | 'products'
@@ -22,64 +22,60 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
   const supplier = useDb((s) => s.suppliers.find((x) => x.id === id))
   const allProducts = useDb((s) => s.products)
   const allOrders = useDb((s) => s.stockOrders)
-  const initialTab = params.get('tab')
-  const [tab, setTab] = useState<Tab>(initialTab === 'orders' || initialTab === 'products' ? initialTab : 'details')
+  const tabParam = params.get('tab')
+  const tab: Tab = tabParam === 'orders' || tabParam === 'products' ? tabParam : 'details'
 
-  if (!supplier) return <EmptyState className="h-full" title={t('catalog.inventory.common.notFoundTitle')} body={t('catalog.inventory.common.notFoundBody')} />
+  if (!supplier) return <EmptyState className="h-full" title={t('catalog.common.notFoundTitle')} body={t('catalog.common.notFoundBody')} />
 
   const products = allProducts.filter((p) => p.supplierId === supplier.id && !p.archived)
   const orders = allOrders.filter((o) => o.supplierId === supplier.id && o.status !== 'draft').sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  const createOrder = () => navigate(`/catalogue/orders/new?d_supplier=${supplier.id}`)
+  const createOrder = () => navigate(`/catalogue/orders/new?supplier=${supplier.id}`)
   const edit = () => navigate(`/catalogue/suppliers/edit/${supplier.id}`)
 
   const hero = (
     <>
-      <div className="flex min-w-0 items-center gap-4">
-        <Avatar name={supplier.name} size={64} />
-        <div className="min-w-0">
-          <h2 className="truncate font-display text-title-1 text-ink">{supplier.name}</h2>
-          <p className="text-body text-muted">{t('catalog.inventory.common.products', { count: products.length })}</p>
-        </div>
-      </div>
-      <Menu
-        width={220}
-        trigger={({ open, toggle }) => (
-          <MenuButton open={open} toggle={toggle}>
-            {t('catalog.inventory.common.actions')}
-          </MenuButton>
-        )}
-        groups={[
-          {
-            items: [
-              { label: t('catalog.inventory.suppliers.createOrder'), onSelect: createOrder },
-              { label: t('catalog.inventory.suppliers.edit'), onSelect: edit },
-            ],
-          },
-          {
-            items: [
-              {
-                label: t('catalog.inventory.suppliers.delete'),
-                danger: true,
-                onSelect: async () => {
-                  if (await confirmDeleteSupplier(supplier, t)) close()
+      <Avatar name={supplier.name} size={96} className="mb-2 text-title-2" />
+      <h2 className="font-display text-title-3 text-ink">{supplier.name}</h2>
+      <p className="text-body text-muted">{t('catalog.inventory.common.products', { count: products.length })}</p>
+      <div className="mt-3">
+        <Menu
+          align="left"
+          width={220}
+          trigger={({ open, toggle }) => (
+            <MenuButton open={open} toggle={toggle}>
+              {t('catalog.common.actions')}
+            </MenuButton>
+          )}
+          groups={[
+            {
+              items: [
+                { label: t('catalog.inventory.suppliers.createOrder'), onSelect: createOrder },
+                { label: t('catalog.inventory.suppliers.edit'), onSelect: edit },
+              ],
+            },
+            {
+              items: [
+                {
+                  label: t('catalog.inventory.suppliers.delete'),
+                  danger: true,
+                  onSelect: async () => {
+                    if (await confirmDeleteSupplier(supplier, t)) close()
+                  },
                 },
-              },
-            ],
-          },
-        ]}
-      />
+              ],
+            },
+          ]}
+        />
+      </div>
     </>
   )
 
   const address = supplier.address
   return (
-    <InventoryDrawerFrame
+    <TwoPaneDrawer
       hero={hero}
       tab={tab}
-      onTab={(next) => {
-        setTab(next)
-        drawer.update({ tab: next })
-      }}
+      onTab={(next) => drawer.update({ tab: next === 'details' ? undefined : next })}
       tabs={[
         { value: 'details', label: t('catalog.inventory.supplierDrawer.tabs.details') },
         { value: 'orders', label: t('catalog.inventory.supplierDrawer.tabs.orders') },
@@ -88,11 +84,12 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
     >
       {tab === 'details' && (
         <>
+          <PaneTitle title={t('catalog.inventory.supplierDrawer.tabs.details')} />
           <InfoCard
             title={t('catalog.inventory.supplierDrawer.contact')}
             action={
               <Button variant="link" onClick={edit}>
-                {t('catalog.inventory.common.edit')}
+                {t('catalog.common.edit')}
               </Button>
             }
             rows={[
@@ -108,7 +105,7 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
             title={t('catalog.inventory.supplierDrawer.address')}
             action={
               <Button variant="link" onClick={edit}>
-                {t('catalog.inventory.common.edit')}
+                {t('catalog.common.edit')}
               </Button>
             }
             rows={[
@@ -123,20 +120,22 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
         </>
       )}
       {tab === 'orders' && (
-        <section className="rounded-lg border border-line bg-surface p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-title-3 text-ink">{t('catalog.inventory.supplierDrawer.tabs.orders')}</h3>
-            <Button size="sm" onClick={createOrder}>
-              {t('catalog.inventory.suppliers.createOrder')}
-            </Button>
-          </div>
+        <>
+          <PaneTitle
+            title={t('catalog.inventory.supplierDrawer.tabs.orders')}
+            action={
+              <Button size="sm" onClick={createOrder}>
+                {t('catalog.inventory.suppliers.createOrder')}
+              </Button>
+            }
+          />
           {orders.length ? (
-            <ul className="flex flex-col divide-y divide-line">
+            <ul className="flex flex-col gap-3">
               {orders.map((o) => (
                 <li key={o.id}>
-                  <button type="button" onClick={() => drawer.open('stock-order', { id: o.id })} className="flex w-full items-center gap-4 py-3 text-left hover:bg-sunken/60">
+                  <button type="button" onClick={() => drawer.open('stock-order', { id: o.id })} className="flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-4 text-left hover:border-line-strong">
                     <span className="min-w-0 flex-1">
-                      <span className="block text-body-strong text-ink">{o.number}</span>
+                      <span className="block text-body-strong text-ink">{t('catalog.inventory.orderDrawer.title', { number: o.number })}</span>
                       <span className="block text-small text-muted">{fmtDate(parseISO(o.createdAt))}</span>
                     </span>
                     <InventoryStatus status={o.status} />
@@ -146,18 +145,20 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-body text-muted">{t('catalog.inventory.supplierDrawer.noOrders')}</p>
+            <div className="rounded-lg border border-line bg-surface">
+              <EmptyState icon={<Truck size={26} aria-hidden />} title={t('catalog.inventory.supplierDrawer.noOrders')} />
+            </div>
           )}
-        </section>
+        </>
       )}
       {tab === 'products' && (
-        <section className="rounded-lg border border-line bg-surface p-6">
-          <h3 className="mb-4 font-display text-title-3 text-ink">{t('catalog.inventory.supplierDrawer.tabs.products')}</h3>
+        <>
+          <PaneTitle title={t('catalog.inventory.supplierDrawer.tabs.products')} />
           {products.length ? (
-            <ul className="flex flex-col divide-y divide-line">
+            <ul className="flex flex-col gap-3">
               {products.map((p) => (
                 <li key={p.id}>
-                  <button type="button" onClick={() => drawer.open('product', { id: p.id })} className="flex w-full items-center gap-3 py-3 text-left hover:bg-sunken/60">
+                  <button type="button" onClick={() => drawer.open('product', { id: p.id })} className="flex w-full items-center gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:border-line-strong">
                     <ProductThumb product={p} size={44} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-body text-ink">{p.name}</span>
@@ -169,10 +170,12 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-body text-muted">{t('catalog.inventory.supplierDrawer.noProducts')}</p>
+            <div className="rounded-lg border border-line bg-surface">
+              <EmptyState title={t('catalog.inventory.supplierDrawer.noProducts')} />
+            </div>
           )}
-        </section>
+        </>
       )}
-    </InventoryDrawerFrame>
+    </TwoPaneDrawer>
   )
 }

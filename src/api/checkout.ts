@@ -1,15 +1,78 @@
 import { commit, db } from '@/store/db'
 import type { Client, GiftCard, ID, Settings } from '@/types'
 import { uid } from '@/lib/ids'
-import { nowISO } from '@/lib/time'
+import { now, nowISO } from '@/lib/time'
 import { money } from '@/lib/format'
 import { activity, ApiError, latency } from './client'
 import { queueMessage } from './messaging'
+import { readExt, writeExt } from './ext'
 
 /**
  * Checkout helpers that sit next to `checkout()` in ./sales: quick sale
- * layout, gift card actions (share, extend), payment links and drafts.
+ * layout, gift card actions (share, extend), payment links, drafts and the
+ * in-progress cart that survives a page refresh.
  */
+
+// ─── In-progress cart (db.ext.checkout) ─────────────────────────────────
+
+const NS = 'checkout'
+/** A saved cart is restored for this long after its last change. */
+const CART_TTL_MS = 4 * 60 * 60 * 1000
+
+export interface SavedCart<T = unknown> {
+  savedAt: number
+  state: T
+}
+
+type CartBag = Record<string, SavedCart>
+
+const freshCarts = (bag: CartBag) => {
+  const cutoff = now().getTime() - CART_TTL_MS
+  return Object.fromEntries(Object.entries(bag).filter(([, v]) => v && v.savedAt >= cutoff)) as CartBag
+}
+
+/** The cart saved for a checkout opened with these drawer params, if still fresh. */
+export function readSavedCart<T>(key: string): T | undefined {
+  const saved = readExt<CartBag>(NS, 'carts', {})[key]
+  if (!saved || saved.savedAt < now().getTime() - CART_TTL_MS) return undefined
+  return saved.state as T
+}
+
+/** Save the in-progress cart (instant, no latency: it runs on every change). */
+export function saveCart(key: string, state: unknown): void {
+  const bag = freshCarts(readExt<CartBag>(NS, 'carts', {}))
+  writeExt(NS, 'carts', { ...bag, [key]: { savedAt: now().getTime(), state } })
+}
+
+/** Forget the in-progress cart (sale completed, cancelled or the drawer was closed). */
+export function clearSavedCart(key: string): void {
+  const bag = readExt<CartBag>(NS, 'carts', {})
+  if (!(key in bag)) return
+  const next = { ...bag }
+  delete next[key]
+  writeExt(NS, 'carts', next)
+}
+
+/**
+ * Rewards and package benefits applied to lines of a saved (unpaid) sale.
+ * Sale lines keep the package id but not the reward or benefit, so they are
+ * remembered here until the sale is paid.
+ */
+export type LineOffer = { rewardId?: ID; redeem?: { clientPackageId: ID; benefitId: ID } }
+
+export function readLineOffers(): Record<ID, LineOffer> {
+  return readExt<Record<ID, LineOffer>>(NS, 'lineOffers', {})
+}
+
+export function rememberLineOffers(offers: Record<ID, LineOffer>): void {
+  const current = readLineOffers()
+  const next = { ...current }
+  for (const [itemId, offer] of Object.entries(offers)) {
+    if (offer.rewardId || offer.redeem) next[itemId] = offer
+    else delete next[itemId]
+  }
+  if (JSON.stringify(next) !== JSON.stringify(current)) writeExt(NS, 'lineOffers', next)
+}
 
 /** Save the "Quick sale items" layout (calendar.md §10, max 12 items). */
 export async function saveQuickSaleItems(items: Settings['quickSaleItems']): Promise<void> {

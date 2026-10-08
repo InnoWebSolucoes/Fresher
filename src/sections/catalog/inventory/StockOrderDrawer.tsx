@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Layers, ShoppingBag } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
@@ -9,8 +9,8 @@ import { useDrawer } from '@/lib/drawer'
 import { fmtDate, fmtDateTimeUS, money } from '@/lib/format'
 import { ApiError } from '@/api/client'
 import { cancelStockOrder, emailStockOrder, orderFeesTotal, orderQuantity, orderSubtotal, orderTotal } from '@/api/catalog'
-import { InfoCard, ProductThumb } from '../ui'
-import { InventoryDrawerFrame, InventoryStatus, downloadOrderCsv, downloadOrderPdf, productSku, supplierManager, supplierPhone } from './shared'
+import { HeroTile, InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
+import { InventoryStatus, downloadOrderCsv, downloadOrderPdf, productSku, supplierManager, supplierPhone } from './shared'
 
 type Tab = 'details' | 'activity'
 
@@ -23,22 +23,29 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
   const products = useDb((s) => s.products)
   const suppliers = useDb((s) => s.suppliers)
   const locations = useDb((s) => s.locations)
-  const [tab, setTab] = useState<Tab>(params.get('tab') === 'activity' ? 'activity' : 'details')
+  const tab: Tab = params.get('tab') === 'activity' ? 'activity' : 'details'
 
-  if (!order) return <EmptyState className="h-full" title={t('catalog.inventory.common.notFoundTitle')} body={t('catalog.inventory.common.notFoundBody')} />
+  if (!order) return <EmptyState className="h-full" title={t('catalog.common.notFoundTitle')} body={t('catalog.common.notFoundBody')} />
 
   const supplier = suppliers.find((s) => s.id === order.supplierId)
   const location = locations.find((l) => l.id === order.locationId)
   const sub = orderSubtotal(order.items)
   const data = { products, suppliers, locations }
+  const editable = order.status === 'ordered'
+  const edit = () => navigate(`/catalogue/orders/new?edit=${order.id}`)
 
   const email = async () => {
     try {
       const to = await emailStockOrder(order.id)
       toast(t('catalog.inventory.orderDrawer.emailed', { email: to }))
     } catch (e) {
-      toast(e instanceof ApiError ? t('catalog.inventory.orderNew.ready.noEmail') : String(e))
+      toast(e instanceof ApiError ? t('catalog.inventory.orderNew.ready.noEmail') : String(e), 'error')
     }
+  }
+  const download = async (kind: 'pdf' | 'csv') => {
+    if (kind === 'pdf') await downloadOrderPdf(order, data, t)
+    else downloadOrderCsv(order, data, t)
+    toast(t('catalog.toasts.downloaded'))
   }
 
   const cancel = async () => {
@@ -50,35 +57,32 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
 
   const hero = (
     <>
-      <div className="min-w-0">
-        <h2 className="flex flex-wrap items-center gap-3 font-display text-title-1 text-ink">
-          {t('catalog.inventory.orderDrawer.title', { number: order.number })}
-          <InventoryStatus status={order.status} />
-        </h2>
-        <p className="mt-1 text-body text-muted">
-          {t('catalog.inventory.orderDrawer.created', { date: fmtDate(parseISO(order.createdAt)) })}
-          {supplier ? ` · ${supplier.name}` : ''}
-        </p>
-      </div>
-      <div>
+      <HeroTile badge={<Layers size={16} aria-hidden />}>
+        <ShoppingBag size={44} strokeWidth={1.4} aria-hidden />
+      </HeroTile>
+      <h2 className="font-display text-title-3 text-ink">{t('catalog.inventory.orderDrawer.title', { number: order.number })}</h2>
+      <p className="text-body text-muted">{t('catalog.inventory.orderDrawer.created', { date: fmtDate(parseISO(order.createdAt)) })}</p>
+      <InventoryStatus status={order.status} />
+      <div className="mt-3">
         <Menu
-          align="right"
+          align="left"
           width={220}
           trigger={({ open, toggle }) => (
             <MenuButton open={open} toggle={toggle}>
-              {t('catalog.inventory.common.actions')}
+              {t('catalog.common.actions')}
             </MenuButton>
           )}
           groups={[
             {
               items: [
-                ...(order.status === 'ordered' ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${order.id}/receive`) }] : []),
+                ...(editable ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${order.id}/receive`) }] : []),
                 { label: t('catalog.inventory.orderDrawer.emailPdf'), onSelect: () => void email() },
-                { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void downloadOrderPdf(order, data, t) },
-                { label: t('catalog.inventory.orderDrawer.csv'), onSelect: () => downloadOrderCsv(order, data, t) },
+                { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void download('pdf') },
+                { label: t('catalog.inventory.orderDrawer.csv'), onSelect: () => void download('csv') },
+                ...(editable ? [{ label: t('catalog.common.edit'), onSelect: edit }] : []),
               ],
             },
-            ...(order.status === 'ordered' ? [{ items: [{ label: t('catalog.inventory.orderDrawer.cancel'), danger: true, onSelect: () => void cancel() }] }] : []),
+            ...(editable ? [{ items: [{ label: t('catalog.inventory.orderDrawer.cancel'), danger: true, onSelect: () => void cancel() }] }] : []),
           ]}
         />
       </div>
@@ -86,13 +90,10 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
   )
 
   return (
-    <InventoryDrawerFrame
+    <TwoPaneDrawer
       hero={hero}
       tab={tab}
-      onTab={(next) => {
-        setTab(next)
-        drawer.update({ tab: next })
-      }}
+      onTab={(next) => drawer.update({ tab: next === 'details' ? undefined : next })}
       tabs={[
         { value: 'details', label: t('catalog.inventory.orderDrawer.tabs.details') },
         { value: 'activity', label: t('catalog.inventory.orderDrawer.tabs.activity') },
@@ -100,8 +101,16 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
     >
       {tab === 'details' ? (
         <>
+          <PaneTitle title={t('catalog.inventory.orderDrawer.tabs.details')} />
           <InfoCard
             title={t('catalog.inventory.orderDrawer.summary')}
+            action={
+              editable ? (
+                <Button variant="link" onClick={edit}>
+                  {t('catalog.common.edit')}
+                </Button>
+              ) : undefined
+            }
             rows={[
               { label: t('catalog.inventory.orderDrawer.createdAt'), value: fmtDateTimeUS(parseISO(order.createdAt)) },
               { label: t('catalog.inventory.orderDrawer.expected'), value: order.expectedAt ? fmtDate(parseISO(order.expectedAt)) : '-' },
@@ -117,11 +126,18 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
               title={t('catalog.inventory.orderDrawer.supplier')}
               action={
                 <Button variant="link" onClick={() => navigate(`/catalogue/suppliers/edit/${supplier.id}`)}>
-                  {t('catalog.inventory.common.edit')}
+                  {t('catalog.common.edit')}
                 </Button>
               }
               rows={[
-                { label: t('catalog.inventory.orderDrawer.name'), value: <button type="button" className="text-primary hover:underline" onClick={() => drawer.open('supplier', { id: supplier.id })}>{supplier.name}</button> },
+                {
+                  label: t('catalog.inventory.orderDrawer.name'),
+                  value: (
+                    <button type="button" className="text-primary hover:underline" onClick={() => drawer.open('supplier', { id: supplier.id })}>
+                      {supplier.name}
+                    </button>
+                  ),
+                },
                 { label: t('catalog.inventory.orderDrawer.manager'), value: supplierManager(supplier) },
                 { label: t('catalog.inventory.orderDrawer.email'), value: supplier.email },
                 { label: t('catalog.inventory.orderDrawer.phone'), value: supplierPhone(supplier) },
@@ -135,15 +151,14 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
               {order.items.map((item) => {
                 const p = products.find((x) => x.id === item.productId)
                 return (
-                  <li key={item.productId} className="flex items-center gap-3 py-3">
-                    <ProductThumb product={p} size={44} />
+                  <li key={item.productId} className="flex items-start gap-3 py-3">
+                    <ProductThumb product={p} size={56} />
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => p && drawer.open('product', { id: p.id })}>
                       <span className="block truncate text-body text-ink hover:text-primary">{p?.name ?? item.productId}</span>
-                      <span className="block text-small text-muted">
-                        {[productSku(p) && t('catalog.inventory.common.sku', { sku: productSku(p) }), t('catalog.inventory.orderDrawer.qtyLine', { qty: item.qty, cost: money(item.unitCost) }), order.status === 'received' ? t('catalog.inventory.orderDrawer.receivedLine', { count: item.receivedQty ?? 0 }) : '']
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </span>
+                      {productSku(p) && <span className="block text-small text-muted">{t('catalog.inventory.common.sku', { sku: productSku(p) })}</span>}
+                      <span className="block text-small text-muted">{t('catalog.inventory.orderDrawer.priceLine', { price: money(item.unitCost) })}</span>
+                      <span className="block text-small text-muted">{t('catalog.inventory.orderDrawer.orderedLine', { count: item.qty })}</span>
+                      {order.status === 'received' && <span className="block text-small text-muted">{t('catalog.inventory.orderDrawer.receivedLine', { count: item.receivedQty ?? 0 })}</span>}
                     </button>
                     <span className="tabular text-body-strong text-ink">{money(item.qty * item.unitCost)}</span>
                   </li>
@@ -153,25 +168,27 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
           </InfoCard>
         </>
       ) : (
-        <section className="rounded-lg border border-line bg-surface p-6">
-          <h3 className="mb-4 font-display text-title-3 text-ink">{t('catalog.inventory.orderDrawer.tabs.activity')}</h3>
-          {order.activity.length ? (
-            <ol className="flex flex-col gap-4">
-              {[...order.activity].reverse().map((a) => (
-                <li key={a.id} className="border-l-2 border-primary/40 pl-4">
-                  <p className="text-body-strong text-ink">{a.title}</p>
-                  {a.detail && <p className="text-small text-muted">{a.detail}</p>}
-                  <p className="text-small text-muted">
-                    {a.by} · {fmtDateTimeUS(parseISO(a.at))}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="text-body text-muted">{t('catalog.inventory.orderDrawer.noActivity')}</p>
-          )}
-        </section>
+        <>
+          <PaneTitle title={t('catalog.inventory.orderDrawer.tabs.activity')} />
+          <section className="rounded-lg border border-line bg-surface p-6">
+            {order.activity.length ? (
+              <ol className="flex flex-col gap-4">
+                {[...order.activity].reverse().map((a) => (
+                  <li key={a.id} className="border-l-2 border-primary/40 pl-4">
+                    <p className="text-body-strong text-ink">{a.title}</p>
+                    {a.detail && <p className="text-small text-muted">{a.detail}</p>}
+                    <p className="text-small text-muted">
+                      {a.by} · {fmtDateTimeUS(parseISO(a.at))}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-body text-muted">{t('catalog.inventory.orderDrawer.noActivity')}</p>
+            )}
+          </section>
+        </>
       )}
-    </InventoryDrawerFrame>
+    </TwoPaneDrawer>
   )
 }

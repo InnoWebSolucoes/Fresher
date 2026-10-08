@@ -40,7 +40,7 @@ export function CampaignStatusChip({ status }: { status: Campaign['status'] }) {
 export function ChannelLabel({ channel }: { channel: Campaign['channel'] }) {
   const { t } = useTranslation()
   return (
-    <span className="inline-flex items-center gap-1.5 text-body text-ink">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-body text-ink">
       {channel === 'email' ? <Mail size={16} className="text-muted" aria-hidden /> : <MessageSquare size={16} className="text-muted" aria-hidden />}
       {t(`marketing.campaigns.channel.${channel}`)}
     </span>

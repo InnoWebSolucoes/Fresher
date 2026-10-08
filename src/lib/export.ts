@@ -46,7 +46,7 @@ export function exportCsv(filename: string, tables: ExportTable[], options: { tr
   downloadBlob(new Blob([toCsv(tables, options)], { type: 'text/csv;charset=utf-8' }), `${filename}.csv`)
 }
 
-export async function exportXlsx(filename: string, tables: ExportTable[], options: { sheetName?: string } = {}): Promise<void> {
+export async function exportXlsx(filename: string, tables: ExportTable[], options: { sheetName?: string; columnWidths?: number[] } = {}): Promise<void> {
   const XLSX = await import('xlsx')
   const aoa: Cell[][] = []
   tables.forEach((t, i) => {
@@ -55,6 +55,11 @@ export async function exportXlsx(filename: string, tables: ExportTable[], option
     aoa.push(t.headers, ...t.rows)
   })
   const sheet = XLSX.utils.aoa_to_sheet(aoa)
+  // Column widths: given, or fitted to the longest value (as in the captured export).
+  const columns = Math.max(...aoa.map((row) => row.length), 0)
+  sheet['!cols'] = Array.from({ length: columns }, (_, c) => ({
+    wch: options.columnWidths?.[c] ?? Math.min(48, Math.max(8, ...aoa.map((row) => String(row[c] ?? '').length + 2))),
+  }))
   const book = XLSX.utils.book_new()
   // Sheet names: max 31 characters, none of : \ / ? * [ ]
   const sheetName = (options.sheetName ?? 'Sheet1').replace(/[:\\/?*[\]]/g, ' ').slice(0, 31)

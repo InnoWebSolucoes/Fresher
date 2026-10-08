@@ -39,7 +39,7 @@ export function StocktakeTable({ items, products }: { items: StocktakeItem[]; pr
     (acc, i) => ({ expected: acc.expected + i.expected, counted: acc.counted + (i.excluded ? 0 : (i.counted ?? 0)), diff: acc.diff + diffOf(i), cost: acc.cost + costOf(i) }),
     { expected: 0, counted: 0, diff: 0, cost: 0 },
   )
-  if (!items.length) return <EmptyState className="rounded-lg border border-line bg-surface" title={t('catalog.inventory.common.noResults')} />
+  if (!items.length) return <EmptyState className="rounded-lg border border-line bg-surface" title={t('catalog.common.noResults')} />
   return (
     <div className="overflow-x-auto rounded-lg border border-line bg-surface">
       <table className="w-full min-w-[680px] border-collapse text-left text-body">
@@ -102,8 +102,8 @@ export function StocktakeReviewPage() {
 
   if (!stocktake)
     return (
-      <FullscreenFrame title={t('catalog.inventory.review.title')} onClose={() => navigate('/catalogue/stocktakes')}>
-        <EmptyState title={t('catalog.inventory.common.notFoundTitle')} body={t('catalog.inventory.common.notFoundBody')} />
+      <FullscreenFrame closeLabel={t('catalog.common.close')} title={t('catalog.inventory.review.title')} onClose={() => navigate('/catalogue/stocktakes')}>
+        <EmptyState title={t('catalog.common.notFoundTitle')} body={t('catalog.common.notFoundBody')} />
       </FullscreenFrame>
     )
   if (stocktake.status === 'completed' || stocktake.status === 'cancelled') return <Navigate to={`/catalogue/stocktakes/${stocktake.id}`} replace />
@@ -127,7 +127,7 @@ export function StocktakeReviewPage() {
     <FullscreenFrame
       title={t('catalog.inventory.review.title')}
       onClose={() => navigate(`/catalogue/stocktakes/${stocktake.id}/count`)}
-      closeLabel={t('catalog.inventory.common.back')}
+      closeLabel={t('catalog.common.back')}
       maxWidth="max-w-5xl"
       progress={0.9}
       actions={
@@ -136,7 +136,7 @@ export function StocktakeReviewPage() {
             width={220}
             trigger={({ open, toggle }) => (
               <MenuButton open={open} toggle={toggle}>
-                {t('catalog.inventory.common.options')}
+                {t('catalog.common.options')}
               </MenuButton>
             )}
             groups={[

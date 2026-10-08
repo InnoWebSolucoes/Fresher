@@ -123,7 +123,14 @@ function ManageTagsBody({ onClose, clientId, initial }: { onClose: () => void; c
   const tags = useDb((s) => s.clientTags)
   const [tagIds, setTagIds] = useState<ID[]>(initial)
   const [busy, setBusy] = useState(false)
-  const suggested = useMemo(() => [...tags].sort((a, b) => a.name.localeCompare(b.name)).filter((tag) => !tagIds.includes(tag.id)).slice(0, 6), [tags, tagIds])
+  const suggested = useMemo(
+    () =>
+      [...tags]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .filter((tag) => !tagIds.includes(tag.id))
+        .slice(0, 6),
+    [tags, tagIds],
+  )
   const apply = async () => {
     setBusy(true)
     try {
@@ -162,19 +169,21 @@ function ManageTagsBody({ onClose, clientId, initial }: { onClose: () => void; c
         </div>
       }
     >
-      <TagPicker value={tagIds} onChange={setTagIds} autoFocus />
-      {suggested.length > 0 && (
-        <div className="mt-5 pb-2">
-          <p className="mb-2 text-body-strong text-ink">{t('clients.tags.suggested')}</p>
-          <div className="flex flex-wrap gap-2">
-            {suggested.map((tag) => (
-              <button key={tag.id} type="button" onClick={() => setTagIds([...tagIds, tag.id])} className="h-9 rounded-full border border-line-strong px-4 text-body text-ink hover:bg-sunken">
-                {tag.name}
-              </button>
-            ))}
+      <div className="min-h-[300px]">
+        <TagPicker value={tagIds} onChange={setTagIds} />
+        {suggested.length > 0 && (
+          <div className="mt-5 pb-2">
+            <p className="mb-2 text-body-strong text-ink">{t('clients.tags.suggested')}</p>
+            <div className="flex flex-wrap gap-2">
+              {suggested.map((tag) => (
+                <button key={tag.id} type="button" onClick={() => setTagIds([...tagIds, tag.id])} className="h-9 rounded-full border border-line-strong px-4 text-body text-ink hover:bg-sunken">
+                  {tag.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Modal>
   )
 }

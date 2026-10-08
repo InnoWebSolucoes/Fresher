@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { BookOpen, GripVertical, Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
@@ -12,8 +12,8 @@ import { durationLong } from '@/lib/time'
 import { money } from '@/lib/format'
 import { PALETTE } from '@/styles/palette'
 import type { ID } from '@/types'
-import { saveMenuOrder } from '@/api/catalog'
-import { useCatalogPrefs } from '../prefs'
+import { saveBookingSequence, saveMenuOrder } from '@/api/catalog'
+import { useBookingSequence, useBundleOrder } from '../catalogExt'
 import { ServicePickerModal } from './BundleEditorPage'
 
 function useDndSensors() {
@@ -40,14 +40,16 @@ export function MenuOrderPage() {
   const categories = useDb((s) => s.serviceCategories)
   const services = useDb((s) => s.services)
   const bundles = useDb((s) => s.bundles)
-  const bundleOrder = useCatalogPrefs((s) => s.bundleOrder)
-  const setBundleOrder = useCatalogPrefs((s) => s.setBundleOrder)
+  const bundleOrder = useBundleOrder()
   const sensors = useDndSensors()
   const [mode, setMode] = useState<'all' | 'categories'>('all')
   const [saving, setSaving] = useState(false)
 
   const initial = useMemo(() => {
-    const cats = [...categories].sort((a, b) => a.order - b.order).map((c) => c.id)
+    const cats = [...categories]
+      .filter((c) => !c.archived)
+      .sort((a, b) => a.order - b.order)
+      .map((c) => c.id)
     const items: Record<ID, ID[]> = {}
     cats.forEach((cid) => {
       const merged = [
@@ -76,22 +78,16 @@ export function MenuOrderPage() {
 
   const save = async () => {
     setSaving(true)
-    await saveMenuOrder(cats, items)
-    const order: Record<ID, number> = {}
-    Object.values(items).forEach((ids) =>
-      ids.forEach((id, i) => {
-        if (bundles.some((b) => b.id === id)) order[id] = i
-      }),
-    )
-    setBundleOrder(order)
+    // Archived categories keep their place after the active ones.
+    const archived = [...categories].filter((c) => c.archived).sort((a, b) => a.order - b.order).map((c) => c.id)
+    await saveMenuOrder([...cats, ...archived], items)
     setSaving(false)
     toast(t('catalog.toasts.menuOrderSaved'))
     navigate('/catalogue/services')
   }
 
   return (
-    <FullscreenFrame
-      title={t('catalog.order.title')}
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       onClose={() => navigate('/catalogue/services')}
       actions={
         <Button variant="primary" loading={saving} disabled={!dirty} onClick={() => void save()}>
@@ -171,29 +167,20 @@ export function BookingSequencePage() {
   const loading = usePageLoading()
   const services = useDb((s) => s.services)
   const categories = useDb((s) => s.serviceCategories)
-  const stored = useCatalogPrefs((s) => s.bookingSequence)
-  const setBookingSequence = useCatalogPrefs((s) => s.setBookingSequence)
+  const stored = useBookingSequence()
   const sensors = useDndSensors()
   const [ids, setIds] = useState<ID[]>(stored)
-  const [touched, setTouched] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  useEffect(() => {
-    if (!touched) setIds(stored)
-  }, [stored, touched])
-
-  const update = (next: ID[]) => {
-    setTouched(true)
-    setIds(next)
-  }
+  const dirty = JSON.stringify(ids) !== JSON.stringify(stored)
+  const update = (next: ID[]) => setIds(next)
   const onEnd = (e: DragEndEvent) => {
     if (!e.over || e.active.id === e.over.id) return
     update(arrayMove(ids, ids.indexOf(String(e.active.id)), ids.indexOf(String(e.over.id))))
   }
   const save = async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 400))
-    setBookingSequence(ids)
+    await saveBookingSequence(ids)
     setSaving(false)
     toast(t('catalog.toasts.sequenceSaved'))
     navigate('/catalogue/services')
@@ -201,11 +188,10 @@ export function BookingSequencePage() {
   const list = ids.map((id) => services.find((s) => s.id === id)).filter((s) => s !== undefined)
 
   return (
-    <FullscreenFrame
-      title={t('catalog.sequence.title')}
+    <FullscreenFrame closeLabel={t('catalog.common.close')}
       onClose={() => navigate('/catalogue/services')}
       actions={
-        <Button variant="primary" loading={saving} onClick={() => void save()}>
+        <Button variant="primary" loading={saving} disabled={!dirty} onClick={() => void save()}>
           {t('catalog.common.save')}
         </Button>
       }

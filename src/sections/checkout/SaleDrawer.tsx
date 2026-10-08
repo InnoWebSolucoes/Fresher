@@ -1,21 +1,23 @@
 import clsx from 'clsx'
 import { differenceInCalendarDays, format, parseISO } from 'date-fns'
-import { Activity, Check, Download, FileText, Footprints, Gift, Layers, List, Mail, NotebookPen, Pencil, Printer, RotateCcw, StickyNote } from 'lucide-react'
+import { Activity, ArrowLeft, Check, Download, FileText, Footprints, Gift, Layers, List, Mail, NotebookPen, Pencil, Printer, RotateCcw, StickyNote } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 import type { DrawerProps } from '@/app/sectionRegistry'
 import { Avatar, Button, Chip, EmptyState, Menu, MenuButton, confirm, toast } from '@/components/ui'
-import { computeTotals, lineTotal, saleBalance, salePaid, voidSale } from '@/api/sales'
+import { PAYMENT_LABELS, computeTotals, lineTotal, saleBalance, salePaid, voidSale } from '@/api/sales'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { durationLabel, now } from '@/lib/time'
 import { fmtDate, fmtDateEU, fmtDayHeader, fullName, money } from '@/lib/format'
-import type { ActivityEntry, Sale, SaleStatus } from '@/types'
+import type { ActivityEntry, PaymentMethod, Sale, SaleStatus } from '@/types'
 import { downloadReceipt, printReceipt } from './receipt'
 import { AddSaleNoteModal, EditSaleDetailsModal, ShareGiftCardModal, ShareInvoiceModal } from './SaleModals'
 import { IconRail, MethodIcon } from './ui'
+import { lineDuration } from './model'
+import { OfferTag } from './OffersModal'
 
 type Tab = 'summary' | 'notes' | 'activity'
 type SaleModal = { kind: 'share' } | { kind: 'note' } | { kind: 'edit' } | { kind: 'shareGift'; cardId: string } | null
@@ -154,7 +156,7 @@ export function SaleDrawer({ id, params }: DrawerProps) {
           {fmtDayHeader(sale.createdAt)}, {format(parseISO(sale.createdAt), 'yyyy')} • {location?.name}
         </p>
         <div className="mt-6">
-          {tab === 'summary' && <SummaryTab sale={sale} onShareGift={(cardId) => setModal({ kind: 'shareGift', cardId })} onPay={() => drawer.open('checkout', { d_sale: sale.id })} />}
+          {tab === 'summary' && <SummaryTab sale={sale} onShareGift={(cardId) => setModal({ kind: 'shareGift', cardId })} />}
           {tab === 'notes' && <NotesTab sale={sale} onAdd={() => setModal({ kind: 'note' })} />}
           {tab === 'activity' && <ActivityTab sale={sale} onEmail={() => setModal({ kind: 'share' })} />}
         </div>
@@ -191,12 +193,12 @@ function ClientBlock({ clientId }: { clientId: string | null }) {
         <span className="block truncate text-body-lg font-semibold text-ink">{fullName(client)}</span>
         <span className="block truncate text-body text-muted">{client.email || client.phone}</span>
       </span>
-      <Avatar name={fullName(client)} size={56} />
+      <Avatar name={fullName(client)} photo={client?.photo} size={56} />
     </button>
   )
 }
 
-function SummaryTab({ sale, onShareGift, onPay }: { sale: Sale; onShareGift: (id: string) => void; onPay: () => void }) {
+function SummaryTab({ sale, onShareGift }: { sale: Sale; onShareGift: (id: string) => void }) {
   const { t } = useTranslation()
   const drawer = useDrawer()
   const data = useDb(useShallow((s) => ({ sales: s.sales, giftCards: s.giftCards, clientPackages: s.clientPackages, clientMemberships: s.clientMemberships, packages: s.packages, memberships: s.memberships })))
@@ -264,7 +266,7 @@ function SummaryTab({ sale, onShareGift, onPay }: { sale: Sale; onShareGift: (id
           </p>
         </div>
       ))}
-      <SaleCard sale={sale} onPay={onPay} />
+      <SaleCard sale={sale} />
       {original && (
         <>
           <p className="text-body-strong text-muted">{t('checkout.sale.originalSale')}</p>
@@ -275,7 +277,7 @@ function SummaryTab({ sale, onShareGift, onPay }: { sale: Sale; onShareGift: (id
   )
 }
 
-function SaleCard({ sale, onPay, linkToSale }: { sale: Sale; onPay?: () => void; linkToSale?: boolean }) {
+function SaleCard({ sale, linkToSale }: { sale: Sale; linkToSale?: boolean }) {
   const { t } = useTranslation()
   const drawer = useDrawer()
   const data = useDb(useShallow((s) => ({ payments: s.payments, appointments: s.appointments, teamMembers: s.teamMembers, giftCards: s.giftCards, services: s.services, sales: s.sales })))
@@ -322,13 +324,14 @@ function SaleCard({ sale, onPay, linkToSale }: { sale: Sale; onPay?: () => void;
           const apptItem = appt?.items.find((i) => i.id === item.appointmentItemId)
           const card = item.giftCardId ? data.giftCards.find((g) => g.id === item.giftCardId) : undefined
           const m = member(item.teamMemberId)
-          const duration = apptItem?.durationMin ?? (item.type === 'service' ? data.services.find((s) => s.id === item.refId)?.durationMin : item.type === 'manual' ? 5 : undefined)
+          const duration = lineDuration(item, data)
           const parts =
             item.type === 'gift_card'
               ? [card?.code, m ? fullName(m) : undefined]
               : [apptItem && appt ? `${apptItem.start}, ${fmtDateEU(appt.date)}` : undefined, duration ? durationLabel(duration) : undefined, item.type === 'service' || item.type === 'manual' || item.type === 'service_addon' ? undefined : item.detail, m ? fullName(m) : undefined]
           const total = lineTotal(item)
-          const gross = item.unitPrice * item.quantity
+          // Price before a discount, reward or package benefit (never for refund lines, which are negative).
+          const gross = (item.unitPrice >= 0 && item.originalPrice !== undefined && item.originalPrice > item.unitPrice ? item.originalPrice : item.unitPrice) * item.quantity
           return (
             <li key={item.id} className="flex items-start justify-between gap-4">
               <div className="min-w-0">
@@ -343,11 +346,11 @@ function SaleCard({ sale, onPay, linkToSale }: { sale: Sale; onPay?: () => void;
                   </p>
                 )}
                 <p className="text-body text-muted">{parts.filter(Boolean).join(' • ')}</p>
-                {item.benefitNote && <p className="text-small text-success">{item.benefitNote}</p>}
+                {item.benefitNote && <OfferTag className="mt-1" label={item.benefitNote} />}
               </div>
               <div className="text-right">
                 <p className="text-body-lg text-ink tabular">{money(total)}</p>
-                {total !== gross && <p className="text-small text-muted line-through tabular">{money(gross)}</p>}
+                {gross - total > 0.004 && <p className="text-small text-muted line-through tabular">{money(gross)}</p>}
               </div>
             </li>
           )
@@ -431,11 +434,6 @@ function SaleCard({ sale, onPay, linkToSale }: { sale: Sale; onPay?: () => void;
             <span>{t('checkout.sale.balance')}</span>
             <span className="tabular">{money(balance)}</span>
           </div>
-          {onPay && (
-            <Button variant="primary" className="mt-4 w-full rounded-full" onClick={onPay}>
-              {t('checkout.footer.payNow')}
-            </Button>
-          )}
         </>
       )}
     </div>
@@ -467,6 +465,13 @@ function NotesTab({ sale, onAdd }: { sale: Sale; onAdd: () => void }) {
   )
 }
 
+/** Icon for an activity entry like "€28.75 paid by Cash". */
+function paymentMethodOf(title: string): PaymentMethod {
+  const label = title.replace(/^.*paid by /i, '').toLowerCase()
+  const match = (Object.entries(PAYMENT_LABELS) as [PaymentMethod, string][]).find(([, l]) => label.startsWith(l.toLowerCase()))
+  return match?.[0] ?? 'other'
+}
+
 function ActivityTab({ sale, onEmail }: { sale: Sale; onEmail: () => void }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -490,8 +495,25 @@ function ActivityTab({ sale, onEmail }: { sale: Sale; onEmail: () => void }) {
               return (
                 <li key={e.id} className="relative rounded-lg border border-line bg-surface p-5">
                   <span className="absolute -left-[29px] top-6 h-2.5 w-2.5 rounded-full bg-line-strong" aria-hidden />
-                  <p className="text-body-lg font-semibold text-ink">{e.title}</p>
-                  <p className="text-body text-muted">{relativeAt(e.at)}</p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-body-lg font-semibold text-ink">{e.title}</p>
+                      <p className="text-body text-muted">{relativeAt(e.at)}</p>
+                    </div>
+                    {/* Who did it (or the payment), with a small status badge as in the reference. */}
+                    <span className="relative shrink-0" aria-hidden>
+                      {payment ? (
+                        <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-sunken">
+                          <MethodIcon method={paymentMethodOf(e.title)} size={22} />
+                        </span>
+                      ) : (
+                        <Avatar name={e.by || '?'} size={48} />
+                      )}
+                      <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-surface bg-success text-white">
+                        {payment ? <ArrowLeft size={11} /> : <Check size={11} />}
+                      </span>
+                    </span>
+                  </div>
                   {e.detail && <p className="mt-3 text-body text-ink">{e.detail}</p>}
                   {!e.detail && e.by && <p className="mt-3 text-body text-ink">{t('checkout.sale.by', { name: e.by })}</p>}
                   {payment && (

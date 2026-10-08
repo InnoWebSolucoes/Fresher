@@ -72,7 +72,11 @@ export function ColorDot({ color, className }: { color: PaletteColor; className?
   return <span className={clsx('inline-block h-3 w-3 shrink-0 rounded-full', className)} style={{ background: PALETTE[color].edge }} aria-hidden />
 }
 
-export function Avatar({ name, color, size = 40, className }: { name: string; color?: PaletteColor; size?: number; className?: string }) {
+/** Initials avatar; shows `photo` (data URL, e.g. `client.photo`) when there is one. */
+export function Avatar({ name, color, size = 40, className, photo }: { name: string; color?: PaletteColor; size?: number; className?: string; photo?: string }) {
+  if (photo) {
+    return <img src={photo} alt="" aria-hidden className={clsx('shrink-0 rounded-full object-cover', className)} style={{ width: size, height: size }} />
+  }
   const parts = name.trim().split(/\s+/)
   const text = parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : (parts[0]?.[0] ?? '?')
   const palette = color ? PALETTE[color] : undefined

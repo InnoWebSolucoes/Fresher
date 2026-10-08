@@ -10,11 +10,12 @@ import { exportCsv, exportedFileName, exportXlsx } from '@/lib/export'
 import { fmtDate, money } from '@/lib/format'
 import { Button, confirm, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, SearchInput, SideDrawer, toast, Toolbar, usePageLoading } from '@/components/ui'
 import { deleteClients, findDuplicateGroups } from '@/api/clients'
+import { useExt, writeExt } from '@/api/ext'
 import { ClientAvatar, FilterGroup, OptionList } from '../components/common'
 import { AddTagsModal, BlockClientModal } from '../components/ClientDialogs'
 import { SegmentsPickerModal } from '../components/SegmentsPickerModal'
 import { GENDERS, SORTS, type SortKey } from '../lib/constants'
-import { clientName, storage } from '../lib/helpers'
+import { clientName } from '../lib/helpers'
 import { useClientMetrics, useSegmentEvaluator } from '../lib/hooks'
 
 type Group = 'all' | 'marketplace' | 'manual'
@@ -31,7 +32,6 @@ interface Filters {
 }
 
 const NO_FILTERS: Filters = { segmentIds: [], group: 'all', blocked: 'all', verified: 'all', gender: 'all' }
-const BANNER_KEY = 'ib-clients-import-banner-dismissed'
 const PAGE_SIZE = 50
 
 const activeCount = (f: Filters) => (f.segmentIds.length ? 1 : 0) + (f.group !== 'all' ? 1 : 0) + (f.blocked !== 'all' ? 1 : 0) + (f.verified !== 'all' ? 1 : 0) + (f.gender !== 'all' ? 1 : 0)
@@ -59,7 +59,7 @@ export function ClientsListPage() {
   const [segmentsOpen, setSegmentsOpen] = useState(false)
   const [selected, setSelected] = useState<Set<ID>>(new Set())
   const [page, setPage] = useState(0)
-  const [bannerHidden, setBannerHidden] = useState(() => storage.get(BANNER_KEY) === '1')
+  const bannerHidden = useExt<boolean>('clients', 'importBannerDismissed', false)
   const [tagsModal, setTagsModal] = useState(false)
   const [blockModal, setBlockModal] = useState(false)
 
@@ -160,7 +160,7 @@ export function ClientsListPage() {
         count={live.length}
         subtitle={
           <>
-            {t('clients.list.subtitle')} <LearnMore topic="Clients list" />
+            {t('clients.list.subtitle')} <LearnMore topic="Clients list">{t('clients.common.learnMore')}</LearnMore>
           </>
         }
         actions={
@@ -225,10 +225,7 @@ export function ClientsListPage() {
           <button
             type="button"
             aria-label={t('clients.common.dismiss')}
-            onClick={() => {
-              storage.set(BANNER_KEY, '1')
-              setBannerHidden(true)
-            }}
+            onClick={() => writeExt('clients', 'importBannerDismissed', true)}
             className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-white hover:bg-white/15"
           >
             <X size={18} aria-hidden />

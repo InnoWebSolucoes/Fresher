@@ -23,12 +23,13 @@ function useCardCharge(method: PaymentMethod, label: string) {
   const [error, setError] = useState('')
   const amount = Math.max(0, c.due)
   const alive = useRef(true)
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    // Set on every mount: StrictMode mounts, unmounts and mounts again.
+    alive.current = true
+    return () => {
       alive.current = false
-    },
-    [],
-  )
+    }
+  }, [])
   const charge = useCallback(async () => {
     setPhase('processing')
     setError('')
@@ -41,7 +42,7 @@ function useCardCharge(method: PaymentMethod, label: string) {
       if (!alive.current) return
       if (e instanceof ApiError && e.code === 'card_declined') {
         setPhase('declined')
-        setError(e.message)
+        setError(t('checkout.card.declinedBody'))
       } else {
         setPhase('idle')
         toast(e instanceof Error ? e.message : t('checkout.errors.generic'), 'error')

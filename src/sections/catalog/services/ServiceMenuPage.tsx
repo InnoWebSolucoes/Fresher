@@ -9,8 +9,8 @@ import { durationLong } from '@/lib/time'
 import { money } from '@/lib/format'
 import { PALETTE } from '@/styles/palette'
 import type { Bundle, ID, Service, ServiceCategory } from '@/types'
-import { archiveCategory, deleteBundle, deleteCategory, deleteService, setBundleArchived, setServiceArchived } from '@/api/catalog'
-import { useCatalogPrefs } from '../prefs'
+import { deleteBundle, deleteCategory, deleteService, setBundleArchived, setCategoryArchived, setServiceArchived } from '@/api/catalog'
+import { useBundleOrder } from '../catalogExt'
 import { bundleDuration, bundlePrice } from '../lib'
 import { CardsSkeleton, CategoryModal, CountBadge, FiltersButton, PillButton, ToolbarCard } from '../ui'
 import { QuickLinkModal, type QuickLinkTarget } from './QuickLinkModal'
@@ -41,7 +41,7 @@ export function ServiceMenuPage() {
   const bundles = useDb((s) => s.bundles)
   const teamMembers = useDb((s) => s.teamMembers)
   const settings = useDb((s) => s.settings)
-  const bundleOrder = useCatalogPrefs((s) => s.bundleOrder)
+  const bundleOrder = useBundleOrder()
   const [query, setQuery] = useState('')
   const [selectedCat, setSelectedCat] = useState<ID | 'all'>('all')
   const [filters, setFilters] = useState<MenuFilters>(NO_FILTERS)
@@ -53,17 +53,23 @@ export function ServiceMenuPage() {
   const status: 'active' | 'archived' | 'all' = statusParam === 'Archived' ? 'archived' : statusParam === 'All' ? 'all' : 'active'
   const filterCount = (status !== 'active' ? 1 : 0) + Object.entries(filters).filter(([k, v]) => v !== NO_FILTERS[k as keyof MenuFilters]).length
 
-  const sortedCats = useMemo(() => [...categories].sort((a, b) => a.order - b.order), [categories])
+  // Archived categories (and everything in them) only show under Status = Archived / All statuses.
+  const sortedCats = useMemo(() => [...categories].filter((c) => status !== 'active' || !c.archived).sort((a, b) => a.order - b.order), [categories, status])
 
   const itemsByCat = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const statusOk = (archived: boolean) => status === 'all' || (status === 'archived' ? archived : !archived)
+    const archivedCat = new Set(categories.filter((c) => c.archived).map((c) => c.id))
+    const statusOk = (archived: boolean, categoryId: ID) => {
+      if (status === 'all') return true
+      const off = archived || archivedCat.has(categoryId)
+      return status === 'archived' ? off : !off
+    }
     const tri = (f: TriState, v: boolean) => f === 'all' || (f === 'yes' ? v : !v)
     const map = new Map<ID, Item[]>()
     sortedCats.forEach((c) => map.set(c.id, []))
     if (filters.type !== 'bundles')
       services.forEach((s) => {
-        if (!statusOk(s.archived)) return
+        if (!statusOk(s.archived, s.categoryId)) return
         if (q && !s.name.toLowerCase().includes(q) && !s.variants.some((v) => v.name.toLowerCase().includes(q))) return
         if (filters.teamMember && s.teamMemberIds !== 'all' && !s.teamMemberIds.includes(filters.teamMember)) return
         if (!tri(filters.online, s.onlineBooking) || !tri(filters.commissions, s.commissionEnabled) || !tri(filters.resources, s.resourceTypeIds.length > 0)) return
@@ -72,18 +78,18 @@ export function ServiceMenuPage() {
       })
     if (filters.type !== 'services' && !filters.teamMember && filters.commissions === 'all' && filters.resources === 'all' && filters.employees === 'all')
       bundles.forEach((b) => {
-        if (!statusOk(b.archived)) return
+        if (!statusOk(b.archived, b.categoryId)) return
         if (q && !b.name.toLowerCase().includes(q)) return
         if (!tri(filters.online, b.onlineBooking)) return
         map.get(b.categoryId)?.push({ kind: 'bundle', bundle: b, order: bundleOrder[b.id] ?? -1 })
       })
     map.forEach((list) => list.sort((a, b) => a.order - b.order))
     return map
-  }, [query, status, filters, services, bundles, sortedCats, bundleOrder])
+  }, [query, status, filters, services, bundles, sortedCats, categories, bundleOrder])
 
   const narrowed = query.trim() !== '' || filterCount > 0
   const totalCount = [...itemsByCat.values()].reduce((s, l) => s + l.length, 0)
-  const visibleCats = sortedCats.filter((c) => (selectedCat === 'all' || c.id === selectedCat) && (!narrowed || (itemsByCat.get(c.id)?.length ?? 0) > 0))
+  const visibleCats = sortedCats.filter((c) => (selectedCat === 'all' || c.id === selectedCat) && (!narrowed || (itemsByCat.get(c.id)?.length ?? 0) > 0 || (c.archived && !query.trim())))
 
   const exportData = { services, bundles, serviceCategories: categories, settings }
 
@@ -126,10 +132,11 @@ export function ServiceMenuPage() {
     await deleteBundle(b.id)
     toast(t('catalog.toasts.bundleDeleted'))
   }
-  const archiveCat = async (c: ServiceCategory) => {
-    if (!(await confirm({ title: t('catalog.menu.archiveCategoryTitle'), body: t('catalog.menu.archiveCategoryBody', { name: c.name }), confirmLabel: t('catalog.common.archive') }))) return
-    await archiveCategory(c.id)
-    toast(t('catalog.toasts.categoryArchived'))
+  const archiveCat = async (c: ServiceCategory, archived: boolean) => {
+    if (archived && !(await confirm({ title: t('catalog.menu.archiveCategoryTitle'), body: t('catalog.menu.archiveCategoryBody', { name: c.name }), confirmLabel: t('catalog.common.archive') }))) return
+    await setCategoryArchived(c.id, archived)
+    if (archived && selectedCat === c.id && status === 'active') setSelectedCat('all')
+    toast(archived ? t('catalog.toasts.categoryArchived') : t('catalog.toasts.categoryUnarchived'))
   }
   const deleteCat = async (c: ServiceCategory) => {
     const count = services.filter((s) => s.categoryId === c.id).length + bundles.filter((b) => b.categoryId === c.id).length
@@ -232,8 +239,10 @@ export function ServiceMenuPage() {
             {t('catalog.menu.allCategories')}
             <CountBadge value={totalCount} />
           </button>
-          {sortedCats.map((c) => (
-            <button key={c.id} type="button" onClick={() => setSelectedCat(c.id)} className={clsx('flex h-11 w-full items-center justify-between gap-2 rounded-md px-3 text-left text-body', selectedCat === c.id ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}>
+          {sortedCats
+            .filter((c) => status !== 'archived' || c.archived || (itemsByCat.get(c.id)?.length ?? 0) > 0)
+            .map((c) => (
+            <button key={c.id} type="button" onClick={() => setSelectedCat(c.id)} className={clsx('flex h-11 w-full items-center justify-between gap-2 rounded-md px-3 text-left text-body', selectedCat === c.id ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken', c.archived && 'text-muted')}>
               <span className="truncate">{c.name}</span>
               <CountBadge value={itemsByCat.get(c.id)?.length ?? 0} />
             </button>
@@ -276,8 +285,9 @@ export function ServiceMenuPage() {
               <section key={c.id} aria-labelledby={`cat-${c.id}`}>
                 <div className="mb-3 flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 id={`cat-${c.id}`} className="font-display text-title-2 text-ink">
+                    <h2 id={`cat-${c.id}`} className="flex items-center gap-3 font-display text-title-2 text-ink">
                       {c.name}
+                      {c.archived && <Chip>{t('catalog.common.archived')}</Chip>}
                     </h2>
                     {c.description && <p className="text-body text-muted">{c.description}</p>}
                   </div>
@@ -289,29 +299,47 @@ export function ServiceMenuPage() {
                         <ChevronDown size={16} aria-hidden />
                       </button>
                     )}
-                    groups={[
-                      {
-                        items: [
-                          { label: t('catalog.common.edit'), onSelect: () => setCategoryModal({ category: c }) },
-                          { label: t('catalog.menu.addService'), onSelect: () => navigate(`/catalogue/services/service/add/new?category=${c.id}`) },
-                          { label: t('catalog.menu.addBundle'), onSelect: () => navigate(`/catalogue/services/package/add/new?category=${c.id}`) },
-                        ],
-                      },
-                      {
-                        items: [
-                          { label: t('catalog.common.archive'), onSelect: () => void archiveCat(c) },
-                          { label: t('catalog.common.permanentlyDelete'), danger: true, onSelect: () => void deleteCat(c) },
-                        ],
-                      },
-                    ]}
+                    groups={
+                      c.archived
+                        ? [
+                            { items: [{ label: t('catalog.common.edit'), onSelect: () => setCategoryModal({ category: c }) }] },
+                            {
+                              items: [
+                                { label: t('catalog.common.unarchive'), onSelect: () => void archiveCat(c, false) },
+                                { label: t('catalog.common.permanentlyDelete'), danger: true, onSelect: () => void deleteCat(c) },
+                              ],
+                            },
+                          ]
+                        : [
+                            {
+                              items: [
+                                { label: t('catalog.common.edit'), onSelect: () => setCategoryModal({ category: c }) },
+                                { label: t('catalog.menu.categoryAddService'), onSelect: () => navigate(`/catalogue/services/service/add/new?category=${c.id}`) },
+                                { label: t('catalog.menu.categoryAddBundle'), onSelect: () => navigate(`/catalogue/services/package/add/new?category=${c.id}`) },
+                              ],
+                            },
+                            {
+                              items: [
+                                { label: t('catalog.common.archive'), onSelect: () => void archiveCat(c, true) },
+                                { label: t('catalog.common.permanentlyDelete'), danger: true, onSelect: () => void deleteCat(c) },
+                              ],
+                            },
+                          ]
+                    }
                   />
                 </div>
                 {items.length === 0 ? (
                   <div className="card flex flex-col items-center gap-2 px-6 py-8 text-center">
-                    <p className="text-body text-muted">{t('catalog.menu.emptyCategory')}</p>
-                    <Button size="sm" onClick={() => navigate(`/catalogue/services/service/add/new?category=${c.id}`)}>
-                      {t('catalog.menu.addService')}
-                    </Button>
+                    <p className="text-body text-muted">{c.archived ? t('catalog.menu.archivedCategoryEmpty') : t('catalog.menu.emptyCategory')}</p>
+                    {c.archived ? (
+                      <Button size="sm" onClick={() => void archiveCat(c, false)}>
+                        {t('catalog.common.unarchive')}
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => navigate(`/catalogue/services/service/add/new?category=${c.id}`)}>
+                        {t('catalog.menu.categoryAddService')}
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">

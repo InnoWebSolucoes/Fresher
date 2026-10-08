@@ -16,17 +16,6 @@ export function OnOffChip({ on }: { on: boolean }) {
   return <Chip tone={on ? 'success' : 'neutral'}>{on ? t('settings.common.on') : t('settings.common.off')}</Chip>
 }
 
-/** White card used inside full-screen edit forms. */
-export function FormCard({ children, className, title, description }: { children?: ReactNode; className?: string; title?: ReactNode; description?: ReactNode }) {
-  return (
-    <section className={clsx('card p-6 sm:p-8', className)}>
-      {title && <h2 className="font-display text-title-2 text-ink">{title}</h2>}
-      {description && <p className="mt-1 text-body text-muted">{description}</p>}
-      {children && <div className={clsx(title || description ? 'mt-6' : '')}>{children}</div>}
-    </section>
-  )
-}
-
 /** "Gift cards [On]  — Sell and redeem …" card with a switch on the right. */
 export function ToggleCard({ title, description, checked, onChange, children, testId }: { title: ReactNode; description?: ReactNode; checked: boolean; onChange: (v: boolean) => void; children?: ReactNode; testId?: string }) {
   return (
@@ -137,7 +126,7 @@ export function ValueRowsEditor({
         ))}
       </ul>
       {rows.length < max && (
-        <Button className="mt-4 rounded-full" icon={<Plus size={16} aria-hidden />} onClick={() => onChange([...rows, newValueRow()])}>
+        <Button className="mt-4" icon={<Plus size={16} aria-hidden />} onClick={() => onChange([...rows, newValueRow()])}>
           {addLabel}
         </Button>
       )}
@@ -145,5 +134,3 @@ export function ValueRowsEditor({
   )
 }
 
-/** Divider used between groups inside cards. */
-export const Rule = () => <hr className="my-5 border-line" />

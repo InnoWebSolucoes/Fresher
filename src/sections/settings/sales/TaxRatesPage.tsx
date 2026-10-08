@@ -5,8 +5,8 @@ import { Button, EmptyState, Field, Select, TextInput, confirm, toast } from '@/
 import { applyTaxDefaultsToCatalog, deleteTaxRate, updateSettings } from '@/api/settings'
 import { uid } from '@/lib/ids'
 import type { ID, Settings, TaxRate } from '@/types'
-import { ActionsPill, ListCard, ListRow, PillMenu, SettingsPage } from '../components/ui'
-import { SettingsModal } from '../components/SettingsModal'
+import { ActionsPill, FormCard, ListCard, ListRow, ModalForm, PillMenu, SettingsPage } from '../components/ui'
+import { FullModal } from '../components/FullModal'
 import { useAction } from '../components/useAction'
 import { useSettings } from '../hooks'
 
@@ -178,36 +178,27 @@ function TaxModal({ editing, onClose, taxRates }: { editing: TaxRate | 'new' | n
   }
 
   return (
-    <SettingsModal
+    <FullModal
       open={editing !== null}
       onClose={onClose}
       title={isNew ? t('settings.sale.tax.addTitle') : t('settings.sale.tax.editTitle')}
       subtitle={t('settings.sale.tax.modalSubtitle')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.close')}</Button>
-          <Button variant="primary" loading={saving} onClick={save} data-testid="tax-save">
-            {isNew ? t('settings.common.add') : t('settings.common.save')}
-          </Button>
-        </>
-      }
+      onSave={save}
+      saving={saving}
+      saveLabel={isNew ? t('settings.common.add') : undefined}
+      testId="tax-modal"
     >
-      <form
-        className="flex flex-col gap-5 pb-2"
-        onSubmit={(e) => {
-          e.preventDefault()
-          save()
-        }}
-      >
-        <Field label={t('settings.sale.tax.name')} error={errors.name}>
-          {(id) => <TextInput id={id} value={name} maxLength={40} invalid={Boolean(errors.name)} onChange={(e) => setName(e.target.value)} placeholder={t('settings.sale.tax.namePlaceholder')} />}
-        </Field>
-        <Field label={t('settings.sale.tax.rate')} error={errors.rate}>
-          {(id) => <TextInput id={id} prefix="%" type="number" inputMode="decimal" step="0.01" min={0} max={100} value={rate} invalid={Boolean(errors.rate)} onChange={(e) => setRate(e.target.value)} />}
-        </Field>
-        <button type="submit" className="hidden" aria-hidden tabIndex={-1} />
-      </form>
-    </SettingsModal>
+      <FormCard>
+        <ModalForm onSubmit={save}>
+          <Field label={t('settings.sale.tax.name')} error={errors.name}>
+            {(id) => <TextInput id={id} value={name} maxLength={40} invalid={Boolean(errors.name)} onChange={(e) => setName(e.target.value)} placeholder={t('settings.sale.tax.namePlaceholder')} data-testid="tax-name" />}
+          </Field>
+          <Field label={t('settings.sale.tax.rate')} error={errors.rate}>
+            {(id) => <TextInput id={id} prefix="%" type="number" inputMode="decimal" step="0.01" min={0} max={100} value={rate} invalid={Boolean(errors.rate)} onChange={(e) => setRate(e.target.value)} data-testid="tax-rate" />}
+          </Field>
+        </ModalForm>
+      </FormCard>
+    </FullModal>
   )
 }
 
@@ -237,28 +228,15 @@ function TaxDefaultsModal({ open, onClose, taxRates, value }: { open: boolean; o
       onClose,
     )
   return (
-    <SettingsModal
-      open={open}
-      onClose={onClose}
-      title={t('settings.sale.tax.defaults')}
-      subtitle={t('settings.sale.tax.defaultsSubtitle')}
-      footer={
-        <>
-          <Button onClick={onClose}>{t('settings.common.close')}</Button>
-          <Button variant="primary" loading={saving} onClick={save} data-testid="tax-defaults-save">
-            {t('settings.common.save')}
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-5 pb-2">
+    <FullModal open={open} onClose={onClose} title={t('settings.sale.tax.defaults')} subtitle={t('settings.sale.tax.defaultsSubtitle')} onSave={save} saving={saving} testId="tax-defaults-modal">
+      <FormCard>
         {rows.map((row) => (
           <Field key={row.key} label={row.label}>
             {(id) => <Select id={id} value={draft[row.key] ?? ''} options={options} onChange={(e) => setDraft((d) => ({ ...d, [row.key]: e.target.value || null }))} />}
           </Field>
         ))}
         <p className="text-small text-muted">{t('settings.sale.tax.defaultsHelp')}</p>
-      </div>
-    </SettingsModal>
+      </FormCard>
+    </FullModal>
   )
 }

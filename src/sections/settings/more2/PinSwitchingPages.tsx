@@ -4,12 +4,11 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { setSettingsExtra, updateSettings } from '@/api/settings'
-import { Avatar, Button, Checkbox, Field, IconButton, Select, TextInput, confirm } from '@/components/ui'
+import { Avatar, Button, Checkbox, Field, IconButton, Modal, Select, TextInput, confirm } from '@/components/ui'
 import { fullName } from '@/lib/format'
 import { useDb } from '@/store/db'
 import type { ID, Settings } from '@/types'
-import { SettingsModal } from '../components/SettingsModal'
-import { EditCard, SettingsPage, SummaryList } from '../components/ui'
+import { CardButton, EditCard, SettingsPage, SummaryList } from '../components/ui'
 import { useAction } from '../components/useAction'
 import { EXTRA_PINS, randomPin, usePins, type Pins } from '../team/data'
 import { StateChip, TeamFullPage } from '../team/parts'
@@ -60,15 +59,13 @@ export function PinSwitchingPage() {
         action={
           pin.enabled ? (
             <div className="flex gap-2">
-              <Button size="sm" className="rounded-full px-4" onClick={() => void turnOff()} loading={busy}>
+              <Button size="sm" onClick={() => void turnOff()} loading={busy} data-testid="pin-turn-off">
                 {t('settings.more2.pin.turnOff')}
               </Button>
-              <Button size="sm" className="rounded-full px-4" onClick={() => navigate(`${PIN_BASE}/setup`)}>
-                {t('settings.common.edit')}
-              </Button>
+              <CardButton onClick={() => navigate(`${PIN_BASE}/setup`)}>{t('settings.common.edit')}</CardButton>
             </div>
           ) : (
-            <Button size="sm" variant="primary" className="rounded-full px-4" onClick={() => navigate(`${PIN_BASE}/setup`)} data-testid="pin-setup">
+            <Button size="sm" variant="primary" onClick={() => navigate(`${PIN_BASE}/setup`)} data-testid="pin-setup">
               {t('settings.more2.pin.setUp')}
             </Button>
           )
@@ -204,7 +201,7 @@ export function PinSwitchingSetupPage() {
                 </button>
               ))}
             </div>
-            <Button className="mt-4 rounded-full" onClick={() => setPreview(true)}>
+            <Button className="mt-4" onClick={() => setPreview(true)}>
               {t('settings.more2.pin.preview')}
             </Button>
           </section>
@@ -215,7 +212,7 @@ export function PinSwitchingSetupPage() {
           <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{t('settings.more2.pin.step2')}</h1>
           <p className="mt-2 text-body-lg text-muted">{t('settings.more2.pin.step2Body')}</p>
           <div className="mt-6 flex justify-end">
-            <Button className="rounded-full" icon={<RefreshCw size={16} aria-hidden />} onClick={generateAll}>
+            <Button icon={<RefreshCw size={16} aria-hidden />} onClick={generateAll}>
               {t('settings.more2.pin.generateAll')}
             </Button>
           </div>
@@ -334,7 +331,7 @@ function PreviewModal({ style, onClose }: { style: Pin['style']; onClose: () => 
   const done = entered.length === 4
   const onKey = (k: string) => setEntered((v) => (k === 'del' ? v.slice(0, -1) : v.length < 4 ? v + k : v))
   return (
-    <SettingsModal open onClose={onClose} size="lg" title={t('settings.more2.pin.previewTitle')} subtitle={t('settings.more2.pin.previewBody')}>
+    <Modal open onClose={onClose} size="lg" title={t('settings.more2.pin.previewTitle')} subtitle={t('settings.more2.pin.previewBody')}>
       <LockScreen style={style} entered={entered.length} onKey={onKey} />
       <p className="mt-3 flex min-h-6 items-center justify-center gap-2 text-body text-muted" role="status">
         {done && (
@@ -347,6 +344,6 @@ function PreviewModal({ style, onClose }: { style: Pin['style']; onClose: () => 
           </>
         )}
       </p>
-    </SettingsModal>
+    </Modal>
   )
 }

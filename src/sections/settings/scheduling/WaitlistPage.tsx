@@ -6,10 +6,10 @@ import { Checkbox, LearnMore, RadioGroup } from '@/components/ui'
 import { updateSettings } from '@/api/settings'
 import type { Settings } from '@/types'
 import { useSettings } from '../hooks'
-import { Banner, EditCard, InfoGrid, SettingsPage } from '../components/ui'
+import { Banner, EditCard, FormCard, FormStack, InfoGrid, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction, useDraft } from '../components/useAction'
-import { FormCard, FormHeading, FormStack, RadioCards, RadioRow } from './shared'
+import { FormHeading, RadioCards, RadioRow } from './shared'
 
 const K = 'settings.sched.waitlist'
 type Waitlist = Settings['waitlist']

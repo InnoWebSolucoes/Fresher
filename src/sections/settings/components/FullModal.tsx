@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
 
 /**
- * Full-screen edit overlay used by most settings "Edit" buttons in the
- * reference (Close and Save at the top right, big title, centred content).
- * Sits under regular modals/confirm (z-80) and toasts (z-100).
+ * Full-screen edit overlay used by every settings Edit / Add form (reference:
+ * Close and Save or Add at the top right, big title and description, white
+ * cards centred below). Sits under regular modals/confirm (z-80) and toasts
+ * (z-100). Pass `inline` on 'full' layout routes.
  */
 export function FullModal({
   open,
@@ -100,11 +101,11 @@ export function FullModal({
         </div>
         <div className="flex items-center gap-2">
           {actions}
-          <Button className="rounded-full" onClick={onClose} data-testid="fullmodal-close">
+          <Button onClick={onClose} data-testid="fullmodal-close">
             {t('common.close')}
           </Button>
           {onSave && (
-            <Button variant="primary" className="rounded-full px-6" onClick={onSave} loading={saving} disabled={saveDisabled} data-testid="fullmodal-save">
+            <Button variant="primary" className="px-6" onClick={onSave} loading={saving} disabled={saveDisabled} data-testid="fullmodal-save">
               {saveLabel ?? t('common.save')}
             </Button>
           )}
