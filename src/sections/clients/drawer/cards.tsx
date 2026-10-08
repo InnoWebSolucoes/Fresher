@@ -126,7 +126,7 @@ export function SaleCard({ sale, last }: { sale: Sale; last?: boolean }) {
         <div className="mt-3 flex flex-col gap-2 border-b border-line pb-3">
           {sale.items.map((item) => (
             <p key={item.id} className="flex justify-between gap-3 text-body text-ink">
-              <span className="min-w-0 truncate">
+              <span className="min-w-0 md:truncate">
                 {item.quantity > 1 ? `${item.quantity} × ` : ''}
                 {item.name}
               </span>

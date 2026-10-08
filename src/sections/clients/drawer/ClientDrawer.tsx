@@ -18,7 +18,7 @@ import {
   UserPlus,
   UserRound,
 } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { DrawerProps } from '@/app/sectionRegistry'
@@ -27,7 +27,7 @@ import { useDrawer } from '@/lib/drawer'
 import { fmtDate } from '@/lib/format'
 import { Button, confirm, EmptyState, Menu, MenuButton, Select, Skeleton, toast, usePageLoading } from '@/components/ui'
 import { addClientNote, deleteClient, unblockClient, updateClientNote } from '@/api/clients'
-import { ClientAvatar, BadgeChip } from '../components/common'
+import { BadgeChip, PhoneTabs, ResponsiveAvatar } from '../components/common'
 import { TagChip } from '../components/TagPicker'
 import { ManageTagsModal, BlockClientModal } from '../components/ClientDialogs'
 import { NoteEditorModal } from '../components/NoteEditorModal'
@@ -41,15 +41,18 @@ import { AppointmentsTab, DetailsTab, ItemsTab, OverviewTab, SalesTab } from './
 import { AllergiesTab, FilesTab, FormsTab, NotesTab, PatchTestsTab } from './records'
 import { LoyaltyTab, RewardActivityModal, ReviewsTab, WalletTab } from './wallet'
 
-/** Client profile drawer, 1027px, three columns (clients.md §4, calendar.md §8). */
+/** Phone tab row order: the same as the desktop menu, with the records sub-tabs inline. */
+const PHONE_TABS: DrawerTab[] = ['overview', 'appointments', 'sales', 'details', 'items', 'notes', 'allergies', 'patch-tests', 'forms', 'files', 'wallet', 'loyalty', 'reviews']
+
+/** Client profile drawer, 1027px, three columns (clients.md §4, calendar.md §8); stacked on phones. */
 export function ClientDrawer({ id, params, close }: DrawerProps) {
   const { t } = useTranslation()
   const loading = usePageLoading(250)
   const client = useDb((s) => s.clients.find((c) => c.id === id))
   if (loading) {
     return (
-      <div className="flex h-full gap-6 p-8" aria-busy="true">
-        <div className="flex w-[300px] flex-col items-center gap-3">
+      <div className="flex h-full min-h-0 flex-1 flex-col gap-6 p-4 md:flex-row md:p-8" aria-busy="true">
+        <div className="flex w-full flex-col items-center gap-3 md:w-[300px]">
           <Skeleton className="h-24 w-24 rounded-full" />
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-4 w-52" />
@@ -65,7 +68,7 @@ export function ClientDrawer({ id, params, close }: DrawerProps) {
   }
   if (!client || client.deletedAt) {
     return (
-      <div className="flex h-full items-center justify-center p-8">
+      <div className="flex h-full min-h-0 flex-1 items-center justify-center p-4 md:p-8">
         <EmptyState icon={<UserRound size={26} aria-hidden />} title={t('clients.drawer.notFound')} body={t('clients.drawer.notFoundBody')} action={<Button onClick={close}>{t('clients.common.close')}</Button>} />
       </div>
     )
@@ -91,6 +94,15 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
 
   const { update } = drawer
   const setTab = useCallback((next: DrawerTab) => update({ tab: next === 'overview' ? undefined : next }), [update])
+  const scroller = useRef<HTMLDivElement>(null)
+  const tabRow = useRef<HTMLDivElement>(null)
+  /** Phone tab row: switching tabs brings the new tab's top back under the sticky row. */
+  const pickTab = (next: DrawerTab) => {
+    setTab(next)
+    const box = scroller.current
+    const row = tabRow.current
+    if (box && row && box.scrollTop > row.offsetTop) box.scrollTop = row.offsetTop
+  }
   const here = `${location.pathname}${location.search}`
   const edit = useCallback(
     (section?: string, focus?: string) => {
@@ -153,22 +165,27 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
 
   return (
     <ClientDrawerContext.Provider value={ctx}>
-      <div className="flex h-full min-h-0">
+      {/* Phones: one scroll (compact client header, sticky tab row, content); md+: card | menu | content side by side. */}
+      <div ref={scroller} className="flex h-full min-h-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-visible">
         {/* Client card */}
-        <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-line">
-          <div className="flex flex-col items-center px-6 pb-6 pt-10 text-center">
-            <ClientAvatar client={client} size={96} />
-            <h2 className="mt-4 text-[17px] font-semibold text-ink">{clientName(client)}</h2>
-            {client.email ? (
-              <a href={`mailto:${client.email}`} className="mt-0.5 max-w-full truncate text-body text-muted hover:text-primary hover:underline">
-                {client.email}
-              </a>
-            ) : (
-              <button type="button" onClick={() => edit('profile', 'email')} className="mt-0.5 text-body text-primary hover:underline">
-                {t('clients.drawer.addEmail')}
-              </button>
-            )}
-            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+        <aside className="flex w-full shrink-0 flex-col border-b border-line md:w-[300px] md:overflow-y-auto md:border-b-0 md:border-r">
+          <div className="flex flex-col px-4 pb-4 pt-4 md:items-center md:px-6 md:pb-6 md:pt-10 md:text-center">
+            <div className="flex items-center gap-3 md:contents">
+              <ResponsiveAvatar client={client} size={96} phoneSize={56} />
+              <div className="flex min-w-0 flex-1 flex-col items-start md:contents">
+                <h2 className="break-words text-[17px] font-semibold text-ink md:mt-4">{clientName(client)}</h2>
+                {client.email ? (
+                  <a href={`mailto:${client.email}`} className="mt-0.5 max-w-full truncate text-body text-muted hover:text-primary hover:underline">
+                    {client.email}
+                  </a>
+                ) : (
+                  <button type="button" onClick={() => edit('profile', 'email')} className="mt-0.5 text-body text-primary hover:underline">
+                    {t('clients.drawer.addEmail')}
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5 md:justify-center">
               {badges.map((s) => (
                 <BadgeChip key={s.id} name={s.badge!.name} colorKey={badgeKey(s.badge)} />
               ))}
@@ -180,7 +197,7 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
                 <Plus size={12} aria-hidden /> {t('clients.drawer.addTag')}
               </button>
             </div>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-4 flex flex-wrap gap-2 md:mt-5 md:flex-nowrap">
               <Menu
                 align="left"
                 width={250}
@@ -219,7 +236,7 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
           </div>
 
           {(client.allergies.length > 0 || client.staffAlert || client.patchTests.length > 0 || client.blocked) && (
-            <ul className="flex flex-col gap-4 border-t border-line px-6 py-5">
+            <ul className="hidden flex-col gap-4 border-t border-line px-6 py-5 md:flex">
               {client.blocked && (
                 <li className="flex gap-3">
                   <Ban size={20} className="mt-0.5 shrink-0 text-danger" aria-hidden />
@@ -266,7 +283,7 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
             </ul>
           )}
 
-          <ul className="flex flex-col gap-3 border-t border-line px-6 py-5 text-body text-ink">
+          <ul className="hidden flex-col gap-3 border-t border-line px-6 py-5 text-body text-ink md:flex">
             <li className="flex items-center gap-3">
               <UserRound size={18} className="shrink-0 text-muted" aria-hidden />
               {client.pronouns ? (
@@ -302,6 +319,17 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
           </ul>
         </aside>
 
+        {/* Phones: the menu as a sticky sideways-scrolling tab row */}
+        <div ref={tabRow} className="sticky top-0 z-10 shrink-0 border-b border-line bg-surface py-2 md:hidden">
+          <PhoneTabs<DrawerTab>
+            label={t('clients.drawer.menu')}
+            value={tab}
+            onChange={pickTab}
+            className="px-4"
+            items={PHONE_TABS.map((v) => ({ value: v, label: t(`clients.drawer.tabs.${v}`), count: counts[v] }))}
+          />
+        </div>
+
         {/* Left menu */}
         <nav aria-label={t('clients.drawer.menu')} className="hidden w-[200px] shrink-0 overflow-y-auto border-r border-line px-3 py-8 lg:block">
           {menuItem('overview')}
@@ -325,8 +353,8 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
         </nav>
 
         {/* Content */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-sunken/70 px-6 py-8">
-          <div className="mb-4 lg:hidden">
+        <main className="min-w-0 flex-1 bg-sunken/70 px-4 pb-8 pt-5 md:overflow-y-auto md:px-6 md:py-8">
+          <div className="mb-4 hidden md:block lg:hidden">
             <Select aria-label={t('clients.drawer.menu')} value={tab} onChange={(e) => setTab(e.target.value as DrawerTab)} options={DRAWER_TABS.map((v) => ({ value: v, label: t(`clients.drawer.tabs.${v}`) }))} />
           </div>
           {tab === 'overview' && <OverviewTab />}

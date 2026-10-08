@@ -35,7 +35,7 @@ export function PersonalSettingsPage() {
       />
       <div className="grid gap-4 md:grid-cols-3">
         {cards.map((c) => (
-          <Link key={c.key} to={c.to} className="card group flex flex-col gap-4 p-6 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          <Link key={c.key} to={c.to} className="card group flex flex-col gap-4 p-5 transition-shadow md:p-6 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-subtle text-primary">{c.icon}</span>
             <span>
               <span className="flex items-center justify-between font-display text-title-3 text-ink">
@@ -55,7 +55,7 @@ function SubPageHeader({ title, subtitle }: { title: string; subtitle: string })
   const { t } = useTranslation()
   return (
     <>
-      <nav aria-label={t('account.common.breadcrumb')} className="mb-4 flex items-center gap-2 text-body">
+      <nav aria-label={t('account.common.breadcrumb')} className="mb-4 flex flex-wrap items-center gap-2 text-body">
         <Link to="/user-account/personal-settings" className="text-muted hover:text-ink hover:underline">
           {t('pages.personalSettings.title')}
         </Link>
@@ -361,8 +361,8 @@ export function LoginSecurityPage() {
 
   const providerRow = (provider: 'google' | 'apple') => (
     <div className="flex items-center justify-between gap-4 py-4">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sunken font-display text-body-strong text-ink" aria-hidden>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sunken font-display text-body-strong text-ink" aria-hidden>
           {provider === 'google' ? 'G' : <Apple size={18} />}
         </span>
         <div>
@@ -382,17 +382,17 @@ export function LoginSecurityPage() {
       <div className="flex flex-col gap-6">
         <SettingsCard title={t('account.security.loginDetails')} body={t('account.security.loginDetailsBody')}>
           <div className="flex flex-col divide-y divide-line">
-            <div className="flex items-center justify-between gap-4 pb-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-ink">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-4 md:flex-nowrap md:gap-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sunken text-ink">
                   <KeyRound size={18} aria-hidden />
                 </span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-body-strong text-ink">{t('account.security.password')}</p>
                   <p className="text-small text-muted">{t('account.security.passwordBody')}</p>
                 </div>
               </div>
-              <Button size="sm" onClick={() => setPasswordOpen(true)}>
+              <Button size="sm" className="ml-[52px] md:ml-0" onClick={() => setPasswordOpen(true)}>
                 {t('account.security.changePassword')}
               </Button>
             </div>
@@ -410,9 +410,9 @@ export function LoginSecurityPage() {
             {sessions.map((s) => {
               const device = s.device || t('account.security.unknownDevice')
               return (
-                <li key={s.id} className="flex items-center justify-between gap-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sunken text-ink">{/iOS|Android/.test(device) ? <Smartphone size={18} aria-hidden /> : <Monitor size={18} aria-hidden />}</span>
+                <li key={s.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 md:flex-nowrap md:gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sunken text-ink">{/iOS|Android/.test(device) ? <Smartphone size={18} aria-hidden /> : <Monitor size={18} aria-hidden />}</span>
                     <div>
                       <p className="text-body-strong text-ink">
                         {device} {s.current && <span className="font-normal text-muted">{t('account.security.thisDevice')}</span>}
@@ -421,7 +421,7 @@ export function LoginSecurityPage() {
                     </div>
                   </div>
                   {!s.current && (
-                    <Button size="sm" loading={busySession === s.id} onClick={() => signOut(s.id, device)}>
+                    <Button size="sm" className="ml-[52px] md:ml-0" loading={busySession === s.id} onClick={() => signOut(s.id, device)}>
                       {t('account.security.signOut')}
                     </Button>
                   )}

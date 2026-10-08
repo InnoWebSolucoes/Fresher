@@ -106,7 +106,7 @@ function SetupRegisterFlow({ locationId, onClose }: { locationId?: string; onClo
       }
     >
       <FlowHeading title={t('sales.register.setup.title')} subtitle={t('sales.register.setup.subtitle', { location: locationName })} />
-      <div className="card flex flex-col gap-6 p-8">
+      <div className="card flex flex-col gap-5 p-5 md:gap-6 md:p-8">
         {locations.length > 1 && (
           <Field label={t('sales.register.setup.location')}>{(id) => <Select id={id} value={location} onChange={(e) => setLocation(e.target.value)} options={locations.map((l) => ({ value: l.id, label: l.name }))} />}</Field>
         )}
@@ -120,7 +120,7 @@ function SetupRegisterFlow({ locationId, onClose }: { locationId?: string; onClo
             <div>
               <Checkbox label={t('sales.register.setup.minFloat')} hint={t('sales.register.setup.minFloatHint')} checked={minOn} onChange={setMinOn} />
               {minOn && (
-                <div className="mt-4 grid gap-4 pl-8 sm:grid-cols-2">
+                <div className="mt-4 grid gap-4 pl-0 sm:grid-cols-2 md:pl-8">
                   <Field label={t('sales.register.setup.amount')} error={errors.amount}>
                     {(id) => <AmountInput id={id} value={minAmount} onChange={setMinAmount} invalid={Boolean(errors.amount)} />}
                   </Field>
@@ -203,7 +203,7 @@ function OpenRegisterFlow({ registerId, onClose }: { registerId: string; onClose
       }
     >
       <FlowHeading title={t('sales.register.open.title')} subtitle={subtitle} />
-      <div className="card flex flex-col gap-6 p-8">
+      <div className="card flex flex-col gap-5 p-5 md:gap-6 md:p-8">
         <Field label={t('sales.register.open.openingFloat')} error={error} hint={min !== undefined ? t('sales.register.minimum', { amount: money(min) }) : undefined}>
           {(id) => <AmountInput id={id} value={amount} onChange={setAmount} onCount={() => setCounter(true)} invalid={Boolean(error)} placeholder="0" />}
         </Field>
@@ -306,8 +306,8 @@ function CashMovementFlow({ type, sessionId, onClose }: { type: 'cash_in' | 'cas
           <FlowHeading title={type === 'cash_in' ? t('sales.register.cash.chooseIn') : t('sales.register.cash.chooseOut')} subtitle={type === 'cash_in' ? t('sales.register.cash.chooseInHint') : t('sales.register.cash.chooseOutHint')} />
           <div className="flex flex-col gap-4">
             {reasons.map(({ key, icon: Icon }) => (
-              <button key={key} type="button" onClick={() => pick(key)} className="card flex items-center gap-4 p-6 text-left transition-colors hover:border-line-strong hover:bg-sunken/50">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary">
+              <button key={key} type="button" onClick={() => pick(key)} className="card flex items-center gap-4 p-4 text-left transition-colors hover:border-line-strong hover:bg-sunken/50 md:p-6">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary md:h-14 md:w-14">
                   <Icon size={22} aria-hidden />
                 </span>
                 <span className="flex-1 text-body-lg font-semibold text-ink">{t(`sales.register.cash.reasons.${key}`)}</span>
@@ -319,7 +319,7 @@ function CashMovementFlow({ type, sessionId, onClose }: { type: 'cash_in' | 'cas
       ) : (
         <>
           <FlowHeading title={reasonTitle(reason)} subtitle={type === 'cash_in' ? t('sales.register.cash.formInHint') : t('sales.register.cash.formOutHint')} />
-          <div className="card flex flex-col gap-6 p-8">
+          <div className="card flex flex-col gap-5 p-5 md:gap-6 md:p-8">
             <Field label={t('sales.register.cash.amount')} error={error} hint={type === 'cash_out' ? t('sales.register.cash.available', { amount: money(inCash) }) : undefined}>
               {(id) => <AmountInput id={id} value={amount} onChange={setAmount} onCount={() => setCounter(true)} invalid={Boolean(error)} />}
             </Field>
@@ -412,7 +412,9 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
   }
 
   const diffCell = (n: number, strong?: boolean) => <span className={clsx('tabular', n < 0 ? 'text-danger' : n > 0 ? 'text-success' : 'text-ink', strong && 'font-semibold')}>{money(n)}</span>
-  const cell = 'px-5 py-3.5 text-right'
+  const cell = 'px-3 py-3 text-right md:px-5 md:py-3.5'
+  // Phones: the table scrolls sideways inside its card, with the payment type column pinned.
+  const first = 'sticky left-0 z-[1] bg-surface shadow-[1px_0_0_rgb(var(--border))] md:static md:z-auto md:bg-transparent md:shadow-none'
   const lineLabel = (l: BreakdownLine) => l.label ?? t(`sales.register.lines.${l.labelKey}`)
 
   const rows: ReactNode[] = []
@@ -420,7 +422,7 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
     const groupCounted = round2(g.lines.reduce((s, l) => s + countedOf(l), 0))
     rows.push(
       <tr key={g.key} className="border-b border-line font-semibold">
-        <td className="px-5 py-3.5 text-ink">{t(`sales.register.groups.${g.key}`)}</td>
+        <td className={clsx('px-3 py-3 text-ink md:px-5 md:py-3.5', first)}>{t(`sales.register.groups.${g.key}`)}</td>
         <td className={cell}>{money(g.expected)}</td>
         <td className={cell}>{money(groupCounted)}</td>
         <td className={cell}>{diffCell(round2(groupCounted - g.expected), true)}</td>
@@ -429,9 +431,9 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
     for (const l of g.lines) {
       rows.push(
         <tr key={l.key} className="border-b border-line">
-          <td className="py-3.5 pl-10 pr-5 text-ink">{lineLabel(l)}</td>
+          <td className={clsx('py-3 pl-6 pr-3 text-ink md:py-3.5 md:pl-10 md:pr-5', first)}>{lineLabel(l)}</td>
           <td className={cell}>{money(l.expected)}</td>
-          <td className="w-48 px-5 py-2 text-right">
+          <td className="w-36 px-3 py-2 text-right md:w-48 md:px-5">
             {l.editable ? <AmountInput value={inputs[l.key] ?? ''} onChange={(v) => setInputs((s) => ({ ...s, [l.key]: v }))} align="right" className="h-10" /> : money(l.expected)}
           </td>
           <td className={cell}>{diffCell(round2(countedOf(l) - l.expected))}</td>
@@ -465,20 +467,20 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
           )}
         </div>
       )}
-      <div className="card overflow-x-auto p-4">
-        <table className="w-full min-w-[640px] text-body">
+      <div className="card overflow-x-auto p-1 md:p-4">
+        <table className="w-full min-w-[540px] text-body md:min-w-[640px]">
           <thead>
             <tr className="border-b border-line text-body-strong text-ink">
-              <th scope="col" className="px-5 py-3.5 text-left">
+              <th scope="col" className={clsx('px-3 py-3 text-left md:px-5 md:py-3.5', first)}>
                 {t('sales.register.countFlow.paymentTypes')}
               </th>
-              <th scope="col" className="px-5 py-3.5 text-right">
+              <th scope="col" className="px-3 py-3 text-right md:px-5 md:py-3.5">
                 {t('sales.register.expected')}
               </th>
-              <th scope="col" className="px-5 py-3.5 text-right">
+              <th scope="col" className="px-3 py-3 text-right md:px-5 md:py-3.5">
                 {t('sales.register.counted')}
               </th>
-              <th scope="col" className="px-5 py-3.5 text-right">
+              <th scope="col" className="px-3 py-3 text-right md:px-5 md:py-3.5">
                 {t('sales.register.difference')}
               </th>
             </tr>
@@ -486,15 +488,15 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
           <tbody>
             {rows}
             <tr className="border-b border-line font-semibold">
-              <td className="px-5 py-3.5 text-ink">{t('sales.register.lines.cash')}</td>
+              <td className={clsx('px-3 py-3 text-ink md:px-5 md:py-3.5', first)}>{t('sales.register.lines.cash')}</td>
               <td className={cell}>{money(breakdown.cash.expected)}</td>
-              <td className="w-48 px-5 py-2 text-right">
+              <td className="w-36 px-3 py-2 text-right md:w-48 md:px-5">
                 <AmountInput value={cash} onChange={setCash} onCount={() => setCounter('cash')} align="right" invalid={Boolean(errors.cash)} className="h-10" />
               </td>
               <td className={cell}>{countedCash === null ? '-' : diffCell(round2(countedCash - breakdown.cash.expected), true)}</td>
             </tr>
             <tr className="font-semibold">
-              <td className="px-5 py-3.5 text-ink">{t('sales.register.totalBalance')}</td>
+              <td className={clsx('px-3 py-3 text-ink md:px-5 md:py-3.5', first)}>{t('sales.register.totalBalance')}</td>
               <td className={cell}>{money(breakdown.total)}</td>
               <td className={cell}>{money(countedTotal)}</td>
               <td className={cell}>{diffCell(difference, true)}</td>
@@ -505,8 +507,8 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
       </div>
 
       {mode === 'close' && (
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <div className="card p-6">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 md:gap-6">
+          <div className="card p-5 md:p-6">
             <Field label={t('sales.register.countFlow.closingFloat')} hint={minClose !== undefined ? t('sales.register.minimum', { amount: money(minClose) }) : undefined} error={errors.float}>
               {(id) => (
                 <>
@@ -516,7 +518,7 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
               )}
             </Field>
           </div>
-          <div className="card p-6">
+          <div className="card p-5 md:p-6">
             <Field label={t('sales.register.countFlow.cashToBank')}>
               {(id) => (
                 <>
@@ -534,7 +536,7 @@ function CountFlow({ mode, sessionId, onClose, onViewActivity }: { mode: 'count'
         </div>
       )}
 
-      <div className="card mt-6 p-6">
+      <div className="card mt-6 p-5 md:p-6">
         <NoteField value={note} onChange={setNote} label={t('sales.register.addNote')} />
       </div>
       {counter && (

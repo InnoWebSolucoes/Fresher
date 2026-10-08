@@ -149,8 +149,11 @@ export function BlockedHoverCard({ block, type, rect, memberLabel }: { block: Bl
   )
 }
 
-/** Small chip used by the 3 day, week and month views. */
-export function AppointmentChip({ appt, lookups, label, onClick, faded, selected, tone }: { appt: Appointment; lookups: Lookups; label: ReactNode; onClick?: () => void; faded?: boolean; selected?: boolean; tone: { fill: string; text: string } }) {
+/**
+ * Small chip used by the 3 day, week and month views. Phones: `compact` (month view, time only, no icons)
+ * or a second line `sub` (3 day / week: the time on top, the client's name below).
+ */
+export function AppointmentChip({ appt, lookups, label, sub, onClick, faded, selected, tone, compact }: { appt: Appointment; lookups: Lookups; label: ReactNode; sub?: ReactNode; onClick?: () => void; faded?: boolean; selected?: boolean; tone: { fill: string; text: string }; compact?: boolean }) {
   return (
     <button
       type="button"
@@ -158,12 +161,29 @@ export function AppointmentChip({ appt, lookups, label, onClick, faded, selected
         e.stopPropagation()
         onClick?.()
       }}
-      className={clsx('flex h-7 w-full shrink-0 items-center gap-1.5 rounded-xs px-1.5 text-left text-small transition-opacity hover:brightness-95', faded && 'pointer-events-none opacity-40', selected && 'ring-2 ring-inset ring-primary')}
+      className={clsx(
+        'flex w-full shrink-0 rounded-xs text-left transition-opacity hover:brightness-95',
+        compact ? 'h-5 items-center justify-center px-0.5 text-[11px] font-semibold' : sub !== undefined ? 'flex-col px-1.5 py-1 text-small' : 'h-7 items-center gap-1.5 px-1.5 text-small',
+        faded && 'pointer-events-none opacity-40',
+        selected && 'ring-2 ring-inset ring-primary',
+      )}
       data-testid="appointment-chip"
       style={{ background: tone.fill, color: tone.text }}
     >
-      <span className="min-w-0 flex-1 truncate tabular">{label}</span>
-      <StatusIcons appt={appt} lookups={lookups} size={12} />
+      {sub !== undefined ? (
+        <>
+          <span className="flex items-center gap-1">
+            <span className="min-w-0 flex-1 truncate tabular">{label}</span>
+            <StatusIcons appt={appt} lookups={lookups} size={11} />
+          </span>
+          <span className="truncate font-semibold">{sub}</span>
+        </>
+      ) : (
+        <>
+          <span className={clsx('min-w-0 truncate tabular', !compact && 'flex-1')}>{label}</span>
+          {!compact && <StatusIcons appt={appt} lookups={lookups} size={12} />}
+        </>
+      )}
     </button>
   )
 }

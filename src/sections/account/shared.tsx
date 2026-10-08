@@ -78,13 +78,14 @@ export function PendingRequestNote({ request, text }: { request: PendingRequest;
 /** Section card with a heading, description and optional action on the right. */
 export function SettingsCard({ title, body, action, children, className }: { title: ReactNode; body?: ReactNode; action?: ReactNode; children?: ReactNode; className?: string }) {
   return (
-    <section className={clsx('card p-6', className)}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="font-display text-title-3 text-ink">{title}</h2>
-          {body && <p className="mt-1 text-body text-muted">{body}</p>}
+    <section className={clsx('card p-5 md:p-6', className)}>
+      {/* Phones: the body text runs full width under the title and the action. */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 md:flex md:justify-between md:gap-4">
+        <div className="contents md:block md:min-w-0">
+          <h2 className="self-center font-display text-title-3 text-ink md:self-auto">{title}</h2>
+          {body && <p className="col-span-2 mt-1 text-body text-muted">{body}</p>}
         </div>
-        {action}
+        {action && <div className="col-start-2 row-start-1 flex justify-end md:contents">{action}</div>}
       </div>
       {children && <div className="mt-5">{children}</div>}
     </section>

@@ -194,7 +194,7 @@ export function TeamMembersPage() {
       )}
 
       <Toolbar>
-        <SearchInput value={search} onChange={setSearch} placeholder={t('team.list.search')} className="max-w-[320px]" />
+        <SearchInput value={search} onChange={setSearch} placeholder={t('team.list.search')} className="md:max-w-[320px]" />
         <Button className="rounded-full" icon={<SlidersHorizontal size={16} />} onClick={() => setFiltersOpen(true)}>
           {t('team.common.filters')}
           {filterCount > 0 && <span className="chip h-5 bg-primary px-1.5 text-caption text-on-primary">{filterCount}</span>}

@@ -145,7 +145,7 @@ function GuidesOverview({ progress, completed, next }: { progress: Record<GuideI
   const { t } = useTranslation()
   const drawer = useDrawer()
   return (
-    <div className="flex min-h-full flex-col px-6 pb-6 pt-8">
+    <div className="flex min-h-full flex-col px-4 pb-6 pt-8 md:px-6">
       <h2 className="text-center font-display text-title-2 text-ink">{t('panels.guides.overviewTitle')}</h2>
       <ol className="mx-auto mt-8 flex w-full max-w-sm flex-col gap-3">
         {GUIDES.map((g, i) => {
@@ -203,7 +203,7 @@ function GuideView({ guide, progress, completed }: { guide: Guide; progress: Rec
 
   return (
     <div className="pb-8">
-      <div className={clsx('bg-gradient-to-br px-6 pb-5 pt-5 text-white', guide.gradient)}>
+      <div className={clsx('bg-gradient-to-br px-4 pb-5 pt-5 text-white md:px-6', guide.gradient)}>
         <button type="button" onClick={() => drawer.update({ d_guide: 'overview' })} className="mb-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-white/15 px-3 text-small hover:bg-white/25">
           <ArrowRight size={14} className="rotate-180" aria-hidden />
           {t('common.back')}
@@ -228,7 +228,7 @@ function GuideView({ guide, progress, completed }: { guide: Guide; progress: Rec
         </div>
       </div>
 
-      <div className="px-6 pt-5">
+      <div className="px-4 pt-5 md:px-6">
         <p className="mb-3 text-small text-muted">{t('panels.guides.progress', { done: states.filter(Boolean).length, total: states.length })}</p>
         <ol className="flex flex-col gap-3">
           {guide.tasks.map((task, i) => {

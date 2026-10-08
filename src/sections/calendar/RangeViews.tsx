@@ -4,6 +4,7 @@ import { format } from '@/lib/dates'
 import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/ui'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDb } from '@/store/db'
 import type { Appointment, BlockedTime, ID, ISODate, TeamMember } from '@/types'
 import { closedPeriodOn, workingWindows } from '@/lib/schedule'
@@ -38,6 +39,7 @@ export function MultiDayView(p: MultiDayProps) {
   const schedule = useScheduleData()
   const btTypes = useDb((s) => s.blockedTimeTypes)
   const today = todayISO()
+  const phone = useIsPhone()
 
   const rows = useMemo(
     () =>
@@ -60,7 +62,10 @@ export function MultiDayView(p: MultiDayProps) {
 
   return (
     <div className="h-full overflow-auto" data-testid="calendar-range-view">
-      <div className="grid min-w-full" style={{ gridTemplateColumns: `110px repeat(${p.days.length}, minmax(${p.days.length > 3 ? 150 : 220}px, 1fr))` }}>
+      <div
+        className={clsx('grid min-w-full [--cal-gutter:64px] md:[--cal-gutter:110px]', p.days.length > 3 ? '[--cal-col:112px] md:[--cal-col:150px]' : '[--cal-col:96px] md:[--cal-col:220px]')}
+        style={{ gridTemplateColumns: `var(--cal-gutter) repeat(${p.days.length}, minmax(var(--cal-col), 1fr))` }}
+      >
         <div className="sticky left-0 top-0 z-30 border-b border-line bg-surface" />
         {p.days.map((date) => {
           const d = parseISO(date)
@@ -70,20 +75,24 @@ export function MultiDayView(p: MultiDayProps) {
               key={date}
               type="button"
               onClick={() => p.onDay(date)}
-              className={clsx('sticky top-0 z-20 flex items-center gap-2 border-b border-line bg-surface px-4 py-5 text-left text-body-lg hover:bg-sunken', date < today ? 'text-subtle' : 'text-ink')}
+              className={clsx(
+                'sticky top-0 z-20 flex items-center gap-2 border-b border-line bg-surface px-4 py-5 text-left text-body-lg hover:bg-sunken max-md:flex-col max-md:gap-0.5 max-md:px-1 max-md:py-2 max-md:text-center',
+                date < today ? 'text-subtle' : 'text-ink',
+              )}
             >
-              <span className={clsx('flex h-9 min-w-9 items-center justify-center rounded-full px-1 tabular', isToday && 'bg-primary font-semibold text-on-primary')}>{d.getDate()}</span>
-              <span className={clsx(isToday && 'font-semibold text-primary')}>{format(d, 'EEEE')}</span>
+              <span className={clsx('flex h-9 min-w-9 items-center justify-center rounded-full px-1 tabular max-md:h-8 max-md:min-w-8', isToday && 'bg-primary font-semibold text-on-primary')}>{d.getDate()}</span>
+              {/* Phones: abbreviated weekday ("qui") under the number. */}
+              <span className={clsx('max-md:text-small', isToday && 'font-semibold text-primary')}>{format(d, phone ? 'EEE' : 'EEEE')}</span>
             </button>
           )
         })}
         {rows.map((row) => (
           <Row key={row.member.id}>
-            <div className="sticky left-0 z-10 flex flex-col items-center justify-center gap-1.5 border-b border-r border-line bg-surface px-2 text-center" style={{ minHeight: row.height }}>
+            <div className="sticky left-0 z-10 flex flex-col items-center justify-center gap-1.5 border-b border-r border-line bg-surface px-2 text-center max-md:gap-1 max-md:px-1" style={{ minHeight: row.height }}>
               <span className="rounded-full p-0.5 ring-2 ring-info-subtle">
-                <Avatar name={memberName(row.member)} color={row.member.color} size={48} />
+                <Avatar name={memberName(row.member)} color={row.member.color} size={phone ? 32 : 48} />
               </span>
-              <span className="line-clamp-2 text-small font-semibold text-ink">{memberName(row.member)}</span>
+              <span className="line-clamp-2 text-small font-semibold text-ink max-md:break-words max-md:text-caption">{memberName(row.member)}</span>
             </div>
             {row.cells.map((cell) => (
               <div
@@ -91,7 +100,7 @@ export function MultiDayView(p: MultiDayProps) {
                 role="button"
                 tabIndex={-1}
                 onClick={() => p.onCell(row.member.id, cell.date)}
-                className="flex cursor-pointer flex-col gap-1 border-b border-l border-line p-1.5 hover:bg-primary-subtle/40"
+                className="flex cursor-pointer flex-col gap-1 border-b border-l border-line p-1.5 hover:bg-primary-subtle/40 max-md:min-w-0 max-md:p-1"
                 style={{ minHeight: row.height, ...(cell.working ? {} : { backgroundImage: HATCH }) }}
                 aria-label={t('calendar.grid.cellLabel', { name: memberName(row.member), date: format(parseISO(cell.date), 'EEE d MMM') })}
               >
@@ -107,12 +116,24 @@ export function MultiDayView(p: MultiDayProps) {
                           e.stopPropagation()
                           p.onBlocked(b)
                         }}
-                        className={clsx('flex h-7 w-full shrink-0 items-center truncate rounded-xs px-1.5 text-left text-small', p.mode !== 'normal' && 'pointer-events-none opacity-40')}
+                        className={clsx(
+                          phone ? 'flex w-full shrink-0 flex-col rounded-xs px-1.5 py-1 text-left text-small' : 'flex h-7 w-full shrink-0 items-center truncate rounded-xs px-1.5 text-left text-small',
+                          p.mode !== 'normal' && 'pointer-events-none opacity-40',
+                        )}
                         style={{ background: BLOCKED_TONE.fill, color: BLOCKED_TONE.text }}
                       >
-                        <span className="truncate tabular">
-                          {p.showRange ? `${b.start} - ${b.end}` : b.start} <b>{b.title || type?.name}</b> {type?.emoji}
-                        </span>
+                        {phone ? (
+                          <>
+                            <span className="truncate tabular">{b.start}</span>
+                            <b className="truncate">
+                              {b.title || type?.name} {type?.emoji}
+                            </b>
+                          </>
+                        ) : (
+                          <span className="truncate tabular">
+                            {p.showRange ? `${b.start} - ${b.end}` : b.start} <b>{b.title || type?.name}</b> {type?.emoji}
+                          </span>
+                        )}
                       </button>
                     )
                   }
@@ -129,10 +150,15 @@ export function MultiDayView(p: MultiDayProps) {
                       selected={p.selectedIds.has(appt.id)}
                       onClick={() => p.onAppointment(appt)}
                       label={
-                        <>
-                          {p.showRange ? `${item.start} - ${apptEnd(appt)}` : item.start} <b>{name}</b>
-                        </>
+                        phone ? (
+                          item.start
+                        ) : (
+                          <>
+                            {p.showRange ? `${item.start} - ${apptEnd(appt)}` : item.start} <b>{name}</b>
+                          </>
+                        )
                       }
+                      sub={phone ? name : undefined}
                     />
                   )
                 })}
@@ -173,17 +199,19 @@ export function MonthView(p: MonthProps) {
   const today = todayISO()
   const month = parseISO(p.date)
   const weeks = Math.ceil(p.days.length / 7)
+  const phone = useIsPhone()
 
   return (
     <div className="flex h-full flex-col overflow-auto" data-testid="calendar-month-view">
       <div className="grid shrink-0 grid-cols-7 border-b border-line bg-surface">
-        {WEEKDAY_NAMES.map((d) => (
-          <span key={d} className="px-3 py-3 text-body text-ink">
-            {t(`calendar.weekdays.${d.toLowerCase()}`)}
+        {WEEKDAY_NAMES.map((d, i) => (
+          <span key={d} className="px-3 py-3 text-body text-ink max-md:px-0 max-md:py-2 max-md:text-center max-md:text-small">
+            {/* Phones: abbreviated weekday ("seg") so seven columns fit. */}
+            {phone ? format(parseISO(p.days[i]), 'EEE') : t(`calendar.weekdays.${d.toLowerCase()}`)}
           </span>
         ))}
       </div>
-      <div className="grid shrink-0 grid-cols-7" style={{ gridTemplateRows: `repeat(${weeks}, minmax(150px, auto))` }}>
+      <div className="grid shrink-0 grid-cols-7 [--cal-row:96px] md:[--cal-row:150px]" style={{ gridTemplateRows: `repeat(${weeks}, minmax(var(--cal-row), auto))` }}>
         {p.days.map((date) => {
           const d = parseISO(date)
           const inMonth = isSameMonth(d, month)
@@ -196,11 +224,11 @@ export function MonthView(p: MonthProps) {
               role="button"
               tabIndex={-1}
               onClick={() => p.onDay(date)}
-              className="flex min-w-0 cursor-pointer flex-col gap-1 border-b border-l border-line p-1.5 hover:bg-primary-subtle/30"
+              className="flex min-w-0 cursor-pointer flex-col gap-1 border-b border-l border-line p-1.5 hover:bg-primary-subtle/30 max-md:gap-0.5 max-md:p-0.5"
               style={!inMonth || !openDay ? { backgroundImage: HATCH } : undefined}
             >
-              <span className={clsx('flex h-6 min-w-6 items-center self-start rounded-full px-1.5 text-small font-semibold tabular', date === today ? 'bg-primary text-on-primary' : inMonth ? 'text-ink' : 'text-subtle')}>
-                {d.getDate() === 1 ? format(d, 'd MMMM') : d.getDate()}
+              <span className={clsx('flex h-6 min-w-6 items-center self-start rounded-full px-1.5 text-small font-semibold tabular max-md:self-center max-md:justify-center', date === today ? 'bg-primary text-on-primary' : inMonth ? 'text-ink' : 'text-subtle')}>
+                {d.getDate() === 1 && !phone ? format(d, 'd MMMM') : d.getDate()}
               </span>
               {shown.map((appt) => {
                 const item = appt.items[0]
@@ -213,10 +241,15 @@ export function MonthView(p: MonthProps) {
                     faded={p.mode === 'pick' && !p.selectedIds.has(appt.id)}
                     selected={p.selectedIds.has(appt.id)}
                     onClick={() => p.onAppointment(appt)}
+                    compact={phone}
                     label={
-                      <>
-                        {item.start} <b>{fullName(appt.clientId ? p.lookups.clientsById.get(appt.clientId) : undefined, t('calendar.walkIn'))}</b>
-                      </>
+                      phone ? (
+                        item.start
+                      ) : (
+                        <>
+                          {item.start} <b>{fullName(appt.clientId ? p.lookups.clientsById.get(appt.clientId) : undefined, t('calendar.walkIn'))}</b>
+                        </>
+                      )
                     }
                   />
                 )
@@ -228,7 +261,7 @@ export function MonthView(p: MonthProps) {
                     e.stopPropagation()
                     p.onDay(date)
                   }}
-                  className="self-start rounded-xs px-1.5 text-small font-semibold text-primary hover:underline"
+                  className="self-start rounded-xs px-1.5 text-small font-semibold text-primary hover:underline max-md:self-center max-md:whitespace-nowrap max-md:px-0 max-md:text-[11px]"
                 >
                   {t('calendar.grid.more', { count: appts.length - MAX_CHIPS })}
                 </button>

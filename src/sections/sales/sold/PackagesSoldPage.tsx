@@ -10,7 +10,7 @@ import { todayISO } from '@/lib/time'
 import { fmtDateEU, money2 } from '@/lib/format'
 import { exportCsv, exportedFileName } from '@/lib/export'
 import type { ClientPackage } from '@/types'
-import { OptionsMenu, PILL, TableLink } from '../shared/ui'
+import { HiddenHeader, OptionsMenu, PILL, TableLink } from '../shared/ui'
 import { matches, useLookups } from '../shared/data'
 import { NoResults } from '../lists/AppointmentsListPage'
 
@@ -91,7 +91,7 @@ export function PackagesSoldPage() {
     { key: 'status', header: t('sales.packages.cols.status'), cell: (r) => <Chip tone={TONES[r.status]}>{t(`sales.packages.status.${r.status}`)}</Chip> },
     {
       key: 'actions',
-      header: <span className="sr-only">{t('sales.common.actions')}</span>,
+      header: <HiddenHeader>{t('sales.common.actions')}</HiddenHeader>,
       width: '56px',
       cell: (r) => (
         <Menu

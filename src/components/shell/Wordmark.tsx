@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
 /** Placeholder wordmark (SPEC §3): to be replaced with the real logo. */
-export function Wordmark({ inverted = false }: { inverted?: boolean }) {
+/** `compact`: only the icon on very narrow screens. */
+export function Wordmark({ inverted = false, compact = false }: { inverted?: boolean; compact?: boolean }) {
   const { t } = useTranslation()
   return (
     <span className="inline-flex items-center gap-2 select-none" aria-label={t('brand.name')}>
@@ -17,7 +18,7 @@ export function Wordmark({ inverted = false }: { inverted?: boolean }) {
         </text>
         <circle cx="25" cy="21" r="2.5" className="fill-accent" />
       </svg>
-      <span className={`font-display text-[19px] font-bold leading-none tracking-tight ${inverted ? 'text-on-primary' : 'text-ink'}`}>
+      <span className={`whitespace-nowrap font-display text-[19px] font-bold leading-none tracking-tight ${inverted ? 'text-on-primary' : 'text-ink'} ${compact ? 'hidden min-[400px]:inline' : ''}`}>
         {t('brand.short')}
         <span className={inverted ? 'text-accent' : 'text-primary'}> {t('brand.product')}</span>
       </span>

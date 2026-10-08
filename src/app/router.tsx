@@ -19,7 +19,12 @@ function toRoute(page: PageDef): RouteObject {
   const element = SectionPage ? <SectionPage /> : <StubPage page={page} />
   return {
     path: page.path,
-    element: <RequireSection section={page.section}>{element}</RequireSection>,
+    // Keyed by page so routes sharing a component (add / edit) don't carry state over.
+    element: (
+      <RequireSection key={page.id} section={page.section}>
+        {element}
+      </RequireSection>
+    ),
   }
 }
 

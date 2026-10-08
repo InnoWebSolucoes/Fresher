@@ -49,19 +49,19 @@ function exportTables(summary: DailySummary, t: Translate, format: ExportFormat)
   ]
 }
 
-/** Numeric columns sit closer together so Portuguese headers stay on one line. */
-const cellPad = (i: number, count: number) => (i === 0 ? 'pl-6 pr-3' : i === count - 1 ? 'pl-3 pr-6' : 'px-3')
+/** Numeric columns sit closer together so Portuguese headers stay on one line (on phones they wrap so the table fits). */
+const cellPad = (i: number, count: number) => (i === 0 ? 'pl-4 pr-1 md:pl-6 md:pr-3' : i === count - 1 ? 'pl-1.5 pr-4 md:pl-3 md:pr-6' : 'px-1.5 md:px-3')
 
 function SummaryCard({ title, headers, children }: { title: string; headers: string[]; children: ReactNode }) {
   return (
     <section className="card overflow-hidden">
-      <h2 className="px-6 pb-2 pt-6 font-display text-title-3 text-ink">{title}</h2>
+      <h2 className="px-4 pb-1 pt-5 font-display text-title-3 text-ink md:px-6 md:pb-2 md:pt-6">{title}</h2>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[420px] text-body">
+        <table className="w-full text-body md:min-w-[420px]">
           <thead>
             <tr className="border-b border-line">
               {headers.map((h, i) => (
-                <th key={h} scope="col" className={clsx('py-4 text-body-strong text-ink', cellPad(i, headers.length), i === 0 ? 'text-left' : 'whitespace-nowrap text-right')}>
+                <th key={h} scope="col" className={clsx('py-3 align-bottom text-body-strong text-ink md:py-4 md:align-middle', cellPad(i, headers.length), i === 0 ? 'text-left' : 'text-right md:whitespace-nowrap')}>
                   {h}
                 </th>
               ))}
@@ -78,7 +78,7 @@ function Row({ cells, strong }: { cells: ReactNode[]; strong?: boolean }) {
   return (
     <tr className="border-b border-line last:border-0">
       {cells.map((c, i) => (
-        <td key={i} className={clsx('py-4', cellPad(i, cells.length), i === 0 ? 'text-left' : 'whitespace-nowrap text-right tabular', strong ? 'font-semibold text-ink' : 'text-ink')}>
+        <td key={i} className={clsx('py-3 md:py-4', cellPad(i, cells.length), i === 0 ? 'text-left' : 'whitespace-nowrap text-right tabular', strong ? 'font-semibold text-ink' : 'text-ink')}>
           {c}
         </td>
       ))}
@@ -113,6 +113,7 @@ export function DailySalesPage() {
   }
   const shift = (days: number) => setDate(toISODate(addDays(parseISO(date), days)))
   const dayLabel = format(parseISO(date), 'EEEE, d MMM yyyy')
+  const shortDayLabel = format(parseISO(date), 'EEE, d MMM yyyy')
 
   const onExport = async (fmt: ExportFormat) => {
     const name = exportedFileName()
@@ -145,25 +146,27 @@ export function DailySalesPage() {
         }
       />
 
-      <div className="relative mb-6 inline-flex">
-        <div className="inline-flex items-stretch divide-x divide-line overflow-hidden rounded-full border border-line-strong bg-surface">
-          <button type="button" className={clsx(navButton, 'w-11')} onClick={() => shift(-1)} aria-label={t('sales.daily.previousDay')}>
+      <div className="relative mb-5 inline-flex max-w-full md:mb-6">
+        <div className="inline-flex max-w-full items-stretch divide-x divide-line overflow-hidden rounded-full border border-line-strong bg-surface">
+          <button type="button" className={clsx(navButton, 'w-11 shrink-0')} onClick={() => shift(-1)} aria-label={t('sales.daily.previousDay')}>
             <ChevronLeft size={18} aria-hidden />
           </button>
-          <button type="button" className={clsx(navButton, 'px-4')} onClick={() => setDate(today)}>
+          <button type="button" className={clsx(navButton, 'shrink-0 px-4')} onClick={() => setDate(today)}>
             {t('sales.daily.today')}
           </button>
-          <button type="button" className={clsx(navButton, 'px-5', picker && 'bg-sunken')} onClick={() => setPicker((o) => !o)} aria-haspopup="dialog" aria-expanded={picker}>
-            {dayLabel}
+          <button type="button" className={clsx(navButton, 'min-w-0 whitespace-nowrap px-4 md:px-5', picker && 'bg-sunken')} onClick={() => setPicker((o) => !o)} aria-haspopup="dialog" aria-expanded={picker}>
+            {/* Phones show the short weekday so the navigator fits on one line. */}
+            <span className="md:hidden">{shortDayLabel}</span>
+            <span className="hidden md:inline">{dayLabel}</span>
           </button>
-          <button type="button" className={clsx(navButton, 'w-11')} onClick={() => shift(1)} disabled={date >= today} aria-label={t('sales.daily.nextDay')}>
+          <button type="button" className={clsx(navButton, 'w-11 shrink-0')} onClick={() => shift(1)} disabled={date >= today} aria-label={t('sales.daily.nextDay')}>
             <ChevronRight size={18} aria-hidden />
           </button>
         </div>
         {picker && <DayPicker value={date} max={today} onPick={setDate} onClose={() => setPicker(false)} />}
       </div>
 
-      <div className="grid items-start gap-6 xl:grid-cols-2">
+      <div className="grid items-start gap-4 md:gap-6 xl:grid-cols-2">
         <SummaryCard title={t('sales.daily.transactionSummary')} headers={[t('sales.daily.cols.itemType'), t('sales.daily.cols.salesQty'), t('sales.daily.cols.refundQty'), t('sales.daily.cols.grossTotal')]}>
           {rows.transactions.map((r) => (
             <Row key={r.label} strong={r.strong} cells={[r.label, r.salesQty, r.refundQty, money2(r.gross)]} />

@@ -181,18 +181,18 @@ function Wizard({ seed }: { seed: WizardSeed }) {
   const header = (
     <>
       {step > 1 && (
-        <Button variant="ghost" icon={<ArrowLeft size={16} />} onClick={() => setStep(step - 1)}>
-          {t('team.common.goBack')}
+        <Button variant="ghost" icon={<ArrowLeft size={16} />} onClick={() => setStep(step - 1)} aria-label={t('team.common.goBack')} className="max-md:w-10 max-md:px-0">
+          <span className="hidden md:inline">{t('team.common.goBack')}</span>
         </Button>
       )}
       {!tipsMode && step === 2 && (
-        <Button variant="ghost" loading={busy} disabled={included.length === 0} onClick={() => void saveDraft('draft')}>
+        <Button variant="ghost" loading={busy} disabled={included.length === 0} onClick={() => void saveDraft('draft')} className="max-md:px-2">
           {t('team.payRunNew.saveExit')}
         </Button>
       )}
       {last ? (
         <>
-          <span className="px-2 text-body text-muted" aria-live="polite">
+          <span className="px-0 text-body text-muted md:px-2" aria-live="polite">
             {t('team.payRunNew.reviewed', { n: reviewedCount, total: 1 })}
           </span>
           <Button variant="primary" loading={busy} disabled={lines.length === 0 || (review === 'approved' && (cashShort || walletShort))} onClick={complete}>
@@ -202,7 +202,7 @@ function Wizard({ seed }: { seed: WizardSeed }) {
       ) : (
         <Button variant="primary" disabled={continueDisabled} onClick={() => setStep(step + 1)}>
           {t('team.common.continue')}
-          <ArrowRight size={16} aria-hidden />
+          <ArrowRight size={16} className="max-md:hidden" aria-hidden />
         </Button>
       )}
     </>
@@ -212,9 +212,9 @@ function Wizard({ seed }: { seed: WizardSeed }) {
   if (typesStep) {
     body = (
       <div className="mx-auto max-w-3xl">
-        <h1 className="font-display text-title-1 text-ink">{t('team.payRunNew.typesTitle')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.payRunNew.typesTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.payRunNew.typesBody')}</p>
-        <div className="card flex flex-col gap-5 p-8">
+        <div className="card flex flex-col gap-5 p-5 md:p-8">
           {PAY_KINDS.map((k) => (
             <Checkbox key={k} label={t(`team.pay.kinds.${k}`)} hint={t(`team.payRunNew.typeHints.${k}`)} checked={includes.includes(k)} onChange={(v) => setIncludes(v ? PAY_KINDS.filter((x) => x === k || includes.includes(x)) : includes.filter((x) => x !== k))} />
           ))}
@@ -227,9 +227,9 @@ function Wizard({ seed }: { seed: WizardSeed }) {
     const walletLeft = round2(wallet.available - walletTotal)
     body = (
       <>
-        <h1 className="font-display text-title-1 text-ink">{t('team.payRunNew.tipsTitle')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.payRunNew.tipsTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.payRunNew.tipsBody')}</p>
-        <SearchInput value={q} onChange={setQ} placeholder={t('team.payRunNew.searchMembers')} className="mb-5 max-w-[320px]" />
+        <SearchInput value={q} onChange={setQ} placeholder={t('team.payRunNew.searchMembers')} className="mb-5 md:max-w-[320px]" />
         {!session && <p className="mb-4 rounded-md bg-warning-subtle px-4 py-3 text-body text-warning">{t('team.payRunNew.registerClosed')}</p>}
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           <StatCard label={<LabelWithTip label={t('team.payRunNew.totalTips')} tip={t('team.payRunNew.info.totalTip')} />} value={money(total)} />
@@ -242,29 +242,31 @@ function Wizard({ seed }: { seed: WizardSeed }) {
           </div>
         ) : (
           <div role="table" aria-label={t('team.payRunNew.tipsTitle')}>
-            <div role="row" className="grid grid-cols-[40px_minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(200px,1fr)] items-center gap-4 px-5 pb-3">
+            <div role="row" className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 md:grid-cols-[40px_minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(200px,1fr)] md:gap-4 md:px-5">
               <span role="columnheader">
                 <TriCheckbox label={t('team.payRunNew.includeAll')} checked={allIncluded} mixed={included.length > 0 && !allIncluded} disabled={includable.length === 0} onChange={(v) => setSelection(v ? includable : [])} />
               </span>
               <span role="columnheader" className="text-body-strong text-ink">{t('team.pay.cols.member')}</span>
-              <span role="columnheader" className="text-body-strong text-ink">{t('team.payRunNew.unpaidTips')}</span>
-              <span role="columnheader" className="text-body-strong text-ink">{t('team.payRunNew.payWith')}</span>
+              <span role="columnheader" className="text-right text-body-strong text-ink md:text-left">{t('team.payRunNew.unpaidTips')}</span>
+              <span role="columnheader" className="hidden text-body-strong text-ink md:block">{t('team.payRunNew.payWith')}</span>
             </div>
             <div className="flex flex-col gap-3">
               {visible.map(({ e, tips }) => (
-                <div role="row" key={e.member.id} className="card grid grid-cols-[40px_minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(200px,1fr)] items-center gap-4 px-5 py-4">
+                <div role="row" key={e.member.id} className="card grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 md:grid-cols-[40px_minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(200px,1fr)] md:gap-4 md:px-5">
                   <span role="cell">
                     <TriCheckbox label={t('team.payRunNew.includeMember', { name: memberName(e.member) })} checked={included.includes(e.member.id)} onChange={(v) => toggle(e.member.id, v)} />
                   </span>
                   <span role="cell" className="flex min-w-0 items-center gap-3">
-                    <MemberAvatar member={e.member} size={48} />
+                    <MemberAvatar member={e.member} size={40} className="md:hidden" />
+                    <MemberAvatar member={e.member} size={48} className="hidden md:inline-flex" />
                     <span className="min-w-0">
-                      <span className="block truncate text-body-strong text-ink">{memberName(e.member)}</span>
+                      <span className="block break-words text-body-strong text-ink md:truncate">{memberName(e.member)}</span>
                       <span className="block truncate text-small text-muted">{e.member.email}</span>
                     </span>
                   </span>
-                  <span role="cell" className="tabular text-body-lg text-ink">{money(tips)}</span>
-                  <span role="cell">
+                  <span role="cell" className="text-right tabular text-body-lg text-ink md:text-left">{money(tips)}</span>
+                  {/* Phones: the pay-with select drops onto its own line under the member. */}
+                  <span role="cell" className="col-span-2 col-start-2 md:col-span-1 md:col-start-auto">
                     <Select
                       aria-label={t('team.payRunNew.payWithFor', { name: memberName(e.member) })}
                       value={methodOf(e.member.id)}
@@ -282,12 +284,12 @@ function Wizard({ seed }: { seed: WizardSeed }) {
     )
   } else if (membersStep) {
     const kinds = PAY_KINDS.filter((k) => includes.includes(k))
-    const cols = `40px minmax(220px,1.8fr) ${kinds.map(() => 'minmax(84px,1fr)').join(' ')} minmax(84px,1fr) minmax(72px,0.9fr) minmax(84px,1fr)`
+    const cols = `40px minmax(var(--member-col),1.8fr) ${kinds.map(() => 'minmax(84px,1fr)').join(' ')} minmax(84px,1fr) minmax(72px,0.9fr) minmax(84px,1fr)`
     const sum = (f: (r: (typeof includedRows)[number]) => number) => round2(includedRows.reduce((s, r) => s + f(r), 0))
     const otherSum = sum((r) => r.row.earned.other)
     body = (
       <>
-        <h1 className="font-display text-title-1 text-ink">{t('team.payRunNew.summaryTitle')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.payRunNew.summaryTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.payRunNew.summaryBody')}</p>
         <div className="card mb-5 flex flex-wrap items-center justify-between gap-4 px-5 py-4">
           <div className="text-body text-ink">
@@ -296,20 +298,21 @@ function Wizard({ seed }: { seed: WizardSeed }) {
           </div>
           <SearchInput value={q} onChange={setQ} placeholder={t('team.pay.searchName')} className="max-w-[460px]" />
         </div>
-        <div className="mb-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-5">
           <StatCard label={<LabelWithTip label={t('team.pay.earnings')} tip={t('team.payRunNew.info.earnings')} />} value={money(round2(sum((r) => r.row.total) - otherSum))} />
           <StatCard label={<LabelWithTip label={t('team.pay.kinds.other')} tip={t('team.payRunNew.info.other')} />} value={money(otherSum)} />
           <StatCard label={<LabelWithTip label={t('team.pay.total')} tip={t('team.payRunNew.info.total')} />} value={money(sum((r) => r.row.total))} />
           <StatCard label={<LabelWithTip label={t('team.pay.paid')} tip={t('team.payRunNew.info.paid')} />} value={money(sum((r) => r.row.paid))} />
-          <StatCard label={<LabelWithTip label={t('team.pay.toPay')} tip={t('team.payRunNew.info.toPay')} />} value={money(total)} />
+          <StatCard label={<LabelWithTip label={t('team.pay.toPay')} tip={t('team.payRunNew.info.toPay')} />} value={money(total)} className="col-span-2 sm:col-span-1" />
         </div>
+        {/* Phones: the summary scrolls sideways inside this strip with the member column pinned on the left. */}
         <div className="overflow-x-auto pb-2">
-          <div role="table" aria-label={t('team.payRunNew.summaryTitle')} className="min-w-[860px]">
+          <div role="table" aria-label={t('team.payRunNew.summaryTitle')} className="min-w-[760px] [--member-col:150px] md:min-w-[860px] md:[--member-col:220px]">
             <div role="row" className="grid items-center gap-3 px-5 pb-3" style={{ gridTemplateColumns: cols }}>
               <span role="columnheader">
                 <TriCheckbox label={t('team.payRunNew.includeAll')} checked={allIncluded} mixed={included.length > 0 && !allIncluded} disabled={includable.length === 0} onChange={(v) => setSelection(v ? includable : [])} />
               </span>
-              <span role="columnheader" className="text-body-strong text-ink">{t('team.pay.cols.member')}</span>
+              <span role="columnheader" className="text-body-strong text-ink max-md:sticky max-md:left-0 max-md:z-[1] max-md:self-stretch max-md:bg-canvas max-md:py-1">{t('team.pay.cols.member')}</span>
               {kinds.map((k) => (
                 <span key={k} role="columnheader" className="text-right text-body-strong text-ink">{t(`team.pay.kinds.${k}`)}</span>
               ))}
@@ -327,10 +330,11 @@ function Wizard({ seed }: { seed: WizardSeed }) {
                     <span role="cell" title={canInclude ? undefined : t('team.payRunNew.nothingToPay')}>
                       <TriCheckbox label={t('team.payRunNew.includeMember', { name })} checked={included.includes(e.member.id)} disabled={!canInclude} onChange={(v) => toggle(e.member.id, v)} />
                     </span>
-                    <span role="cell" className="flex min-w-0 items-center gap-3 border-r border-line pr-3">
-                      <MemberAvatar member={e.member} size={52} />
+                    <span role="cell" className="flex min-w-0 items-center gap-2 border-r border-line pr-3 max-md:sticky max-md:left-0 max-md:z-[1] max-md:self-stretch max-md:bg-surface md:gap-3">
+                      <MemberAvatar member={e.member} size={36} className="md:hidden" />
+                      <MemberAvatar member={e.member} size={52} className="hidden md:inline-flex" />
                       <span className="min-w-0">
-                        <span className="block truncate text-body-strong text-ink">{name}</span>
+                        <span className="block break-words text-body-strong text-ink md:truncate">{name}</span>
                         <PortalMenu
                           align="left"
                           groups={[
@@ -368,9 +372,9 @@ function Wizard({ seed }: { seed: WizardSeed }) {
     const groups = (['manual', 'cash_register', 'wallet'] as const).map((m) => ({ m, ls: lines.filter((l) => methodOf(l.teamMemberId) === m) })).filter((g) => g.ls.length)
     body = (
       <div className="mx-auto max-w-5xl">
-        <h1 className="font-display text-title-1 text-ink">{t('team.payRunNew.reviewTitle')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.payRunNew.reviewTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.payRunNew.reviewBody')}</p>
-        <div className="card p-8">
+        <div className="card p-5 md:p-8">
           <div className="grid gap-8 md:grid-cols-2 md:divide-x md:divide-line">
             <div>
               <div className="flex items-center gap-4">
@@ -414,7 +418,7 @@ function Wizard({ seed }: { seed: WizardSeed }) {
               {(cashShort || walletShort) && <p className="mt-4 text-small text-danger">{t(cashShort ? (session ? 'team.payRunNew.errors.notEnoughCash' : 'team.payRunNew.errors.registerClosed') : 'team.payRunNew.errors.notEnoughWallet')}</p>}
             </div>
           </div>
-          <div className="mt-8 grid items-center gap-6 border-t border-line pt-8 md:grid-cols-2">
+          <div className="mt-6 grid items-center gap-6 border-t border-line pt-6 md:mt-8 md:grid-cols-2 md:pt-8">
             <div>
               {note ? (
                 <div className="inline-flex max-w-full items-start gap-3 rounded-lg border border-line p-4">

@@ -89,18 +89,24 @@ function DrawerBody({ onClose, insights, onGate, config, onSave, groupings, colu
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" aria-label={t('reports.common.closeDrawer')} tabIndex={-1} className="absolute inset-0 cursor-default bg-transparent" onClick={onClose} />
       <div className="relative flex h-full animate-[slideIn_var(--dur-slow)_var(--ease)]">
-        <button type="button" onClick={onClose} aria-label={t('reports.common.closeDrawer')} className="absolute -left-16 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
+        <button type="button" onClick={onClose} aria-label={t('reports.common.closeDrawer')} className="absolute -left-16 top-4 hidden h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken md:flex">
           <X size={20} aria-hidden />
         </button>
-        <div role="dialog" aria-modal="true" aria-label={t(`reports.customize.${titleKey}`)} className="flex h-full w-[600px] max-w-[100vw] flex-col bg-surface shadow-lg">
-          <div className="min-h-0 flex-1 overflow-y-auto px-10 py-6">
+        <div role="dialog" aria-modal="true" aria-label={t(`reports.customize.${titleKey}`)} className="flex h-full w-screen max-w-[100vw] flex-col bg-surface shadow-lg md:w-[600px]">
+          {/* Phones: full-screen panel with the close button in a bar on top. */}
+          <div className="flex h-12 shrink-0 items-center justify-end border-b border-line px-2 md:hidden">
+            <button type="button" onClick={onClose} aria-label={t('reports.common.closeDrawer')} className="icon-btn">
+              <X size={20} aria-hidden />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-10 md:py-6">
             {view !== 'root' && (
               <Button icon={<ArrowLeft size={16} />} className="mb-5 rounded-full" onClick={() => setView('root')}>
                 {t('reports.page.back')}
               </Button>
             )}
-            <h2 className="font-display text-title-1 text-ink">{t(`reports.customize.${titleKey}`)}</h2>
-            {subtitle && <p className="mt-1 text-body-lg text-muted">{subtitle}</p>}
+            <h2 className="font-display text-title-2 text-ink md:text-title-1">{t(`reports.customize.${titleKey}`)}</h2>
+            {subtitle && <p className="mt-1 text-body text-muted md:text-body-lg">{subtitle}</p>}
             {!insights && <InsightsBanner onGate={onGate} />}
             {insights && view === 'root' && <p className="mt-2 text-body text-muted">{t('reports.customize.intro')}</p>}
 
@@ -192,7 +198,7 @@ function DrawerBody({ onClose, insights, onGate, config, onSave, groupings, colu
             )}
           </div>
           {insights && (
-            <div className="flex items-center justify-between gap-2 border-t border-line px-10 py-4">
+            <div className="flex items-center justify-between gap-2 border-t border-line px-4 py-3 md:px-10 md:py-4">
               <Button variant="ghost" loading={busy === 'reset'} onClick={() => void reset()}>
                 {t('reports.customize.reset')}
               </Button>

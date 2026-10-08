@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
 import { Button, DataTable, EmptyState, IntroPage, LearnMore, Menu, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, Toolbar, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
+import { useIsPhone } from '@/components/ui/responsive'
 import { fmtDateTimeUS } from '@/lib/format'
 import type { Stocktake } from '@/types'
 import { FiltersButton, SortButton, useIntroProps } from '../ui'
@@ -19,6 +20,7 @@ const openPath = (s: Stocktake) => (s.status === 'completed' || s.status === 'ca
 export function StocktakesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const phone = useIsPhone()
   const loading = usePageLoading()
   const intro = useIntroProps(t('catalog.inventory.stocktakes.title'))
   const stocktakes = useDb((s) => s.stocktakes)
@@ -66,6 +68,24 @@ export function StocktakesPage() {
       </Page>
     )
 
+  const actionsColumn: Column<Stocktake> = {
+    key: 'actions',
+    header: '',
+    width: '56px',
+    cell: (s) => (
+      <Menu
+        label={t('catalog.common.actions')}
+        groups={[
+          {
+            items: [
+              { label: t('catalog.inventory.stocktakes.view'), onSelect: () => navigate(`/catalogue/stocktakes/${s.id}`) },
+              ...(s.status === 'completed' || s.status === 'cancelled' ? [] : [{ label: t('catalog.inventory.stocktakes.resume'), onSelect: () => navigate(`/catalogue/stocktakes/${s.id}/count`) }]),
+            ],
+          },
+        ]}
+      />
+    ),
+  }
   const columns: Column<Stocktake>[] = [
     {
       key: 'name',
@@ -81,24 +101,31 @@ export function StocktakesPage() {
     { key: 'status', header: t('catalog.inventory.stocktakes.cols.status'), cell: (s) => <InventoryStatus status={s.status} /> },
     { key: 'started', header: t('catalog.inventory.stocktakes.cols.started'), sortValue: (s) => s.startedAt, cell: (s) => fmtDateTimeUS(parseISO(s.startedAt)) },
     { key: 'completed', header: t('catalog.inventory.stocktakes.cols.completed'), sortValue: (s) => s.completedAt ?? '', cell: (s) => (s.completedAt ? fmtDateTimeUS(parseISO(s.completedAt)) : '-') },
+    actionsColumn,
+  ]
+  // Phones: name, location, status and dates in one column, plus the actions menu.
+  const phoneColumns: Column<Stocktake>[] = [
     {
-      key: 'actions',
-      header: '',
-      width: '56px',
+      key: 'name',
+      header: t('catalog.inventory.stocktakes.cols.name'),
       cell: (s) => (
-        <Menu
-          label={t('catalog.common.actions')}
-          groups={[
-            {
-              items: [
-                { label: t('catalog.inventory.stocktakes.view'), onSelect: () => navigate(`/catalogue/stocktakes/${s.id}`) },
-                ...(s.status === 'completed' || s.status === 'cancelled' ? [] : [{ label: t('catalog.inventory.stocktakes.resume'), onSelect: () => navigate(`/catalogue/stocktakes/${s.id}/count`) }]),
-              ],
-            },
-          ]}
-        />
+        <div className="flex max-w-[calc(100vw-138px)] flex-col items-start gap-1 whitespace-normal">
+          <p className="break-words text-body-strong text-ink">{s.name}</p>
+          <p className="text-small text-muted">{locations.find((l) => l.id === s.locationId)?.name}</p>
+          <InventoryStatus status={s.status} />
+          <p className="text-small text-muted">
+            {t('catalog.inventory.stocktakes.cols.started')}: {fmtDateTimeUS(parseISO(s.startedAt))}
+            {s.completedAt && (
+              <>
+                <br />
+                {t('catalog.inventory.stocktakes.cols.completed')}: {fmtDateTimeUS(parseISO(s.completedAt))}
+              </>
+            )}
+          </p>
+        </div>
       ),
     },
+    actionsColumn,
   ]
 
   const statuses: Stocktake['status'][] = ['in_progress', 'paused', 'draft', 'completed', 'cancelled']
@@ -120,7 +147,7 @@ export function StocktakesPage() {
         }
       />
       <Toolbar>
-        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.stocktakes.search')} className="max-w-sm" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.stocktakes.search')} className="max-w-sm max-md:max-w-none max-md:basis-full" />
         <FiltersButton
           count={status === 'all' ? 0 : 1}
           onClick={() => {
@@ -137,7 +164,7 @@ export function StocktakesPage() {
         </div>
       </Toolbar>
       <DataTable
-        columns={columns}
+        columns={phone ? phoneColumns : columns}
         rows={rows}
         rowKey={(s) => s.id}
         onRowClick={(s) => navigate(openPath(s))}

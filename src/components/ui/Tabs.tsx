@@ -7,10 +7,13 @@ export interface TabItem<T extends string> {
   count?: number
 }
 
+/** Phones: one row that scrolls sideways (no visible scrollbar) instead of wrapping or overflowing. */
+const PHONE_STRIP = 'max-md:flex-nowrap max-md:overflow-x-auto max-md:overflow-y-hidden max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden'
+
 /** Pill tabs (selected = ink fill), as on list pages. */
 export function PillTabs<T extends string>({ value, onChange, items, className }: { value: T; onChange: (v: T) => void; items: TabItem<T>[]; className?: string }) {
   return (
-    <div role="tablist" className={clsx('flex flex-wrap gap-2', className)}>
+    <div role="tablist" className={clsx('flex flex-wrap gap-2', PHONE_STRIP, 'max-md:p-px', className)}>
       {items.map((item) => (
         <button
           key={item.value}
@@ -18,7 +21,7 @@ export function PillTabs<T extends string>({ value, onChange, items, className }
           role="tab"
           aria-selected={value === item.value}
           onClick={() => onChange(item.value)}
-          className={clsx('inline-flex h-9 items-center gap-2 rounded-full px-4 text-body-strong transition-colors', value === item.value ? 'bg-ink text-canvas' : 'bg-surface text-ink ring-1 ring-line hover:bg-sunken')}
+          className={clsx('inline-flex h-9 items-center gap-2 rounded-full px-4 text-body-strong transition-colors max-md:shrink-0 max-md:whitespace-nowrap', value === item.value ? 'bg-ink text-canvas' : 'bg-surface text-ink ring-1 ring-line hover:bg-sunken')}
         >
           {item.label}
           {item.count !== undefined && <span className={clsx('rounded-full px-1.5 text-caption', value === item.value ? 'bg-canvas/20' : 'bg-sunken text-muted')}>{item.count}</span>}
@@ -31,7 +34,7 @@ export function PillTabs<T extends string>({ value, onChange, items, className }
 /** Underline tabs for drawers and detail pages. */
 export function UnderlineTabs<T extends string>({ value, onChange, items, className }: { value: T; onChange: (v: T) => void; items: TabItem<T>[]; className?: string }) {
   return (
-    <div role="tablist" className={clsx('flex gap-6 border-b border-line', className)}>
+    <div role="tablist" className={clsx('flex gap-6 border-b border-line', PHONE_STRIP, 'max-md:border-b-0 max-md:shadow-[inset_0_-1px_0_rgb(var(--border))]', className)}>
       {items.map((item) => (
         <button
           key={item.value}
@@ -39,7 +42,7 @@ export function UnderlineTabs<T extends string>({ value, onChange, items, classN
           role="tab"
           aria-selected={value === item.value}
           onClick={() => onChange(item.value)}
-          className={clsx('-mb-px inline-flex items-center gap-2 border-b-2 pb-3 pt-1 text-body-strong transition-colors', value === item.value ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink')}
+          className={clsx('inline-flex items-center gap-2 border-b-2 pb-3 pt-1 text-body-strong transition-colors max-md:shrink-0 max-md:whitespace-nowrap md:-mb-px', value === item.value ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink')}
         >
           {item.label}
           {item.count !== undefined && <span className="chip h-5 bg-sunken px-1.5 text-caption text-muted">{item.count}</span>}
@@ -52,7 +55,7 @@ export function UnderlineTabs<T extends string>({ value, onChange, items, classN
 /** Segmented control (e.g. Refund item | Refund amount, € | %). */
 export function Segmented<T extends string>({ value, onChange, items, className }: { value: T; onChange: (v: T) => void; items: TabItem<T>[]; className?: string }) {
   return (
-    <div role="radiogroup" className={clsx('inline-flex rounded-md bg-sunken p-1', className)}>
+    <div role="radiogroup" className={clsx('inline-flex rounded-md bg-sunken p-1 max-md:max-w-full max-md:overflow-x-auto', className)}>
       {items.map((item) => (
         <button
           key={item.value}
@@ -60,7 +63,7 @@ export function Segmented<T extends string>({ value, onChange, items, className 
           role="radio"
           aria-checked={value === item.value}
           onClick={() => onChange(item.value)}
-          className={clsx('h-8 rounded-sm px-3 text-small transition-colors', value === item.value ? 'bg-surface text-ink shadow-xs' : 'text-muted hover:text-ink')}
+          className={clsx('h-8 rounded-sm px-3 text-small transition-colors max-md:shrink-0 max-md:whitespace-nowrap', value === item.value ? 'bg-surface text-ink shadow-xs' : 'text-muted hover:text-ink')}
         >
           {item.label}
         </button>

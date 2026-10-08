@@ -2,6 +2,8 @@
 
 A front-end-only, fully clickable demo of a salon and wellness business workspace: calendar, checkout, sales, clients, catalog, online booking, marketing, team, reports, add-ons and settings. Everything runs in the browser on seeded mock data (a Porto salon, "Studio Aliados", with two locations). Nothing is sent anywhere: emails, SMS and payments are simulated.
 
+It works on phones, tablets and desktops.
+
 The app is in **European Portuguese** by default, with **English** as the second language: use the **PT | EN** switch in the top bar, the user menu or the login screen. The choice is remembered in the browser.
 
 - Brief: [SPEC.md](SPEC.md) · Reference → route map: [REFERENCE_MAP.md](REFERENCE_MAP.md) · Design tokens: [DESIGN_TOKENS.md](DESIGN_TOKENS.md) · Status: [PROGRESS.md](PROGRESS.md) · Conventions: [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md)
@@ -28,7 +30,7 @@ Other scripts: `npm run typecheck`, `npm run lint`, `npm test` (Vitest), `npm ru
 
 The login screen has buttons that fill in the owner and front-desk accounts. **Forgot password** sends the reset link to the demo outbox. What each role can open comes from **Settings › Team › Permission roles**: switch an area on or off there and the menu changes for everyone in that role.
 
-## Presenter tools (`Ctrl+Shift+D`)
+## Presenter tools (`Ctrl+Shift+D`, or add `?demo=1` to the URL on a phone or tablet)
 
 A hidden panel for driving the demo:
 

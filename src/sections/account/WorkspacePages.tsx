@@ -60,8 +60,8 @@ export function WorkspacesPage() {
         }
       />
       <h2 className="mb-3 font-display text-title-3 text-ink">{t('account.workspaces.active')}</h2>
-      <article className="card flex flex-wrap items-center gap-5 p-5">
-        <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/30 to-accent/40 text-primary">
+      <article className="card flex flex-wrap items-center gap-4 p-4 md:gap-5 md:p-5">
+        <div className="flex h-14 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/30 to-accent/40 text-primary md:h-20 md:w-28">
           <Building2 size={28} aria-hidden />
         </div>
         <div className="min-w-0 flex-1">
@@ -104,8 +104,8 @@ function PendingWorkspace({ request }: { request: PendingRequest }) {
     }
   }
   return (
-    <li className="card flex flex-wrap items-center gap-5 p-5">
-      <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-md bg-sunken text-muted">
+    <li className="card flex flex-wrap items-center gap-4 p-4 md:gap-5 md:p-5">
+      <div className="flex h-14 w-16 shrink-0 items-center justify-center rounded-md bg-sunken text-muted md:h-20 md:w-28">
         <Building2 size={28} aria-hidden />
       </div>
       <div className="min-w-0 flex-1">
@@ -238,7 +238,7 @@ export function WorkspaceSettingsPage() {
     <div className="mx-auto max-w-[1120px]">
       <div className="mb-6 flex items-center gap-4">
         {back}
-        <nav aria-label={t('account.common.breadcrumb')} className="flex items-center gap-2 text-body">
+        <nav aria-label={t('account.common.breadcrumb')} className="flex min-w-0 flex-wrap items-center gap-x-2 text-body md:gap-2">
           <button type="button" className="text-muted hover:text-ink hover:underline" onClick={() => navigate('/user-account/workspaces')}>
             {t('account.settings.breadcrumb')}
           </button>
@@ -600,7 +600,7 @@ function PrefsModal({ user, prefs, onClose }: { user: User; prefs: NotificationP
       }
     >
       <div className="flex flex-col gap-6">
-        <section className="rounded-lg border border-line p-5">
+        <section className="rounded-lg border border-line p-4 md:p-5">
           <h3 className="font-display text-title-3 text-ink">{t('account.prefs.locations.title')}</h3>
           <p className="mt-0.5 text-body text-muted">{t('account.prefs.locations.body')}</p>
           <Field
@@ -615,12 +615,12 @@ function PrefsModal({ user, prefs, onClose }: { user: User; prefs: NotificationP
         {PREF_SCHEMA.map((section) => {
           const on = draft.sections[section.key]
           return (
-            <section key={section.key} className="rounded-lg border border-line p-5">
+            <section key={section.key} className="rounded-lg border border-line p-4 md:p-5">
               <Switch
                 checked={on}
                 onChange={(v) => set((d) => ({ ...d, sections: { ...d.sections, [section.key]: v } }))}
                 label={
-                  <span className="flex items-center gap-2 font-display text-title-3">
+                  <span className="flex flex-wrap items-center gap-2 font-display text-title-3">
                     {t(`account.prefs.sections.${section.key}.title`)}
                     <span className={clsx('chip h-5 px-2 text-caption', on ? 'bg-success-subtle text-success' : 'bg-sunken text-muted')}>{on ? t('account.prefs.on') : t('account.prefs.off')}</span>
                   </span>
@@ -651,12 +651,12 @@ function PrefsModal({ user, prefs, onClose }: { user: User; prefs: NotificationP
                         </div>
                       )}
                       <div className="overflow-x-auto rounded-md border border-line">
-                        <table className="w-full min-w-[560px] text-left">
+                        <table className="w-full text-left md:min-w-[560px]">
                           <thead>
                             <tr className="border-b border-line bg-sunken text-small text-muted">
-                              <th className="px-4 py-2 font-semibold" />
+                              <th className="px-3 py-2 font-semibold md:px-4" />
                               {CHANNELS.map((c) => (
-                                <th key={c} className="w-24 px-2 py-2 text-center font-semibold">
+                                <th key={c} className="w-12 px-1 py-2 text-center text-caption font-semibold md:w-24 md:px-2 md:text-small">
                                   {t(`account.prefs.channels.${c}`)}
                                 </th>
                               ))}
@@ -665,7 +665,7 @@ function PrefsModal({ user, prefs, onClose }: { user: User; prefs: NotificationP
                           <tbody>
                             {group.rows.map((row) => (
                               <tr key={row.key} className="border-b border-line last:border-0 align-top">
-                                <td className="px-4 py-3">
+                                <td className="px-3 py-3 md:px-4">
                                   <p className="text-body text-ink">{t(`account.prefs.rows.${row.key}.title`)}</p>
                                   <p className="text-small text-muted">
                                     {rowBody(row)}
@@ -681,7 +681,7 @@ function PrefsModal({ user, prefs, onClose }: { user: User; prefs: NotificationP
                                   {editing === row.key && <div className="mt-3 rounded-md bg-sunken p-3">{editor(row)}</div>}
                                 </td>
                                 {CHANNELS.map((c) => (
-                                  <td key={c} className="px-2 py-3 text-center">
+                                  <td key={c} className="px-1 py-3 text-center md:px-2">
                                     {row.channels.includes(c) ? (
                                       <input
                                         type="checkbox"

@@ -156,7 +156,7 @@ function ManageTagsBody({ onClose, clientId, initial }: { onClose: () => void; c
         </>
       }
       footer={
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <span className="text-body text-muted">
             <strong className="text-ink">{tagIds.length}</strong> {t('clients.tags.selected')}
           </span>

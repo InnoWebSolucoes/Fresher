@@ -156,9 +156,9 @@ export function DealWizardPage() {
       >
         <div className="flex flex-col items-center pt-8 text-center">
           <SuccessBadge />
-          <h1 className="mt-6 font-display text-[30px] font-bold text-ink">{t(`marketing.dealWizard.done.title.${created.type}`)}</h1>
+          <h1 className="mt-6 font-display text-[26px] font-bold leading-[32px] text-ink md:text-[30px] md:leading-[inherit]">{t(`marketing.dealWizard.done.title.${created.type}`)}</h1>
         </div>
-        <section className="card mt-8 p-8">
+        <section className="card mt-6 p-5 md:mt-8 md:p-8">
           <h2 className="mb-4 text-body-lg font-semibold text-ink">{t(`marketing.dealWizard.done.details.${created.type}`)}</h2>
           <ul className="flex flex-col gap-3 text-body-lg text-ink">
             <li className="flex items-start gap-3">
@@ -182,8 +182,8 @@ export function DealWizardPage() {
           </ul>
         </section>
         {created.code && (
-          <section className="card mt-4 flex items-center justify-between gap-4 px-8 py-5">
-            <span className="flex items-center gap-3 text-body-lg text-ink">
+          <section className="card mt-4 flex flex-wrap items-center justify-between gap-4 px-5 py-4 md:flex-nowrap md:px-8 md:py-5">
+            <span className="flex flex-wrap items-center gap-3 text-body-lg text-ink md:flex-nowrap">
               <Ticket size={20} className="text-primary" aria-hidden />
               {t('marketing.dealWizard.done.code')}
               <span className="rounded-sm bg-sunken px-2 py-0.5 font-mono text-body-strong">{created.code}</span>
@@ -262,7 +262,7 @@ export function DealWizardPage() {
           <p className="text-body-strong text-ink">{t(`marketing.dealWizard.selected.${key}`)}</p>
           <p className="text-body text-muted">{label}</p>
         </div>
-        <Button size="sm" className="rounded-full" onClick={() => setScopeModal(key)}>
+        <Button size="sm" className="rounded-full max-md:h-10 max-md:px-4" onClick={() => setScopeModal(key)}>
           {t('marketing.common.edit')}
         </Button>
       </div>
@@ -300,7 +300,7 @@ export function DealWizardPage() {
                 aria-checked={draft.type === value}
                 disabled={Boolean(existing) && existing?.type !== value}
                 onClick={() => set({ type: value, ...defaultsFor(value), code: value === 'promotion' ? draft.code : '' })}
-                className={clsx('flex items-center gap-4 rounded-lg border bg-surface p-5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50', draft.type === value ? 'border-primary ring-1 ring-primary' : 'border-line hover:border-line-strong')}
+                className={clsx('flex items-center gap-4 rounded-lg border bg-surface p-4 text-left transition-colors md:p-5 disabled:cursor-not-allowed disabled:opacity-50', draft.type === value ? 'border-primary ring-1 ring-primary' : 'border-line hover:border-line-strong')}
               >
                 <span className="min-w-0 flex-1">
                   <span className="block text-body-lg font-semibold text-ink">{t(`marketing.deals.types.${value}`)}</span>
@@ -390,13 +390,14 @@ export function DealWizardPage() {
               </Field>
             </div>
             {draft.type !== 'last_minute' && (
-              <div className="card p-5">
-                <Switch checked={draft.pos} onChange={(pos) => set({ pos })} label={t(`marketing.dealWizard.details.pos.${typeKey}`)} hint={t('marketing.dealWizard.details.posHint')} />
+              <div className="card p-4 md:p-5">
+                <Switch
+ checked={draft.pos} onChange={(pos) => set({ pos })} label={t(`marketing.dealWizard.details.pos.${typeKey}`)} hint={t('marketing.dealWizard.details.posHint')} />
               </div>
             )}
             <div>
               <h2 className="mb-1 text-body-lg font-semibold text-ink">{t(`marketing.dealWizard.details.applyTo.${typeKey}`)}</h2>
-              <div className="card divide-y divide-line px-5">
+              <div className="card divide-y divide-line px-4 md:px-5">
                 {(draft.type === 'last_minute' ? (['services'] as ScopeKey[]) : draft.type === 'flash_sale' ? (['services', 'products'] as ScopeKey[]) : (['services', 'products', 'packages', 'memberships'] as ScopeKey[])).map(scopeRow)}
                 {draft.type === 'promotion' && (
                   <div className="py-3">
@@ -412,7 +413,7 @@ export function DealWizardPage() {
       {step === 'limits' && (
         <>
           <WizardTitle title={t(`marketing.dealWizard.limits.title.${typeKey}`)} subtitle={t(`marketing.dealWizard.limits.subtitle.${typeKey}`)} />
-          <div className="card flex flex-col divide-y divide-line px-6">
+          <div className="card flex flex-col divide-y divide-line px-4 md:px-6">
             <div className="py-5">
               <Switch checked={draft.limits.onePerClient} onChange={(onePerClient) => set({ limits: { ...draft.limits, onePerClient } })} label={t('marketing.dealWizard.limits.onePerClient')} hint={t('marketing.dealWizard.limits.onePerClientHint')} />
             </div>
@@ -439,7 +440,7 @@ export function DealWizardPage() {
       {step === 'team' && (
         <>
           <WizardTitle title={t('marketing.dealWizard.team.title')} subtitle={t(`marketing.dealWizard.team.subtitle.${typeKey}`)} />
-          <div className="card flex flex-col gap-3 p-6">
+          <div className="card flex flex-col gap-3 p-4 md:p-6">
             <Checkbox
               label={<span className="font-semibold">{t('marketing.common.selectAll')}</span>}
               checked={selectedMembers.length === members.length}

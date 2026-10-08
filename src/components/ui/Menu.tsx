@@ -3,6 +3,7 @@ import { MoreVertical } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDismiss } from '@/lib/useDismiss'
+import { useKeepOnScreen } from './responsive'
 
 export interface MenuItem {
   label: ReactNode
@@ -34,21 +35,25 @@ export function Menu({ trigger, groups, align = 'right', width = 240, label }: M
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
   useDismiss([ref], open, () => setOpen(false))
+  // Phones: slide the menu sideways so it never runs past the screen edge.
+  const shift = useKeepOnScreen(panel, open)
   const toggle = () => setOpen((o) => !o)
   return (
     <div ref={ref} className="relative inline-flex" onClick={(e) => e.stopPropagation()}>
       {trigger ? (
         trigger({ open, toggle })
       ) : (
-        <button type="button" aria-label={label ?? t('common.actions')} aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="icon-btn h-9 w-9">
+        <button type="button" aria-label={label ?? t('common.actions')} aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="icon-btn h-10 w-10 md:h-9 md:w-9">
           <MoreVertical size={18} aria-hidden />
         </button>
       )}
       {open && (
         <div
+          ref={panel}
           role="menu"
-          style={{ width }}
+          style={{ width, maxWidth: 'calc(100vw - 16px)', transform: shift ? `translateX(${shift}px)` : undefined }}
           className={clsx('absolute top-full z-[60] mt-1 max-h-[70vh] overflow-y-auto rounded-lg border border-line bg-raised p-1.5 shadow-md', align === 'right' ? 'right-0' : 'left-0')}
         >
           {groups.map((group, gi) => (

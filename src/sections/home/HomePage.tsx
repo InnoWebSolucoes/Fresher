@@ -32,7 +32,7 @@ const apptDuration = (a: Appointment) => a.items.reduce((s, i) => s + i.duration
 
 function HomeCard({ title, subtitle, action, children, className = '', testId }: { title: string; subtitle?: string; action?: ReactNode; children: ReactNode; className?: string; testId?: string }) {
   return (
-    <section className={`card flex min-w-0 flex-col p-7 ${className}`} data-testid={testId}>
+    <section className={`card flex min-w-0 flex-col p-5 md:p-7 ${className}`} data-testid={testId}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-title-3 text-ink">{title}</h2>
@@ -69,7 +69,7 @@ function PeriodFilter({ value, options, onApply }: { value: string; options: { v
         <MoreVertical size={18} aria-hidden />
       </button>
       {open && (
-        <div role="dialog" aria-label={t('home.filters')} className="absolute right-0 top-full z-20 mt-1 w-[340px] rounded-lg border border-line bg-raised p-5 shadow-md">
+        <div role="dialog" aria-label={t('home.filters')} className="absolute right-0 top-full z-20 mt-1 w-[calc(100vw-3rem)] max-w-[340px] rounded-lg border border-line bg-raised p-5 shadow-md">
           <label className="label" htmlFor={id}>
             {t('home.timePeriod')}
           </label>
@@ -302,7 +302,7 @@ export function HomePage() {
 
   if (loading)
     return (
-      <div className="mx-auto grid max-w-[1088px] gap-x-8 gap-y-4 px-8 py-8 lg:grid-cols-2" aria-busy="true">
+      <div className="mx-auto grid max-w-[1088px] gap-x-8 gap-y-4 px-4 py-5 md:px-8 md:py-8 lg:grid-cols-2" aria-busy="true">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} className="h-[380px] w-full rounded-lg" />
         ))}
@@ -310,7 +310,7 @@ export function HomePage() {
     )
 
   return (
-    <div className="mx-auto grid max-w-[1088px] gap-x-8 gap-y-4 px-8 py-8 lg:grid-cols-2" data-testid="home">
+    <div className="mx-auto grid max-w-[1088px] gap-x-8 gap-y-4 px-4 py-5 md:px-8 md:py-8 lg:grid-cols-2" data-testid="home">
       <HomeCard
         testId="home-recent-sales"
         className="min-h-[540px]"
@@ -407,16 +407,16 @@ export function HomePage() {
       </HomeCard>
 
       <HomeCard testId="home-top-services" className="min-h-[233px]" title={t('home.topServices')}>
-        <table className="-mx-7 w-[calc(100%+3.5rem)] text-body">
+        <table className="-mx-5 w-[calc(100%+2.5rem)] text-body md:-mx-7 md:w-[calc(100%+3.5rem)]">
           <thead>
             <tr className="border-b border-line text-left text-body-strong text-ink">
-              <th scope="col" className="py-3 pl-7 font-semibold">
+              <th scope="col" className="py-3 pl-5 font-semibold md:pl-7">
                 {t('home.service')}
               </th>
               <th scope="col" className="py-3 text-right font-semibold">
                 {t('home.thisMonth')}
               </th>
-              <th scope="col" className="py-3 pr-7 text-right font-semibold">
+              <th scope="col" className="py-3 pr-5 text-right font-semibold md:pr-7">
                 {t('home.lastMonth')}
               </th>
             </tr>
@@ -424,7 +424,7 @@ export function HomePage() {
           <tbody>
             {topServices.map((r) => (
               <tr key={r.id} className="cursor-pointer border-b border-line last:border-b-0 hover:bg-sunken/60" onClick={() => navigate(`/catalogue/services/service/edit/${r.id}`)}>
-                <td className="py-5 pl-7">
+                <td className="py-5 pl-5 md:pl-7">
                   <button
                     type="button"
                     className="text-left text-ink hover:underline"
@@ -437,7 +437,7 @@ export function HomePage() {
                   </button>
                 </td>
                 <td className="py-5 text-right tabular">{r.thisMonth}</td>
-                <td className="py-5 pr-7 text-right tabular">{r.lastMonth}</td>
+                <td className="py-5 pr-5 text-right tabular md:pr-7">{r.lastMonth}</td>
               </tr>
             ))}
           </tbody>
@@ -446,16 +446,16 @@ export function HomePage() {
       </HomeCard>
 
       <HomeCard testId="home-top-team" className="min-h-[233px]" title={t('home.topTeam')}>
-        <table className="-mx-7 w-[calc(100%+3.5rem)] text-body">
+        <table className="-mx-5 w-[calc(100%+2.5rem)] text-body md:-mx-7 md:w-[calc(100%+3.5rem)]">
           <thead>
             <tr className="border-b border-line text-left text-body-strong text-ink">
-              <th scope="col" className="py-3 pl-7 font-semibold">
+              <th scope="col" className="py-3 pl-5 font-semibold md:pl-7">
                 {t('home.teamMember')}
               </th>
               <th scope="col" className="py-3 text-right font-semibold">
                 {t('home.thisMonth')}
               </th>
-              <th scope="col" className="py-3 pr-7 text-right font-semibold">
+              <th scope="col" className="py-3 pr-5 text-right font-semibold md:pr-7">
                 {t('home.lastMonth')}
               </th>
             </tr>
@@ -463,7 +463,7 @@ export function HomePage() {
           <tbody>
             {topTeam.map((r) => (
               <tr key={r.id} className="cursor-pointer border-b border-line last:border-b-0 hover:bg-sunken/60" onClick={() => drawer.open('team-member', { id: r.id })}>
-                <td className="py-5 pl-7">
+                <td className="py-5 pl-5 md:pl-7">
                   <button
                     type="button"
                     className="text-left text-ink hover:underline"
@@ -476,7 +476,7 @@ export function HomePage() {
                   </button>
                 </td>
                 <td className="py-5 text-right tabular">{money2(r.thisMonth)}</td>
-                <td className="py-5 pr-7 text-right tabular">{money2(r.lastMonth)}</td>
+                <td className="py-5 pr-5 text-right tabular md:pr-7">{money2(r.lastMonth)}</td>
               </tr>
             ))}
           </tbody>

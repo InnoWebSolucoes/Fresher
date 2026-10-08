@@ -149,25 +149,26 @@ function EditPaymentMethod({ subtitle, rows, options, available, onClose, onAppl
         </>
       }
     >
-      <table className="w-full text-body">
-        <thead>
-          <tr className="border-b border-line text-left">
+      {/* Phones: each row stacks, with the method button on its own line under the member. */}
+      <table className="w-full text-body max-md:block">
+        <thead className="max-md:block">
+          <tr className="border-b border-line text-left max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto]">
             <th scope="col" className="py-3 pr-4 text-body-strong text-ink">{t('team.pay.cols.member')}</th>
-            <th scope="col" className="py-3 pr-4 text-body-strong text-ink">{t('team.payRunNew.totalLabel')}</th>
-            <th scope="col" className="py-3 text-right text-body-strong text-ink">{t('team.pay.cols.method')}</th>
+            <th scope="col" className="py-3 pr-4 text-body-strong text-ink max-md:pr-0 max-md:text-right">{t('team.payRunNew.totalLabel')}</th>
+            <th scope="col" className="py-3 text-right text-body-strong text-ink max-md:hidden">{t('team.pay.cols.method')}</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="max-md:block">
           {rows.map((r) => (
-            <tr key={r.member.id} className="border-b border-line last:border-0">
-              <td className="py-3 pr-4">
+            <tr key={r.member.id} className="border-b border-line last:border-0 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:py-3">
+              <td className="py-3 pr-4 max-md:py-0">
                 <span className="flex items-center gap-3">
                   <MemberAvatar member={r.member} size={44} />
                   <span className="text-body-strong text-ink">{memberName(r.member)}</span>
                 </span>
               </td>
-              <td className="py-3 pr-4 tabular text-ink">{money(r.amount)}</td>
-              <td className="py-3 text-right">
+              <td className="py-3 pr-4 tabular text-ink max-md:py-0 max-md:pr-0 max-md:text-right">{money(r.amount)}</td>
+              <td className="py-3 text-right max-md:col-span-2 max-md:pb-0 max-md:pl-14 max-md:pt-2 max-md:text-left">
                 <button
                   type="button"
                   onClick={() => {

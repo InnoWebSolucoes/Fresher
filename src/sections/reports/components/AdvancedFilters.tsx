@@ -40,7 +40,7 @@ export function AdvancedFilters({ fields, rules, open, onOpenChange, onApply, se
       label={t('reports.adv.title')}
       className="w-[860px] max-w-[calc(100vw-2rem)]"
       trigger={({ toggle }) => (
-        <button type="button" onClick={toggle} aria-expanded={open} className="inline-flex h-11 items-center gap-2 rounded-full px-3 text-body-strong text-ink hover:bg-sunken">
+        <button type="button" onClick={toggle} aria-expanded={open} className="inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full px-3 text-body-strong text-ink hover:bg-sunken">
           <span className="flex h-6 w-6 items-center justify-center rounded-xs bg-primary text-on-primary">
             <BarChart3 size={14} aria-hidden />
           </span>
@@ -86,7 +86,7 @@ function Panel({ fields, initial, seedField, onApply }: { fields: Col[]; initial
   }
 
   return (
-    <div className="p-5">
+    <div className="p-4 md:p-5">
       <p className="mb-3 text-body text-muted">{t('reports.adv.title')}</p>
       {draft.length === 0 && <p className="py-3 text-body text-muted">{t('reports.adv.noRules')}</p>}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -107,7 +107,7 @@ function Panel({ fields, initial, seedField, onApply }: { fields: Col[]; initial
           </div>
         </SortableContext>
       </DndContext>
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2 md:flex-nowrap">
         <Button variant="ghost" className="text-primary" icon={<Plus size={16} />} onClick={() => setDraft((d) => [...d, newRule(fields.find((f) => isNumeric(f.type)) ?? fields[0])])}>
           {t('reports.adv.addRule')}
         </Button>
@@ -130,17 +130,18 @@ function RuleRow({ rule, index, fields, type, showError, onChange, onDelete }: {
   const ops = numeric ? NUMBER_OPS : TEXT_OPS
   const field = fields.find((f) => f.key === rule.field)
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={clsx('flex items-start gap-2 rounded-md bg-raised', isDragging && 'relative z-10 shadow-md')}>
-      <span className="w-16 shrink-0 pt-2.5 text-right text-body text-ink">{index === 0 ? t('reports.adv.where') : t('reports.adv.and')}</span>
-      <FieldPicker fields={fields} value={field} onChange={(f) => onChange({ field: f.key, op: isNumeric(f.type) ? (isNumeric(type ?? 'int') ? rule.op : 'eq') : 'contains', value: '', value2: undefined })} />
+    // Phones: each rule is a small card — "Where" with delete/drag on top, the field below, then operator and value.
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={clsx('flex items-start gap-2 rounded-md bg-raised max-md:flex-wrap max-md:border max-md:border-line max-md:p-2', isDragging && 'relative z-10 shadow-md')}>
+      <span className="w-16 shrink-0 pt-2.5 text-right text-body text-ink max-md:order-1 max-md:w-auto max-md:flex-1 max-md:pl-1 max-md:text-left">{index === 0 ? t('reports.adv.where') : t('reports.adv.and')}</span>
+      <FieldPicker className="max-md:order-4 max-md:w-full" fields={fields} value={field} onChange={(f) => onChange({ field: f.key, op: isNumeric(f.type) ? (isNumeric(type ?? 'int') ? rule.op : 'eq') : 'contains', value: '', value2: undefined })} />
       <Dropdown
         label={t(`reports.adv.ops.${rule.op}`)}
-        width="w-[170px]"
+        width="w-[170px] max-md:order-5 max-md:w-[150px]"
         items={ops.map((op) => ({ key: op, label: t(`reports.adv.ops.${op}`), symbol: OP_SYMBOL[op], selected: op === rule.op }))}
         onPick={(op) => onChange({ op: op as AdvOp })}
         ariaLabel={t('reports.adv.operator')}
       />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col max-md:order-6">
         <div className="flex gap-2">
           <input
             className={clsx('input h-10', showError && rule.value.trim() === '' && 'border-danger')}
@@ -159,17 +160,17 @@ function RuleRow({ rule, index, fields, type, showError, onChange, onDelete }: {
         {showError && <p className="mt-1 text-small text-danger">{t('reports.adv.incomplete')}</p>}
         {type === 'hours' && <p className="mt-1 text-small text-muted">{t('reports.adv.hoursHint')}</p>}
       </div>
-      <button type="button" className="icon-btn h-10 w-10 shrink-0" aria-label={t('reports.adv.deleteRule')} title={t('reports.adv.deleteRule')} onClick={onDelete}>
+      <button type="button" className="icon-btn h-10 w-10 shrink-0 max-md:order-2" aria-label={t('reports.adv.deleteRule')} title={t('reports.adv.deleteRule')} onClick={onDelete}>
         <Trash2 size={18} aria-hidden />
       </button>
-      <button type="button" ref={setActivatorNodeRef} className="icon-btn h-10 w-8 shrink-0 cursor-grab" aria-label={t('reports.adv.drag')} title={t('reports.adv.drag')} {...attributes} {...listeners}>
+      <button type="button" ref={setActivatorNodeRef} className="icon-btn h-10 w-8 shrink-0 cursor-grab max-md:order-3" aria-label={t('reports.adv.drag')} title={t('reports.adv.drag')} {...attributes} {...listeners}>
         <GripVertical size={18} aria-hidden />
       </button>
     </div>
   )
 }
 
-function FieldPicker({ fields, value, onChange }: { fields: Col[]; value: Col | undefined; onChange: (field: Col) => void }) {
+function FieldPicker({ fields, value, onChange, className }: { fields: Col[]; value: Col | undefined; onChange: (field: Col) => void; className?: string }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
@@ -178,13 +179,13 @@ function FieldPicker({ fields, value, onChange }: { fields: Col[]; value: Col | 
   useDismiss(refs, open, () => setOpen(false))
   const list = fields.filter((f) => f.label.toLowerCase().includes(q.trim().toLowerCase()))
   return (
-    <div ref={ref} className="relative w-[230px] shrink-0">
+    <div ref={ref} className={clsx('relative w-[230px] shrink-0', className)}>
       <button type="button" aria-haspopup="listbox" aria-expanded={open} aria-label={t('reports.adv.field')} onClick={() => setOpen((o) => !o)} className="input flex h-10 items-center justify-between gap-2 text-left">
         <span className="truncate">{value?.label ?? t('reports.adv.selectField')}</span>
         <ChevronDown size={16} className="shrink-0 text-muted" aria-hidden />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-10 mt-1 w-[300px] rounded-lg border border-line bg-raised p-3 shadow-md">
+        <div className="absolute left-0 top-full z-10 mt-1 w-[300px] rounded-lg border border-line bg-raised p-3 shadow-md max-md:w-full">
           <input autoFocus className="input mb-2 h-10" placeholder={t('reports.adv.filterBy')} aria-label={t('reports.adv.filterBy')} value={q} onChange={(e) => setQ(e.target.value)} />
           <ul role="listbox" className="max-h-72 overflow-y-auto">
             {list.map((f) => {

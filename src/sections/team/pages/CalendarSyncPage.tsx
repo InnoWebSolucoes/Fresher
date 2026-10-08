@@ -72,7 +72,7 @@ export function CalendarSyncPage() {
   if (step === 'calendar-type') {
     content = (
       <>
-        <h1 className="font-display text-title-1 text-ink">{t('team.sync.typeTitle')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.sync.typeTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">
           {t('team.sync.typeBody')} <LearnMore topic={t('team.topics.calendarSync')} />
         </p>
@@ -95,7 +95,7 @@ export function CalendarSyncPage() {
   } else if (step === 'google') {
     const accounts = [...new Set([member.email, ownerEmail].filter(Boolean))]
     content = (
-      <div className="mx-auto max-w-md rounded-xl border border-line bg-surface p-8 shadow-sm">
+      <div className="mx-auto max-w-md rounded-xl border border-line bg-surface p-5 shadow-sm md:p-8">
         <div className="flex items-center gap-2 text-body text-muted">
           <GoogleMark />
           {t('team.sync.gSignIn')}
@@ -170,7 +170,7 @@ export function CalendarSyncPage() {
   } else if (step === 'sync-type') {
     content = (
       <>
-        <h1 className="font-display text-title-1 text-ink">{t('team.sync.syncTitle')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.sync.syncTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.sync.syncBody')}</p>
         <RadioGroup
           variant="cards"
@@ -191,7 +191,7 @@ export function CalendarSyncPage() {
   } else if (step === 'export-events-to-external') {
     content = (
       <>
-        <h1 className="font-display text-title-1 text-ink">{t('team.sync.export')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.sync.export')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.sync.exportBody', { name })}</p>
         <div className="card flex flex-col gap-4 p-6">
           <h2 className="text-body-strong text-ink">{t('team.sync.eventsToSync')}</h2>
@@ -209,7 +209,7 @@ export function CalendarSyncPage() {
     const valid = /^(https?|webcal):\/\/\S+\.\S+/.test(url.trim())
     content = (
       <>
-        <h1 className="font-display text-title-1 text-ink">{t('team.sync.import')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.sync.import')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.sync.importBody', { name })}</p>
         <div className="card flex flex-col gap-5 p-6">
           <Field label={t('team.sync.url')} hint={t('team.sync.urlHint')} error={url && !valid ? t('team.sync.urlInvalid') : undefined}>
@@ -245,7 +245,7 @@ export function CalendarSyncPage() {
         <span className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-md">
           <Check size={40} strokeWidth={3} aria-hidden />
         </span>
-        <h1 className="mt-6 font-display text-title-1 text-ink">{t('team.sync.successTitle')}</h1>
+        <h1 className="mt-6 font-display text-title-2 text-ink md:text-title-1">{t('team.sync.successTitle')}</h1>
         <p className="mt-2 max-w-lg text-body-lg text-muted">{t(`team.sync.success_${mode}`, { name })}</p>
         {cal && mode === 'export' && (
           <div className="mt-8 w-full max-w-xl text-left">
@@ -279,7 +279,15 @@ export function CalendarSyncPage() {
 
   return (
     <FullscreenFrame
-      title={step === 'sync-success' ? undefined : t('team.sync.progress', { n: stepNumber })}
+      title={
+        step === 'sync-success' ? undefined : (
+          <>
+            {/* Phones: the short step indicator. */}
+            <span className="md:hidden">{t('team.tour.step', { n: stepNumber, total: 3 })}</span>
+            <span className="hidden md:inline">{t('team.sync.progress', { n: stepNumber })}</span>
+          </>
+        )
+      }
       progress={progress}
       onClose={() => navigate(editUrl)}
       maxWidth="max-w-2xl"

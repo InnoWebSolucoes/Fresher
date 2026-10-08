@@ -49,7 +49,7 @@ export function PerformanceInsights() {
 
   return (
     <div className="flex h-full flex-col overflow-y-auto" aria-label={t('panels.insights.title')}>
-      <div className="px-6 pb-4 pt-6">
+      <div className="px-4 pb-4 pt-6 md:px-6">
         <h2 className="font-display text-title-2 text-ink">{t('panels.insights.title')}</h2>
         <p className="text-small text-muted">{t('panels.insights.updated', { ago: timeAgo(openedAt).toLowerCase() })}</p>
         <Segmented<Period>
@@ -61,7 +61,7 @@ export function PerformanceInsights() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col gap-4 px-6" aria-busy="true">
+        <div className="flex flex-col gap-4 px-4 md:px-6" aria-busy="true">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-72 w-full" />
           <div className="grid grid-cols-2 gap-3">
@@ -70,7 +70,7 @@ export function PerformanceInsights() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-4 px-6 pb-8">
+        <div className="flex flex-col gap-4 px-4 pb-8 md:px-6">
           <div>
             <h3 className="font-display text-title-3 text-ink">{t(`panels.insights.summary.${period}`)}</h3>
             <p className="text-small text-muted">{t(period === 'month' ? 'panels.insights.comparedMonth' : 'panels.insights.comparedWeek')}</p>

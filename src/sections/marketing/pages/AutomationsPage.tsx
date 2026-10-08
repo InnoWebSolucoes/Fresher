@@ -140,18 +140,19 @@ function AutomationCard({ a, onEnable, enabling }: { a: Automation; onEnable: (a
       tabIndex={0}
       onClick={() => navigate(`/marketing/automated-messages/overview/${a.id}`)}
       onKeyDown={(e) => e.key === 'Enter' && navigate(`/marketing/automated-messages/overview/${a.id}`)}
-      className="flex min-h-[230px] cursor-pointer flex-col rounded-lg border border-line bg-surface p-6 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      className="flex cursor-pointer flex-col rounded-lg border border-line bg-surface p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 md:min-h-[230px] md:p-6"
       data-testid={`automation-${a.key}`}
     >
       <Icon size={26} className="text-warning" aria-hidden />
-      <h3 className="mt-5 text-[17px] font-semibold leading-6 text-ink">{a.name}</h3>
-      <p className="mt-2 flex-1 text-body text-muted">{a.description}</p>
-      <div className="mt-5 flex items-center justify-between gap-2">
+      <h3 className="mt-3 text-[17px] font-semibold leading-6 text-ink md:mt-5">{a.name}</h3>
+      <p className="mt-1 flex-1 text-body text-muted md:mt-2">{a.description}</p>
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-5">
         {a.enabled ? (
           <Chip tone="success">{t('marketing.common.enabled')}</Chip>
         ) : canEnable ? (
           <Button
             size="sm"
+            className="max-md:h-10 max-md:px-4"
             loading={enabling}
             onClick={(e) => {
               e.stopPropagation()
@@ -222,12 +223,13 @@ export function AutomationsPage() {
     <Page wide>
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-display text-title-1 text-ink">{t('marketing.automations.title')}</h1>
-          <p className="mt-1 text-body-lg text-muted">
+          <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('marketing.automations.title')}</h1>
+          <p className="mt-1 text-body text-muted md:text-body-lg">
+
             {t('marketing.automations.subtitle')} <LearnMore topic={t('marketing.common.topics.automations')}>{t('marketing.common.learnMore')}</LearnMore>
           </p>
         </div>
-        <div className="flex min-w-[280px] items-start justify-between gap-4 rounded-lg border border-line bg-surface px-5 py-4" data-testid="communication-balance">
+        <div className="flex min-w-[280px] items-start justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3 max-md:w-full md:px-5 md:py-4" data-testid="communication-balance">
           <div>
             <p className="text-body text-ink">{t('marketing.automations.balance')}</p>
             <p className="mt-1 font-display text-title-2 text-ink">{money2(workspace.messageCredits)}</p>
@@ -249,7 +251,7 @@ export function AutomationsPage() {
         </div>
       </header>
 
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-lg bg-gradient-to-r from-primary to-[#2BA59C] px-6 py-5 text-on-primary">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg bg-gradient-to-r from-primary to-[#2BA59C] px-4 py-4 text-on-primary md:mb-8 md:px-6 md:py-5">
         <div className="flex items-start gap-3">
           <Zap size={20} className="mt-0.5 shrink-0" aria-hidden />
           <div>
@@ -279,15 +281,16 @@ export function AutomationsPage() {
             </button>
           ))}
         </div>
-        <button type="button" aria-label={t('marketing.automations.scrollLeft')} className="icon-btn h-9 w-9" onClick={() => tabsRef.current?.scrollBy({ left: -240, behavior: 'smooth' })}>
+        {/* Phones scroll the tab row by touch, so the arrow buttons are hidden there. */}
+        <button type="button" aria-label={t('marketing.automations.scrollLeft')} className="icon-btn h-9 w-9 max-md:hidden" onClick={() => tabsRef.current?.scrollBy({ left: -240, behavior: 'smooth' })}>
           <ChevronLeft size={18} />
         </button>
-        <button type="button" aria-label={t('marketing.automations.scrollRight')} className="icon-btn h-9 w-9" onClick={() => tabsRef.current?.scrollBy({ left: 240, behavior: 'smooth' })}>
+        <button type="button" aria-label={t('marketing.automations.scrollRight')} className="icon-btn h-9 w-9 max-md:hidden" onClick={() => tabsRef.current?.scrollBy({ left: 240, behavior: 'smooth' })}>
           <ChevronRight size={18} />
         </button>
       </div>
 
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-8 md:gap-10">
         {AUTOMATION_SECTIONS.map((section) => {
           const items = automations.filter((a) => a.section === section)
           return (
@@ -299,10 +302,10 @@ export function AutomationsPage() {
               className="scroll-mt-20"
               aria-labelledby={`auto-${section}`}
             >
-              <h2 id={`auto-${section}`} className="mb-4 font-display text-title-2 text-ink">
+              <h2 id={`auto-${section}`} className="mb-3 font-display text-title-3 text-ink md:mb-4 md:text-title-2">
                 {t(`marketing.automations.sections.${section}`)}
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 md:gap-4 xl:grid-cols-3">
                 {items.map((a) => (
                   <AutomationCard key={a.id} a={a} onEnable={(x) => void enable(x)} enabling={enabling === a.id} />
                 ))}
@@ -310,7 +313,7 @@ export function AutomationsPage() {
                   <button
                     type="button"
                     onClick={() => setModal(profileListed ? 'create' : 'profile')}
-                    className="flex min-h-[230px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-line-strong bg-transparent p-6 text-ink hover:border-primary hover:text-primary"
+                    className="flex min-h-[170px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-line-strong bg-transparent p-4 text-ink hover:border-primary hover:text-primary md:min-h-[230px] md:p-6"
                     data-testid="automation-create-new"
                   >
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-subtle text-primary">

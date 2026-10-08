@@ -89,7 +89,7 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0" data-testid="gift-card-drawer">
+    <div className="flex h-full min-h-0 flex-col md:flex-row" data-testid="gift-card-drawer">
       <IconRail<Tab>
         compact
         label={t('checkout.sale.sections')}
@@ -100,7 +100,7 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
           { value: 'details', label: t('checkout.giftCard.tabs.details'), icon: Info },
         ]}
       />
-      <div className="min-w-0 flex-1 overflow-y-auto bg-canvas px-8 pb-12 pt-8">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-canvas px-4 pb-8 pt-5 md:px-8 md:pb-12 md:pt-8">
         <div className="flex items-center justify-between gap-3">
           <span className={clsx('inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-body-strong', chip)} data-testid="gift-card-status">
             {state === 'valid' && <Check size={16} aria-hidden />}
@@ -124,8 +124,8 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
             ]}
           />
         </div>
-        <h1 className="mt-5 font-display text-title-1 text-ink">{t('checkout.giftCard.title')}</h1>
-        <div className="mt-6">
+        <h1 className="mt-4 font-display text-title-2 text-ink md:mt-5 md:text-title-1">{t('checkout.giftCard.title')}</h1>
+        <div className="mt-5 md:mt-6">
           <GiftCardArt value={card.value} customCode={card.customCode} code={card.code} expires={card.expiresAt ? fmtDateEU(card.expiresAt) : undefined} onCopy={() => void copy()} />
         </div>
         <div className="mt-4 flex items-center justify-between rounded-lg border border-line bg-surface px-5 py-4">
@@ -134,15 +134,15 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
         </div>
 
         {tab === 'activity' ? (
-          <div className="mt-8">
+          <div className="mt-6 md:mt-8">
             {groups.map((g) => (
               <section key={g.month} className="mb-6">
                 <h2 className="mb-3 text-body-strong text-muted">{format(parseISO(g.items[0].at), 'MMMM')}</h2>
-                <ol className="flex flex-col gap-4 border-l border-line pl-6">
+                <ol className="flex flex-col gap-4 border-l border-line pl-4 md:pl-6">
                   {g.items.map((e) => {
                     const link = isPurchase(e) && sale ? { number: sale.number, id: sale.id } : saleLink(e.detail)
                     return (
-                      <li key={e.id} className="rounded-lg border border-line bg-surface p-5">
+                      <li key={e.id} className="rounded-lg border border-line bg-surface p-4 md:p-5">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <p className="text-body-lg font-semibold text-ink">{e.title}</p>
@@ -174,7 +174,7 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-lg border border-line bg-surface p-6">
+          <div className="mt-6 rounded-lg border border-line bg-surface p-4 md:mt-8 md:p-6">
             <DetailList
               rows={[
                 { label: t('checkout.giftCard.value'), value: money(card.value) },

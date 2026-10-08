@@ -29,12 +29,12 @@ export function AppointmentHeader({ date, start, repeat, color, readOnly, onDate
   const tinted = Boolean(color)
   const times = clockOptions(5)
   return (
-    <div className={clsx('flex items-start justify-between gap-4 px-8 pb-6 pt-8', tinted ? 'text-white' : 'border-b border-line text-ink')} style={tinted ? { background: color } : undefined} data-testid="appointment-header">
+    <div className={clsx('flex items-start justify-between gap-4 px-8 pb-6 pt-8 max-md:gap-3 max-md:px-4 max-md:pb-4 max-md:pt-4', tinted ? 'text-white' : 'border-b border-line text-ink')} style={tinted ? { background: color } : undefined} data-testid="appointment-header">
       <div className="min-w-0">
         <Dropdown
           panelClassName="p-5"
           trigger={({ open, toggle }) => (
-            <button type="button" disabled={readOnly} onClick={toggle} aria-expanded={open} className="inline-flex items-center gap-2 rounded-md font-display text-[32px] font-bold leading-10 disabled:cursor-default">
+            <button type="button" disabled={readOnly} onClick={toggle} aria-expanded={open} className="inline-flex items-center gap-2 rounded-md font-display text-[32px] font-bold leading-10 disabled:cursor-default max-md:gap-1.5 max-md:whitespace-nowrap max-md:text-[24px] max-md:leading-8">
               {format(parseISO(date), 'EEE d MMM')}
               {!readOnly && <ChevronDown size={20} aria-hidden />}
             </button>
@@ -97,11 +97,11 @@ export function RepeatPanel({ value, date, onBack, onApply, applying }: { value:
   const invalid = rule.ends === 'on' && (!rule.until || rule.until <= date)
   return (
     <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
         <Button size="sm" icon={<ArrowLeft size={16} />} onClick={onBack}>
           {t('calendar.common.back')}
         </Button>
-        <h2 className="mt-4 font-display text-title-1 text-ink">{t('calendar.repeat.title')}</h2>
+        <h2 className="mt-4 font-display text-title-2 text-ink md:text-title-1">{t('calendar.repeat.title')}</h2>
         <div className="mt-6 flex flex-col gap-5">
           <Field label={t('calendar.repeat.frequency')}>
             {(id) => (
@@ -146,7 +146,7 @@ export function RepeatPanel({ value, date, onBack, onApply, applying }: { value:
           )}
         </div>
       </div>
-      <div className="border-t border-line px-8 py-5">
+      <div className="border-t border-line px-4 py-3 md:px-8 md:py-5">
         <Button variant="primary" size="lg" className="w-full" disabled={invalid} loading={applying} onClick={() => onApply(rule)} data-testid="repeat-apply">
           {t('calendar.repeat.apply')}
         </Button>

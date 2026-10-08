@@ -62,8 +62,8 @@ export function GroupDrawer({ id, params, close }: DrawerProps) {
   // ─── No group yet: choose how to start one ─────────────────────────
   if (!id) {
     const option = (icon: ReactNode, label: string, onClick: () => void, testId: string) => (
-      <button type="button" onClick={onClick} disabled={busy} className="flex w-full items-center gap-5 rounded-xl border border-line bg-surface p-6 text-left transition-colors hover:bg-sunken disabled:opacity-60" data-testid={testId}>
-        <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary">{icon}</span>
+      <button type="button" onClick={onClick} disabled={busy} className="flex w-full items-center gap-5 rounded-xl border border-line bg-surface p-6 text-left transition-colors hover:bg-sunken disabled:opacity-60 max-md:gap-4 max-md:p-4" data-testid={testId}>
+        <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary max-md:h-14 max-md:w-14">{icon}</span>
         <span className="text-body-lg font-semibold text-ink">{label}</span>
       </button>
     )
@@ -218,7 +218,7 @@ function GroupMemberCard({ appt, paid, onView, onRemove }: { appt: Appointment; 
   const client = useDb((s) => (appt.clientId ? s.clients.find((c) => c.id === appt.clientId) : undefined))
   const status = STATUS_STYLES[appt.status]
   return (
-    <div className="rounded-xl border border-line bg-surface p-6" data-testid="group-member">
+    <div className="rounded-xl border border-line bg-surface p-6 max-md:p-4" data-testid="group-member">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-body-lg font-semibold text-ink">{fullName(client, t('calendar.walkIn'))}</p>

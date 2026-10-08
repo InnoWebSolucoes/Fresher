@@ -47,7 +47,7 @@ export function Popover({ trigger, children, align = 'left', className }: { trig
   return (
     <div ref={ref} className="relative inline-flex">
       {trigger({ open, toggle: () => setOpen((o) => !o) })}
-      {open && <div className={clsx('absolute top-full z-[60] mt-2 rounded-lg border border-line bg-raised p-4 shadow-md', align === 'right' ? 'right-0' : 'left-0', className)}>{children(close)}</div>}
+      {open && <div className={clsx('absolute top-full z-[60] mt-2 max-w-[calc(100vw-24px)] rounded-lg border border-line bg-raised p-3 shadow-md md:max-w-none md:p-4', align === 'right' ? 'right-0' : 'left-0', className)}>{children(close)}</div>}
     </div>
   )
 }
@@ -64,7 +64,7 @@ export function MiniCalendar({ value, onPick, highlightWeek }: { value: string; 
   const wStart = startOfWeek(selected, { weekStartsOn: 1 })
   const wEnd = endOfWeek(selected, { weekStartsOn: 1 })
   return (
-    <div className="w-[280px]">
+    <div className="w-[264px] md:w-[280px]">
       <div className="mb-2 flex items-center justify-between">
         <button type="button" className="icon-btn h-8 w-8" aria-label={t('team.common.prevMonth')} onClick={() => setMonth(addMonths(month, -1))}>
           <ChevronLeft size={16} />
@@ -134,7 +134,7 @@ export function Tour({ steps, onClose }: { steps: { title?: string; body: string
   const step = steps[index]
   const last = index === steps.length - 1
   return (
-    <div role="dialog" aria-label={t('team.tour.label')} className="fixed bottom-6 right-6 z-[65] w-[380px] rounded-xl bg-primary p-5 text-on-primary shadow-lg">
+    <div role="dialog" aria-label={t('team.tour.label')} className="fixed bottom-4 left-4 right-4 z-[65] rounded-xl bg-primary p-5 text-on-primary shadow-lg md:bottom-6 md:left-auto md:right-6 md:w-[380px]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-small opacity-80">{t('team.tour.step', { n: index + 1, total: steps.length })}</p>
         <button type="button" onClick={onClose} aria-label={t('team.common.close')} className="-mr-2 -mt-2 rounded-md p-1.5 hover:bg-white/10">
@@ -168,12 +168,12 @@ export function Row({ label, value, strong, className }: { label: ReactNode; val
 }
 
 /** Big stat card (Earnings / Other / Total / Paid / To pay). */
-export function StatCard({ label, value, strong, sub, children }: { label: ReactNode; value: ReactNode; strong?: boolean; sub?: ReactNode; children?: ReactNode }) {
+export function StatCard({ label, value, strong, sub, children, className }: { label: ReactNode; value: ReactNode; strong?: boolean; sub?: ReactNode; children?: ReactNode; className?: string }) {
   return (
-    <div className={clsx('card flex flex-wrap justify-between gap-4 p-5', children ? 'items-center' : 'items-start')}>
+    <div className={clsx('card flex flex-wrap justify-between gap-3 p-4 md:gap-4 md:p-5', children ? 'items-center' : 'items-start', className)}>
       <div className="min-w-0">
         <p className={clsx('text-body', strong ? 'font-semibold text-ink' : 'text-muted')}>{label}</p>
-        <p className="mt-1 font-display text-title-2 tabular text-ink">{value}</p>
+        <p className="mt-1 font-display text-title-3 tabular text-ink md:text-title-2">{value}</p>
         {sub}
       </div>
       {children}

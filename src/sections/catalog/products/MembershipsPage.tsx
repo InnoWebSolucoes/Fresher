@@ -140,7 +140,7 @@ export function MembershipsPage() {
         ]}
       />
       <ToolbarCard>
-        <SearchInput value={query} onChange={setQuery} placeholder={t(`${P}.search`)} className="w-full max-w-[300px]" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t(`${P}.search`)} className="w-full max-w-[300px] max-md:max-w-none" />
       </ToolbarCard>
       {shown.length === 0 ? (
         <div className="card">
@@ -163,7 +163,7 @@ export function MembershipsPage() {
             <article key={m.id} className={clsx('card flex flex-col overflow-hidden', m.archived && 'opacity-80')}>
               <div className="flex items-start justify-between gap-3 p-5 text-white" style={{ background: membershipColor(m.color) }}>
                 <div className="min-w-0">
-                  <h2 className="truncate font-display text-title-2">{m.name}</h2>
+                  <h2 className="break-words font-display text-title-2 md:truncate">{m.name}</h2>
                   <p className="mt-1 line-clamp-2 text-body opacity-90">{m.description || t(`${P}.noDescription`)}</p>
                 </div>
                 <div className="rounded-full bg-white/90 text-ink">

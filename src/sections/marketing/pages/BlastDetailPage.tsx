@@ -10,7 +10,7 @@ import { cancelSchedule, deleteCampaign, duplicateCampaign, processDueCampaigns,
 import { fmtDateTimeUS, money, money2, num } from '@/lib/format'
 import type { MessageLog } from '@/types'
 import { BackCrumbs, EmailMock, MessageBubblePreview, StatCard } from '../components/kit'
-import { CampaignStatusChip, ChannelLabel, discountLabel, pct } from '../helpers'
+import { CampaignStatusChip, ChannelLabel, PhoneList, discountLabel, pct } from '../helpers'
 
 const FUNNEL_COLORS = ['#0E6E6A', '#2E8B86', '#4FA7A2', '#F4B23E', '#E19D24']
 
@@ -104,7 +104,7 @@ export function BlastDetailPage() {
       <BackCrumbs onBack={() => navigate('/marketing/blast-campaigns/home')} crumbs={[{ label: t('marketing.campaigns.title'), onClick: () => navigate('/marketing/blast-campaigns/home') }, { label: campaign.name }]} />
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 text-ink">
+          <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 break-words font-display text-title-2 text-ink md:gap-3 md:text-title-1">
             {campaign.name}
             <CampaignStatusChip status={campaign.status} />
           </h1>
@@ -170,7 +170,7 @@ export function BlastDetailPage() {
 
       {campaign.status === 'sent' && (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
             <StatCard label={t('marketing.detail.stats.sent')} value={s.sent} hint={t('marketing.detail.stats.deliveredHint', { count: s.delivered, value: num(pct(s.delivered, s.sent)) })} />
             <StatCard label={t('marketing.detail.stats.opened')} value={`${num(pct(s.opened, s.delivered))}%`} hint={t('marketing.detail.stats.openedHint', { count: s.opened })} />
             <StatCard label={t('marketing.detail.stats.clicked')} value={`${num(pct(s.clicked, s.delivered))}%`} hint={t('marketing.detail.stats.clickedHint', { count: s.clicked })} />
@@ -178,7 +178,7 @@ export function BlastDetailPage() {
             <StatCard label={t('marketing.detail.stats.revenue')} value={money(s.revenue)} hint={t('marketing.detail.stats.revenueHint')} />
             <StatCard label={t('marketing.detail.stats.cost')} value={money2(campaign.cost)} hint={t('marketing.detail.stats.roi', { value: campaign.cost ? Math.round(s.revenue / campaign.cost) : 0 })} />
           </div>
-          <Card title={t('marketing.detail.funnelTitle')} subtitle={t('marketing.detail.funnelHint')} className="mb-6">
+          <Card title={t('marketing.detail.funnelTitle')} subtitle={t('marketing.detail.funnelHint')} className="mb-6 max-md:p-4">
             <div className="h-64" data-testid="campaign-funnel">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={funnel} layout="vertical" margin={{ left: 8, right: 24 }}>
@@ -200,7 +200,7 @@ export function BlastDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="flex min-w-0 flex-col gap-6">
-          <Card title={t('marketing.detail.details')}>
+          <Card title={t('marketing.detail.details')} className="max-md:p-4">
             <DetailList
               rows={[
                 { label: t('marketing.detail.rows.channel'), value: t(`marketing.campaigns.channel.${campaign.channel}`) },
@@ -225,15 +225,45 @@ export function BlastDetailPage() {
             />
           </Card>
           {campaign.status === 'sent' && (
-            <Card title={t('marketing.detail.recipientsTitle')} subtitle={t('marketing.detail.recipientsHint', { count: sample.length, total: campaign.recipients })} padded={false} className="overflow-hidden">
-              <div className="px-6 pb-6">
-                <DataTable columns={columns} rows={sample} rowKey={(m) => m.id} pageSize={10} empty={<p className="px-6 py-8 text-center text-body text-muted">{t('marketing.detail.noRecipients')}</p>} />
+            <Card
+              title={t('marketing.detail.recipientsTitle')}
+              subtitle={t('marketing.detail.recipientsHint', { count: sample.length, total: campaign.recipients })}
+              padded={false}
+              className="overflow-hidden max-md:[&>div:first-child]:px-4 max-md:[&>div:first-child]:pt-4"
+            >
+              <div className="px-4 pb-4 md:px-6 md:pb-6">
+                {/* Phones: a list of recipients instead of the wide table. */}
+                <PhoneList
+                  variant="rows"
+                  rows={sample}
+                  rowKey={(m) => m.id}
+                  pageSize={10}
+                  empty={<p className="px-4 py-8 text-center text-body text-muted">{t('marketing.detail.noRecipients')}</p>}
+                  render={(m) => (
+                    <div className="px-4 py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        {m.clientId ? (
+                          <button type="button" className="min-w-0 text-left text-body-strong text-primary hover:underline" onClick={() => drawer.open('client', { id: m.clientId! })}>
+                            {m.toName}
+                          </button>
+                        ) : (
+                          <span className="min-w-0 text-body-strong text-ink">{m.toName}</span>
+                        )}
+                        <span className={m.status === 'opened' ? 'chip shrink-0 bg-success-subtle text-success' : 'chip shrink-0 bg-sunken text-muted'}>{t(`marketing.history.status.${m.status}`)}</span>
+                      </div>
+                      <p className="text-small text-muted [overflow-wrap:anywhere]">{m.to}</p>
+                      <p className="text-small text-muted">{fmtDateTimeUS(m.at)}</p>
+                    </div>
+                  )}
+                />
+                <DataTable className="max-md:hidden" columns={columns} rows={sample} rowKey={(m) => m.id} pageSize={10} empty={<p className="px-6 py-8 text-center text-body text-muted">{t('marketing.detail.noRecipients')}</p>} />
               </div>
             </Card>
           )}
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="mb-2 text-body-strong text-ink">{t('marketing.builder.preview')}</p>
+
           {campaign.channel === 'email' ? (
             <EmailMock subject={campaign.subject || campaign.name} fromName={workspace.name} fromEmail={location?.email ?? ''}>
               <p className="font-display text-title-2 text-ink">{campaign.heading || campaign.name}</p>

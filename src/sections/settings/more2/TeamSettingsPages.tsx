@@ -259,12 +259,13 @@ function PayRunsModal({ value, startsFrom, onClose }: { value: PayRuns; startsFr
 
   const autoRow = (label: ReactNode, on: boolean, onChange: (v: boolean) => void) => (
     <div className="flex items-start justify-between gap-4 rounded-lg border border-line px-4 py-3">
-      <div>
+      <div className="min-w-0">
         <p className="text-body text-ink">{label}</p>
         <p className="text-small text-muted">{t(on ? 'settings.more2.payRuns.autoOnHint' : 'settings.more2.payRuns.autoOffHint')}</p>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-small text-muted">{t(on ? 'settings.common.enabled' : 'settings.common.disabled')}</span>
+      <div className="flex shrink-0 items-center gap-2">
+        {/* Phones: the switch alone shows the state, so the label keeps its width. */}
+        <span className="hidden text-small text-muted sm:inline">{t(on ? 'settings.common.enabled' : 'settings.common.disabled')}</span>
         <Switch checked={on} onChange={onChange} label={<span className="sr-only">{label}</span>} />
       </div>
     </div>

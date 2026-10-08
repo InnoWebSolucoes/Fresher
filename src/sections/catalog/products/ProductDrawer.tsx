@@ -12,7 +12,7 @@ import { fmtDate, fmtDateTimeUS, fullName, money, round2 } from '@/lib/format'
 import { now } from '@/lib/time'
 import type { Product } from '@/types'
 import { deleteProducts } from '@/api/catalog'
-import { InfoCard, PaneTitle, TwoPaneDrawer } from '../ui'
+import { HeroInfo, HeroMedia, InfoCard, PaneTitle, TwoPaneDrawer } from '../ui'
 import { StockModal, useReasonLabel, useRefLabel } from './parts'
 
 const P = 'catalog.products2'
@@ -47,38 +47,42 @@ export function ProductDrawer({ id, params, close }: DrawerProps) {
 
   const hero = (
     <>
-      <div className="mb-2 flex h-36 w-36 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface text-subtle">
-        {product.images[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" /> : <Package size={56} strokeWidth={1.2} aria-hidden />}
-      </div>
-      <h2 className="font-display text-title-3 text-ink">{product.name}</h2>
-      {product.trackStock ? (
-        <span className={clsx('chip h-6', product.stock <= 0 ? 'bg-danger-subtle text-danger' : product.stock <= product.lowStockLevel ? 'bg-warning-subtle text-warning' : 'bg-primary-subtle text-primary')}>{t(`${P}.inStock`, { count: product.stock })}</span>
-      ) : (
-        <span className="chip h-6 bg-sunken text-muted">{t(`${P}.notTracked`)}</span>
-      )}
-      <div className="mt-3">
-        <Menu
-          align="left"
-          width={220}
-          trigger={({ open, toggle }) => (
-            <MenuButton open={open} toggle={toggle}>
-              {t('catalog.common.actions')}
-            </MenuButton>
-          )}
-          groups={[
-            {
-              items: [
-                { label: t(`${P}.actions.addStock`), onSelect: () => setStockMode('add') },
-                { label: t(`${P}.actions.removeStock`), onSelect: () => setStockMode('remove'), disabled: !product.trackStock },
-                { label: t(`${P}.actions.orderStock`), onSelect: () => navigate(`/catalogue/orders/new?product=${product.id}`) },
-                { label: t(`${P}.actions.sellProduct`), onSelect: () => drawer.open('checkout', { d_add: `product:${product.id}` }), disabled: !product.retailSales },
-                { label: t(`${P}.actions.editProduct`), onSelect: () => navigate(`/catalogue/products/edit/${product.id}`) },
-              ],
-            },
-            { items: [{ label: t(`${P}.actions.deleteProduct`), danger: true, onSelect: () => void remove() }] },
-          ]}
-        />
-      </div>
+      <HeroMedia>
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface text-subtle md:h-36 md:w-36">
+          {product.images[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" /> : <Package size={56} strokeWidth={1.2} className="max-md:h-8 max-md:w-8" aria-hidden />}
+        </div>
+      </HeroMedia>
+      <HeroInfo>
+        <h2 className="font-display text-title-3 text-ink">{product.name}</h2>
+        {product.trackStock ? (
+          <span className={clsx('chip h-6', product.stock <= 0 ? 'bg-danger-subtle text-danger' : product.stock <= product.lowStockLevel ? 'bg-warning-subtle text-warning' : 'bg-primary-subtle text-primary')}>{t(`${P}.inStock`, { count: product.stock })}</span>
+        ) : (
+          <span className="chip h-6 bg-sunken text-muted">{t(`${P}.notTracked`)}</span>
+        )}
+        <div className="mt-1 md:mt-3">
+          <Menu
+            align="left"
+            width={220}
+            trigger={({ open, toggle }) => (
+              <MenuButton open={open} toggle={toggle}>
+                {t('catalog.common.actions')}
+              </MenuButton>
+            )}
+            groups={[
+              {
+                items: [
+                  { label: t(`${P}.actions.addStock`), onSelect: () => setStockMode('add') },
+                  { label: t(`${P}.actions.removeStock`), onSelect: () => setStockMode('remove'), disabled: !product.trackStock },
+                  { label: t(`${P}.actions.orderStock`), onSelect: () => navigate(`/catalogue/orders/new?product=${product.id}`) },
+                  { label: t(`${P}.actions.sellProduct`), onSelect: () => drawer.open('checkout', { d_add: `product:${product.id}` }), disabled: !product.retailSales },
+                  { label: t(`${P}.actions.editProduct`), onSelect: () => navigate(`/catalogue/products/edit/${product.id}`) },
+                ],
+              },
+              { items: [{ label: t(`${P}.actions.deleteProduct`), danger: true, onSelect: () => void remove() }] },
+            ]}
+          />
+        </div>
+      </HeroInfo>
     </>
   )
 

@@ -170,6 +170,41 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
     }
   }
 
+  const rowMenu = (item: StocktakeItem) => (
+    <Menu
+      label={t('catalog.common.actions')}
+      groups={[
+        {
+          items: [
+            { label: t('catalog.inventory.count.viewProduct'), onSelect: () => drawer.open('product', { id: item.productId }) },
+            item.excluded
+              ? {
+                  label: t('catalog.inventory.count.include'),
+                  onSelect: () => {
+                    update([item.productId], () => ({ excluded: false }))
+                    toast(t('catalog.inventory.count.includedToast'))
+                  },
+                }
+              : {
+                  label: t('catalog.inventory.count.exclude'),
+                  danger: true,
+                  onSelect: () => {
+                    update([item.productId], () => ({ excluded: true }))
+                    toast(t('catalog.inventory.count.excludedToast'))
+                  },
+                },
+          ],
+        },
+      ]}
+    />
+  )
+  const toggleRow = (productId: string, on: boolean) => {
+    const next = new Set(selected)
+    if (on) next.add(productId)
+    else next.delete(productId)
+    setSelected(next)
+  }
+
   const allVisibleSelected = rows.length > 0 && rows.every((r) => selected.has(r.productId))
   const selectedIds = [...selected]
 
@@ -184,8 +219,8 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
             <Switch checked={quickScan} onChange={setQuickScan} />
             <span className="text-body text-ink">{t('catalog.inventory.count.quickScan')}</span>
           </div>
-          <Button icon={<Pause size={16} />} loading={busy === 'pause'} onClick={() => void leave('pause')}>
-            {t('catalog.inventory.count.pause')}
+          <Button icon={<Pause size={16} />} loading={busy === 'pause'} aria-label={t('catalog.inventory.count.pause')} className="max-md:w-10 max-md:px-0" onClick={() => void leave('pause')}>
+            <span className="hidden md:inline">{t('catalog.inventory.count.pause')}</span>
           </Button>
           <Button variant="primary" loading={busy === 'review'} onClick={() => void leave('review')}>
             {t('catalog.inventory.count.review')}
@@ -195,6 +230,19 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
     >
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
+          {/* Phones: the stocktake name and progress on top (the summary column comes after the list). */}
+          <div className="mb-4 rounded-lg border border-line bg-surface p-4 md:hidden">
+            <p className="break-words font-display text-title-3 text-ink">{stocktake.name}</p>
+            <div className="mt-2 flex items-center justify-between gap-3 text-small text-muted">
+              <span>
+                {t('catalog.inventory.count.counted')}: <span className="tabular text-ink">{counted}</span> / <span className="tabular">{active.length}</span>
+              </span>
+              <span className="tabular text-ink">{progress}%</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-sunken" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={t('catalog.inventory.count.progress')}>
+              <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
           {quickScan && (
             <form
               className="mb-4 flex items-center gap-3 rounded-lg border border-primary/40 bg-primary-subtle/40 p-3"
@@ -211,12 +259,12 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
             </form>
           )}
           <Toolbar>
-            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.count.search')} className="max-w-xs" />
+            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.count.search')} className="max-w-xs max-md:max-w-none max-md:basis-full" />
             <Select
               aria-label={t('catalog.inventory.count.filterTitle')}
               value={show}
               onChange={(e) => setShow(e.target.value as Show)}
-              className="h-10 w-48 rounded-full"
+              className="h-10 w-48 rounded-full max-md:w-auto max-md:min-w-0 max-md:flex-1"
               options={[
                 { value: 'all', label: t('catalog.inventory.count.filterAll') },
                 { value: 'counted', label: t('catalog.inventory.count.filterCounted') },
@@ -247,7 +295,49 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          {/* Phones: one card per product instead of the wide table. */}
+          <div className="md:hidden">
+            {rows.length > 0 && (
+              <label className="mb-2 flex h-10 cursor-pointer items-center gap-3 px-1 text-body text-ink">
+                <input type="checkbox" checked={allVisibleSelected} onChange={(e) => setSelected(new Set(e.target.checked ? rows.map((r) => r.productId) : []))} className="h-5 w-5 accent-[rgb(var(--primary))]" />
+                {t('catalog.common.selectAll')}
+              </label>
+            )}
+            <ul className="flex flex-col gap-3">
+              {rows.map((item) => {
+                const p = productById.get(item.productId)!
+                return (
+                  <li key={item.productId} className={clsx('rounded-lg border border-line bg-surface p-3', item.excluded && 'opacity-60', selected.has(item.productId) && 'border-primary/40 bg-primary-subtle/30')}>
+                    <div className="flex items-start gap-3">
+                      <input type="checkbox" aria-label={t('catalog.common.selectRow')} checked={selected.has(item.productId)} onChange={(e) => toggleRow(item.productId, e.target.checked)} className="mt-3.5 h-5 w-5 shrink-0 accent-[rgb(var(--primary))]" />
+                      <ProductThumb product={p} size={48} />
+                      <div className="min-w-0 flex-1">
+                        <p className="break-words text-body text-ink">{p.name}</p>
+                        {productSku(p) && <p className="text-small text-muted">{t('catalog.inventory.common.sku', { sku: productSku(p) })}</p>}
+                        <p className="text-small text-muted">
+                          {t('catalog.inventory.count.cols.expected')}: <span className="tabular text-ink">{item.expected}</span>
+                        </p>
+                      </div>
+                      {rowMenu(item)}
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 pl-8">
+                      {item.excluded ? (
+                        <span className="chip bg-sunken text-muted">{t('catalog.inventory.count.excluded')}</span>
+                      ) : (
+                        <>
+                          <CountInput value={item.counted} onChange={(v) => setCount(item.productId, v)} label={t('catalog.inventory.count.countLabel', { name: p.name })} />
+                          {item.counted !== undefined && <DiffChip diff={item.counted - item.expected} />}
+                        </>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+            {!rows.length && <EmptyState title={t('catalog.inventory.count.emptyTitle')} body={t('catalog.inventory.count.emptyBody')} />}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[760px] border-collapse text-left text-body">
               <thead>
                 <tr className="border-b border-line">
@@ -282,12 +372,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
                           type="checkbox"
                           aria-label={t('catalog.common.selectRow')}
                           checked={selected.has(item.productId)}
-                          onChange={(e) => {
-                            const next = new Set(selected)
-                            if (e.target.checked) next.add(item.productId)
-                            else next.delete(item.productId)
-                            setSelected(next)
-                          }}
+                          onChange={(e) => toggleRow(item.productId, e.target.checked)}
                           className="h-4 w-4 accent-[rgb(var(--primary))]"
                         />
                       </td>
@@ -321,34 +406,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
                           </div>
                         )}
                       </td>
-                      <td className="px-3 py-4 text-right">
-                        <Menu
-                          label={t('catalog.common.actions')}
-                          groups={[
-                            {
-                              items: [
-                                { label: t('catalog.inventory.count.viewProduct'), onSelect: () => drawer.open('product', { id: p.id }) },
-                                item.excluded
-                                  ? {
-                                      label: t('catalog.inventory.count.include'),
-                                      onSelect: () => {
-                                        update([p.id], () => ({ excluded: false }))
-                                        toast(t('catalog.inventory.count.includedToast'))
-                                      },
-                                    }
-                                  : {
-                                      label: t('catalog.inventory.count.exclude'),
-                                      danger: true,
-                                      onSelect: () => {
-                                        update([p.id], () => ({ excluded: true }))
-                                        toast(t('catalog.inventory.count.excludedToast'))
-                                      },
-                                    },
-                              ],
-                            },
-                          ]}
-                        />
-                      </td>
+                      <td className="px-3 py-4 text-right">{rowMenu(item)}</td>
                     </tr>
                   )
                 })}
@@ -360,12 +418,12 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
 
         <aside className="flex flex-col gap-4">
           <div>
-            <h2 className="font-display text-title-1 text-ink">{stocktake.name}</h2>
+            <h2 className="font-display text-title-2 text-ink md:text-title-1">{stocktake.name}</h2>
             <p className="text-small text-muted">{t('catalog.inventory.count.started', { ago: formatDistance(parseISO(stocktake.startedAt), current, { addSuffix: true }) })}</p>
             {stocktake.description && <p className="mt-1 text-body text-muted">{stocktake.description}</p>}
           </div>
           <LocationCard location={location} />
-          <section className="rounded-lg border border-line bg-surface p-6">
+          <section className="rounded-lg border border-line bg-surface p-4 md:p-6">
             <h3 className="mb-4 font-display text-title-3 text-ink">{t('catalog.inventory.count.summary')}</h3>
             <dl className="flex flex-col gap-3 text-body">
               {[
@@ -384,7 +442,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
               <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
             </div>
           </section>
-          <section className="rounded-lg border border-line bg-surface p-6">
+          <section className="rounded-lg border border-line bg-surface p-4 md:p-6">
             <h3 className="mb-4 font-display text-title-3 text-ink">{t('catalog.inventory.count.activity')}</h3>
             {activity.length ? (
               <>
@@ -398,7 +456,7 @@ function CountBody({ stocktake }: { stocktake: Stocktake }) {
                     return (
                       <li key={item.productId} className="flex items-center justify-between gap-3 py-3">
                         <div className="min-w-0">
-                          <p className="truncate text-body-strong text-ink">{p?.name}</p>
+                          <p className="text-body-strong text-ink max-md:break-words md:truncate">{p?.name}</p>
                           {productSku(p) && <p className="text-small text-muted">{t('catalog.inventory.common.sku', { sku: productSku(p) })}</p>}
                           <p className="text-small text-muted">{stocktake.countedBy}</p>
                           <p className="text-small text-muted">{formatDistance(parseISO(item.countedAt!), current, { addSuffix: true })}</p>

@@ -1,7 +1,7 @@
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import clsx from 'clsx'
-import { IdCard, LayoutList, Star } from 'lucide-react'
+import { ArrowLeft, IdCard, LayoutList, Star } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -140,12 +140,15 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
     )
   }
 
+  const stepTitle = t(step === 0 ? 'settings.more2.forms.step1Title' : 'settings.more2.forms.step2Title')
+  // Phones show only "Step 1 of 2" in the header; the step title opens the page body instead.
   const title = (
     <span className="flex flex-col items-center leading-tight">
       <span className="text-small font-normal text-muted">{t('settings.frm.preview.step', { step: step + 1, total: 2 })}</span>
-      <span>{t(step === 0 ? 'settings.more2.forms.step1Title' : 'settings.more2.forms.step2Title')}</span>
+      <span className="hidden md:inline">{stepTitle}</span>
     </span>
   )
+  const phoneHeading = <h2 className="font-display text-title-2 text-ink md:hidden">{stepTitle}</h2>
 
   const palette = (
     <div className="flex flex-col gap-3">
@@ -164,15 +167,15 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
       maxWidth={step === 0 ? 'max-w-[880px]' : 'max-w-[1240px]'}
       actions={
         step === 0 ? (
-          <Button variant="primary" className="px-6" disabled={sections.length === 0} onClick={nextStep} data-testid="form-next-step">
+          <Button variant="primary" className="md:px-6" disabled={sections.length === 0} onClick={nextStep} data-testid="form-next-step">
             {t('settings.frm.preview.next')}
           </Button>
         ) : (
           <>
-            <Button variant="ghost" onClick={() => setStep(0)}>
+            <Button variant="ghost" className="hidden md:inline-flex" onClick={() => setStep(0)}>
               {t('settings.common.previous')}
             </Button>
-            <Button variant="primary" className="px-6" loading={busy} onClick={save} data-testid="form-save">
+            <Button variant="primary" className="md:px-6" loading={busy} onClick={save} data-testid="form-save">
               {t('settings.common.save')}
             </Button>
           </>
@@ -181,8 +184,9 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
     >
       {step === 0 ? (
         <div className="flex flex-col gap-6">
+          {phoneHeading}
           {/* Palette for narrow screens (the side nav is hidden below md). */}
-          <div className="flex gap-2 md:hidden">
+          <div className="flex flex-wrap gap-2 md:hidden">
             <Button size="sm" disabled={hasClientDetails} onClick={() => addSection('client_details')}>
               {t('settings.frm.builder.clientDetails')}
             </Button>
@@ -202,7 +206,7 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
             />
           )}
           {sections.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-line-strong bg-surface px-6 py-16 text-center" data-testid="builder-empty">
+            <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-line-strong bg-surface px-5 py-10 text-center md:px-6 md:py-16" data-testid="builder-empty">
               <span className="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle text-primary">
                 <LayoutList size={28} aria-hidden />
               </span>
@@ -244,7 +248,13 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
           )}
         </div>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <div className="grid gap-6 md:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+          <div className="flex items-center justify-between gap-3 md:hidden">
+            {phoneHeading}
+            <Button variant="ghost" size="sm" icon={<ArrowLeft size={16} aria-hidden />} onClick={() => setStep(0)}>
+              {t('settings.common.previous')}
+            </Button>
+          </div>
           <div className="flex flex-col divide-y divide-line">
             <section className="flex flex-col gap-5 pb-8">
               <h2 className="font-display text-title-2 text-ink">{t('settings.more2.forms.detailsHeading')}</h2>
@@ -281,8 +291,8 @@ function FormBuilder({ template }: { template: FormTemplate | null }) {
               </Field>
               <div>
                 <p className="mb-1.5 text-body-strong text-ink">{t('settings.more2.forms.askWhenBooking')}</p>
-                <div className="flex items-center justify-between rounded-sm bg-sunken px-4 py-3">
-                  <span className="text-body text-ink">{servicesLabel(t, draft.serviceIds)}</span>
+                <div className="flex items-center justify-between gap-3 rounded-sm bg-sunken px-4 py-3">
+                  <span className="min-w-0 text-body text-ink">{servicesLabel(t, draft.serviceIds)}</span>
                   <button type="button" className="text-body-strong text-primary hover:underline" onClick={() => setServicesOpen(true)} data-testid="form-services-edit">
                     {t('settings.common.edit')}
                   </button>

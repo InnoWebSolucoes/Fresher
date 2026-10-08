@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ArrowUpRight, ChevronRight, IdCard, MapPin, Tag, Timer } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, EmptyState, Field, LearnMore, TextInput, confirm } from '@/components/ui'
@@ -50,7 +50,14 @@ export function LocationPage() {
   const locations = useLocations()
   const location = locations.find((l) => l.id === id)
   const [, run] = useAction()
-
+  // Phones: the tab row scrolls sideways, so bring the current tab into view.
+  const tabList = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const list = tabList.current
+    const current = list?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (!list || !current || list.scrollWidth <= list.clientWidth) return
+    list.scrollLeft += current.getBoundingClientRect().left - list.getBoundingClientRect().left - 16
+  }, [tab])
   if (!location) {
     return (
       <div className="card">
@@ -93,7 +100,7 @@ export function LocationPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex items-center gap-1.5 text-body text-muted" aria-label={t('settings.biz.locations.title')}>
+      <nav className="flex flex-wrap items-center gap-1.5 text-body text-muted" aria-label={t('settings.biz.locations.title')}>
         <Link to="/setup/business-setup/location-details" className="hover:text-ink hover:underline">
           {t('settings.biz.locations.title')}
         </Link>
@@ -110,22 +117,22 @@ export function LocationPage() {
         }
         actions={<PillMenu label={t('settings.common.options')} groups={[{ items: [{ label: t('settings.biz.locations.delete'), danger: true, disabled: locations.length <= 1, hint: locations.length <= 1 ? t('settings.biz.locations.lastLocation') : undefined, onSelect: () => void remove() }] }]} />}
       >
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line">
-          <div role="tablist" aria-label={t('settings.biz.location.settings')} className="flex flex-wrap gap-1">
+        <div className="flex flex-col-reverse gap-2 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-x-6 md:gap-y-3 md:border-b md:border-line">
+          <div ref={tabList} role="tablist" aria-label={t('settings.biz.location.settings')} className="-mx-4 flex gap-1 overflow-x-auto px-4 shadow-[inset_0_-1px_0_rgb(var(--border))] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:shadow-none">
             {TABS.map(({ id: tabId, icon: Icon }) => (
               <Link
                 key={tabId}
                 to={`/setup/location/${location.id}/${tabId}`}
                 role="tab"
                 aria-selected={tab === tabId}
-                className={clsx('-mb-px inline-flex items-center gap-2 border-b-2 px-3 pb-3 pt-1 text-body-strong transition-colors', tab === tabId ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink')}
+                className={clsx('inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 pb-3 pt-1 text-body-strong transition-colors md:-mb-px', tab === tabId ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink')}
               >
                 <Icon size={16} aria-hidden />
                 {t(`settings.biz.location.tabs.${tabId}`)}
               </Link>
             ))}
           </div>
-          <div className="flex flex-wrap gap-4 pb-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 md:gap-4 md:pb-3">
             <Link to={`/online-presence/profile/dashboard/${location.id}`} className="inline-flex items-center gap-1 text-body text-muted hover:text-ink">
               {t('settings.biz.location.marketplaceProfile')}
               <ArrowUpRight size={14} aria-hidden />

@@ -186,17 +186,17 @@ export function StockOrderNewPage() {
       <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={close} progress={1} maxWidth="max-w-2xl">
         <div className="py-6">
           <SuccessHero title={t('catalog.inventory.orderNew.ready.title')} subtitle={t('catalog.inventory.orderNew.ready.subtitle')} />
-          <section className="mt-8 rounded-lg border border-line bg-surface p-6">
+          <section className="mt-8 rounded-lg border border-line bg-surface p-4 md:p-6">
             <h2 className="font-display text-title-3 text-ink">{t('catalog.inventory.orderNew.ready.details')}</h2>
             <p className="mt-1 text-body text-muted">{t('catalog.inventory.orderNew.ready.summary', { count: orderQuantity(created.items), total: money(orderTotal(created)) })}</p>
             <ul className="mt-5 flex flex-col divide-y divide-line">
-              <li className="flex items-center gap-4 py-4">
+              <li className="flex items-center gap-3 py-4 md:gap-4">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary">
                   <Mail size={20} aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-body-strong text-ink">{t('catalog.inventory.orderNew.ready.email')}</p>
-                  <p className="text-small text-muted">{supplier?.email ? t('catalog.inventory.orderNew.ready.emailHint', { email: supplier.email }) : t('catalog.inventory.orderNew.ready.noEmail')}</p>
+                  <p className="text-small text-muted max-md:[overflow-wrap:anywhere]">{supplier?.email ? t('catalog.inventory.orderNew.ready.emailHint', { email: supplier.email }) : t('catalog.inventory.orderNew.ready.noEmail')}</p>
                 </div>
                 {emailSent ? (
                   <span className="chip bg-success-subtle text-success">
@@ -208,7 +208,7 @@ export function StockOrderNewPage() {
                   </Button>
                 )}
               </li>
-              <li className="flex items-center gap-4 py-4">
+              <li className="flex items-center gap-3 py-4 md:gap-4">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary">
                   <Download size={20} aria-hidden />
                 </span>
@@ -234,15 +234,15 @@ export function StockOrderNewPage() {
   if (step === 'supplier' || !supplier)
     return (
       <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={close} progress={progress} maxWidth="max-w-3xl">
-        <h1 className="font-display text-display text-ink">{t('catalog.inventory.orderNew.supplierTitle')}</h1>
-        <p className="mt-2 text-body-lg text-muted">
+        <h1 className="font-display text-title-1 text-ink md:text-display">{t('catalog.inventory.orderNew.supplierTitle')}</h1>
+        <p className="mt-2 text-body text-muted md:text-body-lg">
           {t('catalog.inventory.orderNew.supplierSubtitle')}{' '}
           <Link to="/catalogue/suppliers" className="text-primary hover:underline">
             {t('catalog.inventory.orderNew.here')}
           </Link>
         </p>
         {suppliers.length ? (
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 md:mt-8">
             {suppliers.map((s) => (
               <button
                 key={s.id}
@@ -252,7 +252,7 @@ export function StockOrderNewPage() {
               >
                 <Avatar name={s.name} size={48} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-body-strong text-ink">{s.name}</span>
+                  <span className="block text-body-strong text-ink max-md:break-words md:truncate">{s.name}</span>
                   <span className="block text-small text-muted">{t('catalog.inventory.common.products', { count: productCount(s.id) })}</span>
                 </span>
                 <ArrowRight size={18} className="text-muted" aria-hidden />
@@ -297,10 +297,46 @@ export function StockOrderNewPage() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0">
           <h1 className="font-display text-title-1 text-ink">{init.editing ? t('catalog.inventory.orderNew.editTitle', { number: orders.find((o) => o.id === init.draftId)?.number ?? '' }) : t('catalog.inventory.orderNew.productsTitle')}</h1>
-          <p className="mb-6 mt-1 text-body-lg text-muted">{t('catalog.inventory.orderNew.productsSubtitle')}</p>
+          <p className="mb-5 mt-1 text-body text-muted md:mb-6 md:text-body-lg">{t('catalog.inventory.orderNew.productsSubtitle')}</p>
           {items.length ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Phones: one card per product instead of the wide table. */}
+              <ul className="flex flex-col gap-3 md:hidden">
+                {items.map((item) => {
+                  const p = productById.get(item.productId)
+                  const name = p?.name ?? item.productId
+                  return (
+                    <li key={item.productId} className="rounded-lg border border-line bg-surface p-3">
+                      <div className="flex items-start gap-3">
+                        <ProductThumb product={p} size={48} />
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words text-body text-ink">{name}</p>
+                          <p className="text-small text-muted">{[productSku(p) && t('catalog.inventory.common.sku', { sku: productSku(p) }), productSize(p)].filter(Boolean).join(' · ')}</p>
+                          <p className="text-small text-muted">{t('catalog.inventory.common.inStock', { count: p?.stock ?? 0 })}</p>
+                        </div>
+                        <button type="button" aria-label={t('catalog.inventory.orderNew.removeProduct', { name })} onClick={() => setItems((list) => list.filter((i) => i.productId !== item.productId))} className="icon-btn shrink-0">
+                          <Trash2 size={16} aria-hidden />
+                        </button>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div className="min-w-0">
+                          <p className="mb-1 text-small text-muted">{t('catalog.inventory.orderNew.cols.qty')}</p>
+                          <Stepper value={item.qty} min={1} onChange={(qty) => patchItem(item.productId, { qty })} label={t('catalog.inventory.orderNew.qtyLabel', { name })} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="mb-1 text-small text-muted">{t('catalog.inventory.orderNew.cols.unitCost')}</p>
+                          <MoneyInput value={item.unitCost} aria-label={t('catalog.inventory.orderNew.costLabel', { name })} onChange={(v) => patchItem(item.productId, { unitCost: v === '' ? 0 : Math.max(0, v) })} />
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+                        <span className="text-body text-muted">{t('catalog.inventory.orderNew.cols.total')}</span>
+                        <span className="tabular text-body-strong text-ink">{money(item.qty * item.unitCost)}</span>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full min-w-[720px] border-collapse text-left text-body">
                   <thead>
                     <tr className="border-b border-line">
@@ -364,7 +400,7 @@ export function StockOrderNewPage() {
           )}
         </div>
 
-        <aside className="flex flex-col gap-8">
+        <aside className="flex flex-col gap-6 md:gap-8">
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-title-3 text-ink">{t('catalog.inventory.orderNew.selectedSupplier')}</h2>
@@ -374,7 +410,7 @@ export function StockOrderNewPage() {
             </div>
             <div className="flex items-center gap-3">
               <Avatar name={supplier.name} size={48} />
-              <span className="text-body text-ink">{supplier.name}</span>
+              <span className="min-w-0 text-body text-ink">{supplier.name}</span>
             </div>
           </section>
           <section>

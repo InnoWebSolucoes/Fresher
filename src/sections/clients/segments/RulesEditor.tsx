@@ -45,7 +45,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
   switch (spec.type) {
     case 'number':
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 md:w-auto">
           {lead(t(`clients.segments.rules.${spec.lead}`))}
           <TextInput
             type="number"
@@ -53,7 +53,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
             aria-label={label}
             invalid={invalid}
             prefix={spec.prefix}
-            className="w-36"
+            className="min-w-0 flex-1 md:w-36 md:flex-none"
             value={condition.value === '' ? '' : String(condition.value)}
             onChange={(e) => onChange({ value: e.target.value === '' ? '' : Number(e.target.value) })}
           />
@@ -62,11 +62,11 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
     case 'age': {
       const [min, max] = Array.isArray(condition.value) ? condition.value.map(String) : ['', '']
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 md:w-auto">
           {lead(t('clients.segments.rules.between'))}
-          <TextInput type="number" min={0} aria-label={t('clients.segments.rules.minOf', { label })} invalid={invalid && !min} className="w-24" value={min} onChange={(e) => onChange({ value: [e.target.value, max] })} />
+          <TextInput type="number" min={0} aria-label={t('clients.segments.rules.minOf', { label })} invalid={invalid && !min} className="min-w-0 flex-1 md:w-24 md:flex-none" value={min} onChange={(e) => onChange({ value: [e.target.value, max] })} />
           {lead(t('clients.segments.rules.and'))}
-          <TextInput type="number" min={0} aria-label={t('clients.segments.rules.maxOf', { label })} invalid={invalid && !max} className="w-24" value={max} onChange={(e) => onChange({ value: [min, e.target.value] })} />
+          <TextInput type="number" min={0} aria-label={t('clients.segments.rules.maxOf', { label })} invalid={invalid && !max} className="min-w-0 flex-1 md:w-24 md:flex-none" value={max} onChange={(e) => onChange({ value: [min, e.target.value] })} />
         </div>
       )
     }
@@ -74,7 +74,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
       return (
         <Select
           aria-label={label}
-          className="w-64"
+          className="w-full md:w-64"
           value={String(condition.value)}
           onChange={(e) => onChange({ value: Number(e.target.value) })}
           options={(spec.days.includes(Number(condition.value)) ? spec.days : [...spec.days, Number(condition.value)].sort((a, b) => a - b)).map((d) => ({ value: String(d), label: periodLabel(t, d, spec.direction) }))}
@@ -87,7 +87,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
       return (
         <Select
           aria-label={label}
-          className="w-64"
+          className="w-full md:w-64"
           value={current}
           onChange={(e) => {
             const [operator, value] = e.target.value.split(':')
@@ -99,10 +99,10 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
     }
     case 'channel':
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 md:w-auto">
           <Select
             aria-label={t('clients.segments.rules.operatorOf', { label })}
-            className="w-32"
+            className="w-28 shrink-0 md:w-32"
             value={condition.operator === 'not' ? 'not' : 'is'}
             onChange={(e) => onChange({ operator: e.target.value })}
             options={[
@@ -112,7 +112,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
           />
           <Select
             aria-label={label}
-            className={clsx('w-56', invalid && 'border-danger')}
+            className={clsx('min-w-0 flex-1 md:w-56 md:flex-none', invalid && 'border-danger')}
             value={String(condition.value)}
             placeholder={t('clients.segments.rules.selectValue')}
             onChange={(e) => onChange({ value: e.target.value })}
@@ -126,7 +126,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
         <Select
           aria-label={label}
           aria-invalid={invalid}
-          className={clsx('w-64', invalid && 'border-danger')}
+          className={clsx('w-full md:w-64', invalid && 'border-danger')}
           value={value}
           placeholder={t('clients.segments.rules.selectValue')}
           onChange={(e) => onChange({ value: spec.asArray ? (e.target.value ? [e.target.value] : []) : e.target.value })}
@@ -166,7 +166,7 @@ export function RulesEditor({ rules, onChange, errors, showErrors, aside }: Rule
         const extraGroup = rule.attribute && !groupOf(rule.attribute) ? [{ label: t('clients.segments.groups.other'), options: [{ value: rule.attribute, label: t(`clients.segments.attributes.${rule.attribute}`, { defaultValue: rule.attribute }) }] }] : []
         const used = rule.conditions.map((c) => c.field)
         return (
-          <section key={ri} className="card relative p-6" aria-label={t('clients.segments.rules.rule', { n: ri + 1 })}>
+          <section key={ri} className="card relative p-4 md:p-6" aria-label={t('clients.segments.rules.rule', { n: ri + 1 })}>
             <div className="mb-4 flex items-center justify-between">
               <p className="text-body text-muted">{t('clients.segments.rules.rule', { n: ri + 1 })}</p>
               {rules.length > 1 && (
@@ -175,14 +175,14 @@ export function RulesEditor({ rules, onChange, errors, showErrors, aside }: Rule
                 </IconButton>
               )}
             </div>
-            <div className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-x-3 gap-y-3">
-              <span className="pt-2.5 text-right text-body text-ink">{t('clients.segments.rules.clientsWith')}</span>
+            <div className="grid grid-cols-1 items-start gap-x-3 gap-y-2 md:grid-cols-[96px_minmax(0,1fr)] md:gap-y-3">
+              <span className="text-body text-ink md:pt-2.5 md:text-right">{t('clients.segments.rules.clientsWith')}</span>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <GroupedSelect
                     aria-label={t('clients.segments.rules.clientsWith')}
                     aria-invalid={Boolean(e?.attribute)}
-                    className={clsx('w-64', e?.attribute && 'border-danger')}
+                    className={clsx('w-full md:w-64', e?.attribute && 'border-danger')}
                     value={rule.attribute}
                     placeholder={t('clients.segments.rules.selectAttribute')}
                     groups={[...groups, ...extraGroup]}
@@ -209,14 +209,14 @@ export function RulesEditor({ rules, onChange, errors, showErrors, aside }: Rule
                 const fieldLabel = c.field ? t(`clients.segments.conditions.${kind}.${c.field}`, { defaultValue: c.field }) : t('clients.segments.rules.selectCondition')
                 return (
                   <div key={ci} className="contents">
-                    <span className="pt-2.5 text-right text-body text-ink">{t('clients.segments.rules.where')}</span>
+                    <span className="mt-2 text-body text-ink md:mt-0 md:pt-2.5 md:text-right">{t('clients.segments.rules.where')}</span>
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <Select
                             aria-label={t('clients.segments.rules.where')}
                             aria-invalid={err === 'condition'}
-                            className={clsx('w-64', err === 'condition' && 'border-danger')}
+                            className={clsx('w-full md:w-64', err === 'condition' && 'border-danger')}
                             value={c.field}
                             placeholder={t('clients.segments.rules.selectCondition')}
                             options={[...available, ...(c.field && !available.includes(c.field) ? [c.field] : [])].map((f) => ({

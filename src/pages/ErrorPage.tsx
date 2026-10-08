@@ -13,7 +13,7 @@ export function ErrorPage() {
       </span>
       <h1 className="font-display text-title-2">{t('errorPage.title')}</h1>
       <p className="max-w-md text-body text-muted">{error?.message ?? t('errorPage.unknown')}</p>
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
         <button type="button" className="btn-secondary" onClick={() => window.history.back()}>
           {t('errorPage.back')}
         </button>

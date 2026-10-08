@@ -4,6 +4,7 @@ import { CalendarDays, ChevronDown, Columns3, LayoutGrid, Rows3 } from 'lucide-r
 import { memo, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type MutableRefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/ui'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDb } from '@/store/db'
 import type { Appointment, AppointmentItem, BlockedTime, BlockedTimeType, ID, ISODate, TeamMember } from '@/types'
 import { closedPeriodOn, timeOffOn, workingWindows } from '@/lib/schedule'
@@ -183,7 +184,10 @@ export function DayView(props: DayViewProps) {
   return (
     <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragMove={onDragMove} onDragEnd={onDragEnd} onDragCancel={() => setDragLabel(null)}>
       <div ref={scrollRef} className="h-full overflow-auto" data-testid="calendar-day-view">
-        <div className="grid min-w-full" style={{ gridTemplateColumns: `60px repeat(${members.length}, minmax(${members.length > 4 ? 180 : 220}px, 1fr))` }}>
+        <div
+          className={clsx('grid min-w-full [--cal-col:156px] [--cal-gutter:48px] md:[--cal-gutter:60px]', members.length > 4 ? 'md:[--cal-col:180px]' : 'md:[--cal-col:220px]')}
+          style={{ gridTemplateColumns: `var(--cal-gutter) repeat(${members.length}, minmax(var(--cal-col), 1fr))` }}
+        >
           <div className="sticky left-0 top-0 z-30 border-b border-line bg-surface" style={{ gridColumn: 1, gridRow: 1 }} />
           {members.map((m, i) => (
             <MemberHeader key={m.id} member={m} column={i + 2} onAction={(a) => props.onMemberAction(m, a)} />
@@ -240,17 +244,18 @@ export function DayView(props: DayViewProps) {
 
 function MemberHeader({ member, column, onAction }: { member: TeamMember; column: number; onAction: (a: MemberAction) => void }) {
   const { t } = useTranslation()
+  const phone = useIsPhone()
   return (
-    <div className="group sticky top-0 z-20 flex flex-col items-center gap-2 border-b border-l border-line bg-surface px-2 pb-3 pt-4" style={{ gridColumn: column, gridRow: 1 }}>
+    <div className="group sticky top-0 z-20 flex flex-col items-center gap-1.5 border-b border-l border-line bg-surface px-2 pb-2 pt-2.5 md:gap-2 md:pb-3 md:pt-4" style={{ gridColumn: column, gridRow: 1 }}>
       <span className="rounded-full p-0.5 ring-2 ring-info-subtle">
-        <Avatar name={memberName(member)} color={member.color} size={56} />
+        <Avatar name={memberName(member)} color={member.color} size={phone ? 40 : 56} />
       </span>
       <DropMenu
         width={240}
         trigger={({ open, toggle }) => (
-          <button type="button" onClick={toggle} aria-expanded={open} aria-haspopup="menu" className="inline-flex max-w-full items-center gap-1 rounded-md px-1.5 text-body-strong text-ink hover:bg-sunken">
+          <button type="button" onClick={toggle} aria-expanded={open} aria-haspopup="menu" className="inline-flex max-w-full items-center gap-1 rounded-md px-1.5 text-body-strong text-ink hover:bg-sunken max-md:min-h-8">
             <span className="truncate">{memberName(member)}</span>
-            <ChevronDown size={14} className={clsx('shrink-0 transition-opacity', open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')} aria-hidden />
+            <ChevronDown size={14} className={clsx('shrink-0 transition-opacity', open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 max-md:opacity-60')} aria-hidden />
           </button>
         )}
         groups={[
@@ -446,7 +451,8 @@ const DayColumn = memo(function DayColumn(p: ColumnProps) {
         </span>
       ))}
       {hover !== null && (
-        <div className="pointer-events-none absolute inset-x-0.5 z-[4] rounded-xs bg-primary-subtle px-2 text-caption text-primary tabular" style={{ top: hover * quarter, height: quarter, lineHeight: `${quarter}px` }}>
+        // Touch screens have no hover: a tap would otherwise leave this highlight behind.
+        <div className="pointer-events-none absolute inset-x-0.5 z-[4] rounded-xs bg-primary-subtle px-2 text-caption text-primary tabular [@media(hover:none)]:hidden" style={{ top: hover * quarter, height: quarter, lineHeight: `${quarter}px` }}>
           {quarter >= 12 ? toClock(hover * 15) : ''}
         </div>
       )}
@@ -558,14 +564,14 @@ const AppointmentBlock = memo(function AppointmentBlock({ appt, item, pxPerMin, 
         onMouseEnter={dragging || faded ? undefined : hover.bind.onMouseEnter}
         onMouseLeave={hover.bind.onMouseLeave}
         className={clsx(
-          'group/block absolute overflow-hidden rounded-xs text-left text-small shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          'group/block absolute overflow-hidden rounded-xs text-left text-small shadow-xs outline-none [touch-action:none] focus-visible:ring-2 focus-visible:ring-primary max-md:[touch-action:pan-x_pan-y]',
           dragging ? 'z-50 cursor-grabbing shadow-lg' : 'z-[5]',
           !locked && !dragging && 'cursor-pointer',
           faded && 'pointer-events-none opacity-40',
           mode === 'select' && 'cursor-pointer hover:ring-2 hover:ring-primary',
           selected && 'ring-2 ring-primary',
         )}
-        style={{ left, width, top: start * pxPerMin, height, background: tone.fill, color: tone.text, transform, touchAction: 'none' }}
+        style={{ left, width, top: start * pxPerMin, height, background: tone.fill, color: tone.text, transform }}
         data-testid="appointment-block"
         data-appointment-id={appt.id}
         data-selected={selected || undefined}
@@ -584,7 +590,16 @@ const AppointmentBlock = memo(function AppointmentBlock({ appt, item, pxPerMin, 
         <span className="absolute inset-y-0 left-0 w-1" style={{ background: tone.edge }} aria-hidden />
         <div className={clsx('relative flex gap-1 pl-2.5 pr-1.5', short ? 'items-center py-0' : 'items-start pt-1')}>
           <span className="min-w-0 flex-1 truncate">
-            <span className="tabular">{dragText ?? `${item.start} - ${toClock(start + totalMin)}`}</span> <b>{fullName(client, t('calendar.walkIn'))}</b>
+            {/* Phones: narrower columns, so the end time gives way to the client's name. */}
+            <span className="tabular">
+              {dragText ?? (
+                <>
+                  {item.start}
+                  <span className="max-md:hidden"> - {toClock(start + totalMin)}</span>
+                </>
+              )}
+            </span>{' '}
+            <b>{fullName(client, t('calendar.walkIn'))}</b>
           </span>
           <StatusIcons appt={appt} lookups={lookups} />
         </div>

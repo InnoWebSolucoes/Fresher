@@ -75,7 +75,7 @@ export function IntegrationIntroPage() {
         onClose={() => navigate(back)}
         footer={
           connected ? (
-            <div className="card max-w-xl p-6">
+            <div className="card max-w-xl p-5 md:p-6">
               <p className="flex items-center gap-2 text-body-strong text-success">
                 <CheckCircle2 size={20} aria-hidden />
                 {t('addons.integration.connected')}
@@ -89,7 +89,7 @@ export function IntegrationIntroPage() {
                 {copy.field2 && (
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted">{copy.field2}</dt>
-                    <dd className="font-mono">{configString(record, 'id2')}</dd>
+                    <dd className="break-all font-mono">{configString(record, 'id2')}</dd>
                   </div>
                 )}
               </dl>
@@ -180,10 +180,10 @@ function PublishGate({ open, name, onClose, onStart }: { open: boolean; name: st
   const bullets = t('addons.integration.gate.bullets', { returnObjects: true }) as string[]
   return (
     <Modal open={open} onClose={onClose} size="xl">
-      <div className="grid items-center gap-8 p-4 md:grid-cols-[1fr_300px]">
+      <div className="grid items-center gap-8 md:grid-cols-[1fr_300px] md:p-4">
         <div>
-          <h2 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.integration.gate.title', { name })}</h2>
-          <p className="mt-6 text-body-lg text-ink">{t('addons.integration.gate.body')}</p>
+          <h2 className="font-display text-[26px] font-bold leading-[34px] md:text-[32px] md:leading-[40px] text-ink">{t('addons.integration.gate.title', { name })}</h2>
+          <p className="mt-4 text-body-lg text-ink md:mt-6">{t('addons.integration.gate.body')}</p>
           <ul className="mt-3 flex flex-col gap-2">
             {bullets.map((b) => (
               <li key={b} className="flex items-start gap-3 text-body-lg text-ink">

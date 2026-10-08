@@ -48,7 +48,7 @@ function RatingLine({ count, avg }: { count: number; avg: number }) {
 function SetupCard({ title, icon, emptyTitle, emptyBody, onSetup, children, action }: { title: string; icon: ReactNode; emptyTitle: string; emptyBody: string; onSetup: () => void; children?: ReactNode; action?: ReactNode }) {
   const { t } = useTranslation()
   return (
-    <section className="card p-6">
+    <section className="card p-5 md:p-6">
       <div className="flex items-center justify-between gap-4">
         <h2 className="font-display text-title-2 text-ink">{title}</h2>
         {children ? action : null}
@@ -139,8 +139,8 @@ export function MyProfilePage() {
         }
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
-        <section className="card relative flex flex-col items-center p-8 text-center">
-          <Button size="sm" className="absolute right-6 top-6" onClick={() => edit('personal-details')}>
+        <section className="card relative flex flex-col items-center p-6 text-center md:p-8">
+          <Button size="sm" className="absolute right-4 top-4 md:right-6 md:top-6" onClick={() => edit('personal-details')}>
             {t('account.profile.edit')}
           </Button>
           <ProfileAvatar profile={profile} size={120} />
@@ -434,12 +434,12 @@ function ProfileEditor({ user, profile }: { user: User; profile: OnlineProfile }
 
       {section === 'personal-details' && (
         <div className="flex flex-col gap-8">
-          <section className="card p-6">
+          <section className="card p-5 md:p-6">
             <h2 className="font-display text-title-2 text-ink">{t('account.edit.avatar.title')}</h2>
             <p className="mt-1 text-body text-muted">
               {t('account.edit.avatar.body')} <LearnMore topic={t('account.common.topics.photoTips')}>{t('account.edit.avatar.tips')}</LearnMore>
             </p>
-            <div className="mt-5 flex items-center gap-5">
+            <div className="mt-5 flex flex-wrap items-center gap-5">
               <ProfileAvatar profile={{ ...profile, displayName: displayName || profile.displayName, avatar }} size={96} />
               <div className="flex flex-wrap gap-2">
                 <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={(e) => onAvatar(e.target.files?.[0])} />
@@ -454,7 +454,7 @@ function ProfileEditor({ user, profile }: { user: User; profile: OnlineProfile }
               </div>
             </div>
           </section>
-          <section className="card flex flex-col gap-5 p-6">
+          <section className="card flex flex-col gap-5 p-5 md:p-6">
             <div>
               <h2 className="font-display text-title-2 text-ink">{t('account.edit.details.title')}</h2>
               <p className="mt-1 text-body text-muted">{t('account.edit.details.body')}</p>
@@ -485,7 +485,7 @@ function ProfileEditor({ user, profile }: { user: User; profile: OnlineProfile }
       {section === 'languages' && (
         <section>
           {heading(t('account.edit.sections.languages'), t('account.edit.languages.body'))}
-          <div className="card p-6">
+          <div className="card p-5 md:p-6">
             {languages.length === 0 ? (
               <p className="text-body text-muted">{t('account.edit.languages.empty')}</p>
             ) : (
@@ -500,7 +500,7 @@ function ProfileEditor({ user, profile }: { user: User; profile: OnlineProfile }
                 ))}
               </div>
             )}
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2 md:flex-nowrap">
               <Select
                 aria-label={t('account.edit.languages.pick')}
                 value={langPick}
@@ -564,7 +564,7 @@ function ProfileEditor({ user, profile }: { user: User; profile: OnlineProfile }
       {section === 'socials' && (
         <section>
           {heading(t('account.edit.sections.socials'), t('account.edit.socials.body'))}
-          <div className="card flex flex-col gap-4 p-6">
+          <div className="card flex flex-col gap-4 p-5 md:p-6">
             {socials.map((row, i) => (
               <Field key={row.platform} label={t(`account.platforms.${row.platform}`)}>
                 {(id) => (
@@ -629,9 +629,9 @@ export function PortfolioPage() {
       }
     }
     return (
-      <div className="mx-auto grid max-w-[1120px] items-center gap-10 py-6 lg:grid-cols-[1fr_minmax(0,440px)]">
+      <div className="mx-auto grid max-w-[1120px] items-center gap-10 py-2 md:py-6 lg:grid-cols-[1fr_minmax(0,440px)]">
         <div>
-          <h1 className="font-display text-[36px] font-bold leading-[44px] text-ink">{t('account.portfolio.introTitle')}</h1>
+          <h1 className="font-display text-[28px] font-bold leading-[36px] md:text-[36px] md:leading-[44px] text-ink">{t('account.portfolio.introTitle')}</h1>
           <ul className="mt-6 flex flex-col gap-3">
             {(['bullet1', 'bullet2', 'bullet3'] as const).map((k) => (
               <li key={k} className="flex items-start gap-3 text-body-lg text-ink">
@@ -640,7 +640,7 @@ export function PortfolioPage() {
               </li>
             ))}
           </ul>
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap gap-3">
             <Button variant="primary" size="lg" loading={starting} onClick={start}>
               {t('account.portfolio.continue')}
             </Button>

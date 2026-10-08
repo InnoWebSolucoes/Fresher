@@ -105,7 +105,17 @@ export function ProductStorePage() {
     },
     { key: 'price', header: t('online.store.cols.price'), align: 'right', sortValue: (p) => p.retailPrice, cell: (p) => money(p.retailPrice) },
     { key: 'stock', header: t('online.store.cols.stock'), align: 'right', sortValue: (p) => p.stock, cell: (p) => (p.trackStock ? p.stock : '—') },
-    { key: 'online', header: t('online.store.cols.online'), align: 'right', cell: (p) => <Switch checked={!hidden.has(p.id)} onChange={(on) => void toggle(p, on)} label={<span className="sr-only">{t('online.store.visibleFor', { name: p.name })}</span>} /> },
+    {
+      key: 'online',
+      header: t('online.store.cols.online'),
+      align: 'right',
+      // Phones: `relative` keeps the visually hidden label inside the table's sideways scroller (it pushed the page wider).
+      cell: (p) => (
+        <div className="max-md:relative">
+          <Switch checked={!hidden.has(p.id)} onChange={(on) => void toggle(p, on)} label={<span className="sr-only">{t('online.store.visibleFor', { name: p.name })}</span>} />
+        </div>
+      ),
+    },
   ]
   const orderCols: Column<ProductOrder>[] = [
     { key: 'n', header: t('online.store.cols.order'), cell: (o) => `#${o.number}` },
@@ -196,7 +206,7 @@ export function ProductStorePage() {
               />
               {store.shipping && (
                 <div className="flex items-end gap-2">
-                  <label className="flex-1">
+                  <label className="flex-1 max-md:min-w-0">
                     <span className="label mb-1 block">{t('online.store.shippingFee')}</span>
                     <MoneyInput value={fee} onChange={setFee} aria-label={t('online.store.shippingFee')} />
                   </label>

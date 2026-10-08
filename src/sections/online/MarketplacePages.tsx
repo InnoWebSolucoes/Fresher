@@ -40,25 +40,25 @@ export function MarketplaceProfilePage() {
           const started = !!l.marketplace.step
           const open = () => navigate(listed ? `/online-presence/profile/dashboard/${l.id}` : wizardUrl(l))
           return (
-            <li key={l.id} className="card flex flex-wrap items-center gap-5 p-4">
-              <button type="button" onClick={open} className="shrink-0" aria-label={l.name}>
-                <img src={l.marketplace.images[0] ?? l.imageUrl ?? sampleImage(l.id.length)} alt="" className="h-20 w-32 rounded-md object-cover" />
+            <li key={l.id} className="card flex flex-wrap items-center gap-4 p-4 md:gap-5">
+              <button type="button" onClick={open} className="shrink-0 max-md:self-start" aria-label={l.name}>
+                <img src={l.marketplace.images[0] ?? l.imageUrl ?? sampleImage(l.id.length)} alt="" className="h-16 w-24 rounded-md object-cover md:h-20 md:w-32" />
               </button>
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-title-3 text-ink">
+                <p className="flex items-center gap-2 text-title-3 text-ink max-md:flex-wrap max-md:gap-y-1">
                   {l.name}
                   <Chip tone={listed ? 'success' : 'neutral'}>{listed ? t('online.status.listed') : t('online.status.unlisted')}</Chip>
                 </p>
-                <p className="mt-1 truncate text-body text-muted">{addressLine(l)}</p>
+                <p className="mt-1 text-body text-muted md:truncate">{addressLine(l)}</p>
                 <p className="mt-1 text-small text-muted">{t('online.profile.imagesCount', { count: l.marketplace.images.length })}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 max-md:w-full">
                 {listed ? (
-                  <Button variant="primary" onClick={open}>
+                  <Button variant="primary" onClick={open} className="max-md:flex-1">
                     {t('online.profile.manage')}
                   </Button>
                 ) : (
-                  <Button variant="primary" onClick={open}>
+                  <Button variant="primary" onClick={open} className="max-md:flex-1">
                     {started ? t('online.profile.continueSetup') : t('online.common.startNow')}
                   </Button>
                 )}

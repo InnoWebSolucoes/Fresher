@@ -8,6 +8,7 @@ import type { MessageLog } from '@/types'
 import { Chip, DataTable, EmptyState, LearnMore, Modal, Page, PageHeader, PageSkeleton, SearchInput, Select, Toolbar, usePageLoading, type Column } from '@/components/ui'
 import { fmtDateTimeUS } from '@/lib/format'
 import { EmailMock, MessageBubblePreview } from '../components/kit'
+import { PhoneList } from '../helpers'
 
 const STAFF_TYPES = new Set(['invite', 'password_reset', 'stock_order', 'pay_run'])
 const STATUS_TONE = { sent: 'neutral', delivered: 'success', opened: 'info', error: 'danger' } as const
@@ -113,20 +114,69 @@ export function MessagesHistoryPage() {
         <SearchInput value={q} onChange={setQ} placeholder={t('marketing.history.search')} className="max-w-md" />
         <Select
           aria-label={t('marketing.history.col.channel')}
-          className="h-10 w-44 rounded-full"
+          className="h-10 rounded-full max-md:min-w-0 max-md:flex-[1_1_calc(50%-4px)] md:w-44"
           value={channel}
           onChange={(e) => setChannel(e.target.value)}
           options={[{ value: 'all', label: t('marketing.history.allChannels') }, ...(['email', 'sms', 'whatsapp'] as const).map((c) => ({ value: c, label: t(`marketing.history.channel.${c}`) }))]}
         />
         <Select
           aria-label={t('marketing.history.col.type')}
-          className="h-10 w-48 rounded-full"
+          className="h-10 rounded-full max-md:min-w-0 max-md:flex-[1_1_calc(50%-4px)] md:w-48"
           value={type}
           onChange={(e) => setType(e.target.value)}
           options={[{ value: 'all', label: t('marketing.history.allTypes') }, ...types.map((x) => ({ value: x, label: t(`marketing.history.type.${x}`) }))]}
         />
       </Toolbar>
+      {/* Phones: a list of messages instead of the wide table. */}
+      <PhoneList
+        variant="rows"
+        rows={[...rows].sort((a, b) => b.at.localeCompare(a.at))}
+        rowKey={(m) => m.id}
+        empty={<EmptyState icon={<Inbox size={24} />} title={t('marketing.history.empty')} body={t('marketing.history.emptyBody')} />}
+        render={(m) => {
+          const ref = m.appointmentId ? refs.get(m.appointmentId) : undefined
+          return (
+            <div className="px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <button type="button" className="min-w-0 text-left text-body-strong text-primary hover:underline" onClick={() => setOpen(m)}>
+                  {t(`marketing.history.type.${m.type}`)}
+                </button>
+                <Chip tone={STATUS_TONE[m.status]}>{t(`marketing.history.status.${m.status}`)}</Chip>
+              </div>
+              <p className="mt-1 text-body">
+                {m.clientId ? (
+                  <button type="button" className="text-left text-ink hover:underline" onClick={() => drawer.open('client', { id: m.clientId! })}>
+                    {m.toName}
+                  </button>
+                ) : (
+                  <span className="text-ink">{m.toName}</span>
+                )}
+                <span className="text-muted"> · {t(`marketing.history.channel.${m.channel}`)}</span>
+              </p>
+              <p className="mt-0.5 text-small text-muted">
+                {fmtDateTimeUS(m.at)}
+                {ref ? (
+                  <>
+                    {' · '}
+                    <button type="button" className="text-primary hover:underline" onClick={() => drawer.open('appointment', { id: m.appointmentId! })}>
+                      #{ref}
+                    </button>
+                  </>
+                ) : m.campaignId ? (
+                  <>
+                    {' · '}
+                    <Link to={`/marketing/blast-campaigns/${m.campaignId}`} className="text-primary hover:underline">
+                      {t('marketing.history.campaign')}
+                    </Link>
+                  </>
+                ) : null}
+              </p>
+            </div>
+          )
+        }}
+      />
       <DataTable
+        className="max-md:hidden"
         columns={columns}
         rows={rows}
         rowKey={(m) => m.id}
@@ -137,20 +187,20 @@ export function MessagesHistoryPage() {
       <Modal open={Boolean(open)} onClose={() => setOpen(null)} title={t('marketing.history.view')} size="xl">
         {open && (
           <div className="flex flex-col gap-4 pb-3">
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg bg-sunken p-4 text-body sm:grid-cols-4">
-              <div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-sunken p-3 text-body sm:grid-cols-4 md:gap-x-6 md:p-4">
+              <div className="min-w-0 max-md:order-1">
                 <dt className="text-small text-muted">{t('marketing.history.col.client')}</dt>
                 <dd className="text-ink">{open.toName}</dd>
               </div>
-              <div>
+              <div className="min-w-0 max-md:order-3 max-md:col-span-2">
                 <dt className="text-small text-muted">{t('marketing.history.sentTo')}</dt>
-                <dd className="truncate text-ink">{open.to}</dd>
+                <dd className="text-ink max-md:[overflow-wrap:anywhere] md:truncate">{open.to}</dd>
               </div>
-              <div>
+              <div className="max-md:order-4">
                 <dt className="text-small text-muted">{t('marketing.history.col.time')}</dt>
                 <dd className="text-ink">{fmtDateTimeUS(open.at)}</dd>
               </div>
-              <div>
+              <div className="max-md:order-2">
                 <dt className="text-small text-muted">{t('marketing.history.col.status')}</dt>
                 <dd>
                   <Chip tone={STATUS_TONE[open.status]}>{t(`marketing.history.status.${open.status}`)}</Chip>

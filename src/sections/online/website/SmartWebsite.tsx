@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, Globe, Home, Link2, Loader2, Monitor, Play, Plus, ShoppingCart, Smartphone, Sparkles, XCircle } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, Globe, Home, Link2, Loader2, Monitor, Play, Plus, ShoppingCart, Smartphone, Sparkles, X, XCircle } from 'lucide-react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -33,7 +33,7 @@ export function SmartWebsitePage() {
     return (
       <Page>
         {website && (
-          <div className="mb-6 flex items-center justify-between gap-4 rounded-lg bg-info-subtle px-5 py-4">
+          <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-lg bg-info-subtle p-4 md:flex-row md:items-center md:gap-4 md:px-5">
             <p className="text-body text-ink">{t('online.website.draftNote')}</p>
             <Button variant="primary" onClick={() => navigate('/online-presence/smart-website/builder')}>
               {t('online.website.continueEditing')}
@@ -138,7 +138,7 @@ export function SmartWebsitePage() {
         open={visit}
         onClose={() => setVisit(false)}
         size="xl"
-        title={website.domain}
+        title={<DomainTitle domain={website.domain} />}
         footer={<Segmented value={device} onChange={setDevice} items={[{ value: 'desktop', label: t('online.website.desktop') }, { value: 'mobile', label: t('online.website.mobile') }]} />}
       >
         <BrowserFrame url={url} mobile={device === 'mobile'}>
@@ -146,6 +146,22 @@ export function SmartWebsitePage() {
         </BrowserFrame>
       </Modal>
     </Page>
+  )
+}
+
+/** A domain as a modal title: on phones a size smaller, and allowed to wrap after its dots. */
+function DomainTitle({ domain }: { domain: string }) {
+  const parts = domain.split('.')
+  return (
+    <span className="max-md:text-title-3">
+      {parts.map((p, i) => (
+        <Fragment key={i}>
+          {i > 0 && '.'}
+          {i > 0 && <wbr />}
+          {p}
+        </Fragment>
+      ))}
+    </span>
   )
 }
 
@@ -258,7 +274,7 @@ export function SmartWebsiteWizardPage() {
   return (
     <div className="flex h-full flex-col bg-canvas">
       {stage >= 0 && (
-        <div className="grid grid-cols-3 gap-1.5 px-6 pt-3" role="progressbar" aria-valuenow={Math.round(((index + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={t('online.wizard.progress', { pct: Math.round(((index + 1) / STEPS.length) * 100) })}>
+        <div className="grid grid-cols-3 gap-1.5 px-4 pt-3 md:px-6" role="progressbar" aria-valuenow={Math.round(((index + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={t('online.wizard.progress', { pct: Math.round(((index + 1) / STEPS.length) * 100) })}>
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-1.5 overflow-hidden rounded-full bg-sunken">
               <div className="h-full rounded-full bg-primary transition-all duration-base" style={{ width: i < stage ? '100%' : i === stage ? `${step === 'design' || step === 'domain-type' ? 34 : step === 'styling' ? 67 : 100}%` : '0%' }} />
@@ -266,16 +282,18 @@ export function SmartWebsiteWizardPage() {
           ))}
         </div>
       )}
-      <header className={clsx('flex h-16 shrink-0 items-center justify-between gap-3 px-6', editor && 'border-b border-line bg-surface')}>
-        <div className="flex items-center gap-3">
-          <button type="button" className="icon-btn h-10 w-10 rounded-full border border-line-strong" aria-label={t('online.common.back')} onClick={back}>
+      <header className={clsx('flex h-16 shrink-0 items-center justify-between gap-3 px-4 md:px-6', editor && 'border-b border-line bg-surface')}>
+        <div className="flex min-w-0 items-center gap-3">
+          <button type="button" className="icon-btn h-10 w-10 shrink-0 rounded-full border border-line-strong" aria-label={t('online.common.back')} onClick={back}>
             <ArrowLeft size={20} aria-hidden />
           </button>
           {editor && (
             <>
+              {/* Phones: the device switch sits above the live preview instead (DeviceSwitch). */}
               <Segmented
                 value={device}
                 onChange={setDevice}
+                className="max-md:hidden"
                 items={[
                   { value: 'desktop', label: <Monitor size={16} aria-label={t('online.website.desktop')} /> },
                   { value: 'mobile', label: <Smartphone size={16} aria-label={t('online.website.mobile')} /> },
@@ -284,18 +302,20 @@ export function SmartWebsiteWizardPage() {
               <span className="flex items-center gap-1.5 text-small text-muted" aria-live="polite">
                 {saving === 'saving' && <Loader2 size={14} className="animate-spin" aria-hidden />}
                 {saving === 'saved' && <CheckCircle2 size={14} className="text-success" aria-hidden />}
-                {saving === 'saving' ? t('online.website.builder.saving') : saving === 'saved' ? t('online.website.builder.saved') : ''}
+                <span className="max-md:sr-only">{saving === 'saving' ? t('online.website.builder.saving') : saving === 'saved' ? t('online.website.builder.saved') : ''}</span>
               </span>
             </>
           )}
         </div>
         <div className="flex items-center gap-2">
           {editor && (
-            <Button icon={<Play size={16} aria-hidden />} onClick={() => setPreviewOpen(true)}>
-              {t('online.wizard.preview')}
+            <Button icon={<Play size={16} aria-hidden />} onClick={() => setPreviewOpen(true)} aria-label={t('online.wizard.preview')} className="max-md:w-10 max-md:px-0">
+              <span className="max-md:hidden">{t('online.wizard.preview')}</span>
             </Button>
           )}
-          <Button onClick={close}>{t('online.common.close')}</Button>
+          <Button icon={<X size={16} className="md:hidden" aria-hidden />} onClick={close} aria-label={t('online.common.close')} className="max-md:w-10 max-md:px-0">
+            <span className="max-md:hidden">{t('online.common.close')}</span>
+          </Button>
           {step !== 'domain-type' && (
             <Button variant="primary" onClick={onContinue} loading={busy} disabled={step === 'domain' && !domainOk} iconRight={step === 'enable' ? <Check size={16} aria-hidden /> : <ArrowRight size={16} aria-hidden />}>
               {continueLabel}
@@ -304,13 +324,13 @@ export function SmartWebsiteWizardPage() {
         </div>
       </header>
       <main className="min-h-0 flex-1 overflow-y-auto">
-        {step === 'styling' && <StylingStep config={config} set={set} device={device} />}
-        {step === 'builder' && <BuilderStep config={config} set={set} device={device} page={page} setPage={setPage} />}
+        {step === 'styling' && <StylingStep config={config} set={set} device={device} setDevice={setDevice} />}
+        {step === 'builder' && <BuilderStep config={config} set={set} device={device} setDevice={setDevice} page={page} setPage={setPage} />}
         {!editor && (
-          <div className={clsx('mx-auto w-full px-6 pb-16 pt-10', step === 'design' || step === 'enable' ? 'max-w-[1100px]' : 'max-w-[760px]')}>
+          <div className={clsx('mx-auto w-full px-4 pb-16 pt-5 md:px-6 md:pt-10', step === 'design' || step === 'enable' ? 'max-w-[1100px]' : 'max-w-[760px]')}>
             {step === 'overview' && (
               <>
-                <h1 className="mb-8 font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.overview.title')}</h1>
+                <h1 className="mb-6 font-display text-[26px] font-bold leading-[32px] text-ink md:mb-8 md:text-[32px] md:leading-[40px]">{t('online.website.overview.title')}</h1>
                 <ol className="flex flex-col gap-6">
                   {[1, 2, 3].map((n) => (
                     <li key={n} className="flex gap-4 border-b border-line pb-6 last:border-0">
@@ -327,8 +347,8 @@ export function SmartWebsiteWizardPage() {
             {step === 'design' && <DesignStep config={config} set={set} />}
             {step === 'domain-type' && (
               <>
-                <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.domainType.title')}</h1>
-                <p className="mb-8 mt-2 text-body-lg text-muted">
+                <h1 className="font-display text-[26px] font-bold leading-[32px] text-ink md:text-[32px] md:leading-[40px]">{t('online.website.domainType.title')}</h1>
+                <p className="mb-6 mt-2 text-body-lg text-muted md:mb-8">
                   {t('online.website.domainType.body')} <LearnMore topic={t('online.website.topics.domains')}>{t('common.learnMore')}</LearnMore>
                 </p>
                 <ul className="flex flex-col gap-3">
@@ -364,7 +384,7 @@ export function SmartWebsiteWizardPage() {
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         size="xl"
-        title={config.domain}
+        title={<DomainTitle domain={config.domain} />}
         footer={<Segmented value={device} onChange={setDevice} items={[{ value: 'desktop', label: t('online.website.desktop') }, { value: 'mobile', label: t('online.website.mobile') }]} />}
       >
         <BrowserFrame url={`https://${config.domain}`} mobile={device === 'mobile'}>
@@ -392,8 +412,8 @@ function DesignStep({ config, set }: { config: WebsiteConfig; set: (p: Partial<W
   const previewConfig = preview ? { ...config, template: preview, palette: TEMPLATES.find((x) => x.id === preview)!.palette, fontPack: TEMPLATES.find((x) => x.id === preview)!.fontPack } : null
   return (
     <>
-      <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.design.title')}</h1>
-      <p className="mb-8 mt-2 text-body-lg text-muted">{t('online.website.design.body')}</p>
+      <h1 className="font-display text-[26px] font-bold leading-[32px] text-ink md:text-[32px] md:leading-[40px]">{t('online.website.design.title')}</h1>
+      <p className="mb-6 mt-2 text-body-lg text-muted md:mb-8">{t('online.website.design.body')}</p>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((tmpl) => {
           const selected = config.template === tmpl.id
@@ -433,8 +453,8 @@ function DesignStep({ config, set }: { config: WebsiteConfig; set: (p: Partial<W
         size="xl"
         title={preview ? t(`online.website.templates.${preview}.name`) : ''}
         footer={
-          <div className="flex w-full items-center justify-between">
-            <Segmented value={device} onChange={setDevice} items={[{ value: 'desktop', label: t('online.website.desktop') }, { value: 'mobile', label: t('online.website.mobile') }]} />
+          <div className="flex w-full items-center justify-between max-md:flex-col max-md:items-stretch max-md:gap-3">
+            <Segmented value={device} onChange={setDevice} className="max-md:self-center" items={[{ value: 'desktop', label: t('online.website.desktop') }, { value: 'mobile', label: t('online.website.mobile') }]} />
             <Button
               variant="primary"
               onClick={() => {
@@ -458,12 +478,12 @@ function DesignStep({ config, set }: { config: WebsiteConfig; set: (p: Partial<W
   )
 }
 
-function StylingStep({ config, set, device }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void; device: 'desktop' | 'mobile' }) {
+function StylingStep({ config, set, device, setDevice }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void; device: 'desktop' | 'mobile'; setDevice: (d: 'desktop' | 'mobile') => void }) {
   const { t } = useTranslation()
   return (
     <div className="grid min-h-full lg:grid-cols-[360px_1fr]">
-      <aside className="border-r border-line bg-surface p-6">
-        <h1 className="mb-6 font-display text-title-1 text-ink">{t('online.website.styling.title')}</h1>
+      <aside className="border-line bg-surface p-4 max-md:border-b md:border-r md:p-6">
+        <h1 className="mb-5 font-display text-title-2 text-ink md:mb-6 md:text-title-1">{t('online.website.styling.title')}</h1>
         <h2 className="mb-3 text-title-3 text-ink">{t('online.website.styling.palettes')}</h2>
         <div className="grid grid-cols-4 gap-2">
           {PALETTES.map((p, i) => (
@@ -488,7 +508,8 @@ function StylingStep({ config, set, device }: { config: WebsiteConfig; set: (p: 
           ))}
         </div>
       </aside>
-      <div className="bg-sunken p-6">
+      <div className="bg-sunken p-4 max-md:min-w-0 md:p-6">
+        <DeviceSwitch device={device} setDevice={setDevice} />
         <BrowserFrame url={config.domain} mobile={device === 'mobile'}>
           <SitePreview config={config} mobile={device === 'mobile'} />
         </BrowserFrame>
@@ -498,7 +519,7 @@ function StylingStep({ config, set, device }: { config: WebsiteConfig; set: (p: 
 }
 
 /** The page editor (online-booking.md §5 "sites/builder"): page list with options, page content, live preview. */
-function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void; device: 'desktop' | 'mobile'; page: string; setPage: (id: string) => void }) {
+function BuilderStep({ config, set, device, setDevice, page, setPage }: { config: WebsiteConfig; set: (p: Partial<WebsiteConfig>) => void; device: 'desktop' | 'mobile'; setDevice: (d: 'desktop' | 'mobile') => void; page: string; setPage: (id: string) => void }) {
   const { t } = useTranslation()
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
@@ -533,14 +554,14 @@ function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteCo
   }
   return (
     <div className="grid min-h-full lg:grid-cols-[320px_1fr]">
-      <aside className="flex flex-col border-r border-line bg-surface">
-        <div className="border-b border-line p-5">
+      <aside className="flex flex-col border-line bg-surface max-md:min-w-0 max-md:border-b md:border-r">
+        <div className="border-b border-line p-4 md:p-5">
           <h1 className="font-display text-title-2 text-ink">{t('online.website.builder.title')}</h1>
           <div className="mt-4">
             <Switch checked={config.hideNavigation} onChange={(v) => set({ hideNavigation: v })} label={t('online.website.builder.hideNav')} />
           </div>
         </div>
-        <div className="flex items-center justify-between px-5 pb-2 pt-4">
+        <div className="flex items-center justify-between px-4 pb-2 pt-4 md:px-5">
           <h2 className="text-body-strong text-ink">{t('online.website.builder.mainMenu')}</h2>
           <IconButton
             label={t('online.website.builder.addNew')}
@@ -582,7 +603,7 @@ function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteCo
           ))}
         </ul>
         {selected && (
-          <div className="mt-4 flex flex-col gap-3 border-t border-line p-5">
+          <div className="mt-4 flex flex-col gap-3 border-t border-line p-4 md:p-5">
             <h2 className="text-body-strong text-ink">{t('online.website.builder.pageContent', { name: selected.name })}</h2>
             {selected.id === 'home' ? (
               <>
@@ -600,11 +621,12 @@ function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteCo
             )}
           </div>
         )}
-        <div className="mt-auto border-t border-line p-5 text-center">
+        <div className="mt-auto border-t border-line p-4 text-center md:p-5">
           <LearnMore topic={t('online.website.title')}>{t('online.website.builder.helpCenter')}</LearnMore>
         </div>
       </aside>
-      <div className="bg-sunken p-6">
+      <div className="bg-sunken p-4 max-md:min-w-0 md:p-6">
+        <DeviceSwitch device={device} setDevice={setDevice} />
         <BrowserFrame url={`${config.domain}${selected && selected.id !== 'home' ? `/${selected.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : ''}`} mobile={device === 'mobile'}>
           <SitePreview config={config} mobile={device === 'mobile'} page={selected?.id ?? 'home'} />
         </BrowserFrame>
@@ -640,6 +662,16 @@ function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteCo
           )}
         </Field>
       </Modal>
+    </div>
+  )
+}
+
+/** Phones: Desktop / Mobile switch above the live preview (from md up it sits in the header). */
+function DeviceSwitch({ device, setDevice }: { device: 'desktop' | 'mobile'; setDevice: (d: 'desktop' | 'mobile') => void }) {
+  const { t } = useTranslation()
+  return (
+    <div className="mb-3 flex justify-center md:hidden">
+      <Segmented value={device} onChange={setDevice} items={[{ value: 'desktop', label: t('online.website.desktop') }, { value: 'mobile', label: t('online.website.mobile') }]} />
     </div>
   )
 }
@@ -686,8 +718,8 @@ function DomainStep({ config, set, onStatus }: { config: WebsiteConfig; set: (p:
 
   return (
     <>
-      <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t(`online.website.domain.${kind}Title`)}</h1>
-      <p className="mb-8 mt-2 text-body-lg text-muted">{t(`online.website.domain.${kind}Body`)}</p>
+      <h1 className="font-display text-[26px] font-bold leading-[32px] text-ink md:text-[32px] md:leading-[40px]">{t(`online.website.domain.${kind}Title`)}</h1>
+      <p className="mb-6 mt-2 text-body-lg text-muted md:mb-8">{t(`online.website.domain.${kind}Body`)}</p>
       <div className="flex items-start gap-2">
         <Field label={t('online.website.domain.name')} className="flex-1">
           {(id) => <TextInput id={id} value={name} onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, ''))} suffix={kind === 'included' ? SITE_SUFFIX : undefined} placeholder={kind === 'existing' ? t('online.website.demo.existingDomain') : t('online.website.demo.domain')}
@@ -699,7 +731,7 @@ function DomainStep({ config, set, onStatus }: { config: WebsiteConfig; set: (p:
           </Field>
         )}
       </div>
-      <p className="mt-3 flex items-center gap-2 text-body" aria-live="polite">
+      <p className="mt-3 flex items-center gap-2 text-body max-md:flex-wrap max-md:gap-y-0.5" aria-live="polite">
         {state === 'checking' && (
           <>
             <Loader2 size={16} className="animate-spin text-muted" aria-hidden />
@@ -710,7 +742,12 @@ function DomainStep({ config, set, onStatus }: { config: WebsiteConfig; set: (p:
           <>
             <CheckCircle2 size={16} className="text-success" aria-hidden />
             <span className="text-success">{kind === 'existing' ? t('online.website.domain.ready') : t('online.website.domain.available')}</span>
-            {price && <span className="text-muted">· {t('online.website.domain.priceNote', { price: money2(price) })}</span>}
+            {price && (
+              <span className="text-muted max-md:basis-full max-md:pl-6">
+                <span className="max-md:hidden">· </span>
+                {t('online.website.domain.priceNote', { price: money2(price) })}
+              </span>
+            )}
           </>
         )}
         {state === 'taken' && (
@@ -737,14 +774,14 @@ function EnableStep({ active, config, billing, setBilling, errors }: { active: b
   if (active) {
     return (
       <div className="max-w-[680px]">
-        <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.enable.activeTitle')}</h1>
+        <h1 className="font-display text-[26px] font-bold leading-[32px] text-ink md:text-[32px] md:leading-[40px]">{t('online.website.enable.activeTitle')}</h1>
         <p className="mt-2 text-body-lg text-muted">{t('online.website.enable.activeBody', { domain: config.domain })}</p>
       </div>
     )
   }
   return (
     <>
-      <h1 className="mb-8 font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.enable.title')}</h1>
+      <h1 className="mb-6 font-display text-[26px] font-bold leading-[32px] text-ink md:mb-8 md:text-[32px] md:leading-[40px]">{t('online.website.enable.title')}</h1>
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
         <div className="flex min-w-0 flex-col gap-6">
           <CardFields values={billing} errors={errors} onChange={setBilling} />

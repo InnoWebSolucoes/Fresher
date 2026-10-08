@@ -185,7 +185,7 @@ function WaitlistList({ onAdd, onEdit }: { onAdd: () => void; onEdit: (id: ID) =
       bodyClassName="!px-0 !pb-0"
     >
       <div className="flex min-h-full flex-col">
-        <div className="flex items-center justify-between gap-3 px-8">
+        <div className="flex items-center justify-between gap-3 px-8 max-md:flex-wrap max-md:justify-start max-md:gap-2 max-md:px-4">
           <Dropdown
             width={250}
             trigger={({ open, toggle }) => (
@@ -252,12 +252,12 @@ function WaitlistList({ onAdd, onEdit }: { onAdd: () => void; onEdit: (id: ID) =
           </Dropdown>
         </div>
         <UnderlineTabs
-          className="mt-6 px-8"
+          className="mt-6 px-8 max-md:mt-4 max-md:px-4"
           value={tab}
           onChange={setTab}
           items={(['waiting', 'expired', 'booked'] as Tab[]).map((k) => ({ value: k, label: t(`calendar.waitlist.tabs.${k}`), count: byTab[k].length }))}
         />
-        <div className="flex-1 bg-sunken px-8 py-6" data-testid="waitlist-list">
+        <div className="flex-1 bg-sunken px-8 py-6 max-md:px-4 max-md:py-4" data-testid="waitlist-list">
           {list.length ? (
             <>
               <h3 className="mb-4 flex items-center gap-2 text-body-lg font-semibold text-ink">
@@ -307,7 +307,7 @@ function WaitlistCard({ entry, tab, addOns, onBook, onEdit, onRemove, onViewAppo
   const appointment = useDb((s) => (entry.appointmentId ? s.appointments.find((a) => a.id === entry.appointmentId) : undefined))
   const name = fullName(client, t('calendar.walkIn'))
   return (
-    <div className="rounded-xl border border-line bg-surface p-6" data-testid="waitlist-card">
+    <div className="rounded-xl border border-line bg-surface p-6 max-md:p-4" data-testid="waitlist-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-body-lg text-ink">{name}</p>
@@ -496,7 +496,7 @@ function WaitlistForm({ entryId, onDone }: { entryId?: ID; onDone: () => void })
 
   if (panel === 'client')
     return (
-      <DrawerShell testId="waitlist-form" above={<div className="px-8 pt-8">{crumbs}</div>} title={undefined}>
+      <DrawerShell testId="waitlist-form" above={<div className="px-8 pt-8 max-md:px-4 max-md:pt-4">{crumbs}</div>} title={undefined}>
         {stepsDone && backButton(() => setPanel('summary'))}
         <ClientStep
           onPick={(clientId, walkIn) => {
@@ -511,7 +511,7 @@ function WaitlistForm({ entryId, onDone }: { entryId?: ID; onDone: () => void })
     return (
       <DrawerShell
         testId="waitlist-form"
-        above={<div className="px-8 pt-8">{crumbs}</div>}
+        above={<div className="px-8 pt-8 max-md:px-4 max-md:pt-4">{crumbs}</div>}
         footer={
           <Button variant="primary" size="lg" className="w-full rounded-full" disabled={!form.prefs.length} onClick={() => setPanel('service')} data-testid="waitlist-next">
             {t('calendar.waitlist.next')}
@@ -525,7 +525,7 @@ function WaitlistForm({ entryId, onDone }: { entryId?: ID; onDone: () => void })
 
   if (panel === 'service')
     return (
-      <DrawerShell testId="waitlist-form" above={<div className="px-8 pt-8">{crumbs}</div>}>
+      <DrawerShell testId="waitlist-form" above={<div className="px-8 pt-8 max-md:px-4 max-md:pt-4">{crumbs}</div>}>
         {stepsDone && backButton(() => (replacing ? (setReplacing(false), setPanel('edit-service')) : setPanel('summary')))}
         <ServicePicker locationId={locationId} onPick={pickService} />
       </DrawerShell>
@@ -574,7 +574,7 @@ function WaitlistForm({ entryId, onDone }: { entryId?: ID; onDone: () => void })
   return (
     <DrawerShell
       testId="waitlist-form"
-      above={isEdit ? <div className="px-8 pt-6">{backButton(onDone)}</div> : null}
+      above={isEdit ? <div className="px-8 pt-6 max-md:px-4 max-md:pt-4">{backButton(onDone)}</div> : null}
       title={t(isEdit ? 'calendar.waitlist.editTitle' : 'calendar.waitlist.newTitle')}
       footer={
         <Button variant="primary" size="lg" className="w-full rounded-full" loading={busy} disabled={!form.items.length || !form.prefs.length || (isEdit && !changed)} onClick={() => void save()} data-testid="waitlist-save">
@@ -583,7 +583,7 @@ function WaitlistForm({ entryId, onDone }: { entryId?: ID; onDone: () => void })
       }
     >
       {!isEdit && (
-        <div className="mb-8 rounded-xl border border-line p-6" data-testid="waitlist-client-card">
+        <div className="mb-8 rounded-xl border border-line p-6 max-md:mb-6 max-md:p-4" data-testid="waitlist-client-card">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-body-lg font-semibold text-ink">{fullName(client, t('calendar.walkIn'))}</p>
@@ -816,7 +816,7 @@ function TimeRangePanel({ value, onApply }: { value: Pick<Pref, 'from' | 'to'>; 
   )
   return (
     <div className="flex flex-col gap-4" data-testid="waitlist-time-panel">
-      <div className="flex gap-1.5">{(['any', 'morning', 'afternoon', 'evening'] as const).map(chip)}</div>
+      <div className="flex gap-1.5 max-md:flex-wrap">{(['any', 'morning', 'afternoon', 'evening'] as const).map(chip)}</div>
       <div className="grid grid-cols-2 gap-3">
         <Select aria-label={t('calendar.waitlist.time.from')} value={from} onChange={(e) => setFrom(e.target.value)} placeholder={t('calendar.waitlist.time.from')} options={FROM_OPTIONS} />
         <Select aria-label={t('calendar.waitlist.time.to')} value={to} onChange={(e) => setTo(e.target.value)} placeholder={t('calendar.waitlist.time.to')} options={TO_OPTIONS.map((o) => ({ value: o, label: o === END_OF_DAY ? '00:00' : o }))} />
@@ -858,7 +858,7 @@ function AddOnsStep({ crumbs, service, value, onBack, onContinue }: { crumbs: Re
   return (
     <DrawerShell
       testId="waitlist-form"
-      above={<div className="px-8 pt-8">{crumbs}</div>}
+      above={<div className="px-8 pt-8 max-md:px-4 max-md:pt-4">{crumbs}</div>}
       footer={
         <Button variant="primary" size="lg" className="w-full rounded-full" disabled={missing} onClick={() => onContinue(chosen)} data-testid="waitlist-addons-continue">
           {t('calendar.waitlist.continue')}
@@ -915,7 +915,7 @@ function EditWaitlistService({ item, service, edgeColor, members, onBack, onChan
         </Button>
       }
       above={
-        <div className="px-8 pt-6">
+        <div className="px-8 pt-6 max-md:px-4 max-md:pt-4">
           <Button size="sm" icon={<ArrowLeft size={16} />} onClick={onBack} className="rounded-full">
             {t('calendar.waitlist.back')}
           </Button>

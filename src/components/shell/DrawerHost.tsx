@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useDrawer } from '@/lib/drawer'
@@ -31,13 +31,13 @@ export function DrawerHost() {
   return (
     <div className="fixed inset-0 z-50 flex justify-end" data-testid={`drawer-${name}`}>
       <button type="button" aria-label={t('drawers.closeDrawer')} className="absolute inset-0 cursor-default bg-transparent" onClick={close} tabIndex={-1} />
-      <div className="relative flex h-full max-w-full animate-[slideIn_var(--dur-slow)_var(--ease)]">
+      <div className="relative flex h-full w-full max-w-full justify-end animate-[slideIn_var(--dur-slow)_var(--ease)] md:w-auto">
         {!def.bare && (
           <button
             type="button"
             onClick={close}
             aria-label={t('drawers.closeDrawer')}
-            className="absolute -left-16 top-4 hidden h-12 w-12 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-md hover:bg-sunken sm:flex"
+            className="absolute -left-16 top-4 hidden h-12 w-12 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-md hover:bg-sunken md:flex"
           >
             <X size={20} aria-hidden />
           </button>
@@ -48,10 +48,19 @@ export function DrawerHost() {
           role="dialog"
           aria-modal="true"
           data-drawer-panel
-          className="flex h-full max-w-[100vw] flex-col overflow-hidden border-l border-line bg-surface shadow-lg outline-none"
-          style={{ width: def.width ?? 480 }}
+          className="flex h-full w-screen max-w-[100vw] flex-col overflow-hidden border-l border-line bg-surface shadow-lg outline-none md:w-[var(--drawer-w)]"
+          style={{ '--drawer-w': `${def.width ?? 480}px` } as CSSProperties}
         >
-          <Component id={id} params={params} close={close} />
+          {/* Phones: drawers fill the screen, so the close control sits in a bar on top. */}
+          <div className="flex h-12 shrink-0 items-center justify-end border-b border-line px-2 md:hidden">
+            <button type="button" onClick={close} aria-label={t('drawers.closeDrawer')} className="icon-btn" data-testid="drawer-close-mobile">
+              <X size={20} aria-hidden />
+            </button>
+          </div>
+          {/* Phones: a shrinking column under the close bar, so full-height drawers keep their footer on screen. */}
+          <div className="flex min-h-0 flex-1 flex-col md:contents">
+            <Component id={id} params={params} close={close} />
+          </div>
         </div>
       </div>
     </div>

@@ -18,7 +18,7 @@ export function Tile({ icon, label, sub, selected, onClick, disabled, testId, cl
       data-testid={testId}
       aria-pressed={selected}
       className={clsx(
-        'flex min-h-[112px] flex-col justify-center gap-1.5 rounded-lg border bg-surface px-5 py-4 transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-50',
+        'flex min-h-[96px] flex-col justify-center gap-1.5 rounded-lg border bg-surface px-3 py-3 transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-50 md:min-h-[112px] md:px-5 md:py-4',
         align === 'center' ? 'items-center text-center' : 'items-start text-left',
         selected ? 'border-primary ring-2 ring-primary/40' : 'border-line hover:border-line-strong hover:bg-sunken/60',
         className,
@@ -115,10 +115,10 @@ export function DropMenu({ groups, trigger, label, align = 'left', direction = '
   )
 }
 
-/** Left icon rail of the sale and gift card drawers (Summary / Notes / Activity). */
+/** Left icon rail of the sale and gift card drawers (Summary / Notes / Activity); a scrollable tab row on phones. */
 export function IconRail<T extends string>({ items, value, onChange, compact, label }: { items: { value: T; label: string; icon: LucideIcon }[]; value: T; onChange: (v: T) => void; compact?: boolean; label: string }) {
   return (
-    <nav className={clsx('flex shrink-0 flex-col gap-1 border-r border-line bg-surface py-6', compact ? 'w-[92px] pr-2' : 'w-[148px] pr-3')} aria-label={label}>
+    <nav className={clsx('flex shrink-0 gap-1 overflow-x-auto border-b border-line bg-surface px-2 md:flex-col md:overflow-visible md:border-b-0 md:border-r md:px-0 md:py-6', compact ? 'md:w-[92px] md:pr-2' : 'md:w-[148px] md:pr-3')} aria-label={label}>
       {items.map((item) => {
         const Icon = item.icon
         const active = value === item.value
@@ -128,7 +128,11 @@ export function IconRail<T extends string>({ items, value, onChange, compact, la
             type="button"
             onClick={() => onChange(item.value)}
             aria-current={active ? 'page' : undefined}
-            className={clsx('flex flex-col gap-1.5 rounded-r-md border-l-[3px] py-3 transition-colors', compact ? 'items-center px-2 text-center text-small' : 'items-start px-4 text-left text-body', active ? 'border-primary bg-primary-subtle/60 text-primary' : 'border-transparent text-muted hover:bg-sunken hover:text-ink')}
+            className={clsx(
+              'flex shrink-0 items-center gap-2 whitespace-nowrap border-b-[3px] px-3 py-3 text-body transition-colors md:flex-col md:gap-1.5 md:whitespace-normal md:rounded-r-md md:border-b-0 md:border-l-[3px]',
+              compact ? 'md:items-center md:px-2 md:text-center md:text-small' : 'md:items-start md:px-4 md:text-left md:text-body',
+              active ? 'border-primary text-primary md:bg-primary-subtle/60' : 'border-transparent text-muted hover:bg-sunken hover:text-ink',
+            )}
           >
             <Icon size={20} aria-hidden />
             {item.label}
@@ -158,12 +162,12 @@ export function BackTitle({ onBack, children }: { onBack?: () => void; children:
 export function GiftCardArt({ value, business, customCode, code, expires, onCopy, compact }: { value: number; business?: string; customCode?: string; code: string; expires?: string; onCopy?: () => void; compact?: boolean }) {
   const { t } = useTranslation()
   return (
-    <div className={clsx('relative overflow-hidden rounded-xl p-6 text-white shadow-md', compact ? 'min-h-[200px]' : 'min-h-[260px]')} style={{ background: 'linear-gradient(135deg, #0E6E6A 0%, #1F8C84 45%, #2A9CC2 100%)' }}>
+    <div className={clsx('relative overflow-hidden rounded-xl p-6 text-white shadow-md', compact ? 'min-h-[200px]' : 'min-h-[200px] md:min-h-[260px]')} style={{ background: 'linear-gradient(135deg, #0E6E6A 0%, #1F8C84 45%, #2A9CC2 100%)' }}>
       <div className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" aria-hidden />
       <div className="absolute -bottom-16 right-16 h-36 w-36 rounded-full bg-[#F4B23E]/25" aria-hidden />
       <p className="relative font-display text-[32px] font-bold leading-10">{money(value)}</p>
       {business && <p className="relative mt-1 text-body-lg">{business}</p>}
-      <div className={clsx('relative flex flex-col gap-3', compact ? 'mt-6' : 'mt-14')}>
+      <div className={clsx('relative flex flex-col gap-3', compact ? 'mt-6' : 'mt-8 md:mt-14')}>
         {customCode && (
           <div>
             <p className="text-small text-white/80">{t('checkout.giftCard.customCode')}</p>

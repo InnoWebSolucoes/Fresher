@@ -98,7 +98,7 @@ function RepeatingForm({ locationId, memberId, date }: { locationId: string; mem
 
   return (
     <FullscreenFrame
-      title={t('team.repeat.title', { name: member.firstName })}
+      title={<span className="hidden md:inline">{t('team.repeat.title', { name: member.firstName })}</span>}
       onClose={() => navigate(`/team/scheduled-shifts?locationId=${locationId}&date=${date}`)}
       maxWidth="max-w-6xl"
       actions={
@@ -107,8 +107,8 @@ function RepeatingForm({ locationId, memberId, date }: { locationId: string; mem
         </Button>
       }
     >
-      <h1 className="font-display text-title-1 text-ink">{t('team.repeat.title', { name: member.firstName })}</h1>
-      <p className="mb-8 mt-2 text-body-lg text-muted">
+      <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.repeat.title', { name: member.firstName })}</h1>
+      <p className="mb-6 mt-2 text-body text-muted md:mb-8 md:text-body-lg">
         {t('team.repeat.intro')} <LearnMore topic={t('team.topics.repeatingShifts')} />
       </p>
       <div className="grid gap-8 lg:grid-cols-[340px_1fr]">

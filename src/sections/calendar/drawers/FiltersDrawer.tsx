@@ -482,11 +482,11 @@ function ManagePresets({ open, onClose }: { open: boolean; onClose: () => void }
   const [busy, setBusy] = useState(false)
   return (
     <FullScreen open={open} onClose={onClose} closeLabel={t('calendar.common.close')} closeVariant="primary" narrow label={t('calendar.filters.preset.manageTitle')}>
-      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink">{t('calendar.filters.preset.manageTitle')}</h1>
-      <div className="mt-10 flex flex-col gap-3" data-testid="manage-presets">
+      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink max-md:text-[28px] max-md:leading-9">{t('calendar.filters.preset.manageTitle')}</h1>
+      <div className="mt-10 flex flex-col gap-3 max-md:mt-6" data-testid="manage-presets">
         {presets.length ? (
           presets.map((preset) => (
-            <div key={preset.id} className="flex items-center gap-3 rounded-lg border border-line px-5 py-4">
+            <div key={preset.id} className="flex items-center gap-3 rounded-lg border border-line px-5 py-4 max-md:px-4 max-md:py-3">
               <span className="min-w-0 flex-1 truncate text-body-strong text-ink">{preset.name}</span>
               <button type="button" onClick={() => setEditing(preset)} aria-label={t('calendar.filters.preset.editAria', { name: preset.name })} title={t('calendar.filters.edit')} className="icon-btn h-10 w-10">
                 <Pencil size={18} aria-hidden />
@@ -497,7 +497,7 @@ function ManagePresets({ open, onClose }: { open: boolean; onClose: () => void }
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center rounded-lg border border-line px-6 py-16 text-center">
+          <div className="flex flex-col items-center rounded-lg border border-line px-6 py-16 text-center max-md:px-4 max-md:py-10">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-subtle text-primary">
               <Heart size={28} className="fill-primary/30" aria-hidden />
             </span>

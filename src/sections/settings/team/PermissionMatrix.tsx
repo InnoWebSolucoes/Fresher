@@ -75,7 +75,7 @@ export function PermissionMatrix({
       {above}
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{title}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[34px] md:leading-[42px] text-ink">{title}</h1>
           {subtitle && <p className="mt-2 text-body-lg text-muted">{subtitle}</p>}
         </div>
         <div className="w-full sm:w-[360px]">
@@ -84,8 +84,39 @@ export function PermissionMatrix({
       </div>
       {note && <div className="mt-6">{note}</div>}
 
-      <div className="mt-8 grid items-start gap-8 md:grid-cols-[280px_minmax(0,1fr)]">
-        <nav aria-label={t('settings.tm.matrix.areas')} className="card p-3 md:sticky md:top-0">
+      {/* Phones: the area list becomes a sticky, sideways-scrolling row of chips. */}
+      <nav aria-label={t('settings.tm.matrix.areas')} className="sticky top-0 z-10 -mx-4 mt-6 flex gap-2 overflow-x-auto overflow-y-hidden bg-canvas px-4 py-2 [scrollbar-width:none] md:hidden">
+        {PERMISSION_AREAS.map((a) => {
+          const Icon = a.icon
+          const on = isAreaActive(value, a.key)
+          const count = matches.get(a.key)?.size ?? 0
+          const dim = Boolean(q) && !count
+          const current = !q && a.key === area
+          return (
+            <button
+              key={a.key}
+              type="button"
+              onClick={() => selectArea(a.key)}
+              disabled={dim}
+              aria-current={current ? 'true' : undefined}
+              className={clsx(
+                'inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 text-body transition-colors',
+                current ? 'border-primary bg-primary-subtle font-semibold text-ink' : 'border-line bg-surface text-ink',
+                dim && 'opacity-40',
+              )}
+            >
+              <Icon size={16} className="shrink-0 text-muted" aria-hidden />
+              {t(`settings.tm.perm.${a.key}.title`)}
+              {q && count > 0 && <span className="rounded-full bg-accent-subtle px-2 text-caption font-semibold text-ink">{count}</span>}
+              <span className={clsx('h-2 w-2 shrink-0 rounded-full', on ? 'bg-success' : 'bg-line-strong')} aria-hidden />
+              <span className="sr-only">{on ? t('settings.tm.matrix.active') : t('settings.tm.matrix.off')}</span>
+            </button>
+          )
+        })}
+      </nav>
+
+      <div className="mt-4 grid items-start gap-8 md:mt-8 md:grid-cols-[280px_minmax(0,1fr)]">
+        <nav aria-label={t('settings.tm.matrix.areas')} className="card hidden p-3 md:sticky md:top-0 md:block">
           <h2 className="px-3 pb-3 pt-2 font-display text-title-3 text-ink">{t('settings.tm.matrix.areas')}</h2>
           <ul className="flex flex-col gap-0.5">
             {PERMISSION_AREAS.map((a) => {
@@ -173,7 +204,7 @@ function AreaPanel({
     const list = items.filter(show)
     if (!list.length) return null
     return (
-      <ul className={clsx('flex flex-col gap-4', depth > 0 && 'mt-4 pl-8')}>
+      <ul className={clsx('flex flex-col gap-4', depth > 0 && 'mt-4 pl-6 md:pl-8')}>
         {list.map((item) => {
           const checked = itemChecked(value, area.key, item, parentChecked)
           const disabled = readOnly || !active || Boolean(item.locked) || !parentChecked
@@ -196,7 +227,7 @@ function AreaPanel({
 
   return (
     <section id={`perm-area-${area.key}`} aria-label={title} className="scroll-mt-4" data-testid="perm-area-panel">
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex items-start justify-between gap-4 md:gap-6">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-title-2 text-ink">
@@ -204,7 +235,7 @@ function AreaPanel({
             </h2>
             <StateChip on={active} onLabel={t('settings.tm.matrix.active')} offLabel={t('settings.tm.matrix.off')} />
           </div>
-          <p className="mt-1 text-body-lg text-muted">
+          <p className="mt-1 text-body text-muted md:text-body-lg">
             {t(`settings.tm.perm.${area.key}.description`)}
             {area.learnMore && (
               <>

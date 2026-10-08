@@ -74,9 +74,9 @@ export function BlastBillingWizardPage() {
       {index === 0 ? (
         <>
           <WizardTitle eyebrow={t('marketing.billing.eyebrow')} title={t('marketing.billing.feesTitle')} />
-          <div className="card divide-y divide-line p-6">
+          <div className="card divide-y divide-line p-4 md:p-6">
             {(['sms', 'email'] as const).map((ch) => (
-              <div key={ch} className="flex items-center justify-between gap-4 py-4 first:pt-0">
+              <div key={ch} className="flex flex-col items-start gap-3 py-4 first:pt-0 md:flex-row md:items-center md:justify-between md:gap-4">
                 <div>
                   <h2 className="font-display text-title-3 text-ink">{t(`marketing.billing.${ch}Title`)}</h2>
                   <p className="mt-1 text-body text-ink">{t(`marketing.billing.${ch}Body`)}</p>

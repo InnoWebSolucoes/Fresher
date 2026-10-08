@@ -32,7 +32,7 @@ export function useDayLabel() {
 export function PanelHeader({ title, subtitle, actions, onBack }: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; onBack?: () => void }) {
   const { t } = useTranslation()
   return (
-    <div className="px-6 pb-4 pt-6">
+    <div className="px-4 pb-4 pt-4 md:px-6 md:pt-6">
       {onBack && (
         <button type="button" onClick={onBack} className="btn-secondary mb-4 h-9 rounded-full px-3">
           <ArrowLeft size={16} aria-hidden />
@@ -69,7 +69,7 @@ export function BottomTabs<T extends string>({ items, value, onChange }: { items
           aria-selected={value === v}
           onClick={() => onChange(v)}
           className={clsx(
-            'relative flex flex-1 flex-col items-center gap-1 py-2.5 text-caption transition-colors',
+            'relative flex flex-1 flex-col items-center gap-1 py-2.5 text-caption transition-colors max-md:min-w-0 max-md:px-0.5 max-md:text-center',
             value === v ? 'text-primary' : 'text-muted hover:text-ink',
           )}
         >

@@ -1,15 +1,15 @@
 import clsx from 'clsx'
 import { ArrowLeft, ArrowUpRight, Clock, Coins, IdCard, Image as ImageIcon, Info, LayoutGrid, MapPin, Smile, Sparkles, Store, TrendingUp, UserPlus } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, Chip, confirm, DataTable, EmptyState, LearnMore, Menu, Modal, Page, PageSkeleton, toast, usePageLoading, type Column } from '@/components/ui'
+import { Button, Card, Chip, confirm, DataTable, EmptyState, LearnMore, Menu, Modal, Page, PageSkeleton, toast, UnderlineTabs, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { addOnStatus, ensureProfileActivity, saveProfile, setProfileListed, useFacebookConnection, useProfileActivity } from '@/api/online'
 import { fmtDateTimeUS, money, num } from '@/lib/format'
 import { now, weekdayOf } from '@/lib/time'
 import type { ActivityEntry, Location } from '@/types'
-import { addressLine, featureLabel, opensAt, sampleImage, WEEKDAYS } from '../shared'
+import { addressLine, featureLabel, opensAt, sampleImage, usePhone, WEEKDAYS } from '../shared'
 import { InModal, MapArt, patchFor, StepBody, toDraft, validateStep, type Draft, type ProfileStep } from './ProfileWizard'
 import { ProfilePreviewModal } from './ProfilePreview'
 
@@ -46,6 +46,8 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
   const [preview, setPreview] = useState(false)
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState<ProfileStep | null>(null)
+  const phone = usePhone()
+  const tabsRef = useRef<HTMLDivElement>(null)
   const listed = location.marketplace.listed
   /** Card "Edit" buttons open the matching wizard step as a modal. */
   const edit = (step: ProfileStep) => setEditing(step)
@@ -75,13 +77,21 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
 
   const go = (to: Tab) => navigate(`/online-presence/profile/dashboard/${location.id}${to === 'overview' ? '' : `/${to}`}`)
 
+  // Phones: keep the selected tab of the sideways-scrolling tab row in view.
+  useEffect(() => {
+    const row = tabsRef.current?.firstElementChild as HTMLElement | null
+    const active = row?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (row && active) row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2
+  }, [tab])
+
   return (
     <Page wide>
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-5 flex items-center gap-4 md:mb-6">
         <Button icon={<ArrowLeft size={16} aria-hidden />} onClick={() => navigate('/online-presence/locations')}>
           {t('online.common.back')}
         </Button>
-        <nav aria-label={t('online.dashboard.breadcrumb')} className="flex items-center gap-2 text-body text-ink">
+        {/* Phones: Back already leads to the profile list and the name is the heading below. */}
+        <nav aria-label={t('online.dashboard.breadcrumb')} className="flex items-center gap-2 text-body text-ink max-md:hidden">
           <button type="button" className="hover:underline" onClick={() => navigate('/online-presence/locations')}>
             {t('online.dashboard.onlineProfile')}
           </button>
@@ -89,9 +99,9 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
           <span>{location.name}</span>
         </nav>
       </div>
-      <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-3 font-display text-title-1 text-ink">
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-4 md:mb-8">
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-3 font-display text-title-2 text-ink max-md:flex-wrap max-md:gap-y-1 md:text-title-1">
             {location.name}
             <Chip tone={listed ? 'success' : 'neutral'}>{listed ? t('online.status.listed') : t('online.status.unlisted')}</Chip>
           </h1>
@@ -104,12 +114,28 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
           <Button onClick={() => navigate(`/online-presence/profile/edit/${location.id}/essentials?from=dashboard`)}>{t('online.dashboard.edit')}</Button>
           <Menu
             label={t('online.common.options')}
-            groups={[{ items: [{ label: listed ? t('online.dashboard.unlist') : t('online.dashboard.list'), onSelect: toggleListed, disabled: busy, danger: listed }] }]}
+            groups={[
+              { items: [{ label: listed ? t('online.dashboard.unlist') : t('online.dashboard.list'), onSelect: toggleListed, disabled: busy, danger: listed }] },
+              // Phones: the side menu's two settings links live here (the side menu becomes a tab row).
+              ...(phone
+                ? [
+                    {
+                      items: [
+                        { label: t('online.dashboard.locationSettings'), icon: <ArrowUpRight size={16} aria-hidden />, onSelect: () => navigate(`/setup/location/${location.id}/business-details`) },
+                        { label: t('online.dashboard.bookingSettings'), icon: <ArrowUpRight size={16} aria-hidden />, onSelect: () => navigate('/online-presence/locations') },
+                      ],
+                    },
+                  ]
+                : []),
+            ]}
           />
         </div>
       </header>
+      <div ref={tabsRef} className="mb-5 md:hidden">
+        <UnderlineTabs value={tab} onChange={go} items={TABS.map((k) => ({ value: k, label: t(`online.dashboard.tabs.${k}`) }))} />
+      </div>
       <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-        <nav className="card h-fit p-3" aria-label={t('online.dashboard.menu')}>
+        <nav className="card h-fit p-3 max-md:hidden" aria-label={t('online.dashboard.menu')}>
           <MenuItem active={tab === 'overview'} icon={TAB_ICONS.overview} onClick={() => go('overview')}>
             {t('online.dashboard.tabs.overview')}
           </MenuItem>
@@ -297,12 +323,24 @@ function Overview({ location }: { location: Location }) {
   ]
   return (
     <div className="flex flex-col gap-6">
-      <Card title={t('online.dashboard.perf.title')} subtitle={t('online.dashboard.perf.subtitle', { name: location.name })} action={<Button onClick={() => navigate('/reports/report-group/1?category=all')}>{t('online.dashboard.perf.report')}</Button>}>
+      <Card
+        title={t('online.dashboard.perf.title')}
+        subtitle={t('online.dashboard.perf.subtitle', { name: location.name })}
+        action={
+          <Button onClick={() => navigate('/reports/report-group/1?category=all')} className="max-md:hidden">
+            {t('online.dashboard.perf.report')}
+          </Button>
+        }
+      >
         <div className="flex flex-col gap-3">
           <PerfRow icon={<UserPlus size={18} aria-hidden />} label={t('online.dashboard.perf.newClients')} hint={t('online.dashboard.perf.newClientsHint')} value={String(perf.newClients)} />
           <PerfRow icon={<Coins size={18} aria-hidden />} label={t('online.dashboard.perf.value')} hint={t('online.dashboard.perf.valueHint')} value={money(perf.total)} />
           <PerfRow icon={<TrendingUp size={18} aria-hidden />} label={t('online.dashboard.perf.roi')} hint={t('online.dashboard.perf.roiHint')} value={`${num(perf.roi, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`} />
         </div>
+        {/* Phones: the report button sits under the figures so the card title keeps the full width. */}
+        <Button onClick={() => navigate('/reports/report-group/1?category=all')} className="mt-4 w-full md:hidden">
+          {t('online.dashboard.perf.report')}
+        </Button>
       </Card>
       <Card
         title={t('online.dashboard.activity.title')}
@@ -323,9 +361,9 @@ function Overview({ location }: { location: Location }) {
       <Card title={t('online.dashboard.addons.title')} subtitle={t('online.dashboard.addons.subtitle')}>
         <ul className="divide-y divide-line">
           {integrations.map((i) => (
-            <li key={i.key} className="flex items-center gap-4 py-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-md bg-accent-subtle text-ink">{i.icon}</span>
-              <span className="flex-1 text-body-strong text-ink">{i.name}</span>
+            <li key={i.key} className="flex items-center gap-3 py-3 md:gap-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-subtle text-ink max-md:shrink-0 md:h-12 md:w-12">{i.icon}</span>
+              <span className="flex-1 text-body-strong text-ink max-md:min-w-0">{i.name}</span>
               {i.active ? <Chip tone="success">{t('online.common.active')}</Chip> : <Button onClick={() => navigate(i.to)}>{t('online.dashboard.addons.setUp')}</Button>}
             </li>
           ))}
@@ -340,15 +378,15 @@ function Overview({ location }: { location: Location }) {
 
 function PerfRow({ icon, label, hint, value }: { icon: ReactNode; label: string; hint: string; value: string }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-primary-subtle px-5 py-4">
-      <span className="flex items-center gap-3 text-body-lg text-ink">
+    <div className="flex items-center justify-between gap-3 rounded-lg bg-primary-subtle px-4 py-3 md:gap-0 md:px-5 md:py-4">
+      <span className="flex items-center gap-3 text-body-lg text-ink max-md:min-w-0 max-md:gap-2">
         {icon}
         {label}
         <span className="text-subtle" title={hint} aria-label={hint} role="img">
           <Info size={15} aria-hidden />
         </span>
       </span>
-      <span className="font-display text-title-2 text-ink">{value}</span>
+      <span className="font-display text-title-3 text-ink max-md:shrink-0 md:text-title-2">{value}</span>
     </div>
   )
 }

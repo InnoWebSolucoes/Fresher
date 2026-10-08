@@ -99,10 +99,10 @@ export function BulkEditPage() {
         </Button>
       }
     >
-      <h1 className="font-display text-display text-ink">{t('catalog.bulk.title')}</h1>
-      <p className="mt-2 text-body-lg text-muted">{t('catalog.bulk.subtitle')}</p>
-      <div className="mt-6 flex flex-wrap items-center gap-2 rounded-lg bg-sunken p-3">
-        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.bulk.search')} className="max-w-xs" />
+      <h1 className="font-display text-title-1 text-ink md:text-display">{t('catalog.bulk.title')}</h1>
+      <p className="mt-2 text-body text-muted md:text-body-lg">{t('catalog.bulk.subtitle')}</p>
+      <div className="mt-5 flex flex-wrap items-center gap-2 rounded-lg bg-sunken p-2 md:mt-6 md:p-3">
+        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.bulk.search')} className="max-w-xs max-md:max-w-none max-md:basis-full" />
         <FiltersButton count={catFilter.length + (onlineFilter !== 'all' ? 1 : 0)} onClick={() => setFiltersOpen(true)} />
         {selected.size > 0 && (
           <Menu
@@ -154,7 +154,7 @@ export function BulkEditPage() {
           <table className="w-full min-w-max border-collapse text-left text-body">
             <thead>
               <tr className="border-b border-line">
-                <th className="sticky left-0 z-10 w-[340px] border-r border-line bg-surface px-4 py-3">
+                <th className="sticky left-0 z-10 w-[340px] border-r border-line bg-surface px-4 py-3 max-md:static max-md:w-[280px]">
                   <div className="flex items-center gap-3">
                     <input type="checkbox" aria-label={t('catalog.common.selectAll')} checked={visible.length > 0 && visible.every((r) => selected.has(r.id))} onChange={(e) => setSelected(new Set(e.target.checked ? visible.map((r) => r.id) : []))} className="h-5 w-5 accent-[rgb(var(--primary))]" />
                     <span className="text-body-strong text-ink">{t('catalog.bulk.service')}</span>
@@ -181,7 +181,7 @@ export function BulkEditPage() {
                 const hasVariants = s.variants.length > 0
                 return [
                   <tr key={s.id} className={clsx('border-b border-line', selected.has(s.id) && 'bg-primary-subtle/30')}>
-                    <td className="sticky left-0 z-10 border-r border-line bg-surface px-4 py-2">
+                    <td className="sticky left-0 z-10 border-r border-line bg-surface px-4 py-2 max-md:static">
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -254,7 +254,7 @@ export function BulkEditPage() {
                   ...(open
                     ? [{ id: 'base', name: s.name, priceType: s.priceType, price: s.price, durationMin: s.durationMin }, ...s.variants].map((v) => (
                         <tr key={`${s.id}-${v.id}`} className="border-b border-line bg-sunken/40">
-                          <td className="sticky left-0 z-10 border-r border-line bg-sunken px-4 py-2 pl-[88px] text-body text-muted">{v.id === 'base' ? t('catalog.bulk.baseVariant') : v.name}</td>
+                          <td className="sticky left-0 z-10 border-r border-line bg-sunken px-4 py-2 pl-[88px] text-body text-muted max-md:static">{v.id === 'base' ? t('catalog.bulk.baseVariant') : v.name}</td>
                           {show('name') && <td className="px-3 py-2">{v.id === 'base' ? <span className="text-muted">{s.name}</span> : <input value={v.name} aria-label={t('catalog.variant.name')} onChange={(e) => patchVariant(s.id, v.id, { name: e.target.value })} className="input" />}</td>}
                           {show('category') && <td className="px-3 py-2 text-muted">—</td>}
                           {show('treatment') && <td className="px-3 py-2 text-muted">—</td>}

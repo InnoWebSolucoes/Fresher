@@ -353,7 +353,7 @@ export function QuickSaleEditor({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex flex-col overflow-y-auto bg-surface" role="dialog" aria-modal="true" aria-label={t('checkout.quickSale.title')}>
-      <div className="flex justify-end gap-2 px-8 py-4">
+      <div className="flex justify-end gap-2 px-4 py-3 md:px-8 md:py-4">
         <Button className="rounded-full" onClick={onClose}>
           {t('checkout.common.close')}
         </Button>
@@ -361,10 +361,10 @@ export function QuickSaleEditor({ onClose }: { onClose: () => void }) {
           {t('checkout.common.save')}
         </Button>
       </div>
-      <div className="mx-auto w-full max-w-5xl px-8 pb-16">
-        <h1 className="font-display text-display text-ink">{t('checkout.quickSale.title')}</h1>
-        <p className="mt-2 text-body-lg text-muted">{t('checkout.quickSale.subtitle')}</p>
-        <div className="relative mt-8">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-10 md:px-8 md:pb-16">
+        <h1 className="font-display text-title-1 text-ink md:text-display">{t('checkout.quickSale.title')}</h1>
+        <p className="mt-2 text-body text-muted md:text-body-lg">{t('checkout.quickSale.subtitle')}</p>
+        <div className="relative mt-6 md:mt-8">
           <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
           <input
             role="combobox"
@@ -403,13 +403,13 @@ export function QuickSaleEditor({ onClose }: { onClose: () => void }) {
         <p className="mt-2 text-small text-muted">{t('checkout.quickSale.max', { count: items.length })}</p>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={items.map((i) => `${i.type}:${i.id}`)} strategy={rectSortingStrategy}>
-            <div className="mt-6 grid grid-cols-2 gap-5">
+            <div className="mt-5 grid grid-cols-1 gap-3 md:mt-6 md:grid-cols-2 md:gap-5">
               {items.map((item) => {
                 const info = describe(item)
                 return <SortableTile key={`${item.type}:${item.id}`} id={`${item.type}:${item.id}`} name={info?.name ?? t('checkout.quickSale.missing')} price={info?.price ?? 0} color={info?.color ?? PALETTE.teal.edge} onDelete={() => setItems((prev) => prev.filter((i) => i !== item))} />
               })}
               {Array.from({ length: Math.max(0, 12 - items.length) }, (_, i) => (
-                <div key={`empty${i}`} className="h-[120px] rounded-lg border border-dashed border-line" aria-hidden />
+                <div key={`empty${i}`} className="h-[72px] rounded-lg border border-dashed border-line md:h-[120px]" aria-hidden />
               ))}
             </div>
           </SortableContext>
@@ -424,7 +424,7 @@ function SortableTile({ id, name, price, color, onDelete }: { id: string; name: 
   const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`relative flex h-[120px] items-center justify-between overflow-hidden rounded-lg border border-line bg-surface pl-8 pr-4 ${isDragging ? 'z-10 shadow-md' : ''}`}>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`relative flex h-[72px] items-center justify-between overflow-hidden rounded-lg border border-line bg-surface pl-5 pr-2 md:h-[120px] md:pl-8 md:pr-4 ${isDragging ? 'z-10 shadow-md' : ''}`}>
       <span className="absolute bottom-0 left-0 top-0 w-2" style={{ background: color }} aria-hidden />
       <button type="button" className="flex min-w-0 flex-1 cursor-grab items-center gap-3 text-left active:cursor-grabbing" aria-label={t('checkout.quickSale.reorder', { name })} {...attributes} {...listeners}>
         <GripVertical size={18} className="shrink-0 text-subtle" aria-hidden />

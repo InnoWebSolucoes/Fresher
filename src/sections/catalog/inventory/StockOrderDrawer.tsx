@@ -9,7 +9,7 @@ import { useDrawer } from '@/lib/drawer'
 import { fmtDate, fmtDateTimeUS, money } from '@/lib/format'
 import { ApiError } from '@/api/client'
 import { cancelStockOrder, emailStockOrder, orderFeesTotal, orderQuantity, orderSubtotal, orderTotal } from '@/api/catalog'
-import { HeroTile, InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
+import { HeroInfo, HeroMedia, HeroTile, InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
 import { InventoryStatus, downloadOrderCsv, downloadOrderPdf, productSku, supplierManager, supplierPhone } from './shared'
 
 type Tab = 'details' | 'activity'
@@ -57,35 +57,39 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
 
   const hero = (
     <>
-      <HeroTile badge={<Layers size={16} aria-hidden />}>
-        <ShoppingBag size={44} strokeWidth={1.4} aria-hidden />
-      </HeroTile>
-      <h2 className="font-display text-title-3 text-ink">{t('catalog.inventory.orderDrawer.title', { number: order.number })}</h2>
-      <p className="text-body text-muted">{t('catalog.inventory.orderDrawer.created', { date: fmtDate(parseISO(order.createdAt)) })}</p>
-      <InventoryStatus status={order.status} />
-      <div className="mt-3">
-        <Menu
-          align="left"
-          width={220}
-          trigger={({ open, toggle }) => (
-            <MenuButton open={open} toggle={toggle}>
-              {t('catalog.common.actions')}
-            </MenuButton>
-          )}
-          groups={[
-            {
-              items: [
-                ...(editable ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${order.id}/receive`) }] : []),
-                { label: t('catalog.inventory.orderDrawer.emailPdf'), onSelect: () => void email() },
-                { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void download('pdf') },
-                { label: t('catalog.inventory.orderDrawer.csv'), onSelect: () => void download('csv') },
-                ...(editable ? [{ label: t('catalog.common.edit'), onSelect: edit }] : []),
-              ],
-            },
-            ...(editable ? [{ items: [{ label: t('catalog.inventory.orderDrawer.cancel'), danger: true, onSelect: () => void cancel() }] }] : []),
-          ]}
-        />
-      </div>
+      <HeroMedia>
+        <HeroTile badge={<Layers size={16} aria-hidden />}>
+          <ShoppingBag size={44} strokeWidth={1.4} aria-hidden />
+        </HeroTile>
+      </HeroMedia>
+      <HeroInfo>
+        <h2 className="font-display text-title-3 text-ink">{t('catalog.inventory.orderDrawer.title', { number: order.number })}</h2>
+        <p className="text-body text-muted">{t('catalog.inventory.orderDrawer.created', { date: fmtDate(parseISO(order.createdAt)) })}</p>
+        <InventoryStatus status={order.status} />
+        <div className="mt-1 md:mt-3">
+          <Menu
+            align="left"
+            width={220}
+            trigger={({ open, toggle }) => (
+              <MenuButton open={open} toggle={toggle}>
+                {t('catalog.common.actions')}
+              </MenuButton>
+            )}
+            groups={[
+              {
+                items: [
+                  ...(editable ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${order.id}/receive`) }] : []),
+                  { label: t('catalog.inventory.orderDrawer.emailPdf'), onSelect: () => void email() },
+                  { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void download('pdf') },
+                  { label: t('catalog.inventory.orderDrawer.csv'), onSelect: () => void download('csv') },
+                  ...(editable ? [{ label: t('catalog.common.edit'), onSelect: edit }] : []),
+                ],
+              },
+              ...(editable ? [{ items: [{ label: t('catalog.inventory.orderDrawer.cancel'), danger: true, onSelect: () => void cancel() }] }] : []),
+            ]}
+          />
+        </div>
+      </HeroInfo>
     </>
   )
 
@@ -154,7 +158,7 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
                   <li key={item.productId} className="flex items-start gap-3 py-3">
                     <ProductThumb product={p} size={56} />
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => p && drawer.open('product', { id: p.id })}>
-                      <span className="block truncate text-body text-ink hover:text-primary">{p?.name ?? item.productId}</span>
+                      <span className="block text-body text-ink hover:text-primary max-md:break-words md:truncate">{p?.name ?? item.productId}</span>
                       {productSku(p) && <span className="block text-small text-muted">{t('catalog.inventory.common.sku', { sku: productSku(p) })}</span>}
                       <span className="block text-small text-muted">{t('catalog.inventory.orderDrawer.priceLine', { price: money(item.unitCost) })}</span>
                       <span className="block text-small text-muted">{t('catalog.inventory.orderDrawer.orderedLine', { count: item.qty })}</span>
@@ -170,7 +174,7 @@ export function StockOrderDrawer({ id, params }: DrawerProps) {
       ) : (
         <>
           <PaneTitle title={t('catalog.inventory.orderDrawer.tabs.activity')} />
-          <section className="rounded-lg border border-line bg-surface p-6">
+          <section className="rounded-lg border border-line bg-surface p-4 md:p-6">
             {order.activity.length ? (
               <ol className="flex flex-col gap-4">
                 {[...order.activity].reverse().map((a) => (

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowDownUp, BookOpen, ChevronDown } from 'lucide-react'
+import { ArrowDownUp, BookOpen, ChevronDown, MoreVertical } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -12,7 +12,7 @@ import type { Bundle, ID, Service, ServiceCategory } from '@/types'
 import { deleteBundle, deleteCategory, deleteService, setBundleArchived, setCategoryArchived, setServiceArchived } from '@/api/catalog'
 import { useBundleOrder } from '../catalogExt'
 import { bundleDuration, bundlePrice } from '../lib'
-import { CardsSkeleton, CategoryModal, CountBadge, FiltersButton, PillButton, ToolbarCard } from '../ui'
+import { CardsSkeleton, CategoryChips, CategoryModal, CountBadge, FiltersButton, PillButton, ToolbarCard } from '../ui'
 import { QuickLinkModal, type QuickLinkTarget } from './QuickLinkModal'
 import { exportServiceMenu, exportServiceMenuPdf } from './exportMenu'
 
@@ -214,7 +214,7 @@ export function ServiceMenuPage() {
       />
 
       <ToolbarCard>
-        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.menu.search')} className="max-w-[280px]" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.menu.search')} className="max-w-[280px] max-md:max-w-none max-md:basis-full" />
         <FiltersButton count={filterCount} onClick={() => setFiltersOpen(true)} />
         <div className="ml-auto">
           <PillButton icon={<ArrowDownUp size={16} aria-hidden />} onClick={() => navigate('/catalogue/services/menu-order')}>
@@ -224,7 +224,7 @@ export function ServiceMenuPage() {
       </ToolbarCard>
 
       {status !== 'active' && (
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <Chip tone="primary">{status === 'archived' ? t('catalog.menu.showingArchived') : t('catalog.menu.showingAll')}</Chip>
           <Button variant="link" onClick={() => setStatus('active')}>
             {t('catalog.common.clearFilters')}
@@ -232,8 +232,19 @@ export function ServiceMenuPage() {
         </div>
       )}
 
-      <div className="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
-        <aside className="card p-5 lg:sticky lg:top-6">
+      <div className="grid items-start gap-5 md:gap-8 lg:grid-cols-[320px_1fr]">
+        <CategoryChips
+          label={t('catalog.menu.categories')}
+          value={selectedCat}
+          onChange={setSelectedCat}
+          addLabel={t('catalog.menu.addCategory')}
+          onAdd={() => setCategoryModal({})}
+          items={[
+            { id: 'all' as const, name: t('catalog.menu.allCategories'), count: totalCount },
+            ...sortedCats.filter((c) => status !== 'archived' || c.archived || (itemsByCat.get(c.id)?.length ?? 0) > 0).map((c) => ({ id: c.id, name: c.name, count: itemsByCat.get(c.id)?.length ?? 0, muted: c.archived })),
+          ]}
+        />
+        <aside className="card hidden p-5 md:block lg:sticky lg:top-6">
           <h2 className="mb-3 px-3 font-display text-title-3 text-ink">{t('catalog.menu.categories')}</h2>
           <button type="button" onClick={() => setSelectedCat('all')} className={clsx('flex h-11 w-full items-center justify-between rounded-md px-3 text-left text-body', selectedCat === 'all' ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}>
             {t('catalog.menu.allCategories')}
@@ -252,7 +263,7 @@ export function ServiceMenuPage() {
           </button>
         </aside>
 
-        <div className="flex min-w-0 flex-col gap-8">
+        <div className="flex min-w-0 flex-col gap-6 md:gap-8">
           {visibleCats.length === 0 && (
             <div className="card">
               <EmptyState
@@ -285,7 +296,7 @@ export function ServiceMenuPage() {
               <section key={c.id} aria-labelledby={`cat-${c.id}`}>
                 <div className="mb-3 flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 id={`cat-${c.id}`} className="flex items-center gap-3 font-display text-title-2 text-ink">
+                    <h2 id={`cat-${c.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-title-3 text-ink md:flex-nowrap md:gap-y-0 md:text-title-2">
                       {c.name}
                       {c.archived && <Chip>{t('catalog.common.archived')}</Chip>}
                     </h2>
@@ -294,9 +305,10 @@ export function ServiceMenuPage() {
                   <Menu
                     width={220}
                     trigger={({ open, toggle }) => (
-                      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="inline-flex h-9 items-center gap-2 rounded-full border border-line-strong bg-surface px-4 text-body-strong text-ink hover:bg-sunken">
-                        {t('catalog.common.actions')}
-                        <ChevronDown size={16} aria-hidden />
+                      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} aria-label={t('catalog.common.actions')} className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full border border-line-strong bg-surface text-body-strong text-ink hover:bg-sunken md:h-9 md:w-auto md:justify-start md:px-4">
+                        <span className="hidden md:inline">{t('catalog.common.actions')}</span>
+                        <MoreVertical size={18} className="md:hidden" aria-hidden />
+                        <ChevronDown size={16} className="hidden md:block" aria-hidden />
                       </button>
                     )}
                     groups={
@@ -447,7 +459,7 @@ function CardShell({ color, archived, onOpen, menu, children }: { color?: string
       className={clsx('group flex cursor-pointer overflow-hidden rounded-lg border border-line bg-surface transition-shadow hover:shadow-sm', archived && 'opacity-80')}
     >
       <span className="w-1.5 shrink-0" style={{ background: color }} aria-hidden />
-      <div className="flex min-w-0 flex-1 items-start gap-3 px-6 py-4">
+      <div className="flex min-w-0 flex-1 items-start gap-2 py-4 pl-4 pr-2 md:gap-3 md:px-6">
         <div className="min-w-0 flex-1">{children}</div>
         {archived && <Chip>{t('catalog.common.archived')}</Chip>}
         <Menu label={t('catalog.common.more')} width={220} groups={menu} />
@@ -464,12 +476,12 @@ function ServiceCard({ service, color, onOpen, menu }: { service: Service; color
     return (
       <CardShell color={color} archived={service.archived} onOpen={onOpen} menu={menu}>
         <p className="text-body-lg font-semibold text-ink">{service.name}</p>
-        <div className="mt-3 flex flex-col gap-1.5 text-body text-muted">
+        <div className="mt-3 flex flex-col gap-2.5 text-body text-muted md:gap-1.5">
           {[{ id: 'base', name: service.name, durationMin: service.durationMin, price: service.price, priceType: service.priceType }, ...service.variants].map((v) => (
-            <div key={v.id} className="grid grid-cols-[1fr_1fr_auto] gap-4">
-              <span className="truncate">{v.name}</span>
-              <span>{durationLong(v.durationMin)}</span>
-              <span className="text-right text-ink">{priceText(v.priceType, v.price, free, from)}</span>
+            <div key={v.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 md:grid-cols-[1fr_1fr_auto] md:gap-4">
+              <span className="md:truncate">{v.name}</span>
+              <span className="col-start-1 row-start-2 text-small md:col-start-auto md:row-start-auto md:text-body">{durationLong(v.durationMin)}</span>
+              <span className="col-start-2 row-start-1 text-right text-ink md:col-start-auto md:row-start-auto">{priceText(v.priceType, v.price, free, from)}</span>
             </div>
           ))}
         </div>

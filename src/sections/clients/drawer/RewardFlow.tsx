@@ -106,8 +106,8 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
         actions={
           type ? (
             <>
-              <Button icon={<ArrowLeft size={16} aria-hidden />} onClick={() => setType(null)}>
-                {t('clients.common.back')}
+              <Button icon={<ArrowLeft size={16} aria-hidden />} onClick={() => setType(null)} aria-label={t('clients.common.back')} className="max-md:w-10 max-md:px-0">
+                <span className="hidden md:inline">{t('clients.common.back')}</span>
               </Button>
               <Button variant="primary" loading={busy} onClick={() => void submit()}>
                 {t('clients.common.add')}
@@ -118,10 +118,10 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
       >
         {!type ? (
           <>
-            <h1 className="font-display text-display text-ink">{t('clients.reward.chooseTitle')}</h1>
-            <div className="mt-8 flex flex-col gap-4">
+            <h1 className="font-display text-title-1 text-ink md:text-display">{t('clients.reward.chooseTitle')}</h1>
+            <div className="mt-6 flex flex-col gap-3 md:mt-8 md:gap-4">
               {TYPES.map(({ type: ty, icon: Icon }) => (
-                <button key={ty} type="button" onClick={() => setType(ty)} className="flex items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-colors hover:border-primary hover:bg-primary-subtle/30">
+                <button key={ty} type="button" onClick={() => setType(ty)} className="flex items-center gap-4 rounded-lg border border-line bg-surface p-4 text-left md:p-5 transition-colors hover:border-primary hover:bg-primary-subtle/30">
                   <span className="flex h-12 w-12 items-center justify-center rounded-md bg-success-subtle text-success">
                     <Icon size={22} aria-hidden />
                   </span>
@@ -132,8 +132,8 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
           </>
         ) : (
           <>
-            <h1 className="font-display text-display text-ink">{t(`clients.reward.addTitle.${type}`)}</h1>
-            <div className="mt-8 flex flex-col gap-6">
+            <h1 className="font-display text-title-1 text-ink md:text-display">{t(`clients.reward.addTitle.${type}`)}</h1>
+            <div className="mt-6 flex flex-col gap-6 md:mt-8">
               {discount ? (
                 <Field label={t('clients.reward.value')} error={errors.value}>
                   {(id) => <TextInput id={id} autoFocus type="number" min={0} step={type === 'percent' ? 1 : 0.01} inputMode="decimal" value={value} onChange={(e) => { setValue(e.target.value); clearError('value') }} placeholder={type === 'percent' ? '10' : formatNum(10, { minimumFractionDigits: 2 })} prefix={type === 'amount' ? '€' : undefined} suffix={type === 'percent' ? '%' : undefined} invalid={Boolean(errors.value)} />}
@@ -174,7 +174,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
                   <h2 className="font-display text-title-3 text-ink">{t('clients.reward.applyTo')}</h2>
                   <div className="mt-4 flex flex-col gap-3">
                     {(['services', 'products', 'packages', 'memberships'] as const).map((s) => (
-                      <div key={s} className="flex h-14 items-center justify-between rounded-md border border-line bg-surface px-5">
+                      <div key={s} className="flex min-h-14 items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-2 md:h-14 md:px-5 md:py-0">
                         <span className="text-body-lg text-ink">{scopeLabel(s)}</span>
                         <Button variant="link" onClick={() => setEditScope(s)}>
                           {t('clients.common.edit')}
@@ -243,7 +243,7 @@ function ScopeModal({ title, items, value, onClose, onApply }: { title: string; 
       onClose={onClose}
       title={title}
       footer={
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <span className="text-body text-muted">{t('clients.reward.selectedItems', { count: selected.length })}</span>
           <Button variant="primary" onClick={() => onApply(selected)}>
             {t('clients.common.apply')}

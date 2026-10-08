@@ -8,6 +8,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Button, Field, FullscreenFrame, Menu, Modal, SectionNav, Skeleton, TextArea, TextInput, toast } from '@/components/ui'
 import { useDismiss } from '@/lib/useDismiss'
 import { useDrawer } from '@/lib/drawer'
+import { useIsPhone } from '@/components/ui/responsive'
 import { durationLong } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { Location, PaletteColor, Product, ServiceCategory } from '@/types'
@@ -41,8 +42,9 @@ export function SortButton<T extends string>({ options, value, onChange }: { opt
     <Menu
       width={260}
       trigger={({ open, toggle }) => (
-        <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="inline-flex h-10 items-center gap-2 rounded-full border border-line-strong bg-surface px-4 text-body-strong text-ink hover:bg-sunken">
-          {current?.label}
+        // Phones: icon only (the label stays as the accessible name).
+        <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} aria-label={current?.label} className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-full border border-line-strong bg-surface text-body-strong text-ink hover:bg-sunken md:w-auto md:justify-start md:px-4">
+          <span className="hidden md:inline">{current?.label}</span>
           <ArrowDownUp size={16} aria-hidden />
         </button>
       )}
@@ -444,13 +446,29 @@ export function ProductThumb({ product, size = 56 }: { product?: Pick<Product, '
 
 // ─── Layout ────────────────────────────────────────────────────────────────
 
-/** Highlights the section currently in view and scrolls to a section on click. */
-export function useScrollSpy<T extends string>(ids: T[]): [T, (id: T) => void] {
-  const [active, setActive] = useState<T>(ids[0])
+/**
+ * Highlights the section currently in view and scrolls to a section on click.
+ * `phone`: the section whose top has passed 30% of the screen wins, and a click keeps its pill
+ * selected while the smooth scroll runs (the sticky pill row needs this; desktop keeps the original logic).
+ */
+export function useScrollSpy<T extends string>(ids: T[], phone = false): [T, (id: T) => void] {
+  const [active, setActive] = useState<T | undefined>(ids[0])
+  const clickedAt = useRef(0)
   const key = ids.join('|')
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        if (phone) {
+          if (Date.now() - clickedAt.current < 900) return
+          const line = window.innerHeight * 0.3
+          let current: string | undefined
+          key.split('|').forEach((id) => {
+            const el = document.getElementById(`sec-${id}`)
+            if (el && el.getBoundingClientRect().top <= line) current = id
+          })
+          if (current) setActive(current as T)
+          return
+        }
         const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
         if (visible[0]) setActive(visible[0].target.id.replace(/^sec-/, '') as T)
       },
@@ -461,23 +479,24 @@ export function useScrollSpy<T extends string>(ids: T[]): [T, (id: T) => void] {
       if (el) observer.observe(el)
     })
     return () => observer.disconnect()
-  }, [key])
+  }, [key, phone])
   const scrollTo = useCallback((id: T) => {
+    clickedAt.current = Date.now()
     setActive(id)
     document.getElementById(`sec-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
-  return [active, scrollTo]
+  return [(active ?? ids[0]) as T, scrollTo]
 }
 
 /** Section card inside full-screen editors (anchor id `sec-<id>`). */
 export function SectionCard({ id, title, subtitle, titleExtra, action, children, className }: { id?: string; title?: ReactNode; subtitle?: ReactNode; titleExtra?: ReactNode; action?: ReactNode; children?: ReactNode; className?: string }) {
   return (
-    <section id={id ? `sec-${id}` : undefined} className={clsx('card scroll-mt-6 p-6 sm:p-8', className)}>
+    <section id={id ? `sec-${id}` : undefined} className={clsx('card scroll-mt-20 p-4 sm:p-8 md:scroll-mt-6', className)}>
       {(title || action) && (
         <div className="mb-5 flex items-start justify-between gap-4">
           <div className="min-w-0">
             {title && (
-              <h2 className="flex items-center gap-3 font-display text-title-2 text-ink">
+              <h2 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-title-3 text-ink md:flex-nowrap md:text-title-2">
                 {title}
                 {titleExtra}
               </h2>
@@ -489,6 +508,39 @@ export function SectionCard({ id, title, subtitle, titleExtra, action, children,
       )}
       {children}
     </section>
+  )
+}
+
+/**
+ * Phones only: the editor's section nav (hidden with the side column below md)
+ * as a sticky row of pills that scrolls sideways; follows the scroll spy.
+ */
+function PhoneSectionNav<T extends string>({ items, value, onChange, label }: { items: { value: T; label: string; count?: number }[]; value: T; onChange: (v: T) => void; label: string }) {
+  const row = useRef<HTMLDivElement>(null)
+  // Keep the active pill in view inside the row (scrolls the row only, never the page).
+  useEffect(() => {
+    const box = row.current
+    const el = box?.querySelector<HTMLElement>('[aria-current="true"]')
+    if (!el || !box) return
+    box.scrollTo({ left: Math.max(0, el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2), behavior: 'smooth' })
+  }, [value])
+  return (
+    <nav aria-label={label} className="sticky -top-5 z-20 -mx-4 mb-4 border-b border-line bg-canvas/95 backdrop-blur md:hidden">
+      <div ref={row} className="flex gap-2 overflow-x-auto px-4 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {items.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            onClick={() => onChange(item.value)}
+            aria-current={value === item.value ? 'true' : undefined}
+            className={clsx('inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-body-strong transition-colors', value === item.value ? 'bg-primary text-on-primary' : 'bg-surface text-ink ring-1 ring-inset ring-line-strong')}
+          >
+            {item.label}
+            {item.count !== undefined && <CountBadge value={item.count} active={value === item.value} />}
+          </button>
+        ))}
+      </div>
+    </nav>
   )
 }
 
@@ -512,21 +564,28 @@ export function EditorFrame<T extends string>({
 }) {
   const { t } = useTranslation()
   const ids = useMemo(() => nav?.groups.flatMap((g) => g.items.map((i) => i.value)) ?? [], [nav])
-  const [active, scrollTo] = useScrollSpy<T>(ids)
+  // Phones start observing once the sections exist (they are not rendered while loading); desktop is unchanged.
+  const phone = useIsPhone()
+  const [active, scrollTo] = useScrollSpy<T>(loading ? [] : ids, phone)
+  const navItems = nav?.groups.flatMap((g) => g.items) ?? []
   return (
     <FullscreenFrame closeLabel={t('catalog.common.close')} onClose={onClose} actions={actions} maxWidth={maxWidth} nav={nav && !loading ? <SectionNav groups={nav.groups} value={active} onChange={scrollTo} /> : undefined}>
-      {loading ? (
-        <div className="flex flex-col gap-4" aria-busy="true">
-          <Skeleton className="h-10 w-72" />
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-48 w-full" />
-        </div>
-      ) : (
-        <>
-          <h1 className="mb-6 font-display text-display text-ink">{title}</h1>
-          <div className="flex flex-col gap-6 pb-24">{children}</div>
-        </>
-      )}
+      {/* Phones: the content scrolls in its own area (the frame's column is only as tall as the screen), so the section pills can stay stuck at the top. */}
+      <div className="max-md:relative max-md:-mx-4 max-md:-my-5 max-md:h-[calc(100%+2.5rem)] max-md:overflow-y-auto max-md:px-4 max-md:py-5">
+        {loading ? (
+          <div className="flex flex-col gap-4" aria-busy="true">
+            <Skeleton className="h-10 w-full max-w-72" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        ) : (
+          <>
+            <h1 className="mb-4 font-display text-title-1 text-ink md:mb-6 md:text-display">{title}</h1>
+            {navItems.length > 0 && <PhoneSectionNav items={navItems} value={active} onChange={scrollTo} label={title} />}
+            <div className="flex flex-col gap-4 pb-24 md:gap-6">{children}</div>
+          </>
+        )}
+      </div>
     </FullscreenFrame>
   )
 }
@@ -534,13 +593,18 @@ export function EditorFrame<T extends string>({
 /** Width of the product, supplier and stock order drawers (catalog.md §4, §6, §7). */
 export const CATALOG_DRAWER_WIDTH = 1012
 
-/** Drawer body used by the product, supplier and stock order drawers: left hero + vertical tabs, grey right pane. */
+/**
+ * Drawer body used by the product, supplier and stock order drawers: left hero + vertical tabs, grey right pane.
+ * Phones: one vertical scroll with a compact hero header (pass the hero as `HeroMedia` + `HeroInfo`),
+ * a sticky row of tabs that scrolls sideways, then the pane full width.
+ */
 export function TwoPaneDrawer<T extends string>({ hero, tabs, tab, onTab, children }: { hero: ReactNode; tabs: { value: T; label: string }[]; tab: T; onTab: (t: T) => void; children: ReactNode }) {
+  const phone = useIsPhone()
   return (
-    <div className="flex h-full min-h-0">
-      <div className="flex w-[360px] shrink-0 flex-col overflow-y-auto border-r border-line bg-surface">
-        <div className="flex flex-col items-center gap-2 border-b border-line px-6 pb-6 pt-8 text-center">{hero}</div>
-        <nav className="flex flex-col gap-1 p-4" role="tablist" aria-orientation="vertical">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto md:flex-row md:overflow-visible">
+      <div className="contents md:flex md:w-[360px] md:shrink-0 md:flex-col md:overflow-y-auto md:border-r md:border-line md:bg-surface">
+        <div className="flex shrink-0 items-center gap-4 border-b border-line bg-surface px-4 py-4 text-left md:flex-col md:gap-2 md:px-6 md:pb-6 md:pt-8 md:text-center">{hero}</div>
+        <nav className="sticky top-0 z-10 flex shrink-0 gap-2 overflow-x-auto border-b border-line bg-surface px-4 py-2.5 [scrollbar-width:none] md:static md:z-auto md:flex-col md:gap-1 md:overflow-visible md:border-b-0 md:p-4 [&::-webkit-scrollbar]:hidden" role="tablist" aria-orientation={phone ? 'horizontal' : 'vertical'}>
           {tabs.map((item) => (
             <button
               key={item.value}
@@ -548,23 +612,36 @@ export function TwoPaneDrawer<T extends string>({ hero, tabs, tab, onTab, childr
               role="tab"
               aria-selected={tab === item.value}
               onClick={() => onTab(item.value)}
-              className={clsx('flex h-11 items-center rounded-md px-4 text-left text-body', tab === item.value ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}
+              className={clsx(
+                'flex h-10 shrink-0 items-center whitespace-nowrap rounded-full px-4 text-left text-body md:h-11 md:shrink md:whitespace-normal md:rounded-md',
+                tab === item.value ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken max-md:ring-1 max-md:ring-inset max-md:ring-line',
+              )}
             >
               {item.label}
             </button>
           ))}
         </nav>
       </div>
-      <div className="min-w-0 flex-1 overflow-y-auto bg-sunken px-8 py-8">{children}</div>
+      <div className="min-w-0 flex-1 bg-sunken px-4 py-5 md:overflow-y-auto md:px-8 md:py-8">{children}</div>
     </div>
   )
+}
+
+/** Drawer hero picture/tile: small, next to the name on phones; big and centred from md up. */
+export function HeroMedia({ children }: { children: ReactNode }) {
+  return <div className="flex shrink-0 md:mb-2">{children}</div>
+}
+
+/** Drawer hero name, chips and actions: a left-aligned column on phones; from md up its children sit directly in the centred hero. */
+export function HeroInfo({ children }: { children: ReactNode }) {
+  return <div className="flex min-w-0 flex-1 flex-col items-start gap-1 max-md:break-words md:contents">{children}</div>
 }
 
 /** Big title of the right-hand pane ("Product details", "Stock order details") with an optional action. */
 export function PaneTitle({ title, action }: { title: string; action?: ReactNode }) {
   return (
-    <div className="mb-6 flex items-center justify-between gap-4">
-      <h2 className="font-display text-title-1 text-ink">{title}</h2>
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 md:mb-6 md:flex-nowrap md:gap-4">
+      <h2 className="font-display text-title-2 text-ink md:text-title-1">{title}</h2>
       {action}
     </div>
   )
@@ -573,9 +650,9 @@ export function PaneTitle({ title, action }: { title: string; action?: ReactNode
 /** Rounded icon tile shown at the top of a drawer hero (stock order, product placeholder). */
 export function HeroTile({ children, badge }: { children: ReactNode; badge?: ReactNode }) {
   return (
-    <div className="relative mb-2 flex h-28 w-28 items-center justify-center rounded-lg border border-line bg-surface text-ink">
+    <div className="relative flex h-16 w-16 items-center justify-center rounded-lg border border-line bg-surface text-ink md:h-28 md:w-28 max-md:[&>svg]:h-8 max-md:[&>svg]:w-8">
       {children}
-      {badge && <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-on-accent shadow-sm">{badge}</span>}
+      {badge && <span className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-on-accent shadow-sm md:-bottom-2 md:-right-2 md:h-9 md:w-9 max-md:[&_svg]:h-3.5 max-md:[&_svg]:w-3.5">{badge}</span>}
     </div>
   )
 }
@@ -583,7 +660,7 @@ export function HeroTile({ children, badge }: { children: ReactNode; badge?: Rea
 /** Card of label → value rows (drawer detail panes). */
 export function InfoCard({ title, action, rows, children }: { title: string; action?: ReactNode; rows?: { label: ReactNode; value: ReactNode; block?: boolean }[]; children?: ReactNode }) {
   return (
-    <section className="mb-4 rounded-lg border border-line bg-surface p-6">
+    <section className="mb-4 rounded-lg border border-line bg-surface p-4 md:p-6">
       <div className="mb-4 flex items-center justify-between gap-4">
         <h3 className="font-display text-title-3 text-ink">{title}</h3>
         {action}
@@ -599,7 +676,7 @@ export function InfoCard({ title, action, rows, children }: { title: string; act
             ) : (
               <div key={i} className="flex items-start justify-between gap-4">
                 <dt className="text-body text-ink">{r.label}</dt>
-                <dd className="text-right text-body text-muted">{r.value === '' || r.value === undefined || r.value === null ? '-' : r.value}</dd>
+                <dd className="text-right text-body text-muted max-md:min-w-0 max-md:[overflow-wrap:anywhere]">{r.value === '' || r.value === undefined || r.value === null ? '-' : r.value}</dd>
               </div>
             ),
           )}
@@ -676,7 +753,7 @@ export function SuccessHero({ title, subtitle }: { title: string; subtitle: stri
 /** Filter pills with counts (All 1 / Uncounted 0 / …). */
 export function CountPills<T extends string>({ items, value, onChange }: { items: { value: T; label: string; count: number }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div className="flex flex-wrap gap-2" role="tablist">
+    <div className="flex flex-wrap gap-2 max-md:-mx-4 max-md:flex-nowrap max-md:overflow-x-auto max-md:px-4 max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden" role="tablist">
       {items.map((item) => (
         <button
           key={item.value}
@@ -684,7 +761,7 @@ export function CountPills<T extends string>({ items, value, onChange }: { items
           role="tab"
           aria-selected={value === item.value}
           onClick={() => onChange(item.value)}
-          className={clsx('inline-flex h-10 items-center gap-2 rounded-full px-4 text-body-strong transition-colors', value === item.value ? 'bg-primary text-on-primary' : 'border border-line-strong bg-surface text-ink hover:bg-sunken')}
+          className={clsx('inline-flex h-10 items-center gap-2 rounded-full px-4 text-body-strong transition-colors max-md:shrink-0 max-md:whitespace-nowrap', value === item.value ? 'bg-primary text-on-primary' : 'border border-line-strong bg-surface text-ink hover:bg-sunken')}
         >
           {item.label}
           <CountBadge value={item.count} active={value === item.value} />
@@ -694,12 +771,36 @@ export function CountPills<T extends string>({ items, value, onChange }: { items
   )
 }
 
+/** Phones only: a category list (service menu, packages) as one row of chips that scrolls sideways. */
+export function CategoryChips<T extends string>({ label, items, value, onChange, addLabel, onAdd }: { label: string; items: { id: T; name: string; count: number; muted?: boolean }[]; value: T; onChange: (id: T) => void; addLabel: string; onAdd: () => void }) {
+  return (
+    <div role="group" aria-label={label} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+      {items.map((c) => (
+        <button
+          key={c.id}
+          type="button"
+          aria-pressed={value === c.id}
+          onClick={() => onChange(c.id)}
+          className={clsx('inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-body-strong transition-colors', value === c.id ? 'bg-primary text-on-primary' : clsx('bg-surface ring-1 ring-inset ring-line-strong', c.muted ? 'text-muted' : 'text-ink'))}
+        >
+          {c.name}
+          <CountBadge value={c.count} active={value === c.id} />
+        </button>
+      ))}
+      <button type="button" onClick={onAdd} className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-primary/50 px-4 text-body-strong text-primary">
+        <Plus size={16} aria-hidden />
+        {addLabel}
+      </button>
+    </div>
+  )
+}
+
 /** List page skeleton: two-column cards (service menu, packages). */
 export function CardsSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-busy="true">
       <Skeleton className="h-9 w-64" />
-      <Skeleton className="h-5 w-96" />
+      <Skeleton className="h-5 w-full max-w-96" />
       <Skeleton className="mt-2 h-16 w-full" />
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <Skeleton className="h-64 w-full" />

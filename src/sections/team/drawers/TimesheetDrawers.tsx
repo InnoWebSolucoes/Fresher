@@ -106,8 +106,9 @@ export function TimesheetDrawer({ id, close }: DrawerProps) {
   const clockedOut = timesheet.status === 'clocked_out'
 
   return (
-    <div className="flex h-full">
-      <nav className="flex w-[120px] shrink-0 flex-col border-r border-line py-4" role="tablist" aria-orientation="vertical">
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
+      {/* Phones: the side tabs become a tab row on top. */}
+      <nav className="flex shrink-0 border-b border-line px-2 md:w-[120px] md:flex-col md:border-b-0 md:border-r md:px-0 md:py-4" role="tablist" aria-orientation="vertical">
         {(
           [
             ['timesheet', Timer],
@@ -120,14 +121,14 @@ export function TimesheetDrawer({ id, close }: DrawerProps) {
             role="tab"
             aria-selected={tab === key}
             onClick={() => drawer.update({ tab: key })}
-            className={clsx('flex flex-col items-center gap-1.5 border-l-2 px-2 py-4 text-small', tab === key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-ink')}
+            className={clsx('flex h-12 items-center gap-2 border-b-2 px-3 text-small md:h-auto md:flex-col md:gap-1.5 md:border-b-0 md:border-l-2 md:px-2 md:py-4', tab === key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-ink')}
           >
             <Icon size={20} aria-hidden />
             {t(`team.timesheets.tabs.${key}`)}
           </button>
         ))}
       </nav>
-      <div className="min-w-0 flex-1 overflow-y-auto px-6 py-6">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6">
         {tab === 'timesheet' ? (
           <>
             <div className="flex items-center justify-between">

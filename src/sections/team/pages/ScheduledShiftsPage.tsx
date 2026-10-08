@@ -203,18 +203,18 @@ export function ScheduledShiftsPage() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <Button className="rounded-full" onClick={() => setParam({ date: todayISO() })}>
+        <div className="flex w-full items-center justify-between gap-2 md:w-auto md:justify-start">
+          <Button className="rounded-full !px-3 md:!px-4" onClick={() => setParam({ date: todayISO() })}>
             {t('team.shifts.thisWeek')}
           </Button>
           <div className="flex items-center rounded-full border border-line-strong bg-surface">
-            <button type="button" className="flex h-10 w-10 items-center justify-center rounded-l-full hover:bg-sunken" aria-label={t('team.shifts.prevWeek')} onClick={() => setParam({ date: shiftDate(start, -7) })}>
+            <button type="button" className="flex h-10 w-9 items-center justify-center rounded-l-full hover:bg-sunken md:w-10" aria-label={t('team.shifts.prevWeek')} onClick={() => setParam({ date: shiftDate(start, -7) })}>
               <ChevronLeft size={18} />
             </button>
             <Popover
               align="right"
               trigger={({ open, toggle }) => (
-                <button type="button" aria-haspopup="dialog" aria-expanded={open} onClick={toggle} className="h-10 border-x border-line-strong px-4 text-body-strong text-ink hover:bg-sunken">
+                <button type="button" aria-haspopup="dialog" aria-expanded={open} onClick={toggle} className="h-10 whitespace-nowrap border-x border-line-strong px-3 text-body-strong text-ink hover:bg-sunken md:px-4">
                   {rangeLabel(start, days[6])}
                 </button>
               )}
@@ -230,7 +230,7 @@ export function ScheduledShiftsPage() {
                 />
               )}
             </Popover>
-            <button type="button" className="flex h-10 w-10 items-center justify-center rounded-r-full hover:bg-sunken" aria-label={t('team.shifts.nextWeek')} onClick={() => setParam({ date: shiftDate(start, 7) })}>
+            <button type="button" className="flex h-10 w-9 items-center justify-center rounded-r-full hover:bg-sunken md:w-10" aria-label={t('team.shifts.nextWeek')} onClick={() => setParam({ date: shiftDate(start, 7) })}>
               <ChevronRight size={18} />
             </button>
           </div>
@@ -238,10 +238,11 @@ export function ScheduledShiftsPage() {
       </Toolbar>
 
       <div className="overflow-x-auto rounded-lg border border-line bg-surface">
-        <table className="w-full min-w-[1040px] table-fixed border-collapse">
+        {/* Phones: the week scrolls sideways inside this card while the member column stays put. */}
+        <table className="w-full min-w-[880px] table-fixed border-collapse md:min-w-[1040px]">
           <thead>
             <tr className="border-b border-line">
-              <th className="w-[250px] px-4 py-3 text-left text-body-strong text-ink">
+              <th className="sticky left-0 z-[2] w-[140px] bg-surface px-3 py-3 text-left text-body-strong text-ink shadow-[inset_-1px_0_0_rgb(var(--border))] md:static md:w-[250px] md:px-4 md:shadow-none">
                 {t('team.shifts.memberCol')}{' '}
                 <button type="button" className="text-primary hover:underline" onClick={() => setChangeOpen(true)}>
                   {t('team.common.change')}
@@ -268,19 +269,20 @@ export function ScheduledShiftsPage() {
           <tbody>
             {rows.map(({ member, cells, minutes }) => (
               <tr key={member.id} className="border-b border-line align-top last:border-0">
-                <td className="border-r border-line p-2">
+                <td className="sticky left-0 z-[2] border-r border-line bg-surface p-1 shadow-[inset_-1px_0_0_rgb(var(--border))] md:static md:p-2 md:shadow-none">
                   <PortalMenu
                     align="left"
                     width={260}
                     groups={memberMenu(member)}
                     trigger={({ toggle, open }) => (
-                      <button type="button" onClick={toggle} aria-haspopup="menu" aria-expanded={open} className="group flex w-full items-center gap-3 rounded-md p-2 text-left hover:bg-sunken">
-                        <MemberAvatar member={member} size={44} />
+                      <button type="button" onClick={toggle} aria-haspopup="menu" aria-expanded={open} className="group flex w-full items-center gap-2 rounded-md p-1.5 text-left hover:bg-sunken md:gap-3 md:p-2">
+                        <MemberAvatar member={member} size={32} className="md:hidden" />
+                        <MemberAvatar member={member} size={44} className="hidden md:inline-flex" />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-body-strong text-ink">{memberName(member)}</span>
+                          <span className="block break-words text-body-strong text-ink md:truncate">{memberName(member)}</span>
                           <span className="block text-small text-muted">{hoursLabel(minutes)}</span>
                         </span>
-                        <Pencil size={16} className="text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden />
+                        <Pencil size={16} className="hidden text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 md:block" aria-hidden />
                       </button>
                     )}
                   />
@@ -324,7 +326,7 @@ export function ScheduledShiftsPage() {
                               align="left"
                               groups={shiftMenu(member, cell)}
                               trigger={({ toggle, open }) => (
-                                <button type="button" onClick={toggle} aria-haspopup="menu" aria-expanded={open} className="w-full rounded-md bg-primary-subtle px-2 py-2 text-center text-small font-medium text-primary hover:ring-1 hover:ring-primary">
+                                <button type="button" onClick={toggle} aria-haspopup="menu" aria-expanded={open} className="w-full rounded-md bg-primary-subtle px-1 py-2 text-center text-small font-medium text-primary hover:ring-1 hover:ring-primary md:px-2">
                                   {pill(r)}
                                 </button>
                               )}

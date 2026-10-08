@@ -24,9 +24,9 @@ export function TipStep() {
   return (
     <div>
       <Breadcrumb />
-      <h1 className="mt-3 font-display text-title-1 text-ink">{t('checkout.tip.title')}</h1>
-      <p className="mt-8 text-body-lg text-ink">{t('checkout.tip.selectFor', { name: member ? fullName(member) : t('checkout.tip.team') })}</p>
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <h1 className="mt-3 font-display text-title-2 text-ink md:text-title-1">{t('checkout.tip.title')}</h1>
+      <p className="mt-5 text-body-lg text-ink md:mt-8">{t('checkout.tip.selectFor', { name: member ? fullName(member) : t('checkout.tip.team') })}</p>
+      <div className="mt-4 grid grid-cols-3 gap-2 md:mt-6 md:gap-4">
         <Tile
           label={t('checkout.tip.noTip')}
           selected={c.tipChoice.kind === 'none'}

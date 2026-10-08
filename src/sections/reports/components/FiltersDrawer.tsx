@@ -70,12 +70,18 @@ function FiltersDrawerBody({ onClose, ctx, keys, premiumKeys = [], locked, filte
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" aria-label={t('reports.common.closeDrawer')} tabIndex={-1} className="absolute inset-0 cursor-default bg-transparent" onClick={onClose} />
       <div className="relative flex h-full animate-[slideIn_var(--dur-slow)_var(--ease)]">
-        <button type="button" onClick={onClose} aria-label={t('reports.common.closeDrawer')} className="absolute -left-16 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
+        <button type="button" onClick={onClose} aria-label={t('reports.common.closeDrawer')} className="absolute -left-16 top-4 hidden h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken md:flex">
           <X size={20} aria-hidden />
         </button>
-        <div role="dialog" aria-modal="true" aria-label={t('reports.page.filters')} className="flex h-full w-[600px] max-w-[100vw] flex-col bg-surface shadow-lg">
-          <div className="flex items-center justify-between gap-4 px-10 pb-4 pt-8">
-            <h2 className="font-display text-title-1 text-ink">{t('reports.page.filters')}</h2>
+        <div role="dialog" aria-modal="true" aria-label={t('reports.page.filters')} className="flex h-full w-screen max-w-[100vw] flex-col bg-surface shadow-lg md:w-[600px]">
+          {/* Phones: full-screen panel with the close button in a bar on top. */}
+          <div className="flex h-12 shrink-0 items-center justify-end border-b border-line px-2 md:hidden">
+            <button type="button" onClick={onClose} aria-label={t('reports.common.closeDrawer')} className="icon-btn">
+              <X size={20} aria-hidden />
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 pb-3 pt-4 md:flex-nowrap md:gap-4 md:px-10 md:pb-4 md:pt-8">
+            <h2 className="font-display text-title-2 text-ink md:text-title-1">{t('reports.page.filters')}</h2>
             {onAdvanced && (
               <Button
                 className="rounded-full"
@@ -93,7 +99,7 @@ function FiltersDrawerBody({ onClose, ctx, keys, premiumKeys = [], locked, filte
               </Button>
             )}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-10 pb-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 md:px-10">
             {keys.length === 0 && <p className="py-6 text-body text-muted">{t('reports.page.noFilters')}</p>}
             {keys.map((key) => {
               const def = FILTERS[key]
@@ -174,7 +180,7 @@ function FiltersDrawerBody({ onClose, ctx, keys, premiumKeys = [], locked, filte
               )
             })}
           </div>
-          <div className="flex gap-3 border-t border-line px-10 py-5">
+          <div className="flex gap-3 border-t border-line px-4 py-3 md:px-10 md:py-5">
             <Button size="lg" className="flex-1 rounded-full" onClick={() => { setDraft({}); setDraftRanges({}) }}>
               {t('reports.page.clearFilters')}
             </Button>

@@ -93,24 +93,25 @@ export function DealsListPage() {
         }
       />
       <Toolbar className="bg-transparent p-0">
-        <SearchInput value={q} onChange={setQ} placeholder={t('marketing.deals.search')} className="max-w-xs" />
+        <SearchInput value={q} onChange={setQ} placeholder={t('marketing.deals.search')} className="max-md:basis-full md:max-w-xs" />
         <Button
           icon={<SlidersHorizontal size={16} />}
-          className="rounded-full"
+          className="rounded-full max-md:px-3"
           onClick={() => {
             setDraftTypes(types)
             setDraftStatuses(statuses)
             setFiltersOpen(true)
           }}
         >
-          {t('marketing.common.filters')}
+          {/* Phones: icon-only button (the label stays for screen readers). */}
+          <span className="max-md:sr-only">{t('marketing.common.filters')}</span>
           {filterCount > 0 && <span className="chip h-5 bg-primary px-1.5 text-caption text-on-primary">{filterCount}</span>}
         </Button>
-        <div className="ml-auto flex items-center gap-2">
-          <ArrowDownUp size={16} className="text-muted" aria-hidden />
+        <div className="ml-auto flex items-center gap-2 max-md:min-w-0 max-md:flex-1">
+          <ArrowDownUp size={16} className="shrink-0 text-muted" aria-hidden />
           <Select
             aria-label={t('marketing.deals.sortLabel')}
-            className="h-10 w-56 rounded-full"
+            className="h-10 rounded-full max-md:min-w-0 max-md:flex-1 md:w-56"
             value={sort}
             onChange={(e) => setSort(e.target.value as Sort)}
             options={(['newest', 'oldest', 'name', 'sales'] as Sort[]).map((s) => ({ value: s, label: t(`marketing.deals.sort.${s}`) }))}
@@ -136,8 +137,8 @@ export function DealsListPage() {
           {rows.map((d) => {
             const Icon = TYPE_ICONS[d.type]
             return (
-              <li key={d.id} className="card flex flex-wrap items-center gap-5 px-6 py-5" data-testid={`deal-${d.id}`}>
-                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-warning">
+              <li key={d.id} className="card flex flex-wrap items-center gap-x-3 gap-y-3 px-4 py-4 md:gap-5 md:px-6 md:py-5" data-testid={`deal-${d.id}`}>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-warning max-md:self-start md:h-16 md:w-16">
                   <Icon size={26} aria-hidden />
                 </span>
                 <button type="button" className="min-w-0 flex-1 text-left" onClick={() => navigate(`/marketing/deals/edit/${d.id}/details`)}>
@@ -148,12 +149,16 @@ export function DealsListPage() {
                     {d.code && <span className="ml-2 rounded-xs bg-sunken px-1.5 py-0.5 font-mono text-caption text-ink">{d.code}</span>}
                   </p>
                 </button>
-                <Chip tone={d.status === 'active' ? 'success' : d.status === 'archived' ? 'outline' : 'neutral'}>{t(`marketing.common.${d.status}`)}</Chip>
-                <div className="w-28 text-right">
-                  <p className="text-body text-muted">{t('marketing.deals.totalSales')}</p>
-                  <p className="text-body-strong text-ink">{money(d.salesTotal)}</p>
+                {/* Phones: status and sales on a row under the deal text, the ⋮ menu stays top right. */}
+                <div className="flex w-full items-center justify-between gap-3 border-t border-line pt-3 max-md:order-last md:contents">
+                  <Chip tone={d.status === 'active' ? 'success' : d.status === 'archived' ? 'outline' : 'neutral'}>{t(`marketing.common.${d.status}`)}</Chip>
+                  <div className="text-right md:w-28">
+                    <p className="text-body text-muted">{t('marketing.deals.totalSales')}</p>
+                    <p className="text-body-strong text-ink">{money(d.salesTotal)}</p>
+                  </div>
                 </div>
                 <Menu
+
                   label={t('marketing.common.options')}
                   groups={[
                     {

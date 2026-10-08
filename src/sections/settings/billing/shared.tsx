@@ -34,12 +34,17 @@ export function CardLine({ compact }: { compact?: boolean }) {
   const card = useWorkspace().plan.card
   if (!card) return <span className="text-body text-muted">{t('settings.bill.card.none')}</span>
   return (
-    <span className="inline-flex items-center gap-2 text-body text-ink">
-      <span className="flex h-7 w-10 items-center justify-center rounded-xs bg-ink text-[10px] font-bold uppercase tracking-wide text-canvas" aria-hidden>
+    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-body text-ink md:flex-nowrap md:gap-2">
+      <span className="flex h-7 w-10 shrink-0 items-center justify-center rounded-xs bg-ink text-[10px] font-bold uppercase tracking-wide text-canvas" aria-hidden>
         {card.brand === 'American Express' ? 'AMEX' : card.brand.slice(0, 4)}
       </span>
       {t('settings.bill.card.ending', { brand: card.brand, last4: card.last4 })}
-      {!compact && <span className="text-muted">· {t('settings.bill.card.expires', { expiry: card.expiry })}</span>}
+      {!compact && (
+        <span className="basis-full text-muted md:basis-auto">
+          <span className="hidden md:inline">· </span>
+          {t('settings.bill.card.expires', { expiry: card.expiry })}
+        </span>
+      )}
     </span>
   )
 }
@@ -161,10 +166,10 @@ export function InvoicePreviewModal({ invoice, onClose }: { invoice: Invoice | n
       }
     >
       {invoice && (
-        <article className="my-2 rounded-md border border-line bg-white p-8 text-[13px] leading-5 text-[#1B2423] shadow-sm" data-testid="invoice-preview">
-          <div className="-mx-8 -mt-8 mb-6 h-1.5 rounded-t-md bg-primary" />
-          <header className="flex items-start justify-between gap-6">
-            <div>
+        <article className="my-2 rounded-md border border-line bg-white p-4 text-[13px] md:p-8 leading-5 text-[#1B2423] shadow-sm" data-testid="invoice-preview">
+          <div className="-mx-4 -mt-4 mb-6 h-1.5 rounded-t-md bg-primary md:-mx-8 md:-mt-8" />
+          <header className="flex items-start justify-between gap-3 md:gap-6">
+            <div className="min-w-0">
               <p className="font-display text-[20px] font-bold">Innoweb Bookings</p>
               <p className="mt-1 text-[11px] text-[#5B6B69]">
                 Innoweb Solutions, Lda
@@ -206,24 +211,24 @@ export function InvoicePreviewModal({ invoice, onClose }: { invoice: Invoice | n
           <table className="mt-6 w-full border-collapse">
             <thead>
               <tr className="bg-primary text-left text-[12px] text-white">
-                <th className="px-3 py-2 font-semibold">{t('settings.bill.invoices.description')}</th>
-                <th className="px-3 py-2 text-right font-semibold">{t('settings.bill.invoices.qty')}</th>
-                <th className="px-3 py-2 text-right font-semibold">{t('settings.bill.invoices.unitPrice')}</th>
-                <th className="px-3 py-2 text-right font-semibold">{t('settings.bill.invoices.amount')}</th>
+                <th className="px-2 py-2 md:px-3 font-semibold">{t('settings.bill.invoices.description')}</th>
+                <th className="px-2 py-2 md:px-3 text-right font-semibold">{t('settings.bill.invoices.qty')}</th>
+                <th className="px-2 py-2 md:px-3 text-right font-semibold">{t('settings.bill.invoices.unitPrice')}</th>
+                <th className="px-2 py-2 md:px-3 text-right font-semibold">{t('settings.bill.invoices.amount')}</th>
               </tr>
             </thead>
             <tbody>
               {invoice.lines.map((l, i) => (
                 <tr key={i} className="border-b border-[#E3E9E8]">
-                  <td className="px-3 py-2">{l.description}</td>
-                  <td className="px-3 py-2 text-right">{l.quantity}</td>
-                  <td className="px-3 py-2 text-right">{money2(l.unitPrice)}</td>
-                  <td className="px-3 py-2 text-right">{money2(round2(l.quantity * l.unitPrice))}</td>
+                  <td className="px-2 py-2 md:px-3">{l.description}</td>
+                  <td className="px-2 py-2 md:px-3 text-right">{l.quantity}</td>
+                  <td className="px-2 py-2 md:px-3 text-right">{money2(l.unitPrice)}</td>
+                  <td className="px-2 py-2 md:px-3 text-right">{money2(round2(l.quantity * l.unitPrice))}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <dl className="ml-auto mt-4 w-64">
+          <dl className="ml-auto mt-4 w-full sm:w-64">
             <div className="flex justify-between py-1">
               <dt>{t('settings.bill.invoices.subtotal')}</dt>
               <dd>{money2(invoice.subtotal)}</dd>

@@ -26,27 +26,28 @@ export function WalletDrawer({ params }: DrawerProps) {
   const tab: Tab = params.get('tab') === 'credits' ? 'credits' : 'accounts'
 
   return (
-    <div className="flex h-full" aria-label={t('drawers.wallet')}>
-      <aside className="flex w-[280px] shrink-0 flex-col border-r border-line">
-        <div className="border-b border-line px-6 pb-6 pt-8">
+    // Phones: the side menu becomes a compact header (name + Accounts / Credits pills) above the content.
+    <div className="flex h-full min-h-0 flex-col md:flex-row" aria-label={t('drawers.wallet')}>
+      <aside className="flex w-full shrink-0 flex-col border-b border-line md:w-[280px] md:border-b-0 md:border-r">
+        <div className="px-4 pb-3 pt-4 md:border-b md:border-line md:px-6 md:pb-6 md:pt-8">
           <h2 className="font-display text-title-2 text-ink">{workspace.name}</h2>
           <p className="text-body text-muted">{t('panels.wallet.businessWallet')}</p>
         </div>
-        <nav className="flex flex-col gap-1 p-4" aria-label={t('panels.wallet.businessWallet')}>
+        <nav className="flex gap-2 px-4 pb-3 md:flex-col md:gap-1 md:p-4" aria-label={t('panels.wallet.businessWallet')}>
           {(['accounts', 'credits'] as const).map((x) => (
             <button
               key={x}
               type="button"
               aria-current={tab === x ? 'page' : undefined}
               onClick={() => drawer.update({ tab: x })}
-              className={clsx('flex h-11 items-center rounded-md px-4 text-left text-body', tab === x ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}
+              className={clsx('flex h-10 items-center rounded-full px-4 text-left text-body md:h-11 md:rounded-md', tab === x ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink ring-1 ring-line hover:bg-sunken md:ring-0')}
             >
               {t(`panels.wallet.tabs.${x}`)}
             </button>
           ))}
         </nav>
       </aside>
-      <div className="min-w-0 flex-1 overflow-y-auto bg-canvas">{tab === 'accounts' ? <Accounts /> : <Credits />}</div>
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-canvas">{tab === 'accounts' ? <Accounts /> : <Credits />}</div>
     </div>
   )
 }
@@ -113,7 +114,7 @@ function Accounts() {
 
   return (
     <div className="pb-8">
-      <div className="bg-gradient-to-br from-primary-active via-primary to-[#1F8C84] px-6 pb-6 pt-8 text-on-primary">
+      <div className="bg-gradient-to-br from-primary-active via-primary to-[#1F8C84] px-4 pb-5 pt-5 text-on-primary md:px-6 md:pb-6 md:pt-8">
         <p className="text-body-strong">{workspace.name}</p>
         <p className="mt-1 font-display text-display tabular">
           {euros}
@@ -157,7 +158,7 @@ function Accounts() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 px-6 pt-6">
+      <div className="flex flex-col gap-6 px-4 pt-5 md:px-6 md:pt-6">
         {!paymentsActive && (
           <div className="flex items-center gap-4 rounded-lg bg-sunken p-5">
             <div className="min-w-0 flex-1">
@@ -185,15 +186,17 @@ function Accounts() {
             <ul className="card mt-3 divide-y divide-line">
               {(showAllPayouts ? payouts : payouts.slice(0, 4)).map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sunken text-muted" aria-hidden>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sunken text-muted" aria-hidden>
                     <Landmark size={16} />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-body-strong text-ink">{t('panels.wallet.payoutTo', { last4: p.bankLast4 })}</span>
                     <span className="block text-small text-muted">{fmtDate(p.at)}</span>
+                    {/* Phones: the status sits under the text so the description keeps its width. */}
+                    <span className={clsx('chip mt-1 md:hidden', p.status === 'paid' ? 'bg-success-subtle text-success' : 'bg-info-subtle text-info')}>{t(`panels.wallet.payoutStatus.${p.status}`)}</span>
                   </span>
-                  <span className={clsx('chip', p.status === 'paid' ? 'bg-success-subtle text-success' : 'bg-info-subtle text-info')}>{t(`panels.wallet.payoutStatus.${p.status}`)}</span>
-                  <span className="w-20 text-right text-body-strong text-ink tabular">{money2(p.amount)}</span>
+                  <span className={clsx('chip hidden md:inline-flex', p.status === 'paid' ? 'bg-success-subtle text-success' : 'bg-info-subtle text-info')}>{t(`panels.wallet.payoutStatus.${p.status}`)}</span>
+                  <span className="text-right text-body-strong text-ink tabular md:w-20">{money2(p.amount)}</span>
                 </li>
               ))}
             </ul>
@@ -228,7 +231,7 @@ function Accounts() {
             <ul className="card mt-3 divide-y divide-line">
               {transactions.map((x) => (
                 <li key={x.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className={clsx('flex h-9 w-9 items-center justify-center rounded-full', x.amount >= 0 ? 'bg-success-subtle text-success' : 'bg-sunken text-muted')} aria-hidden>
+                  <span className={clsx('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', x.amount >= 0 ? 'bg-success-subtle text-success' : 'bg-sunken text-muted')} aria-hidden>
                     {x.amount >= 0 ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -237,7 +240,7 @@ function Accounts() {
                       {t(`panels.wallet.txTypes.${x.type}`)} · {fmtDateTimeUS(x.at)}
                     </span>
                   </span>
-                  <span className={clsx('text-body-strong tabular', x.amount >= 0 ? 'text-success' : 'text-ink')}>
+                  <span className={clsx('shrink-0 text-body-strong tabular', x.amount >= 0 ? 'text-success' : 'text-ink')}>
                     {x.amount >= 0 ? '+' : ''}
                     {money2(x.amount)}
                   </span>
@@ -303,9 +306,9 @@ function Credits() {
   const [tab, setTab] = useState<'earned' | 'pending'>('earned')
 
   return (
-    <div className="flex flex-col gap-5 px-6 pb-8 pt-8">
-      <h2 className="font-display text-title-1 text-ink">{t('panels.wallet.creditsTitle')}</h2>
-      <div className="card flex items-center gap-4 p-5">
+    <div className="flex flex-col gap-5 px-4 pb-8 pt-5 md:px-6 md:pt-8">
+      <h2 className="font-display text-title-2 text-ink md:text-title-1">{t('panels.wallet.creditsTitle')}</h2>
+      <div className="card flex items-center gap-4 p-4 md:p-5">
         <div className="flex-1">
           <p className="font-display text-title-1 text-ink">{money(credits)}</p>
           <p className="text-body text-muted">{t('panels.wallet.availableCredits')}</p>

@@ -88,7 +88,7 @@ function Delta({ value, label }: { value: number | null; label: string }) {
 function DashCard({ title, value, delta, deltaLabel, report, children, className, hint }: { title: string; value?: ReactNode; delta?: number | null; deltaLabel?: string; report?: string; children?: ReactNode; className?: string; hint?: string }) {
   const { t } = useTranslation()
   return (
-    <section className={clsx('card flex flex-col p-6', className)} aria-label={title}>
+    <section className={clsx('card flex flex-col p-4 max-md:min-w-0 md:p-6', className)} aria-label={title}>
       <div className="flex items-start justify-between gap-2">
         <h2 className="flex items-center gap-1.5 text-body-strong text-ink">
           {title}
@@ -265,11 +265,11 @@ export function DashboardPage({ slug }: { slug: string }) {
   const filterCount = Object.values(filters).reduce((s, v) => s + v.length, 0)
   const minutesAgo = Math.max(1, differenceInMinutes(now(), LOADED_AT) + 1)
 
-  if (loading) return <div className="mx-auto max-w-[1400px] px-8 py-8"><PageSkeleton /></div>
+  if (loading) return <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-8 md:py-8"><PageSkeleton /></div>
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-8 py-8">
-      <div className="mb-6 flex items-center gap-4">
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-5 md:px-8 md:py-8">
+      <div className="mb-4 flex items-center gap-4 max-md:flex-wrap max-md:gap-y-3 md:mb-6">
         <Button icon={<ArrowLeft size={16} />} className="rounded-full" onClick={() => navigate('/reports/report-group/1?category=all')}>
           {t('reports.page.back')}
         </Button>
@@ -277,20 +277,20 @@ export function DashboardPage({ slug }: { slug: string }) {
           <Link to="/reports/report-group/1?category=all" className="hover:text-ink hover:underline">{t('reports.landing.groups.all')}</Link> · <span className="text-ink" aria-current="page">{def?.name ?? slug}</span>
         </nav>
       </div>
-      <div className="mb-6">
-        <h1 className="flex items-center gap-3 font-display text-title-1 text-ink">
+      <div className="mb-5 md:mb-6">
+        <h1 className="flex items-center gap-2 break-words font-display text-title-2 text-ink md:gap-3 md:text-title-1">
           {def?.name ?? slug}
           <button type="button" className="icon-btn h-9 w-9" aria-label={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} title={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} aria-pressed={fav} onClick={() => toggleFav(slug)}>
             <Star size={22} className={fav ? 'fill-accent text-accent' : 'text-ink'} aria-hidden />
           </button>
         </h1>
-        <p className="mt-1 text-body-lg text-muted">
+        <p className="mt-1 text-body text-muted md:text-body-lg">
           {def?.description}
           {slug !== 'loyalty_dashboard' && ` ${t('reports.page.dataFrom', { count: minutesAgo })}`}
         </p>
       </div>
       {slug !== 'loyalty_dashboard' && (
-        <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="mb-5 flex flex-wrap items-center gap-2 md:mb-6">
           <ReportDateRange value={range} onChange={setRange} />
           {slug === 'performance' && (
             <Pill onClick={() => { setDraftCompare(compare); setCompareOpen(true) }} open={compareOpen}>
@@ -660,7 +660,7 @@ function Loyalty({ ctx }: { ctx: Ctx }) {
   return (
     <div className="flex flex-col gap-4">
       {!loyaltyOn && (
-        <div className="flex flex-wrap items-center gap-6 rounded-xl bg-gradient-to-r from-primary to-info p-8 text-on-primary">
+        <div className="flex flex-wrap items-center gap-6 rounded-xl bg-gradient-to-r from-primary to-info p-5 text-on-primary md:p-8">
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-2 text-small font-semibold">
               <span className="flex h-6 w-6 items-center justify-center rounded-xs bg-surface text-primary">
@@ -668,7 +668,7 @@ function Loyalty({ ctx }: { ctx: Ctx }) {
               </span>
               {t('reports.dash.loyaltyBannerTag')}
             </p>
-            <p className="mt-2 font-display text-title-1">{t('reports.dash.loyaltyBannerTitle')}</p>
+            <p className="mt-2 font-display text-title-2 md:text-title-1">{t('reports.dash.loyaltyBannerTitle')}</p>
             <p className="mt-1 text-body-lg opacity-90">{t('reports.dash.loyaltyBannerBody')}</p>
             <Button className="mt-6 rounded-full border-0 bg-ink text-canvas hover:bg-ink/90" iconRight={<ArrowRight size={16} aria-hidden />} onClick={() => navigate('/add-ons/add-on/loyalty/intro?return=/reports/table/loyalty_dashboard')}>
               {t('reports.page.learnMore')}

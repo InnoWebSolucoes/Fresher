@@ -1,10 +1,11 @@
 import clsx from 'clsx'
 import { parseISO } from 'date-fns'
 import { format } from '@/lib/dates'
-import { AlertTriangle, Cake, ChevronDown, FlaskConical, Phone, PersonStanding, Plus, Search, UserPlus, UserRound, VenusAndMars, X } from 'lucide-react'
+import { AlertTriangle, Cake, ChevronDown, FlaskConical, MoreVertical, Phone, PersonStanding, Plus, Search, UserPlus, UserRound, VenusAndMars, X } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, Modal, Select, TextArea, TextInput, confirm, toast } from '@/components/ui'
+import { useIsPhone } from '@/components/ui/responsive'
 import { crud } from '@/api/client'
 import { messageClient } from '@/api/calendar'
 import { useDb } from '@/store/db'
@@ -33,6 +34,7 @@ export function ClientPanel({ clientId, walkIn, readOnly, onChange, onViewProfil
   const { t } = useTranslation()
   const client = useDb((s) => (clientId ? s.clients.find((c) => c.id === clientId) : undefined))
   const [searching, setSearching] = useState(false)
+  const phone = useIsPhone()
 
   if (searching && !readOnly) {
     return (
@@ -50,11 +52,11 @@ export function ClientPanel({ clientId, walkIn, readOnly, onChange, onViewProfil
 
   if (walkIn) {
     return (
-      <div className="flex flex-col items-center px-6 pt-10 text-center">
-        <ClientAvatar walkIn size={96} />
-        <p className="mt-4 text-title-3 font-semibold text-ink">{t('calendar.walkIn')}</p>
+      <div className="flex flex-col items-center px-6 pt-10 text-center max-md:flex-row max-md:gap-3 max-md:px-4 max-md:py-3 max-md:text-left">
+        <ClientAvatar walkIn size={phone ? 44 : 96} />
+        <p className="mt-4 text-title-3 font-semibold text-ink max-md:mt-0 max-md:min-w-0 max-md:flex-1 max-md:text-body-lg">{t('calendar.walkIn')}</p>
         {!readOnly && (
-          <Button variant="link" className="mt-2" onClick={() => setSearching(true)}>
+          <Button variant="link" className="mt-2 max-md:mt-0 max-md:shrink-0" onClick={() => setSearching(true)}>
             {t('calendar.client.add')}
           </Button>
         )}
@@ -63,12 +65,15 @@ export function ClientPanel({ clientId, walkIn, readOnly, onChange, onViewProfil
   }
 
   return (
-    <button type="button" disabled={readOnly} onClick={() => setSearching(true)} className="flex w-full flex-col items-center px-6 pt-10 text-center disabled:cursor-default" data-testid="add-client">
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle text-primary">
-        <UserPlus size={26} aria-hidden />
+    <button type="button" disabled={readOnly} onClick={() => setSearching(true)} className="flex w-full flex-col items-center px-6 pt-10 text-center disabled:cursor-default max-md:flex-row max-md:gap-3 max-md:px-4 max-md:py-3 max-md:text-left" data-testid="add-client">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle text-primary max-md:h-11 max-md:w-11 max-md:shrink-0">
+        <UserPlus size={phone ? 20 : 26} aria-hidden />
       </span>
-      <span className="mt-4 text-body-lg font-semibold text-ink">{t('calendar.client.add')}</span>
-      <span className="mt-1 text-body text-muted">{t('calendar.client.orWalkIn')}</span>
+      {/* Phones: the two lines sit beside the icon. */}
+      <span className="min-w-0 md:contents">
+        <span className="mt-4 text-body-lg font-semibold text-ink max-md:mt-0 max-md:block">{t('calendar.client.add')}</span>
+        <span className="mt-1 text-body text-muted max-md:mt-0 max-md:block">{t('calendar.client.orWalkIn')}</span>
+      </span>
     </button>
   )
 }
@@ -86,8 +91,8 @@ function ClientSearch({ onPick, onCancel }: { onPick: (id: ID | null, walkIn: bo
   }, [clients, query])
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-line px-5 pb-4 pt-6">
+    <div className="flex h-full flex-col" data-client-search>
+      <div className="border-b border-line px-5 pb-4 pt-6 max-md:px-4 max-md:pb-3 max-md:pt-3">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-title-3 font-semibold text-ink">{t('calendar.client.select')}</h2>
           <button type="button" onClick={onCancel} aria-label={t('calendar.common.close')} className="icon-btn h-8 w-8">
@@ -237,6 +242,8 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient, onViewProfi
   const noShows = useMemo(() => appointments.filter((a) => a.clientId === client.id && a.status === 'no_show').length, [appointments, client.id])
   const isNew = toISODate(now()) <= toISODate(new Date(parseISO(client.createdAt).getTime() + 30 * 86400000))
   const clientTags = tags.filter((tag) => client.tagIds.includes(tag.id))
+  const phone = useIsPhone()
+  const hasFlags = noShows > 0 || clientTags.length > 0 || isNew || Boolean(client.blocked) || Boolean(client.staffAlert) || client.allergies.some((a) => a.kind !== 'none') || client.patchTests.length > 0
 
   const block = async () => {
     const blocking = !client.blocked
@@ -252,24 +259,34 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient, onViewProfi
   }
 
   return (
-    <div className="pb-6">
-      <div className="flex flex-col items-center border-b border-line px-5 pb-6 pt-8 text-center">
-        <ClientAvatar name={client.firstName} photo={client.photo} size={96} />
-        <p className="mt-4 text-title-3 font-semibold text-ink">{fullName(client)}</p>
-        {client.email && (
-          <a href={`mailto:${client.email}`} className="mt-0.5 max-w-full truncate text-body text-muted hover:underline">
-            {client.email}
-          </a>
-        )}
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
+    <div className="md:pb-6">
+      <div className="flex flex-col items-center border-b border-line px-5 pb-6 pt-8 text-center max-md:flex-row max-md:gap-3 max-md:border-b-0 max-md:px-4 max-md:py-3 max-md:text-left">
+        <ClientAvatar name={client.firstName} photo={client.photo} size={phone ? 44 : 96} />
+        <div className="min-w-0 max-md:flex-1 md:contents">
+          <p className="mt-4 text-title-3 font-semibold text-ink max-md:mt-0 max-md:truncate max-md:text-body-lg">{fullName(client)}</p>
+          {client.email && (
+            <a href={`mailto:${client.email}`} className="mt-0.5 max-w-full truncate text-body text-muted hover:underline max-md:mt-0 max-md:block">
+              {client.email}
+            </a>
+          )}
+        </div>
+        <div className="mt-5 flex flex-wrap justify-center gap-2 max-md:mt-0 max-md:shrink-0">
           <DropMenu
             width={240}
-            trigger={({ open, toggle }) => (
-              <Button size="sm" onClick={toggle} aria-expanded={open} iconRight={<ChevronDown size={14} />}>
-                {t('calendar.client.actions')}
-              </Button>
-            )}
+            align={phone ? 'right' : 'left'}
+            trigger={({ open, toggle }) =>
+              phone ? (
+                <button type="button" onClick={toggle} aria-expanded={open} aria-label={t('calendar.client.actions')} className="flex h-10 w-10 items-center justify-center rounded-full border border-line-strong text-ink hover:bg-sunken" data-testid="client-actions-phone">
+                  <MoreVertical size={18} aria-hidden />
+                </button>
+              ) : (
+                <Button size="sm" onClick={toggle} aria-expanded={open} iconRight={<ChevronDown size={14} />}>
+                  {t('calendar.client.actions')}
+                </Button>
+              )
+            }
             groups={[
+              ...(phone ? [{ items: [{ label: t('calendar.client.viewProfile'), onSelect: onViewProfile }] }] : []),
               ...(!readOnly ? [{ items: [{ label: t('calendar.client.change'), onSelect: onChangeClient }, { label: t('calendar.client.remove'), onSelect: onRemove }] }] : []),
               {
                 items: [
@@ -289,18 +306,19 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient, onViewProfi
               },
             ]}
           />
-          <Button size="sm" onClick={onViewProfile}>
+          <Button size="sm" onClick={onViewProfile} className="max-md:hidden">
             {t('calendar.client.viewProfile')}
           </Button>
         </div>
       </div>
-      <div className="flex flex-col gap-3 px-5 pt-5 text-body">
+      {/* Phones keep only the flags (tags, alerts, allergies); the profile has the rest. */}
+      <div className={clsx('flex flex-col gap-3 px-5 pt-5 text-body max-md:gap-2 max-md:px-4 max-md:pb-3 max-md:pt-0 max-md:[&>[data-info-row]]:hidden', !hasFlags && 'max-md:hidden')}>
         <InfoRow icon={<VenusAndMars size={18} />} text={client.pronouns && PRONOUN_KEYS[client.pronouns] ? t(PRONOUN_KEYS[client.pronouns]) : client.pronouns} placeholder={t('calendar.client.addPronouns')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=pronoun`)} />
         <InfoRow icon={<Cake size={18} />} text={client.birthday ? format(parseISO(client.birthday), 'd MMMM yyyy') : undefined} placeholder={t('calendar.client.addBirthday')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=birthday`)} />
         <InfoRow icon={<UserRound size={18} />} text={t('calendar.client.created', { date: format(parseISO(client.createdAt), 'MMM d, yyyy') })} />
         {client.phone && <InfoRow icon={<Phone size={18} />} text={client.phone} />}
         {(noShows > 0 || clientTags.length > 0 || isNew || client.blocked) && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5 pt-1 max-md:pt-0">
             {client.blocked && <span className="chip bg-danger text-white">{t('calendar.client.blocked')}</span>}
             {noShows > 0 && <span className="chip bg-danger-subtle text-danger">{t('calendar.client.noShows', { count: noShows })}</span>}
             {isNew && <span className="chip bg-info-subtle text-info">{t('calendar.client.new')}</span>}
@@ -346,7 +364,7 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient, onViewProfi
 
 function InfoRow({ icon, text, placeholder, onAdd }: { icon: ReactNode; text?: string; placeholder?: string; onAdd?: () => void }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3" data-info-row>
       <span className="text-muted">{icon}</span>
       {text ? (
         <span className="text-ink">{text}</span>

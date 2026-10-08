@@ -32,7 +32,7 @@ export function WizardFrame({
   return (
     <div className="flex h-full min-h-0 flex-col bg-canvas">
       {segments && (
-        <div className="flex gap-2 px-6 pt-3" role="progressbar" aria-valuenow={total} aria-valuemin={0} aria-valuemax={100} aria-label={t('marketing.kit.progress', { value: total })}>
+        <div className="flex gap-2 px-4 pt-3 md:px-6" role="progressbar" aria-valuenow={total} aria-valuemin={0} aria-valuemax={100} aria-label={t('marketing.kit.progress', { value: total })}>
           {segments.map((fill, i) => (
             <div key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-sunken">
               <div className="h-full rounded-full bg-primary transition-all duration-base" style={{ width: `${Math.round(Math.max(0, Math.min(1, fill)) * 100)}%` }} />
@@ -40,18 +40,18 @@ export function WizardFrame({
           ))}
         </div>
       )}
-      <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 px-6">
-        <div>
+      <header className="flex h-16 shrink-0 items-center justify-between gap-3 px-4 md:h-[72px] md:gap-4 md:px-6">
+        <div className="shrink-0">
           {onBack && (
             <button type="button" onClick={onBack} aria-label={backLabel ?? t('marketing.kit.back')} className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink hover:bg-sunken">
               <ArrowLeft size={20} aria-hidden />
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2">{actions}</div>
+        <div className="flex items-center gap-2 max-md:min-w-0">{actions}</div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className={clsx('mx-auto w-full px-6 pb-16 pt-2', maxWidth)}>{children}</div>
+        <div className={clsx('mx-auto w-full px-4 pb-10 pt-2 md:px-6 md:pb-16', maxWidth)}>{children}</div>
       </div>
     </div>
   )
@@ -59,10 +59,10 @@ export function WizardFrame({
 
 export function WizardTitle({ eyebrow, title, subtitle, className }: { eyebrow?: ReactNode; title: ReactNode; subtitle?: ReactNode; className?: string }) {
   return (
-    <div className={clsx('mb-8', className)}>
+    <div className={clsx('mb-6 md:mb-8', className)}>
       {eyebrow && <p className="mb-2 text-body text-muted">{eyebrow}</p>}
-      <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{title}</h1>
-      {subtitle && <p className="mt-3 max-w-2xl text-body-lg text-muted">{subtitle}</p>}
+      <h1 className="break-words font-display text-[26px] font-bold leading-[32px] text-ink md:text-[34px] md:leading-[42px]">{title}</h1>
+      {subtitle && <p className="mt-2 max-w-2xl text-body-lg text-muted md:mt-3">{subtitle}</p>}
     </div>
   )
 }
@@ -70,8 +70,8 @@ export function WizardTitle({ eyebrow, title, subtitle, className }: { eyebrow?:
 /** Three-numbered-stage overview screen used by wizards ("Get published…", "Launch your website…"). */
 export function StagesOverview({ title, highlight, stages }: { title: ReactNode; highlight?: ReactNode; stages: { title: string; body: string; icon: ReactNode }[] }) {
   return (
-    <div className="grid items-center gap-12 py-8 lg:grid-cols-2">
-      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink">
+    <div className="grid items-center gap-8 py-4 md:gap-12 md:py-8 lg:grid-cols-2">
+      <h1 className="font-display text-[30px] font-bold leading-[38px] text-ink md:text-[44px] md:leading-[52px]">
         {title} {highlight && <span className="text-primary">{highlight}</span>}
       </h1>
       <ol className="divide-y divide-line">
@@ -93,11 +93,11 @@ export function StagesOverview({ title, highlight, stages }: { title: ReactNode;
 /** "Step N" chapter screen inside a wizard. */
 export function ChapterScreen({ step, title, body, icon }: { step: string; title: string; body: string; icon: ReactNode }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-10 md:flex-row md:justify-start">
-      <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-[36px] bg-gradient-to-br from-primary-subtle to-accent-subtle text-primary shadow-sm">{icon}</span>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 md:flex-row md:justify-start md:gap-10">
+      <span className="flex h-28 w-28 shrink-0 items-center justify-center rounded-[28px] md:h-40 md:w-40 md:rounded-[36px] bg-gradient-to-br from-primary-subtle to-accent-subtle text-primary shadow-sm">{icon}</span>
       <div className="max-w-xl">
         <p className="text-body-strong text-ink">{step}</p>
-        <h1 className="mt-2 font-display text-[36px] font-bold leading-[44px] text-ink">{title}</h1>
+        <h1 className="mt-2 font-display text-[28px] font-bold leading-[34px] text-ink md:text-[36px] md:leading-[44px]">{title}</h1>
         <p className="mt-4 text-body-lg text-ink">{body}</p>
       </div>
     </div>
@@ -122,7 +122,7 @@ export function BrowserFrame({ children, url, className }: { children: ReactNode
 
 export function PhoneFrame({ children, className, width = 300 }: { children: ReactNode; className?: string; width?: number }) {
   return (
-    <div className={clsx('relative mx-auto overflow-hidden rounded-[36px] border-[7px] border-ink bg-surface shadow-lg', className)} style={{ width }}>
+    <div className={clsx('relative mx-auto max-w-full overflow-hidden rounded-[36px] border-[7px] border-ink bg-surface shadow-lg', className)} style={{ width }}>
       <div className="absolute left-1/2 top-1.5 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-ink" aria-hidden />
       <div className="max-h-[600px] min-h-[520px] overflow-y-auto pt-8">{children}</div>
     </div>
@@ -139,22 +139,23 @@ export function EmailMock({ subject, fromName, fromEmail, children, className }:
         <span className="h-3 w-3 rounded-full bg-primary/30" />
         <span className="h-3 w-3 rounded-full bg-primary/30" />
       </div>
-      <div className="border-b border-line px-6 py-5">
+      <div className="border-b border-line px-4 py-4 md:px-6 md:py-5">
         <p className="font-display text-title-3 text-ink">{subject}</p>
         <div className="mt-4 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-subtle text-primary">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-subtle text-primary max-md:shrink-0">
             <Mail size={18} aria-hidden />
           </span>
           <div className="min-w-0 text-body">
-            <p className="truncate">
-              <span className="font-semibold text-ink">{fromName}</span> <span className="text-muted">&lt;{fromEmail}&gt;</span>
+            {/* Phones: name and address wrap instead of being cut off. */}
+            <p className="md:truncate">
+              <span className="font-semibold text-ink">{fromName}</span> <span className="text-muted max-md:[overflow-wrap:anywhere]">&lt;{fromEmail}&gt;</span>
             </p>
             <p className="text-muted">{t('marketing.kit.toInbox')}</p>
           </div>
         </div>
       </div>
-      <div className="bg-sunken/60 px-4 py-6 sm:px-8">
-        <div className="mx-auto max-w-[560px] rounded-xl bg-surface px-6 py-8 shadow-xs sm:px-10">{children}</div>
+      <div className="bg-sunken/60 px-3 py-4 sm:px-8 md:py-6">
+        <div className="mx-auto max-w-[560px] rounded-xl bg-surface px-4 py-6 shadow-xs sm:px-10 md:py-8">{children}</div>
       </div>
     </div>
   )
@@ -184,17 +185,17 @@ export function MessageBubblePreview({ sender, text, kind }: { sender: string; t
 
 export function StatCard({ label, value, hint, icon, tone = 'plain', info }: { label: ReactNode; value: ReactNode; hint?: ReactNode; icon?: ReactNode; tone?: 'plain' | 'tinted'; info?: string }) {
   return (
-    <div className={clsx('rounded-lg border p-5', tone === 'tinted' ? 'border-primary/20 bg-primary-subtle/50' : 'border-line bg-surface')}>
+    <div className={clsx('min-w-0 rounded-lg border p-4 md:p-5', tone === 'tinted' ? 'border-primary/20 bg-primary-subtle/50' : 'border-line bg-surface')}>
       <div className="flex items-center gap-2 text-body text-ink">
-        {icon && <span className="text-muted">{icon}</span>}
-        <span>{label}</span>
+        {icon && <span className="shrink-0 text-muted">{icon}</span>}
+        <span className="min-w-0">{label}</span>
         {info && (
           <span title={info} className="text-subtle">
             <Info size={14} aria-label={info} />
           </span>
         )}
       </div>
-      <p className="mt-2 font-display text-title-1 text-ink">{value}</p>
+      <p className="mt-1 break-words font-display text-title-2 text-ink md:mt-2 md:text-title-1">{value}</p>
       {hint && <div className="mt-1 text-small text-muted">{hint}</div>}
     </div>
   )
@@ -204,14 +205,14 @@ export function StatCard({ label, value, hint, icon, tone = 'plain', info }: { l
 export function BackCrumbs({ onBack, crumbs }: { onBack: () => void; crumbs: { label: string; onClick?: () => void }[] }) {
   const { t } = useTranslation()
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-4">
-      <button type="button" onClick={onBack} className="inline-flex h-10 items-center gap-2 rounded-full border border-line-strong bg-surface px-4 text-body-strong text-ink hover:bg-sunken">
+    <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 md:mb-6 md:gap-4">
+      <button type="button" onClick={onBack} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line-strong bg-surface px-4 text-body-strong text-ink hover:bg-sunken">
         <ArrowLeft size={16} aria-hidden />
         {t('marketing.kit.back')}
       </button>
-      <nav aria-label={t('marketing.kit.breadcrumb')} className="flex items-center gap-2 text-body">
+      <nav aria-label={t('marketing.kit.breadcrumb')} className="flex items-center gap-2 text-body max-md:min-w-0 max-md:flex-wrap">
         {crumbs.map((c, i) => (
-          <span key={i} className="flex items-center gap-2">
+          <span key={i} className="flex items-center gap-2 max-md:min-w-0">
             {i > 0 && <span className="text-subtle">·</span>}
             {c.onClick ? (
               <button type="button" onClick={c.onClick} className="text-muted hover:text-ink hover:underline">
@@ -315,7 +316,7 @@ function CardBrands() {
 export function CardFields({ values, errors, onChange }: { values: BillingValues; errors: BillingErrors; onChange: (patch: Partial<BillingValues>) => void }) {
   const { t } = useTranslation()
   return (
-    <div className="card flex flex-col gap-5 p-6 sm:p-8">
+    <div className="card flex flex-col gap-5 p-4 sm:p-8">
       <Field label={t('marketing.kit.cardHolder')} error={errors.cardHolder}>
         {(id) => <TextInput id={id} value={values.cardHolder} invalid={Boolean(errors.cardHolder)} placeholder={t('marketing.kit.cardHolderPlaceholder')} autoComplete="cc-name" onChange={(e) => onChange({ cardHolder: e.target.value })} />}
       </Field>
@@ -333,7 +334,7 @@ export function CardFields({ values, errors, onChange }: { values: BillingValues
           />
         )}
       </Field>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5">
         <Field label={t('marketing.kit.expiry')} error={errors.expiry}>
           {(id) => <TextInput id={id} value={values.expiry} invalid={Boolean(errors.expiry)} inputMode="numeric" autoComplete="cc-exp" placeholder={t('settings.common.expiryPlaceholder')}
  onChange={(e) => onChange({ expiry: formatExpiry(e.target.value) })} />}
@@ -349,7 +350,7 @@ export function CardFields({ values, errors, onChange }: { values: BillingValues
 export function BillingDetailsFields({ values, errors, onChange }: { values: BillingValues; errors: BillingErrors; onChange: (patch: Partial<BillingValues>) => void }) {
   const { t } = useTranslation()
   return (
-    <div className="card flex flex-col gap-5 p-6 sm:p-8">
+    <div className="card flex flex-col gap-5 p-4 sm:p-8">
       <div>
         <h2 className="font-display text-title-2 text-ink">{t('marketing.kit.billingDetails')}</h2>
         <p className="mt-1 text-body text-muted">{t('marketing.kit.billingDetailsHint')}</p>

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, CalendarCheck, Check, Image as ImageIcon, ImagePlus, Loader2, MapPin, Store } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarCheck, Check, Image as ImageIcon, ImagePlus, Loader2, MapPin, MoreVertical, Store } from 'lucide-react'
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -9,7 +9,7 @@ import { generateDescription, saveProfile, setProfileListed, type ProfilePatch }
 import { toClock } from '@/lib/time'
 import type { Address, Location, OpeningHours, Weekday } from '@/types'
 import { ChapterScreen } from '@/sections/marketing/components/kit'
-import { featureLabel, readImage, sampleImage, WEEKDAYS } from '../shared'
+import { featureLabel, readImage, sampleImage, usePhone, WEEKDAYS } from '../shared'
 import { ProfilePreviewModal } from './ProfilePreview'
 
 export const PROFILE_STEPS = ['overview', 'essentials-overview', 'essentials', 'location', 'working-hours', 'showcase-overview', 'images', 'features', 'about', 'bookings-overview', 'enable'] as const
@@ -174,15 +174,15 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
 
   return (
     <div className="flex h-full flex-col bg-canvas">
-      <div className="grid grid-cols-3 gap-1.5 px-6 pt-3" role="progressbar" aria-valuenow={overall} aria-valuemin={0} aria-valuemax={100} aria-label={t('online.wizard.progress', { pct: overall })}>
+      <div className="grid grid-cols-3 gap-1.5 px-4 pt-3 md:px-6" role="progressbar" aria-valuenow={overall} aria-valuemin={0} aria-valuemax={100} aria-label={t('online.wizard.progress', { pct: overall })}>
         {STAGES.map((_, i) => (
           <div key={i} className="h-1.5 overflow-hidden rounded-full bg-sunken">
             <div className="h-full rounded-full bg-primary transition-all duration-base" style={{ width: `${stageProgress(i) * 100}%` }} />
           </div>
         ))}
       </div>
-      <header className="flex h-[72px] shrink-0 items-center justify-between gap-3 px-6">
-        <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink hover:bg-sunken" aria-label={t('online.common.back')} onClick={onBack}>
+      <header className="flex h-[72px] shrink-0 items-center justify-between gap-3 px-4 md:px-6">
+        <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface text-ink hover:bg-sunken" aria-label={t('online.common.back')} onClick={onBack}>
           <ArrowLeft size={20} aria-hidden />
         </button>
         <div className="flex items-center gap-2">
@@ -190,12 +190,31 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
             <Button onClick={() => navigate(fromDashboard ? dashboardUrl(STEP_TAB[step]) : '/online-presence/locations')}>{t('online.common.close')}</Button>
           ) : (
             <>
-              <Button onClick={() => setPreview(true)} disabled={draft.images.length === 0 && !draft.description}>
+              <Button onClick={() => setPreview(true)} disabled={draft.images.length === 0 && !draft.description} className="max-md:hidden">
                 {t('online.wizard.preview')}
               </Button>
-              <Button onClick={onSaveExit} loading={busy === 'exit'}>
+              <Button onClick={onSaveExit} loading={busy === 'exit'} className="max-md:hidden">
                 {fromDashboard ? t('online.common.close') : t('online.wizard.saveExit')}
               </Button>
+              {/* Phones: Preview and Save & exit move into a ⋮ menu so Continue stays on screen. */}
+              <div className="md:hidden">
+                <Menu
+                  label={t('online.common.options')}
+                  trigger={({ toggle, open }) => (
+                    <Button onClick={toggle} aria-expanded={open} aria-haspopup="menu" aria-label={t('online.common.options')} loading={busy === 'exit'} className="w-10 !px-0">
+                      {busy !== 'exit' && <MoreVertical size={18} aria-hidden />}
+                    </Button>
+                  )}
+                  groups={[
+                    {
+                      items: [
+                        { label: t('online.wizard.preview'), onSelect: () => setPreview(true), disabled: draft.images.length === 0 && !draft.description },
+                        { label: fromDashboard ? t('online.common.close') : t('online.wizard.saveExit'), onSelect: () => void onSaveExit() },
+                      ],
+                    },
+                  ]}
+                />
+              </div>
             </>
           )}
           <Button variant="primary" onClick={onContinue} loading={busy === 'continue'} iconRight={step === 'enable' ? <Check size={16} aria-hidden /> : <ArrowRight size={16} aria-hidden />}>
@@ -204,7 +223,7 @@ function Wizard({ location, step }: { location: Location; step: ProfileStep }) {
         </div>
       </header>
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className={clsx('mx-auto w-full px-6 pb-16 pt-6', chapter && step !== 'overview' ? 'max-w-[1000px]' : 'max-w-[680px]')}>
+        <div className={clsx('mx-auto w-full px-4 pb-16 pt-4 md:px-6 md:pt-6', chapter && step !== 'overview' ? 'max-w-[1000px]' : 'max-w-[680px]')}>
           <StepBody step={step} draft={draft} set={set} error={error} location={location} />
         </div>
       </main>
@@ -232,9 +251,9 @@ function Heading({ eyebrow, title, body }: { eyebrow?: string; title: string; bo
   const inModal = useContext(InModal)
   if (inModal) return body ? <p className="mb-6 text-body text-muted">{body}</p> : null
   return (
-    <div className="mb-8">
+    <div className="mb-6 md:mb-8">
       {eyebrow && <p className="mb-2 text-body-strong text-primary">{eyebrow}</p>}
-      <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{title}</h1>
+      <h1 className="font-display text-[26px] font-bold leading-[32px] text-ink md:text-[32px] md:leading-[40px]">{title}</h1>
       {body && <p className="mt-2 text-body-lg text-muted">{body}</p>}
     </div>
   )
@@ -339,7 +358,7 @@ export function StepBody({ step, draft, set, error, location }: { step: ProfileS
       return <AboutStep draft={draft} set={set} error={error} locationId={location.id} />
     case 'enable':
       return (
-        <div className="grid items-center gap-8 md:grid-cols-[1fr_240px]">
+        <div className="grid items-center gap-6 md:grid-cols-[1fr_240px] md:gap-8">
           <div>
             <Heading title={location.marketplace.listed ? t('online.wizard.enableStep.listedTitle') : t('online.wizard.enableStep.title')} body={location.marketplace.listed ? t('online.wizard.enableStep.listedBody') : t('online.wizard.enableStep.body')} />
             <ErrorLine error={error} />
@@ -364,8 +383,8 @@ function LocationStep({ draft, set, error }: { draft: Draft; set: (p: Partial<Dr
   return (
     <>
       <Heading title={t('online.wizard.location.title')} body={t('online.wizard.location.body')} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('online.wizard.location.line1')} className="sm:col-span-2">
+      <div className="grid grid-cols-2 gap-4">
+        <Field label={t('online.wizard.location.line1')} className="col-span-2">
           {(id) => <TextInput id={id} value={a.line1} onChange={(e) => setA({ line1: e.target.value })} invalid={!!error && !a.line1.trim()} />}
         </Field>
         <Field label={t('online.wizard.location.district')}>{(id) => <TextInput id={id} value={a.district ?? ''} onChange={(e) => setA({ district: e.target.value })} />}</Field>
@@ -428,15 +447,15 @@ function HoursStep({ draft, set }: { draft: Draft; set: (p: Partial<Draft>) => v
           const d = h[day]
           const r = d.ranges[0] ?? { start: '10:00', end: '19:00' }
           return (
-            <li key={day} className="flex min-h-[64px] flex-wrap items-center gap-4 py-3">
-              <div className="w-44">
+            <li key={day} className="flex min-h-[64px] flex-wrap items-center gap-x-4 gap-y-3 py-3 md:gap-4">
+              <div className="w-full md:w-44">
                 <Switch checked={d.open} onChange={(open) => setDay(day, { open, ranges: open && !d.ranges.length ? [r] : d.ranges })} label={t(`online.days.${day}`)} />
               </div>
               {d.open ? (
-                <div className="flex items-center gap-2">
-                  <Select aria-label={t('online.wizard.hours.start', { day: t(`online.days.${day}`) })} value={r.start} options={TIMES} onChange={(e) => setDay(day, { ranges: [{ ...r, start: e.target.value }, ...d.ranges.slice(1)] })} className="w-28" />
+                <div className="flex items-center gap-2 max-md:w-full">
+                  <Select aria-label={t('online.wizard.hours.start', { day: t(`online.days.${day}`) })} value={r.start} options={TIMES} onChange={(e) => setDay(day, { ranges: [{ ...r, start: e.target.value }, ...d.ranges.slice(1)] })} className="w-28 max-md:min-w-0 max-md:flex-1" />
                   <span className="text-muted">–</span>
-                  <Select aria-label={t('online.wizard.hours.end', { day: t(`online.days.${day}`) })} value={r.end} options={TIMES} onChange={(e) => setDay(day, { ranges: [{ ...r, end: e.target.value }, ...d.ranges.slice(1)] })} className="w-28" />
+                  <Select aria-label={t('online.wizard.hours.end', { day: t(`online.days.${day}`) })} value={r.end} options={TIMES} onChange={(e) => setDay(day, { ranges: [{ ...r, end: e.target.value }, ...d.ranges.slice(1)] })} className="w-28 max-md:min-w-0 max-md:flex-1" />
                 </div>
               ) : (
                 <span className="text-body text-muted">{t('online.wizard.hours.closed')}</span>
@@ -456,6 +475,7 @@ function ImagesStep({ draft, set, error }: { draft: Draft; set: (p: Partial<Draf
   const [over, setOver] = useState(false)
   const [full, setFull] = useState<number | null>(null)
   const [guidelines, setGuidelines] = useState(false)
+  const phone = usePhone()
   const add = async (files: File[]) => {
     const ok = files.filter((f) => /image\/(jpeg|png|webp)/.test(f.type) && f.size <= 45 * 1024 * 1024).slice(0, MAX_IMAGES - draft.images.length)
     if (!ok.length) return toast(t('online.wizard.images.invalid'))
@@ -492,8 +512,9 @@ function ImagesStep({ draft, set, error }: { draft: Draft; set: (p: Partial<Draf
         <Menu
           label={t('online.common.options')}
           trigger={({ toggle, open }) => (
-            <Button onClick={toggle} aria-expanded={open}>
-              {t('online.common.options')}
+            <Button onClick={toggle} aria-expanded={open} aria-label={t('online.common.options')} className="max-md:w-10 max-md:px-0">
+              <MoreVertical size={18} className="md:hidden" aria-hidden />
+              <span className="max-md:hidden">{t('online.common.options')}</span>
             </Button>
           )}
           groups={[{ items: [{ label: t('online.wizard.preview'), onSelect: () => (draft.images.length ? setFull(0) : toast(t('online.wizard.errors.images'))) }, { label: t('online.wizard.images.guidelines'), onSelect: () => setGuidelines(true) }] }]}
@@ -511,7 +532,7 @@ function ImagesStep({ draft, set, error }: { draft: Draft; set: (p: Partial<Draf
             setOver(false)
             void add([...e.dataTransfer.files])
           }}
-          className={clsx('flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-10 text-center', over ? 'border-primary bg-primary-subtle' : 'border-line-strong bg-surface')}
+          className={clsx('flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center md:px-6 md:py-10', over ? 'border-primary bg-primary-subtle' : 'border-line-strong bg-surface')}
         >
           {analyzing ? (
             <>
@@ -524,7 +545,7 @@ function ImagesStep({ draft, set, error }: { draft: Draft; set: (p: Partial<Draf
               <ImagePlus size={28} className="text-muted" aria-hidden />
               <p className="text-body-strong text-ink">{t('online.wizard.images.drop')}</p>
               <p className="text-small text-muted">{t('online.wizard.images.browse')}</p>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex w-full flex-col gap-2 md:w-auto md:flex-row">
                 <Button onClick={() => input.current?.click()}>{t('online.wizard.images.choose')}</Button>
                 <Button variant="ghost" onClick={addSamples}>
                   {t('online.wizard.images.samples')}
@@ -550,14 +571,18 @@ function ImagesStep({ draft, set, error }: { draft: Draft; set: (p: Partial<Draf
       {draft.images.length > 0 && (
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {draft.images.map((src, i) => (
-            <li key={`${i}-${src.slice(-24)}`} className="group relative overflow-hidden rounded-md border border-line">
-              <button type="button" className="block w-full" onClick={() => setFull(i)} aria-label={t('online.wizard.images.viewFull', { n: i + 1 })}>
+            <li key={`${i}-${src.slice(-24)}`} className="group relative rounded-md border border-line">
+              {/* The image carries the rounded clip, so the tile's ⋮ menu can open outside the tile. */}
+              <button type="button" className="block w-full overflow-hidden rounded-[9px]" onClick={() => setFull(i)} aria-label={t('online.wizard.images.viewFull', { n: i + 1 })}>
                 <img src={src} alt="" className="aspect-[16/10] w-full object-cover" />
               </button>
               {i === 0 && <span className="chip absolute left-2 top-2 bg-surface text-caption text-ink shadow-sm">{t('online.wizard.images.cover')}</span>}
               <div className="absolute right-1.5 top-1.5 rounded-full bg-surface shadow-sm">
                 <Menu
                   label={t('online.common.actions')}
+                  /* Phones: the tile no longer clips the menu, so it opens towards the screen centre and narrower. */
+                  align={phone && i % 2 === 0 ? 'left' : 'right'}
+                  width={phone ? 210 : undefined}
                   groups={[
                     {
                       items: [

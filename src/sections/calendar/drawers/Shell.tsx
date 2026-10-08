@@ -5,19 +5,19 @@ import { forwardRef, useEffect, useRef, type ButtonHTMLAttributes, type ReactNod
 /** Standard 481px drawer: title row (with actions at the right), scrolling body, footer. */
 export function DrawerShell({ title, subtitle, headerRight, above, children, footer, sunken, testId, bodyClassName }: { title?: ReactNode; subtitle?: ReactNode; headerRight?: ReactNode; above?: ReactNode; children: ReactNode; footer?: ReactNode; sunken?: boolean; testId?: string; bodyClassName?: string }) {
   return (
-    <div className="flex h-full flex-col" data-testid={testId}>
+    <div className="flex h-full flex-col max-md:min-h-0" data-testid={testId}>
       {above}
       {(title || headerRight) && (
-        <div className={clsx('flex items-start justify-between gap-4 px-8 pb-5', above ? 'pt-2' : 'pt-8')}>
+        <div className={clsx('flex items-start justify-between gap-4 px-8 pb-5 max-md:gap-3 max-md:px-4 max-md:pb-4', above ? 'pt-2' : 'pt-8 max-md:pt-4')}>
           <div className="min-w-0">
-            {title && <h2 className="font-display text-title-1 text-ink">{title}</h2>}
+            {title && <h2 className="font-display text-title-1 text-ink max-md:text-title-2">{title}</h2>}
             {subtitle && <p className="mt-1 text-body text-muted">{subtitle}</p>}
           </div>
           {headerRight && <div className="flex shrink-0 items-center gap-2">{headerRight}</div>}
         </div>
       )}
-      <div className={clsx('min-h-0 flex-1 overflow-y-auto px-8 pb-6', sunken && 'bg-sunken pt-6', bodyClassName)}>{children}</div>
-      {footer && <div className="flex items-center gap-3 border-t border-line bg-surface px-8 py-5">{footer}</div>}
+      <div className={clsx('min-h-0 flex-1 overflow-y-auto px-8 pb-6 max-md:px-4 max-md:pb-5', sunken && 'bg-sunken pt-6 max-md:pt-4', bodyClassName)}>{children}</div>
+      {footer && <div className="flex items-center gap-3 border-t border-line bg-surface px-8 py-5 max-md:gap-2 max-md:px-4 max-md:py-3">{footer}</div>}
     </div>
   )
 }

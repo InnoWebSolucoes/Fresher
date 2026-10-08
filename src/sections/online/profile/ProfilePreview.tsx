@@ -26,21 +26,21 @@ export function ProfilePreviewModal({ open, onClose, location }: { open: boolean
   return (
     <Modal open={open} onClose={onClose} size="xl" title={t('online.preview.title')} subtitle={t('online.preview.subtitle')}>
       <div className="grid grid-cols-3 gap-2 overflow-hidden rounded-lg">
-        <img src={images[0]} alt="" className="col-span-2 row-span-2 h-72 w-full object-cover" />
-        <img src={images[1] ?? images[0]} alt="" className="h-[140px] w-full object-cover" />
-        <img src={images[2] ?? images[0]} alt="" className="h-[140px] w-full object-cover" />
+        <img src={images[0]} alt="" className="col-span-2 row-span-2 h-48 w-full object-cover md:h-72" />
+        <img src={images[1] ?? images[0]} alt="" className="h-[92px] w-full object-cover md:h-[140px]" />
+        <img src={images[2] ?? images[0]} alt="" className="h-[92px] w-full object-cover md:h-[140px]" />
       </div>
       <div className="mt-5 grid gap-6 md:grid-cols-[1fr_280px]">
         <div>
-          <h3 className="font-display text-title-1 text-ink">{location.name}</h3>
+          <h3 className="font-display text-title-2 text-ink md:text-title-1">{location.name}</h3>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-body text-muted">
             <Star size={16} className="text-warning" aria-hidden />
             {rating ? t('online.preview.rating', { avg: num(rating.avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count: rating.count }) : t('online.dashboard.noReviews')}
             <span aria-hidden>•</span>
             {open_ ? t('online.dashboard.opensAt', { time: open_ }) : t('online.dashboard.closedToday')}
           </p>
-          <p className="mt-1 flex items-center gap-1.5 text-body text-muted">
-            <MapPin size={16} aria-hidden />
+          <p className="mt-1 flex items-center gap-1.5 text-body text-muted max-md:items-start">
+            <MapPin size={16} className="max-md:mt-0.5 max-md:shrink-0" aria-hidden />
             {addressLine(location)}
           </p>
           {(m.amenities.length > 0 || m.highlights.length > 0 || m.values.length > 0) && (

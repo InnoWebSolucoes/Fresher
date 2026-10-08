@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, EmptyState, Skeleton, toast, usePageLoading } from '@/components/ui'
+import { useIsPhone } from '@/components/ui/responsive'
 import { addToGroup, removeFromGroup } from '@/api/appointments'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
@@ -66,6 +67,7 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
   const locationMembers = useLocationMembers(locationId)
   const [pending, setPending] = useState<PendingMove | null>(null)
   const [quick, setQuick] = useState<{ memberId: ID; date: ISODate; time: string; x: number; y: number } | null>(null)
+  const phone = useIsPhone()
 
   // Fill in missing URL state (and the location of an appointment opened from a link).
   useEffect(() => {
@@ -317,13 +319,13 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
   return (
     <div className={clsx('flex flex-col bg-surface', pick ? 'fixed inset-0 z-40' : 'h-full min-h-0')} data-testid={pick ? 'calendar-pick-mode' : 'calendar-page'}>
       {pick && (
-        <div className="flex h-16 shrink-0 items-center gap-4 bg-primary px-6 text-on-primary" data-testid="pick-banner">
+        <div className="flex h-16 shrink-0 items-center gap-4 bg-primary px-6 text-on-primary max-md:h-auto max-md:min-h-14 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-2 max-md:px-4 max-md:py-2" data-testid="pick-banner">
           <span className="hidden flex-1 md:block" />
-          <h1 className="font-display text-title-3">{banner}</h1>
-          <div className="flex flex-1 justify-end gap-2">
+          <h1 className="font-display text-title-3 max-md:min-w-0 max-md:flex-1 max-md:text-body-lg max-md:font-semibold">{banner}</h1>
+          <div className={clsx('flex flex-1 justify-end gap-2', pick.kind === 'book' ? 'max-md:basis-full' : 'max-md:flex-none')}>
             {pick.kind === 'book' ? (
               <>
-                <button type="button" onClick={() => exitTo({ drawer: 'new-appointment', d_date: date, d_resume: useCalendarUi.getState().draft ? '1' : undefined })} className="h-10 rounded-full border border-white px-4 text-body-strong hover:bg-white/10">
+                <button type="button" onClick={() => exitTo({ drawer: 'new-appointment', d_date: date, d_resume: useCalendarUi.getState().draft ? '1' : undefined })} className="h-10 rounded-full border border-white px-4 text-body-strong hover:bg-white/10 max-md:flex-1 max-md:whitespace-nowrap max-md:px-3">
                   {t('calendar.pick.viewTimes')}
                 </button>
                 <button type="button" onClick={closePick} className="h-10 rounded-full bg-white px-4 text-body-strong text-ink hover:bg-white/90">
@@ -356,8 +358,8 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
       />
       <div className="relative min-h-0 flex-1">
         {filterCount > 0 && (
-          <div className="absolute left-1/2 z-40 flex h-10 -translate-x-1/2 items-stretch overflow-hidden rounded-full border-2 border-primary bg-surface shadow-md" style={{ top: PILL_TOP[view] }} data-testid="filters-pill">
-            <button type="button" onClick={() => drawer.open('visibility-filters')} className="flex items-center gap-2 pl-3 pr-4 text-body-strong text-ink hover:bg-sunken">
+          <div className="absolute left-1/2 z-40 flex h-10 -translate-x-1/2 items-stretch overflow-hidden rounded-full border-2 border-primary bg-surface shadow-md" style={{ top: (phone ? PILL_TOP_PHONE : PILL_TOP)[view] }} data-testid="filters-pill">
+            <button type="button" onClick={() => drawer.open('visibility-filters')} className="flex items-center gap-2 whitespace-nowrap pl-3 pr-4 text-body-strong text-ink hover:bg-sunken">
               <CountBadge value={filterCount} />
               {t('calendar.filters.pill')}
             </button>
@@ -445,6 +447,8 @@ export function CalendarPage({ pick }: { pick?: PickMode }) {
 
 /** The filters pill floats at the top of the grid, just under the column headers of each view. */
 const PILL_TOP: Record<string, number> = { day: 132, day_3: 84, week: 84, month: 56 }
+/** The same on phones, whose column headers are shorter. */
+const PILL_TOP_PHONE: Record<string, number> = { day: 116, day_3: 76, week: 76, month: 45 }
 
 const EMPTY_APPTS: Appointment[] = []
 const EMPTY_BLOCKS: BlockedTime[] = []
@@ -515,7 +519,7 @@ function MinimizedPill() {
     restoreDrawer(drawer.open, minimized)
   }
   return (
-    <div className="fixed bottom-5 right-5 z-40 flex h-14 w-[320px] items-center gap-3 rounded-lg bg-ink pl-3 pr-2 text-canvas shadow-lg" data-testid="minimized-drawer">
+    <div className="fixed bottom-5 right-5 z-40 flex h-14 w-[320px] items-center gap-3 rounded-lg bg-ink pl-3 pr-2 text-canvas shadow-lg max-md:bottom-4 max-md:left-4 max-md:right-4 max-md:w-auto" data-testid="minimized-drawer">
       <button type="button" onClick={restore} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label={t('calendar.minimized.restore', { name: minimized.label })}>
         <ClientAvatar name={minimized.label} photo={minimized.photo} size={32} />
         <span className="truncate text-body-strong">{minimized.label}</span>

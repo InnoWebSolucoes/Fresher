@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { Check } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -155,35 +156,31 @@ function MemberForm({ id }: { id?: string }) {
   }
 
   const serviceCount = form.serviceIds.filter((sid) => allServiceIds.includes(sid)).length
-  const nav = (
-    <SectionNav<SectionKey>
-      value={section}
-      onChange={go}
-      groups={[
-        { heading: t('team.form.nav.personal'), items: [{ value: 'profile', label: t('team.form.nav.profile') }, { value: 'addresses', label: t('team.form.nav.addresses') }, { value: 'emergencyContacts', label: t('team.form.nav.emergencyContacts') }] },
-        {
-          heading: t('team.form.nav.workspace'),
-          items: [
-            { value: 'services', label: t('team.form.nav.services'), count: serviceCount },
-            { value: 'locations', label: t('team.form.nav.locations'), count: form.locationIds.length },
-            { value: 'settings', label: t('team.form.nav.settings') },
-          ],
-        },
-        {
-          heading: t('team.form.nav.pay'),
-          items: [
-            { value: 'wagesAndTimesheets', label: t('team.form.nav.wagesAndTimesheets') },
-            { value: 'commissions', label: t('team.form.nav.commissions') },
-            ...(mode === 'edit' ? [{ value: 'payruns' as const, label: t('team.form.nav.payruns') }] : []),
-          ],
-        },
-      ]}
-    />
-  )
+  const navGroups: { heading: string; items: { value: SectionKey; label: string; count?: number }[] }[] = [
+    { heading: t('team.form.nav.personal'), items: [{ value: 'profile', label: t('team.form.nav.profile') }, { value: 'addresses', label: t('team.form.nav.addresses') }, { value: 'emergencyContacts', label: t('team.form.nav.emergencyContacts') }] },
+    {
+      heading: t('team.form.nav.workspace'),
+      items: [
+        { value: 'services', label: t('team.form.nav.services'), count: serviceCount },
+        { value: 'locations', label: t('team.form.nav.locations'), count: form.locationIds.length },
+        { value: 'settings', label: t('team.form.nav.settings') },
+      ],
+    },
+    {
+      heading: t('team.form.nav.pay'),
+      items: [
+        { value: 'wagesAndTimesheets', label: t('team.form.nav.wagesAndTimesheets') },
+        { value: 'commissions', label: t('team.form.nav.commissions') },
+        ...(mode === 'edit' ? [{ value: 'payruns' as const, label: t('team.form.nav.payruns') }] : []),
+      ],
+    },
+  ]
+  const nav = <SectionNav<SectionKey> value={section} onChange={go} groups={navGroups} />
+  const title = mode === 'add' ? t('team.form.addTitle') : t('team.form.editTitle', { name: member?.firstName ?? '' })
 
   return (
     <FullscreenFrame
-      title={mode === 'add' ? t('team.form.addTitle') : t('team.form.editTitle', { name: member?.firstName ?? '' })}
+      title={title}
       onClose={close}
       nav={nav}
       actions={
@@ -211,7 +208,8 @@ function MemberForm({ id }: { id?: string }) {
         )
       }
     >
-      <div className="md:hidden">{nav}</div>
+      {/* Phones: the section list becomes a sideways-scrolling row of chips. */}
+      <PhoneSectionTabs groups={navGroups} value={section} onChange={go} />
       <div className="mt-6 md:mt-0">
         {section === 'profile' && <ProfileSection form={form} set={set} mode={mode} errors={errors} />}
         {section === 'addresses' && <AddressesSection form={form} set={set} />}
@@ -240,5 +238,34 @@ function MemberForm({ id }: { id?: string }) {
         <p className="pb-2 text-body text-muted">{t('team.billing.hint')}</p>
       </Modal>
     </FullscreenFrame>
+  )
+}
+
+/** Phone-only row of section chips replacing the left section nav (hidden from md up). */
+function PhoneSectionTabs({ groups, value, onChange }: { groups: { items: { value: SectionKey; label: string; count?: number }[] }[]; value: SectionKey; onChange: (v: SectionKey) => void }) {
+  const active = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    active.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [value])
+  return (
+    <nav className="-mx-4 scroll-px-4 overflow-x-auto px-4 [scrollbar-width:none] md:hidden">
+      <div className="flex w-max gap-2 pb-1">
+        {groups
+          .flatMap((g) => g.items)
+          .map((item) => (
+            <button
+              key={item.value}
+              ref={item.value === value ? active : undefined}
+              type="button"
+              onClick={() => onChange(item.value)}
+              aria-current={item.value === value ? 'true' : undefined}
+              className={clsx('inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-body-strong', item.value === value ? 'border-primary bg-primary text-on-primary' : 'border-line-strong bg-surface text-ink')}
+            >
+              {item.label}
+              {item.count !== undefined && <span className={clsx('chip h-5 px-1.5 text-caption', item.value === value ? 'bg-on-primary/20 text-on-primary' : 'bg-sunken text-muted')}>{item.count}</span>}
+            </button>
+          ))}
+      </div>
+    </nav>
   )
 }

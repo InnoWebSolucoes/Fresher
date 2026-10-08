@@ -50,13 +50,13 @@ export function ServicePicker({ locationId, onPick, onBack, title }: { locationI
   }, [services, categories, locationId, query])
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 max-md:gap-4">
       {onBack && (
         <Button size="sm" icon={<ArrowLeft size={16} />} onClick={onBack} className="self-start">
           {t('calendar.common.back')}
         </Button>
       )}
-      <h2 className="font-display text-title-1 text-ink">{title ?? t('calendar.service.select')}</h2>
+      <h2 className="font-display text-title-2 text-ink md:text-title-1">{title ?? t('calendar.service.select')}</h2>
       <label className="relative block">
         <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
         <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('calendar.service.search')} aria-label={t('calendar.service.search')} className="input h-12 pl-11" data-testid="service-search" />
@@ -232,11 +232,11 @@ export function EditServicePanel({ item, members, onBack, onApply, onDelete, onC
 
   return (
     <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
         <Button size="sm" icon={<ArrowLeft size={16} />} onClick={onBack}>
           {t('calendar.common.back')}
         </Button>
-        <h2 className="mt-4 font-display text-title-1 text-ink">{t('calendar.service.editTitle')}</h2>
+        <h2 className="mt-4 font-display text-title-2 text-ink md:text-title-1">{t('calendar.service.editTitle')}</h2>
         <button type="button" onClick={onChangeService} className="mt-6 flex w-full items-center gap-4 rounded-lg border border-line p-4 text-left hover:bg-sunken">
           <span className="w-1 self-stretch rounded-full" style={{ background: edge(draft.serviceId) }} aria-hidden />
           <span className="flex-1 text-body-lg text-ink">
@@ -244,7 +244,7 @@ export function EditServicePanel({ item, members, onBack, onApply, onDelete, onC
           </span>
           <ChevronRight size={18} className="text-muted" aria-hidden />
         </button>
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-4 max-md:gap-3">
           <Field label={t('calendar.service.price')}>
             {(id) => (
               <div className="flex h-11 items-center rounded-sm border border-line-strong bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30">
@@ -306,18 +306,18 @@ export function EditServicePanel({ item, members, onBack, onApply, onDelete, onC
             </Field>
           ) : (
             <>
-              <div className="grid grid-cols-[1fr_170px_36px] gap-3 text-body-strong text-ink">
+              <div className="grid grid-cols-[1fr_170px_36px] gap-3 text-body-strong text-ink max-md:grid-cols-[1fr_112px_36px] max-md:gap-2">
                 <span>{t('calendar.service.durationType')}</span>
                 <span>{t('calendar.service.duration')}</span>
                 <span />
               </div>
-              <div className="grid grid-cols-[1fr_170px_36px] items-center gap-3">
+              <div className="grid grid-cols-[1fr_170px_36px] items-center gap-3 max-md:grid-cols-[1fr_112px_36px] max-md:gap-2">
                 <Select aria-label={t('calendar.service.durationType')} value="servicing_main" disabled options={[{ value: 'servicing_main', label: t('calendar.service.servicingTime') }]} />
                 <Select aria-label={t('calendar.service.duration')} value={String(draft.durationMin)} onChange={(e) => setDraft((d) => ({ ...d, durationMin: Number(e.target.value) }))} options={durationOptions(draft.durationMin)} />
                 <span />
               </div>
               {draft.extraTime.map((extra, index) => (
-                <div key={index} className="grid grid-cols-[1fr_170px_36px] items-center gap-3">
+                <div key={index} className="grid grid-cols-[1fr_170px_36px] items-center gap-3 max-md:grid-cols-[1fr_112px_36px] max-md:gap-2">
                   <Select
                     aria-label={t('calendar.service.durationType')}
                     value={extra.type}
@@ -371,8 +371,8 @@ export function EditServicePanel({ item, members, onBack, onApply, onDelete, onC
           />
         </div>
       </div>
-      <div className="border-t border-line px-8 py-5">
-        <div className="mb-4 flex items-center justify-between text-body-lg">
+      <div className="border-t border-line px-4 py-3 md:px-8 md:py-5">
+        <div className="mb-4 flex items-center justify-between text-body-lg max-md:mb-3">
           <span className="font-semibold text-ink">{t('calendar.totals.total')}</span>
           <span>
             <span className="text-muted">{durationLabel(itemMinutes(draft))}</span> <b className="text-ink">{money(itemPrice(draft))}</b>

@@ -25,8 +25,8 @@ export function PageSkeleton({ rows = 6 }: { rows?: number }) {
   const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-4" aria-busy="true" aria-label={t('common.loadingLabel')}>
-      <Skeleton className="h-9 w-64" />
-      <Skeleton className="h-5 w-96" />
+      <Skeleton className="h-9 w-64 max-w-full" />
+      <Skeleton className="h-5 w-96 max-w-full" />
       <Skeleton className="mt-4 h-12 w-full" />
       {Array.from({ length: rows }, (_, i) => (
         <Skeleton key={i} className="h-14 w-full" />

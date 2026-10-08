@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
 import { Button, DataTable, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDrawer } from '@/lib/drawer'
 import { exportCsv, exportXlsx, exportedFileName } from '@/lib/export'
 import { fmtDate, money } from '@/lib/format'
@@ -22,6 +23,7 @@ export function StockOrdersPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const drawer = useDrawer()
+  const phone = useIsPhone()
   const loading = usePageLoading()
   const orders = useDb((s) => s.stockOrders)
   const suppliers = useDb((s) => s.suppliers)
@@ -74,6 +76,59 @@ export function StockOrdersPage() {
       </Page>
     )
 
+  const actionsColumn: Column<StockOrder> = {
+    key: 'actions',
+    header: '',
+    width: '56px',
+    cell: (o) => (
+      <Menu
+        label={t('catalog.common.actions')}
+        groups={[
+          {
+            items:
+              o.status === 'draft'
+                ? [
+                    { label: t('catalog.inventory.orders.continue'), onSelect: () => open(o) },
+                    {
+                      label: t('catalog.inventory.orders.deleteDraft'),
+                      danger: true,
+                      onSelect: async () => {
+                        const ok = await confirm({ title: t('catalog.inventory.orders.deleteDraftTitle', { number: o.number }), body: t('catalog.inventory.orders.deleteDraftBody'), confirmLabel: t('catalog.common.delete'), tone: 'danger' })
+                        if (!ok) return
+                        await deleteStockOrderDraft(o.id)
+                        toast(t('catalog.inventory.orders.draftDeleted'))
+                      },
+                    },
+                  ]
+                : [
+                    { label: t('catalog.inventory.orders.view'), onSelect: () => open(o) },
+                    ...(o.status === 'ordered' ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${o.id}/receive`) }] : []),
+                    { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void downloadOrderPdf(o, { products, suppliers, locations }, t).then(() => toast(t('catalog.toasts.downloaded'))) },
+                  ],
+          },
+        ]}
+      />
+    ),
+  }
+  // Phones: number, status, supplier, date and total in one column, plus the actions menu.
+  const phoneColumns: Column<StockOrder>[] = [
+    {
+      key: 'number',
+      header: t('catalog.inventory.orders.cols.number'),
+      cell: (o) => (
+        <div className="flex max-w-[calc(100vw-138px)] flex-col items-start gap-1 whitespace-normal">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-body-strong text-ink">{o.number}</span>
+            <InventoryStatus status={o.status} />
+          </div>
+          <p className="break-words text-body text-ink">{supplierName(o)}</p>
+          <p className="text-small text-muted">{[fmtDate(parseISO(o.createdAt)), locationName(o)].filter(Boolean).join(' · ')}</p>
+          <p className="tabular text-body-strong text-ink">{money(orderTotal(o))}</p>
+        </div>
+      ),
+    },
+    actionsColumn,
+  ]
   const columns: Column<StockOrder>[] = [
     { key: 'number', header: t('catalog.inventory.orders.cols.number'), sortValue: orderNo, cell: (o) => <span className="text-body-strong text-ink">{o.number}</span> },
     { key: 'created', header: t('catalog.inventory.orders.cols.created'), sortValue: (o) => o.createdAt, cell: (o) => fmtDate(parseISO(o.createdAt)) },
@@ -91,40 +146,7 @@ export function StockOrdersPage() {
     },
     { key: 'total', header: t('catalog.inventory.orders.cols.total'), align: 'right', sortValue: (o) => orderTotal(o), cell: (o) => money(orderTotal(o)) },
     { key: 'status', header: t('catalog.inventory.orders.cols.status'), cell: (o) => <InventoryStatus status={o.status} /> },
-    {
-      key: 'actions',
-      header: '',
-      width: '56px',
-      cell: (o) => (
-        <Menu
-          label={t('catalog.common.actions')}
-          groups={[
-            {
-              items:
-                o.status === 'draft'
-                  ? [
-                      { label: t('catalog.inventory.orders.continue'), onSelect: () => open(o) },
-                      {
-                        label: t('catalog.inventory.orders.deleteDraft'),
-                        danger: true,
-                        onSelect: async () => {
-                          const ok = await confirm({ title: t('catalog.inventory.orders.deleteDraftTitle', { number: o.number }), body: t('catalog.inventory.orders.deleteDraftBody'), confirmLabel: t('catalog.common.delete'), tone: 'danger' })
-                          if (!ok) return
-                          await deleteStockOrderDraft(o.id)
-                          toast(t('catalog.inventory.orders.draftDeleted'))
-                        },
-                      },
-                    ]
-                  : [
-                      { label: t('catalog.inventory.orders.view'), onSelect: () => open(o) },
-                      ...(o.status === 'ordered' ? [{ label: t('catalog.inventory.orderDrawer.receive'), onSelect: () => navigate(`/catalogue/orders/${o.id}/receive`) }] : []),
-                      { label: t('catalog.inventory.orderDrawer.pdf'), onSelect: () => void downloadOrderPdf(o, { products, suppliers, locations }, t).then(() => toast(t('catalog.toasts.downloaded'))) },
-                    ],
-            },
-          ]}
-        />
-      ),
-    },
+    actionsColumn,
   ]
 
   const statuses: StockOrder['status'][] = ['draft', 'ordered', 'received', 'cancelled']
@@ -197,7 +219,7 @@ export function StockOrdersPage() {
       ) : (
         <>
           <Toolbar>
-            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.orders.search')} className="max-w-sm" />
+            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.orders.search')} className="max-w-sm max-md:max-w-none max-md:basis-full" />
             <FiltersButton
               count={status === 'all' ? 0 : 1}
               onClick={() => {
@@ -210,7 +232,7 @@ export function StockOrdersPage() {
             </div>
           </Toolbar>
           <DataTable
-            columns={columns}
+            columns={phone ? phoneColumns : columns}
             rows={rows}
             rowKey={(o) => o.id}
             onRowClick={open}

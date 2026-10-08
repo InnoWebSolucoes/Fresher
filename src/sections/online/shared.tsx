@@ -87,6 +87,21 @@ export function readImage(file: File, maxWidth = 720): Promise<string> {
   })
 }
 
+const PHONE_QUERY = '(max-width: 767px)'
+
+/** True below the md breakpoint (phones), for the few layouts that can't be expressed with classes alone. */
+export function usePhone() {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_QUERY)
+    const update = () => setPhone(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return phone
+}
+
 /** ✓ list used on intros and gating modals. */
 export function CheckList({ items, className }: { items: string[]; className?: string }) {
   return (
@@ -159,12 +174,13 @@ export function LinkWithQr({ url, fileName, showQr = true }: { url: string; file
         </Button>
       </div>
       {showQr && (
-        <div className="flex items-center gap-4 rounded-lg bg-sunken p-4">
-          {qr ? <img src={qr} alt={t('online.common.qrAlt')} className="h-32 w-32 rounded-md bg-white p-1" /> : <div className="h-32 w-32 animate-pulse rounded-md bg-surface" />}
-          <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-4 rounded-lg bg-sunken p-4 max-md:flex-col max-md:text-center">
+          {qr ? <img src={qr} alt={t('online.common.qrAlt')} className="h-32 w-32 shrink-0 rounded-md bg-white p-1" /> : <div className="h-32 w-32 shrink-0 animate-pulse rounded-md bg-surface" />}
+          {/* Wraps under the QR code when the card is narrow (longer Portuguese labels). */}
+          <div className="flex min-w-[180px] flex-1 flex-col gap-2 max-md:items-center">
             <p className="text-body-strong text-ink">{t('online.common.qrTitle')}</p>
             <p className="text-small text-muted">{t('online.common.qrBody')}</p>
-            <Button size="sm" icon={<Download size={14} />} onClick={download} disabled={!qr} className="self-start">
+            <Button size="sm" icon={<Download size={14} />} onClick={download} disabled={!qr} className="self-start max-md:self-center">
               {t('online.common.downloadQr')}
             </Button>
           </div>
@@ -200,8 +216,8 @@ export function PhoneArt({ name, lines, cta, city }: { name: string; lines: stri
 /** A simple stat tile. */
 export function Stat({ icon, label, value, hint }: { icon: ReactNode; label: string; value: string; hint?: string }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-line bg-primary-subtle/50 px-5 py-4" title={hint}>
-      <span className="flex items-center gap-3 text-body-lg text-ink">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-primary-subtle/50 px-4 py-3 md:gap-0 md:px-5 md:py-4" title={hint}>
+      <span className="flex items-center gap-3 text-body-lg text-ink max-md:min-w-0">
         {icon}
         {label}
       </span>

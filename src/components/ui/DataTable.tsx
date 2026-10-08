@@ -57,7 +57,7 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, totalRow, empt
           <thead>
             <tr className="border-b border-line">
               {selectable && (
-                <th className="w-12 px-4 py-3">
+                <th className="relative w-12 px-4 py-3">
                   <input
                     type="checkbox"
                     aria-label={t('common.table.selectAll')}
@@ -68,7 +68,7 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, totalRow, empt
                 </th>
               )}
               {columns.map((col) => (
-                <th key={col.key} style={{ width: col.width }} className={clsx('whitespace-nowrap px-4 py-3 text-body-strong text-ink', col.align === 'right' && 'text-right')}>
+                <th key={col.key} style={{ width: col.width }} className={clsx('relative whitespace-nowrap px-4 py-3 text-body-strong text-ink', col.align === 'right' && 'text-right')}>
                   {col.sortValue ? (
                     <button
                       type="button"

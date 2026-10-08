@@ -63,7 +63,7 @@ export function AddOnIntroPage() {
             {t('addons.save25')}
           </Chip>
         )}
-        <p className="font-display text-title-1 text-ink">
+        <p className="font-display text-title-2 text-ink md:text-title-1">
           {meta.was && <span className="mr-2 font-normal text-muted line-through">{eur(meta.was)}</span>}
           {eur(meta.price ?? 0)} {t(`addons.units.${meta.unit ?? 'location'}`)}
         </p>

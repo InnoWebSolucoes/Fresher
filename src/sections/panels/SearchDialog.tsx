@@ -346,10 +346,11 @@ export function SearchDialog({ close }: DrawerProps) {
   const rowClass = (i: number) => clsx('flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left', active === i ? 'bg-sunken' : 'hover:bg-sunken')
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[8vh]" data-testid="search-dialog">
+    // Phones: the search fills the screen, with its own close button.
+    <div className="fixed inset-0 z-[60] flex items-start justify-center md:px-4 md:pt-[8vh]" data-testid="search-dialog">
       <div className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]" onClick={close} aria-hidden />
-      <div role="dialog" aria-modal="true" aria-label={t('panels.search.title')} className="relative flex max-h-[84vh] w-full max-w-[760px] flex-col overflow-hidden rounded-xl bg-raised shadow-lg" onKeyDown={onKeyDown}>
-        <div className="flex items-center gap-3 border-b border-line px-5">
+      <div role="dialog" aria-modal="true" aria-label={t('panels.search.title')} className="relative flex h-full max-h-full w-full max-w-[760px] flex-col overflow-hidden bg-raised shadow-lg md:h-auto md:max-h-[84vh] md:rounded-xl" onKeyDown={onKeyDown}>
+        <div className="flex items-center gap-2 border-b border-line pl-4 pr-2 md:gap-3 md:px-5">
           <Search size={20} className="shrink-0 text-muted" aria-hidden />
           {category && (
             <span className="chip shrink-0 gap-1 bg-primary-subtle text-primary">
@@ -375,13 +376,13 @@ export function SearchDialog({ close }: DrawerProps) {
             className="h-16 min-w-0 flex-1 bg-transparent text-body-lg text-ink outline-none placeholder:text-subtle"
           />
           {query && (
-            <button type="button" className="icon-btn h-9 w-9" aria-label={t('panels.search.clear')} onClick={() => setQuery('')}>
+            <button type="button" className="icon-btn h-9 w-9 shrink-0" aria-label={t('panels.search.clear')} onClick={() => setQuery('')}>
               <X size={18} aria-hidden />
             </button>
           )}
           <button
             type="button"
-            className={clsx('icon-btn h-10 w-10 rounded-full', filtersOpen && 'bg-sunken')}
+            className={clsx('icon-btn h-10 w-10 shrink-0 rounded-full', filtersOpen && 'bg-sunken')}
             aria-label={t('panels.search.filterByCategory')}
             title={t('panels.search.filterByCategory')}
             aria-pressed={filtersOpen}
@@ -391,6 +392,9 @@ export function SearchDialog({ close }: DrawerProps) {
             }}
           >
             <SlidersHorizontal size={18} aria-hidden />
+          </button>
+          <button type="button" className="icon-btn h-10 w-10 shrink-0 md:hidden" aria-label={t('common.close')} onClick={close}>
+            <X size={20} aria-hidden />
           </button>
         </div>
 
@@ -429,7 +433,7 @@ export function SearchDialog({ close }: DrawerProps) {
           ) : (
             <>
               {counts.size > 0 && (
-                <div className="flex flex-wrap gap-2 px-2 pb-2 pt-1">
+                <div className="flex gap-2 overflow-x-auto overflow-y-hidden px-2 pb-2 pt-1 [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
                   {allowed
                     .filter((c) => counts.has(c.key))
                     .map((c) => (
@@ -438,7 +442,7 @@ export function SearchDialog({ close }: DrawerProps) {
                         type="button"
                         aria-pressed={category === c.key}
                         onClick={() => setCategory(category === c.key ? null : c.key)}
-                        className={clsx('inline-flex h-9 items-center gap-2 rounded-full px-4 text-body ring-1 transition-colors', category === c.key ? 'bg-ink text-canvas ring-ink' : 'bg-surface text-ink ring-line-strong hover:bg-sunken')}
+                        className={clsx('inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-body ring-1 transition-colors', category === c.key ? 'bg-ink text-canvas ring-ink' : 'bg-surface text-ink ring-line-strong hover:bg-sunken')}
                       >
                         {t(`panels.search.categories.${c.key}`)}
                         <span className={clsx('rounded-full px-1.5 text-caption', category === c.key ? 'bg-canvas/20' : 'bg-sunken text-muted')}>{counts.get(c.key)}</span>

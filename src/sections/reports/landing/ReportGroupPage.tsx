@@ -144,13 +144,13 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
 
   return (
     <>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-3 md:mb-6 md:gap-4">
         <div className="min-w-0">
-          <h1 className="flex items-center gap-3 font-display text-title-1 text-ink">
+          <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 break-words font-display text-title-2 text-ink md:text-title-1">
             {title}
             <span className="chip h-6 bg-sunken px-2 text-caption text-muted">{count}</span>
           </h1>
-          {subtitle && <p className="mt-1 text-body-lg text-muted">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-body text-muted md:text-body-lg">{subtitle}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {folder && insights && (
@@ -169,7 +169,7 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
         </div>
       </header>
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 md:mb-5">
         <label className="relative block w-full max-w-[440px]">
           <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('reports.landing.search')} aria-label={t('reports.landing.search')} className="h-11 w-full rounded-full border border-line-strong bg-surface pl-10 pr-4 text-body text-ink placeholder:text-subtle focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" />
@@ -179,7 +179,7 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
             <Menu
               width={240}
               trigger={({ open, toggle }) => (
-                <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className={clsx('inline-flex h-11 items-center gap-2 rounded-full border bg-surface px-5 text-body-strong text-ink hover:bg-sunken', open ? 'border-primary ring-2 ring-primary/20' : 'border-line-strong')}>
+                <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className={clsx('inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full border bg-surface px-4 text-body-strong text-ink hover:bg-sunken md:px-5', open ? 'border-primary ring-2 ring-primary/20' : 'border-line-strong')}>
                   {createdBy === 'anyone' ? t('reports.landing.createdBy') : t(`reports.landing.createdByOptions.${createdBy}`)}
                   <ChevronDown size={16} className={clsx('transition-transform', open && 'rotate-180')} aria-hidden />
                 </button>
@@ -190,7 +190,7 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
           <Menu
             width={240}
             trigger={({ open, toggle }) => (
-              <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className={clsx('inline-flex h-11 items-center gap-2 rounded-full border bg-surface px-5 text-body-strong text-ink hover:bg-sunken', open ? 'border-primary ring-2 ring-primary/20' : 'border-line-strong')}>
+              <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className={clsx('inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full border bg-surface px-4 text-body-strong text-ink hover:bg-sunken md:px-5', open ? 'border-primary ring-2 ring-primary/20' : 'border-line-strong')}>
                 {t(`reports.landing.sort.${sort}`)}
                 <ArrowDownUp size={16} aria-hidden />
               </button>
@@ -201,7 +201,7 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
       </div>
 
       {showTabs && (
-        <div className="mb-5 flex flex-wrap gap-1" role="tablist" aria-label={t('reports.landing.categoriesLabel')}>
+        <div className="-mx-4 mb-4 flex gap-1 overflow-x-auto overflow-y-hidden px-4 [scrollbar-width:none] md:mx-0 md:mb-5 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={t('reports.landing.categoriesLabel')}>
           {CATEGORIES.map((c) => (
             <button
               key={c}
@@ -209,7 +209,7 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
               role="tab"
               aria-selected={category === c}
               onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set('category', c); return n }, { replace: true })}
-              className={clsx('h-10 rounded-full px-5 text-body-strong transition-colors', category === c ? 'bg-ink text-canvas' : 'text-ink hover:bg-sunken')}
+              className={clsx('h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-body-strong transition-colors md:px-5', category === c ? 'bg-ink text-canvas' : 'text-ink hover:bg-sunken')}
             >
               {t(`reports.categories.${c}`)}
             </button>
@@ -236,18 +236,25 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
             const fav = favourites.includes(item.slug)
             const Icon = item.custom ? LineChart : categoryIcon(item.group)
             return (
-              <li key={item.slug} className="card relative flex items-center gap-4 px-6 py-5 transition-shadow hover:shadow-sm">
-                <span className={clsx('flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-sunken', item.group === 'dashboards' ? 'text-success' : 'text-primary')}>
+              <li key={item.slug} className="card relative flex items-start gap-3 px-4 py-4 transition-shadow hover:shadow-sm md:items-center md:gap-4 md:px-6 md:py-5">
+                <span className={clsx('flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-sunken md:h-12 md:w-12', item.group === 'dashboards' ? 'text-success' : 'text-primary')}>
                   <Icon size={22} aria-hidden />
                 </span>
                 <Link to={`/reports/table/${item.slug}`} className="min-w-0 flex-1 before:absolute before:inset-0 before:rounded-lg focus-visible:outline-none focus-visible:before:ring-2 focus-visible:before:ring-primary">
                   <span className="block text-body-strong text-ink">{item.name}</span>
                   <span className="block text-body text-muted">{item.description}</span>
                   {item.custom && <span className="mt-1 block text-small text-subtle">{t('reports.custom.byline', { name: item.custom.createdBy || t('reports.custom.unknown') })}</span>}
+                  {/* Phones: the Premium / Custom tag sits under the text so the name keeps its width. */}
+                  {(item.premium || item.custom) && (
+                    <span className="mt-2 flex gap-2 md:hidden">
+                      {item.premium && <span className="chip h-6 bg-primary-subtle px-2.5 text-primary ring-1 ring-primary/40">{t('reports.premium')}</span>}
+                      {item.custom && <span className="chip h-6 bg-sunken px-2.5 text-muted">{t('reports.custom.chip')}</span>}
+                    </span>
+                  )}
                 </Link>
-                {item.premium && <span className="chip relative h-7 shrink-0 bg-primary-subtle px-3 text-primary ring-1 ring-primary/40">{t('reports.premium')}</span>}
-                {item.custom && <span className="chip relative h-7 shrink-0 bg-sunken px-3 text-muted">{t('reports.custom.chip')}</span>}
-                <button type="button" aria-pressed={fav} aria-label={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} title={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} onClick={() => toggleFavourite(item.slug)} className="icon-btn relative h-10 w-10">
+                {item.premium && <span className="chip relative hidden h-7 shrink-0 bg-primary-subtle px-3 text-primary ring-1 ring-primary/40 md:inline-flex">{t('reports.premium')}</span>}
+                {item.custom && <span className="chip relative hidden h-7 shrink-0 bg-sunken px-3 text-muted md:inline-flex">{t('reports.custom.chip')}</span>}
+                <button type="button" aria-pressed={fav} aria-label={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} title={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} onClick={() => toggleFavourite(item.slug)} className="icon-btn relative -my-1 h-10 w-10 md:my-0">
                   <Star size={20} className={fav ? 'fill-accent text-accent' : 'text-ink'} aria-hidden />
                 </button>
                 {insights && (

@@ -8,7 +8,7 @@ import { Button, DataTable, EmptyState, IntroPage, LearnMore, Menu, Page, PageHe
 import { addOnActive, cancelSchedule, deleteCampaign, duplicateCampaign, processDueCampaigns, sendScheduledNow } from '@/api/marketing'
 import { fmtDateTimeUS, money, num } from '@/lib/format'
 import { StatCard } from '../components/kit'
-import { CampaignStatusChip, ChannelLabel, pct } from '../helpers'
+import { CampaignStatusChip, ChannelLabel, PhoneList, pct } from '../helpers'
 
 type Tab = 'all' | Campaign['status']
 
@@ -67,6 +67,46 @@ export function BlastCampaignsPage() {
     toast(t('marketing.campaigns.toast.deleted'))
   }
 
+  const rowMenu = (c: Campaign) => (
+    <Menu
+      groups={[
+        {
+          items: [
+            { label: t('marketing.campaigns.actions.view'), onSelect: () => navigate(`/marketing/blast-campaigns/${c.id}`) },
+            ...(c.status === 'draft' ? [{ label: t('marketing.campaigns.actions.edit'), onSelect: () => navigate(`/marketing/blast-campaigns/${c.id}/edit`) }] : []),
+            ...(c.status === 'scheduled'
+              ? [
+                  {
+                    label: t('marketing.campaigns.actions.sendNow'),
+                    onSelect: async () => {
+                      await sendScheduledNow(c.id)
+                      toast(t('marketing.campaigns.toast.sent'))
+                    },
+                  },
+                  {
+                    label: t('marketing.campaigns.actions.cancelSchedule'),
+                    onSelect: async () => {
+                      await cancelSchedule(c.id)
+                      toast(t('marketing.campaigns.toast.unscheduled'))
+                    },
+                  },
+                ]
+              : []),
+            {
+              label: t('marketing.campaigns.actions.duplicate'),
+              onSelect: async () => {
+                const copy = await duplicateCampaign(c.id)
+                toast(t('marketing.campaigns.toast.duplicated'))
+                navigate(`/marketing/blast-campaigns/${copy.id}/edit`)
+              },
+            },
+          ],
+        },
+        { items: [{ label: t('marketing.campaigns.actions.delete'), danger: true, onSelect: () => void remove(c) }] },
+      ]}
+    />
+  )
+
   const columns: Column<Campaign>[] = [
     {
       key: 'name',
@@ -111,47 +151,22 @@ export function BlastCampaignsPage() {
       key: 'actions',
       header: '',
       align: 'right',
-      cell: (c) => (
-        <Menu
-          groups={[
-            {
-              items: [
-                { label: t('marketing.campaigns.actions.view'), onSelect: () => navigate(`/marketing/blast-campaigns/${c.id}`) },
-                ...(c.status === 'draft' ? [{ label: t('marketing.campaigns.actions.edit'), onSelect: () => navigate(`/marketing/blast-campaigns/${c.id}/edit`) }] : []),
-                ...(c.status === 'scheduled'
-                  ? [
-                      {
-                        label: t('marketing.campaigns.actions.sendNow'),
-                        onSelect: async () => {
-                          await sendScheduledNow(c.id)
-                          toast(t('marketing.campaigns.toast.sent'))
-                        },
-                      },
-                      {
-                        label: t('marketing.campaigns.actions.cancelSchedule'),
-                        onSelect: async () => {
-                          await cancelSchedule(c.id)
-                          toast(t('marketing.campaigns.toast.unscheduled'))
-                        },
-                      },
-                    ]
-                  : []),
-                {
-                  label: t('marketing.campaigns.actions.duplicate'),
-                  onSelect: async () => {
-                    const copy = await duplicateCampaign(c.id)
-                    toast(t('marketing.campaigns.toast.duplicated'))
-                    navigate(`/marketing/blast-campaigns/${copy.id}/edit`)
-                  },
-                },
-              ],
-            },
-            { items: [{ label: t('marketing.campaigns.actions.delete'), danger: true, onSelect: () => void remove(c) }] },
-          ]}
-        />
-      ),
+      cell: rowMenu,
     },
   ]
+  const dateOf = (c: Campaign) => c.sentAt ?? c.scheduledAt ?? c.createdAt
+  const emptyState = (
+    <EmptyState
+      icon={<Megaphone size={24} />}
+      title={t(`marketing.campaigns.empty.${tab}`)}
+      body={t('marketing.campaigns.empty.body')}
+      action={
+        <Button variant="primary" onClick={startNew}>
+          {t('marketing.campaigns.create')}
+        </Button>
+      }
+    />
+  )
 
   if (loading) {
     return (
@@ -190,7 +205,7 @@ export function BlastCampaignsPage() {
           </Button>
         }
       />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-2 md:gap-4 xl:grid-cols-4">
         <StatCard icon={<Send size={16} />} label={t('marketing.campaigns.summary.sent')} value={summary.campaigns} hint={t('marketing.campaigns.summary.messages', { count: summary.messages })} />
         <StatCard icon={<Megaphone size={16} />} label={t('marketing.campaigns.summary.openRate')} value={`${num(summary.openRate)}%`} hint={t('marketing.campaigns.summary.openRateHint')} />
         <StatCard icon={<CalendarClock size={16} />} label={t('marketing.campaigns.summary.bookings')} value={summary.bookings} hint={t('marketing.campaigns.summary.bookingsHint')} />
@@ -206,7 +221,7 @@ export function BlastCampaignsPage() {
         <SearchInput value={q} onChange={setQ} placeholder={t('marketing.campaigns.search')} className="max-w-sm" />
         <Select
           aria-label={t('marketing.campaigns.col.channel')}
-          className="h-10 w-48 rounded-full"
+          className="h-10 w-full rounded-full md:w-48"
           value={channel}
           onChange={(e) => setChannel(e.target.value as typeof channel)}
           options={[
@@ -217,24 +232,45 @@ export function BlastCampaignsPage() {
         />
       </Toolbar>
       {tab === 'pending' && counts.pending > 0 && <p className="mb-4 rounded-lg bg-warning-subtle px-4 py-3 text-body text-warning">{t('marketing.campaigns.pendingNote')}</p>}
+      {/* Phones: one card per campaign instead of the wide table. */}
+      <PhoneList
+        rows={[...rows].sort((a, b) => dateOf(b).localeCompare(dateOf(a)))}
+        rowKey={(c) => c.id}
+        empty={emptyState}
+        render={(c) => (
+          <>
+            <button type="button" className="block w-full p-4 pr-14 text-left" onClick={() => navigate(`/marketing/blast-campaigns/${c.id}`)}>
+              <span className="block break-words text-body-strong text-ink">{c.name}</span>
+              <span className="mt-0.5 line-clamp-2 break-words text-small text-muted">{c.channel === 'email' ? c.subject || c.heading : c.body}</span>
+              <span className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <CampaignStatusChip status={c.status} />
+                <ChannelLabel channel={c.channel} />
+              </span>
+              <span className="mt-3 block text-small text-muted">
+                {audienceLabel(c)}
+                {c.status === 'draft' && !c.recipients ? '' : ` · ${t('marketing.campaigns.col.recipients')}: ${c.recipients}`}
+              </span>
+              <span className="block text-small text-muted">
+                {t(`marketing.campaigns.dateKind.${c.sentAt ? 'sent' : c.scheduledAt ? 'scheduled' : 'created'}`)}: {fmtDateTimeUS(dateOf(c))}
+              </span>
+              {c.status === 'sent' && (
+                <span className="mt-2 block text-small text-ink">
+                  {t('marketing.campaigns.openedRate', { value: num(pct(c.stats.opened, c.stats.delivered)) })} · {t('marketing.campaigns.bookingsValue', { count: c.stats.bookings, value: money(c.stats.revenue) })}
+                </span>
+              )}
+            </button>
+            <div className="absolute right-2 top-2">{rowMenu(c)}</div>
+          </>
+        )}
+      />
       <DataTable
+        className="max-md:hidden"
         columns={columns}
         rows={rows}
         rowKey={(c) => c.id}
         onRowClick={(c) => navigate(`/marketing/blast-campaigns/${c.id}`)}
         initialSort={{ key: 'date', dir: 'desc' }}
-        empty={
-          <EmptyState
-            icon={<Megaphone size={24} />}
-            title={t(`marketing.campaigns.empty.${tab}`)}
-            body={t('marketing.campaigns.empty.body')}
-            action={
-              <Button variant="primary" onClick={startNew}>
-                {t('marketing.campaigns.create')}
-              </Button>
-            }
-          />
-        }
+        empty={emptyState}
       />
     </Page>
   )

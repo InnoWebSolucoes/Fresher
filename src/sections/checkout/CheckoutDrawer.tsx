@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DrawerProps } from '@/app/sectionRegistry'
 import { CheckoutProvider, cartKey, useCheckout, useCheckoutState } from './context'
@@ -27,12 +27,18 @@ export function CheckoutDrawer(props: DrawerProps) {
 function CheckoutRoot({ params, close }: DrawerProps) {
   const { t } = useTranslation()
   const state = useCheckoutState(params, close)
+  // Phones scroll the whole drawer as one column: start each step, view or category at the top.
+  const rootRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    rootRef.current?.scrollTo({ top: 0 })
+  }, [state.step, state.view, state.category])
   return (
     <CheckoutProvider value={state}>
-      <div className="flex h-full min-h-0" data-testid="checkout">
-        <div className="relative min-w-0 flex-1 overflow-y-auto px-10 pb-16 pt-9">
-          {/* The floating close button sits outside the drawer; on narrower screens it would be cut off, so the drawer shows its own. */}
-          <button type="button" onClick={close} aria-label={t('checkout.common.closeCheckout')} className="icon-btn absolute left-1 top-1 z-10 h-9 w-9 min-[1320px]:hidden">
+      {/* Phones: one scrolling column (step content, then the cart) with the totals and Pay button stuck to the bottom. */}
+      <div ref={rootRef} className="flex h-full min-h-0 flex-col overflow-y-auto md:flex-row md:overflow-visible" data-testid="checkout">
+        <div className="relative min-w-0 flex-none px-4 pb-6 pt-4 md:flex-1 md:overflow-y-auto md:px-10 md:pb-16 md:pt-9">
+          {/* The floating close button sits outside the drawer; on narrower screens it would be cut off, so the drawer shows its own (phones use the drawer's top bar). */}
+          <button type="button" onClick={close} aria-label={t('checkout.common.closeCheckout')} className="icon-btn absolute left-1 top-1 z-10 hidden h-9 w-9 md:inline-flex min-[1320px]:hidden">
             <X size={20} aria-hidden />
           </button>
           <MainArea />

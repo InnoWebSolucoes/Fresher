@@ -146,7 +146,7 @@ function ResourceForm({ resource }: { resource: ResourceRecord | null }) {
       actions={
         <>
           {resource && <OverlayOptions groups={[{ items: [deleteItem(t('settings.common.delete'), () => void remove())] }]} />}
-          <Button variant="primary" className="px-6" loading={saving} onClick={save} data-testid="resource-save">
+          <Button variant="primary" className="md:px-6" loading={saving} onClick={save} data-testid="resource-save">
             {t('settings.common.save')}
           </Button>
         </>
@@ -222,12 +222,12 @@ function ResourceForm({ resource }: { resource: ResourceRecord | null }) {
                   const times = CLOCK_TIMES.map((c) => ({ value: c, label: formatClock(c, settings.timeFormat) }))
                   return (
                     <div key={day} className="flex flex-wrap items-center gap-3">
-                      <Checkbox className="w-36" checked={value.open} onChange={(open) => set({ open })} label={weekdayName(t, day)} />
+                      <Checkbox className={value.open ? 'w-full sm:w-36' : 'w-36'} checked={value.open} onChange={(open) => set({ open })} label={weekdayName(t, day)} />
                       {value.open ? (
                         <>
-                          <Select aria-label={t(`${R}.startTime`)} className="w-32" value={value.start} onChange={(e) => set({ start: e.target.value })} options={times} />
+                          <Select aria-label={t(`${R}.startTime`)} className="min-w-0 flex-1 sm:w-32 sm:flex-none" value={value.start} onChange={(e) => set({ start: e.target.value })} options={times} />
                           <span className="text-muted">–</span>
-                          <Select aria-label={t(`${R}.endTime`)} className="w-32" value={value.end} onChange={(e) => set({ end: e.target.value })} options={times} />
+                          <Select aria-label={t(`${R}.endTime`)} className="min-w-0 flex-1 sm:w-32 sm:flex-none" value={value.end} onChange={(e) => set({ end: e.target.value })} options={times} />
                         </>
                       ) : (
                         <span className="text-body text-muted">{t(`${R}.unavailable`)}</span>

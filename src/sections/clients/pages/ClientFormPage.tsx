@@ -13,7 +13,7 @@ import { Button, confirm, EmptyState, Field, FullscreenFrame, LearnMore, Menu, S
 import { resizeImage } from '../lib/avatars'
 import { countryOptions, GENDERS, LANGUAGES, MONTHS, pronounOptions } from '../lib/constants'
 import { clientName, joinPhone, splitPhone } from '../lib/helpers'
-import { ClientAvatar, PhoneField } from '../components/common'
+import { ClientAvatar, PhoneField, PhoneTabs } from '../components/common'
 import { ClientSearchModal } from '../components/ClientSearchModal'
 import { TagPicker } from '../components/TagPicker'
 import { AddressModal, addressLines, addressName, type AddressDraft } from '../components/AddressModal'
@@ -327,9 +327,10 @@ function ClientForm({ client }: { client?: Client }) {
       }
     >
       <div ref={formRef}>
-        <h1 className="mb-8 font-display text-display text-ink">{client ? t('clients.form.editTitle') : t('clients.form.addTitle')}</h1>
-        <div className="mb-6 md:hidden">
-          <Select value={section} onChange={(e) => setSection(e.target.value as Section)} options={SECTIONS.map((s) => ({ value: s, label: t(`clients.form.sectionLabels.${s}`) }))} aria-label={t('clients.form.sectionPicker')} />
+        <h1 className="mb-4 font-display text-title-1 text-ink md:mb-8 md:text-display">{client ? t('clients.form.editTitle') : t('clients.form.addTitle')}</h1>
+        {/* Phones: the section nav is hidden, so the sections become a sticky row of tabs. */}
+        <div className="sticky top-0 z-10 -mx-4 mb-5 bg-canvas px-4 py-2 md:hidden">
+          <PhoneTabs<Section> label={t('clients.form.sectionPicker')} value={section} onChange={setSection} items={SECTIONS.map((s) => ({ value: s, label: t(`clients.form.sectionLabels.${s}`), count: s === 'addresses' ? draft.addresses.length : undefined }))} />
         </div>
 
         {section === 'profile' && (
@@ -387,7 +388,7 @@ function ClientForm({ client }: { client?: Client }) {
                 </Field>
                 <Field label={t('clients.form.birthday')} error={errors.birthday}>
                   {(fid) => (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 md:grid-cols-3">
                       <Select id={fid} data-field="birthday" value={draft.month} onChange={(e) => set('month', e.target.value)} placeholder={t('clients.form.month')} options={MONTHS.map((m, i) => ({ value: String(i + 1), label: t(`clients.months.${i}`, { defaultValue: m }) }))} aria-label={t('clients.form.month')} />
                       <TextInput inputMode="numeric" maxLength={2} value={draft.day} onChange={(e) => set('day', e.target.value.replace(/\D/g, ''))} placeholder={t('clients.form.day')} aria-label={t('clients.form.day')} invalid={Boolean(errors.birthday)} />
                       <TextInput inputMode="numeric" maxLength={4} value={draft.year} onChange={(e) => set('year', e.target.value.replace(/\D/g, ''))} placeholder={t('clients.form.year')} aria-label={t('clients.form.year')} invalid={Boolean(errors.birthday)} />

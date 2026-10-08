@@ -46,17 +46,17 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
 
   if (!open) return null
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
       <div className="absolute inset-0 bg-ink/40" onClick={onClose} aria-hidden />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        className={clsx('relative flex max-h-[90vh] w-full flex-col rounded-xl bg-raised shadow-lg outline-none', SIZES[size], className)}
+        className={clsx('relative flex max-h-[92dvh] w-full flex-col rounded-t-xl bg-raised shadow-lg outline-none sm:max-h-[90vh] sm:rounded-xl', SIZES[size], className)}
       >
         {(title || !hideClose) && (
-          <div className="flex items-start justify-between gap-4 px-6 pb-2 pt-6">
+          <div className="flex items-start justify-between gap-4 px-4 pb-2 pt-5 sm:px-6 sm:pt-6">
             <div className="min-w-0">
               {title && <h2 className="font-display text-title-2 text-ink">{title}</h2>}
               {subtitle && <p className="mt-1 text-body text-muted">{subtitle}</p>}
@@ -68,8 +68,8 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
             )}
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-3">{children}</div>
-        {footer && <div className="flex items-center justify-end gap-2 border-t border-line px-6 py-4">{footer}</div>}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-6">{children}</div>
+        {footer && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-4 py-3 sm:px-6 sm:py-4">{footer}</div>}
       </div>
     </div>,
     document.body,

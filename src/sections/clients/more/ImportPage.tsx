@@ -42,15 +42,15 @@ function Frame({ step, onBack, primary, children, wide }: { step: number; onBack
   }
   return (
     <div className="flex h-full flex-col bg-canvas">
-      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-4 gap-2 px-6 pt-3" role="progressbar" aria-label={t('clients.more.import.stepOf', { step })} aria-valuenow={step} aria-valuemin={1} aria-valuemax={4}>
+      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-4 gap-2 px-4 pt-3 md:px-6" role="progressbar" aria-label={t('clients.more.import.stepOf', { step })} aria-valuenow={step} aria-valuemin={1} aria-valuemax={4}>
         {STEPS.map((s, i) => (
           <span key={s} className={clsx('h-1 rounded-full transition-colors duration-base', i < step ? 'bg-primary' : 'bg-sunken')} />
         ))}
       </div>
-      <header className="mx-auto flex w-full max-w-[1400px] shrink-0 items-center justify-between gap-4 px-6 py-4">
+      <header className="mx-auto flex w-full max-w-[1400px] shrink-0 items-center justify-between gap-3 px-4 py-3 md:gap-4 md:px-6 md:py-4">
         <div>
           {onBack && (
-            <IconButton label={t('clients.more.common.back')} onClick={onBack} className="h-12 w-12 border border-line-strong">
+            <IconButton label={t('clients.more.common.back')} onClick={onBack} className="h-11 w-11 border border-line-strong md:h-12 md:w-12">
               <ArrowLeft size={20} aria-hidden />
             </IconButton>
           )}
@@ -65,7 +65,7 @@ function Frame({ step, onBack, primary, children, wide }: { step: number; onBack
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className={clsx('mx-auto w-full px-6 pb-16', wide === 'xl' ? 'max-w-[1500px]' : wide === 'lg' ? 'max-w-[1220px]' : 'max-w-[900px]')}>{children}</div>
+        <div className={clsx('mx-auto w-full px-4 pb-16 md:px-6', wide === 'xl' ? 'max-w-[1500px]' : wide === 'lg' ? 'max-w-[1220px]' : 'max-w-[900px]')}>{children}</div>
       </div>
     </div>
   )
@@ -74,17 +74,17 @@ function Frame({ step, onBack, primary, children, wide }: { step: number; onBack
 function Heading({ title, subtitle }: { title: string; subtitle: ReactNode }) {
   const { t } = useTranslation()
   return (
-    <div className="mb-8">
+    <div className="mb-6 md:mb-8">
       <p className="text-body text-muted">{t('clients.more.import.eyebrow')}</p>
-      <h1 className="mt-2 font-display text-display text-ink">{title}</h1>
-      <p className="mt-3 text-body-lg text-muted">{subtitle}</p>
+      <h1 className="mt-1 font-display text-title-1 text-ink md:mt-2 md:text-display">{title}</h1>
+      <p className="mt-2 text-body text-muted md:mt-3 md:text-body-lg">{subtitle}</p>
     </div>
   )
 }
 
 function Consent() {
   const { t } = useTranslation()
-  return <div className="mb-6 rounded-lg border border-primary/20 bg-primary-subtle px-6 py-5 text-body text-ink">{t('clients.more.import.consent')}</div>
+  return <div className="mb-6 rounded-lg border border-primary/20 bg-primary-subtle px-4 py-4 text-body text-ink md:px-6 md:py-5">{t('clients.more.import.consent')}</div>
 }
 
 function FileCard({ onRemove }: { onRemove?: () => void }) {
@@ -191,7 +191,7 @@ function UploadStep() {
         onDrop={onDrop}
         className={clsx('rounded-lg border-2 border-dashed p-2 transition-colors', dragging ? 'border-primary' : error ? 'border-danger' : 'border-line-strong')}
       >
-        <div className={clsx('flex flex-col items-center justify-center gap-4 rounded-md px-6 text-center', file ? 'py-10' : 'py-24', dragging ? 'bg-primary-subtle' : 'bg-sunken')}>
+        <div className={clsx('flex flex-col items-center justify-center gap-4 rounded-md px-4 text-center md:px-6', file ? 'py-10' : 'py-12 md:py-24', dragging ? 'bg-primary-subtle' : 'bg-sunken')}>
           <FileUp size={32} className="text-ink" aria-hidden />
           <div>
             <p className="font-display text-title-3 text-ink">{t('clients.more.import.upload.dropTitle')}</p>
@@ -275,14 +275,14 @@ function MappingStep() {
           navigate(`${base}/upload`)
         }}
       />
-      <div className="grid grid-cols-2 gap-x-5">
-        <h2 className="mb-5 font-display text-title-2 text-ink">{t('clients.more.import.mapping.ours')}</h2>
-        <h2 className="mb-5 font-display text-title-2 text-ink">{t('clients.more.import.mapping.theirs')}</h2>
+      <div className="grid grid-cols-2 gap-x-3 md:gap-x-5">
+        <h2 className="mb-4 font-display text-title-3 text-ink md:mb-5 md:text-title-2">{t('clients.more.import.mapping.ours')}</h2>
+        <h2 className="mb-4 font-display text-title-3 text-ink md:mb-5 md:text-title-2">{t('clients.more.import.mapping.theirs')}</h2>
         {IMPORT_FIELDS.map((field) => {
           const id = `map-${field}`
           const invalid = field === 'firstName' && error
           return (
-            <div key={field} className="col-span-2 mb-5 grid grid-cols-2 gap-x-5">
+            <div key={field} className="col-span-2 mb-5 grid grid-cols-2 gap-x-3 md:gap-x-5">
               <div>
                 <input disabled value={t(`clients.more.import.fields.${field}`)} aria-label={t('clients.more.import.mapping.ours')} className="input w-full cursor-default bg-sunken text-muted" />
                 <p className="mt-1.5 text-small text-muted">{t(`clients.more.import.fieldHelp.${field}`)}</p>
@@ -446,7 +446,7 @@ function PreviewStep() {
             </table>
           </div>
           {pages > 1 && (
-            <nav className="mt-6 flex items-center justify-center gap-1" aria-label={t('clients.more.import.preview.title')}>
+            <nav className="mt-6 flex flex-wrap items-center justify-center gap-1" aria-label={t('clients.more.import.preview.title')}>
               {Array.from({ length: pages }, (_, i) => (
                 <button
                   key={i}
@@ -482,7 +482,7 @@ function ProgressStep() {
   }
   return (
     <Frame step={4}>
-      <div className="flex flex-col items-center py-20 text-center" aria-live="polite">
+      <div className="flex flex-col items-center py-12 text-center md:py-20" aria-live="polite">
         {status === 'running' && (
           <>
             <Loader2 size={48} className="animate-spin text-primary" aria-hidden />
@@ -498,7 +498,7 @@ function ProgressStep() {
             <span className="flex h-20 w-20 items-center justify-center rounded-full bg-success-subtle">
               <CheckCircle2 size={44} className="text-success" aria-hidden />
             </span>
-            <h1 className="mt-6 font-display text-display text-ink">{t('clients.more.import.progress.title')}</h1>
+            <h1 className="mt-6 font-display text-title-1 text-ink md:text-display">{t('clients.more.import.progress.title')}</h1>
             <p className="mt-3 text-body-lg text-muted">{t('clients.more.import.progress.body', { count: imported })}</p>
             <Button variant="primary" size="lg" className="mt-8" onClick={done}>
               {t('clients.more.import.progress.done')}
@@ -510,7 +510,7 @@ function ProgressStep() {
             <XCircle size={48} className="text-danger" aria-hidden />
             <h1 className="mt-6 font-display text-title-1 text-ink">{t('clients.more.import.progress.failedTitle')}</h1>
             <p className="mt-2 text-body-lg text-muted">{t('clients.more.import.progress.failedBody')}</p>
-            <div className="mt-8 flex gap-2">
+            <div className="mt-8 flex flex-wrap justify-center gap-2">
               <Button size="lg" onClick={done}>
                 {t('clients.more.common.close')}
               </Button>

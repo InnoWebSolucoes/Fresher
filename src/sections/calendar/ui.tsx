@@ -2,11 +2,12 @@ import clsx from 'clsx'
 import { addMonths, isSameMonth, parseISO, startOfMonth } from 'date-fns'
 import { format } from '@/lib/dates'
 import { ChevronLeft, ChevronRight, PersonStanding, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useBlocker, type BlockerFunction } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Modal, type MenuGroup } from '@/components/ui'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDismiss } from '@/lib/useDismiss'
 import { todayISO, toISODate } from '@/lib/time'
 import type { ISODate } from '@/types'
@@ -43,30 +44,56 @@ export function useEscapeFirst(open: boolean, onClose: () => void) {
   }, [open])
 }
 
-/** Anchored popover with outside-click / Escape dismissal. */
+/**
+ * Anchored popover with outside-click / Escape dismissal. On phones it is a
+ * bottom sheet over a dimmed page instead, rendered on <body> so no scrolling
+ * strip, sticky header or drawer edge can cut it off or cover it.
+ */
 export function Dropdown({ trigger, children, align = 'left', placement = 'bottom', width, className, panelClassName }: DropdownProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const sheet = useRef<HTMLDivElement>(null)
+  const phone = useIsPhone()
   const close = useCallback(() => setOpen(false), [])
-  useDismiss([ref], open, close)
+  const refs = useMemo(() => [ref, sheet], [])
+  useDismiss(refs, open, close)
   useEscapeFirst(open, close)
   return (
     <div ref={ref} className={clsx('relative inline-flex', className)}>
       {trigger({ open, toggle: () => setOpen((o) => !o) })}
-      {open && (
-        <div
-          data-dropdown-open
-          style={width ? { width } : undefined}
-          className={clsx(
-            'absolute z-[60] rounded-lg border border-line bg-raised shadow-md',
-            placement === 'bottom' ? 'top-full mt-1.5' : 'bottom-full mb-1.5',
-            align === 'right' ? 'right-0' : 'left-0',
-            panelClassName,
-          )}
-        >
-          {children(close)}
-        </div>
-      )}
+      {open &&
+        (phone ? (
+          createPortal(
+            <div ref={sheet}>
+              {/* The backdrop takes the tap that closes the sheet, so it doesn't reach the page underneath. */}
+              <div
+                aria-hidden
+                className="fixed inset-0 z-[85] bg-ink/30"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  close()
+                }}
+              />
+              <div data-dropdown-open className={clsx('fixed inset-x-2 bottom-2 z-[86] max-h-[80dvh] overflow-y-auto rounded-xl border border-line bg-raised shadow-lg', panelClassName)}>
+                {children(close)}
+              </div>
+            </div>,
+            document.body,
+          )
+        ) : (
+          <div
+            data-dropdown-open
+            style={width ? { width } : undefined}
+            className={clsx(
+              'absolute z-[60] rounded-lg border border-line bg-raised shadow-md',
+              placement === 'bottom' ? 'top-full mt-1.5' : 'bottom-full mb-1.5',
+              align === 'right' ? 'right-0' : 'left-0',
+              panelClassName,
+            )}
+          >
+            {children(close)}
+          </div>
+        ))}
     </div>
   )
 }
@@ -74,7 +101,7 @@ export function Dropdown({ trigger, children, align = 'left', placement = 'botto
 /** Menu with groups that can open upwards (drawer footers). */
 export function DropMenu({ trigger, groups, align = 'left', placement = 'bottom', width = 260 }: { trigger: DropdownProps['trigger']; groups: MenuGroup[]; align?: 'left' | 'right'; placement?: 'bottom' | 'top'; width?: number }) {
   return (
-    <Dropdown trigger={trigger} align={align} placement={placement} width={width} panelClassName="max-h-[70vh] overflow-y-auto p-1.5">
+    <Dropdown trigger={trigger} align={align} placement={placement} width={width} panelClassName="max-h-[70vh] overflow-y-auto p-1.5 max-md:max-h-[80dvh]">
       {(close) =>
         groups.map((group, gi) => (
           <div key={gi} role="menu" className={clsx(gi > 0 && 'mt-1 border-t border-line pt-1')}>
@@ -90,7 +117,7 @@ export function DropMenu({ trigger, groups, align = 'left', placement = 'bottom'
                   item.onSelect?.()
                 }}
                 className={clsx(
-                  'flex w-full items-start gap-2.5 rounded-md px-3 py-2 text-left text-body disabled:cursor-not-allowed disabled:opacity-50',
+                  'flex w-full items-start gap-2.5 rounded-md px-3 py-2.5 text-left text-body disabled:cursor-not-allowed disabled:opacity-50 md:py-2',
                   item.danger ? 'text-danger hover:bg-danger-subtle' : 'text-ink hover:bg-sunken',
                 )}
               >
@@ -172,11 +199,17 @@ export function MonthsPicker({ value, onSelect, months = 2, isDisabled, wide }: 
   const { t } = useTranslation()
   const [anchor, setAnchor] = useState(() => startOfMonth(parseISO(value)))
   return (
-    <div className="flex gap-8">
+    <div className="flex justify-center gap-8 md:justify-start">
       {Array.from({ length: months }, (_, i) => {
         const month = addMonths(anchor, i)
+        const next = (
+          <button type="button" className="icon-btn h-8 w-8" aria-label={t('calendar.toolbar.nextMonth')} onClick={() => setAnchor((a) => addMonths(a, 1))}>
+            <ChevronRight size={18} aria-hidden />
+          </button>
+        )
         return (
-          <div key={i}>
+          // Phones show one month at a time (the first one gets the › button).
+          <div key={i} className={clsx(i > 0 && 'hidden md:block')}>
             <div className="mb-3 flex h-9 items-center justify-between">
               {i === 0 ? (
                 <button type="button" className="icon-btn h-8 w-8" aria-label={t('calendar.toolbar.prevMonth')} onClick={() => setAnchor((a) => addMonths(a, -1))}>
@@ -187,11 +220,12 @@ export function MonthsPicker({ value, onSelect, months = 2, isDisabled, wide }: 
               )}
               <span className="text-body-strong text-ink">{format(month, 'MMMM yyyy')}</span>
               {i === months - 1 ? (
-                <button type="button" className="icon-btn h-8 w-8" aria-label={t('calendar.toolbar.nextMonth')} onClick={() => setAnchor((a) => addMonths(a, 1))}>
-                  <ChevronRight size={18} aria-hidden />
-                </button>
+                next
               ) : (
-                <span className="w-8" />
+                <>
+                  <span className="hidden w-8 md:block" />
+                  <span className="md:hidden">{next}</span>
+                </>
               )}
             </div>
             <MonthGrid month={month} selected={value} onSelect={onSelect} isDisabled={isDisabled} wide={wide} />
@@ -268,13 +302,13 @@ export function FullScreen({ open, onClose, children, actions, closeLabel, close
   if (!open) return null
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label={label} data-fullscreen className="fixed inset-0 z-[75] overflow-y-auto bg-surface">
-      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-surface/90 px-8 py-4 backdrop-blur">
+      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-surface/90 px-4 py-3 backdrop-blur md:px-8 md:py-4">
         <Button variant={closeVariant} onClick={onClose} className="rounded-full">
           {closeLabel}
         </Button>
         {actions}
       </div>
-      <div className={clsx('mx-auto w-full px-8 pb-16 pt-6', narrow ? 'max-w-[870px]' : 'max-w-5xl')}>{children}</div>
+      <div className={clsx('mx-auto w-full px-4 pb-10 pt-4 md:px-8 md:pb-16 md:pt-6', narrow ? 'max-w-[870px]' : 'max-w-5xl')}>{children}</div>
     </div>,
     document.body,
   )
@@ -283,7 +317,7 @@ export function FullScreen({ open, onClose, children, actions, closeLabel, close
 /** Round buttons floating left of a drawer (Minimise, Focus appointment, View group). */
 export function FloatingDrawerButtons({ drawerWidth, buttons }: { drawerWidth: number; buttons: { label: string; icon: ReactNode; onClick: () => void }[] }) {
   return createPortal(
-    <div className="fixed z-[51] hidden flex-col gap-3 sm:flex" style={{ top: 76, right: drawerWidth + 16 }}>
+    <div className="fixed z-[51] hidden flex-col gap-3 md:flex" style={{ top: 76, right: drawerWidth + 16 }}>
       {buttons.map((b) => (
         <button
           key={b.label}

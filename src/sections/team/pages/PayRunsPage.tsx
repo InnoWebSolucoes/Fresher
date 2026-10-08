@@ -143,14 +143,14 @@ export function PayRunsPage({ tab = 'periods' }: { tab?: 'periods' | 'settlement
         <>
           <Toolbar>
             <Select aria-label={t('team.pay.period')} value={period.start} onChange={(e) => setPeriodStart(e.target.value)} className="w-auto rounded-full" options={periods.map((p, i) => ({ value: p.start, label: `${rangeLabel(p.start, p.end)}${i === 0 ? ` · ${t('team.pay.current')}` : ''}` }))} />
-            <SearchInput value={q} onChange={setQ} placeholder={t('team.pay.searchName')} className="max-w-[280px]" />
+            <SearchInput value={q} onChange={setQ} placeholder={t('team.pay.searchName')} className="md:max-w-[280px]" />
           </Toolbar>
-          <div className="mb-5 grid gap-3 md:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.6fr)]">
+          <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.6fr)]">
             <StatCard label={t('team.pay.earnings')} value={money(sum((c) => c.earnings))} />
             <StatCard label={t('team.pay.kinds.other')} value={money(sum((c) => c.other.total))} />
             <StatCard label={t('team.pay.total')} value={money(sum((c) => c.total))} />
             <StatCard label={t('team.pay.paid')} value={money(sum((c) => c.paid))} />
-            <StatCard label={t('team.pay.toPay')} value={money(sum((c) => c.toPay))} strong>
+            <StatCard label={t('team.pay.toPay')} value={money(sum((c) => c.toPay))} strong className="col-span-2 md:col-span-1">
               <Button variant="primary" disabled={sum((c) => c.toPay) <= 0} onClick={() => navigate(`/team/payrun/new?period=${period.start}`)}>
                 {t('team.pay.payTeam')}
               </Button>
@@ -272,7 +272,7 @@ export function PayRunsPage({ tab = 'periods' }: { tab?: 'periods' | 'settlement
               {t('team.common.filters')}
               {filterCount > 0 && <span className="chip h-5 bg-primary px-1.5 text-caption text-on-primary">{filterCount}</span>}
             </Button>
-            <SearchInput value={q} onChange={setQ} placeholder={t('team.pay.searchMember')} className="max-w-[280px]" />
+            <SearchInput value={q} onChange={setQ} placeholder={t('team.pay.searchMember')} className="md:max-w-[280px]" />
           </Toolbar>
           <Modal
             open={filtersDraft !== null}

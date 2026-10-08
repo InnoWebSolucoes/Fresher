@@ -72,7 +72,7 @@ function NewsPanel() {
   return (
     <div>
       <PanelHeader title={t('panels.news.title')} />
-      <div className="flex flex-col gap-4 px-6 pb-6">
+      <div className="flex flex-col gap-4 px-4 pb-6 md:px-6">
         {NEWS.map((item) => {
           const unread = unreadAtOpen.includes(item.id) || !newsRead.includes(item.id)
           const action = item.action

@@ -7,7 +7,7 @@ import { useDrawer } from '@/lib/drawer'
 import { fmtDateEU, money } from '@/lib/format'
 import { exportCsv, exportedFileName } from '@/lib/export'
 import type { ClientMembership, Membership } from '@/types'
-import { ExportMenu, TableLink } from '../shared/ui'
+import { ExportMenu, HiddenHeader, TableLink } from '../shared/ui'
 import { matches, useLookups } from '../shared/data'
 import { NoResults } from '../lists/AppointmentsListPage'
 
@@ -70,7 +70,7 @@ export function MembershipsSoldPage() {
     { key: 'status', header: t('sales.memberships.cols.status'), cell: (r) => <Chip tone={TONES[r.cm.status]}>{t(`sales.memberships.status.${r.cm.status}`)}</Chip> },
     {
       key: 'actions',
-      header: <span className="sr-only">{t('sales.common.actions')}</span>,
+      header: <HiddenHeader>{t('sales.common.actions')}</HiddenHeader>,
       width: '56px',
       cell: (r) => (
         <Menu

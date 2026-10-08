@@ -95,8 +95,8 @@ export function MenuOrderPage() {
         </Button>
       }
     >
-      <h1 className="font-display text-display text-ink">{t('catalog.order.title')}</h1>
-      <p className="mt-2 text-body-lg text-muted">{t('catalog.order.subtitle')}</p>
+      <h1 className="font-display text-title-1 text-ink md:text-display">{t('catalog.order.title')}</h1>
+      <p className="mt-2 text-body text-muted md:text-body-lg">{t('catalog.order.subtitle')}</p>
       <div className="mt-6">
         <Menu
           align="left"
@@ -129,9 +129,9 @@ export function MenuOrderPage() {
                 const cat = categories.find((c) => c.id === cid)
                 if (!cat) return null
                 return (
-                  <SortableRow key={cid} id={cid} handleLabel={t('catalog.order.dragCategory', { name: cat.name })} className="flex flex-wrap items-start gap-2 rounded-lg border border-line bg-surface p-4">
+                  <SortableRow key={cid} id={cid} handleLabel={t('catalog.order.dragCategory', { name: cat.name })} className="flex flex-wrap items-start gap-2 rounded-lg border border-line bg-surface p-3 md:p-4">
                     <div className="min-w-0 flex-1">
-                      <p className="flex h-9 items-center font-display text-title-3 text-ink">{cat.name}</p>
+                      <p className="flex min-h-9 items-center font-display text-title-3 text-ink md:h-9">{cat.name}</p>
                       {mode === 'all' && (
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onItemsEnd(cid)}>
                           <SortableContext items={items[cid] ?? []} strategy={verticalListSortingStrategy}>
@@ -140,7 +140,7 @@ export function MenuOrderPage() {
                               {(items[cid] ?? []).map((id) => (
                                 <SortableRow key={id} id={id} handleLabel={t('catalog.order.dragItem', { name: label(id) })} className="flex items-center gap-2 overflow-hidden rounded-lg border border-line bg-surface pr-4">
                                   <span className="-order-1 w-1.5 self-stretch" style={{ background: PALETTE[cat.color].edge }} aria-hidden />
-                                  <span className="py-3 text-body-lg text-ink">{label(id)}</span>
+                                  <span className="min-w-0 py-3 text-body-lg text-ink">{label(id)}</span>
                                   {bundles.some((b) => b.id === id) && <span className="chip ml-2 h-5 bg-sunken text-caption text-muted">{t('catalog.order.bundle')}</span>}
                                 </SortableRow>
                               ))}
@@ -196,8 +196,8 @@ export function BookingSequencePage() {
         </Button>
       }
     >
-      <h1 className="font-display text-display text-ink">{t('catalog.sequence.title')}</h1>
-      <p className="mt-2 text-body-lg text-muted">
+      <h1 className="font-display text-title-1 text-ink md:text-display">{t('catalog.sequence.title')}</h1>
+      <p className="mt-2 text-body text-muted md:text-body-lg">
         {t('catalog.sequence.subtitle')} <LearnMore topic={t('catalog.topics.bookingSequence')}>{t('catalog.common.learnMore')}</LearnMore>
       </p>
       {loading ? (
@@ -214,9 +214,9 @@ export function BookingSequencePage() {
                 {list.map((s, i) => {
                   const cat = categories.find((c) => c.id === s.categoryId)
                   return (
-                    <SortableRow key={s.id} id={s.id} handleLabel={t('catalog.order.dragItem', { name: s.name })} className="flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-subtle text-body-strong text-primary">{i + 1}</span>
-                      <span className="h-10 w-1 rounded-full" style={{ background: PALETTE[cat?.color ?? 'blue'].edge }} aria-hidden />
+                    <SortableRow key={s.id} id={s.id} handleLabel={t('catalog.order.dragItem', { name: s.name })} className="flex items-center gap-2 rounded-lg border border-line bg-surface px-2 py-3 md:gap-3 md:px-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-body-strong text-primary">{i + 1}</span>
+                      <span className="h-10 w-1 shrink-0 rounded-full" style={{ background: PALETTE[cat?.color ?? 'blue'].edge }} aria-hidden />
                       <span className="min-w-0 flex-1">
                         <span className="block text-body-lg text-ink">{s.name}</span>
                         <span className="block text-body text-muted">

@@ -36,13 +36,13 @@ export function CartStep() {
   return (
     <div>
       <Breadcrumb />
-      <h1 className="mt-3 font-display text-title-1 text-ink">{t('checkout.cart.title')}</h1>
-      <SearchInput className="mt-6" value={query} onChange={setQuery} placeholder={t('checkout.cart.search')} />
+      <h1 className="mt-3 font-display text-title-2 text-ink md:text-title-1">{t('checkout.cart.title')}</h1>
+      <SearchInput className="mt-4 md:mt-6" value={query} onChange={setQuery} placeholder={t('checkout.cart.search')} />
       {query.trim() ? (
         <SearchResults query={query.trim()} />
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-3 gap-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 md:mt-6 md:grid-cols-3 md:gap-4">
             {CATEGORIES.map((cat) => (
               <Tile key={cat.id} align="left" className="min-h-[104px]" icon={cat.icon} label={t(`checkout.cart.categories.${cat.id}`)} onClick={() => c.setCategory(cat.id)} testId={`category-${cat.id}`} />
             ))}
@@ -58,8 +58,8 @@ function CategoryHeader({ title, action }: { title: string; action?: ReactNode }
   const { t } = useTranslation()
   const c = useCheckout()
   return (
-    <div className="mb-6 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 md:mb-6">
+      <div className="flex min-w-0 items-center gap-3">
         <button type="button" onClick={() => c.setCategory(null)} aria-label={t('checkout.common.goBack')} className="icon-btn -ml-2">
           <ArrowLeft size={22} aria-hidden />
         </button>
@@ -92,7 +92,7 @@ function CategoryView() {
 
 function RowButton({ onClick, children, disabled, testId }: { onClick: () => void; children: ReactNode; disabled?: boolean; testId?: string }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} data-testid={testId} className="flex w-full items-start justify-between gap-4 rounded-lg border border-line bg-surface px-6 py-4 text-left transition-colors hover:bg-sunken/60 disabled:cursor-not-allowed disabled:opacity-50">
+    <button type="button" onClick={onClick} disabled={disabled} data-testid={testId} className="flex w-full items-start justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-4 text-left md:px-6 transition-colors hover:bg-sunken/60 disabled:cursor-not-allowed disabled:opacity-50">
       {children}
     </button>
   )
@@ -164,7 +164,7 @@ function AppointmentsCategory() {
     <div>
       <CategoryHeader title={t('checkout.cart.categories.appointments')} />
       <SearchInput value={query} onChange={setQuery} placeholder={t('checkout.cart.search')} />
-      <div className="mt-6 flex items-center justify-between gap-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 md:mt-6">
         <p className="text-body-strong text-muted">{t('checkout.cart.selectAppointment')}</p>
         <div className="flex items-center gap-2">
           <Select
@@ -247,7 +247,7 @@ function ServicesCategory() {
             {services.flatMap((s) => {
               const options = s.variants.length ? s.variants.map((v) => ({ id: v.id, name: `${s.name} - ${v.name}`, price: v.price, duration: v.durationMin })) : [{ id: '', name: s.name, price: s.price, duration: s.durationMin }]
               return options.map((o) => (
-                <button key={`${s.id}${o.id}`} type="button" onClick={() => addService(s, o.id || undefined)} className="relative flex w-full items-center justify-between gap-4 px-6 py-4 text-left hover:bg-sunken/60" data-testid="service-option">
+                <button key={`${s.id}${o.id}`} type="button" onClick={() => addService(s, o.id || undefined)} className="relative flex w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-sunken/60 md:px-6" data-testid="service-option">
                   <span className="absolute bottom-3 left-0 top-3 w-1 rounded-full" style={{ background: PALETTE[cat.color].edge }} aria-hidden />
                   <span>
                     <span className="block text-body-lg text-ink">{o.name}</span>
@@ -291,7 +291,7 @@ function ProductsCategory() {
             {list.map((p) => {
               const out = p.trackStock && p.stock <= 0
               return (
-                <button key={p.id} type="button" disabled={out} onClick={() => c.addLine({ type: 'product', refId: p.id, name: p.name, quantity: 1, unitPrice: p.retailPrice, teamMemberId: c.defaultMemberId })} className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left hover:bg-sunken/60 disabled:cursor-not-allowed disabled:opacity-50" data-testid="product-option">
+                <button key={p.id} type="button" disabled={out} onClick={() => c.addLine({ type: 'product', refId: p.id, name: p.name, quantity: 1, unitPrice: p.retailPrice, teamMemberId: c.defaultMemberId })} className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-sunken/60 disabled:cursor-not-allowed disabled:opacity-50 md:px-6" data-testid="product-option">
                   <span>
                     <span className="block text-body-lg text-ink">{p.name}</span>
                     <span className="block text-body text-muted">{[brands.find((b) => b.id === p.brandId)?.name, p.trackStock ? (out ? t('checkout.cart.outOfStock') : t('checkout.cart.inStock', { count: p.stock })) : undefined].filter(Boolean).join(' • ')}</span>
@@ -438,7 +438,7 @@ function GiftCardsCategory() {
       {!settings.enabled ? (
         <EmptyState icon={<Gift size={26} aria-hidden />} title={t('checkout.cart.noGiftCards')} action={<Button onClick={() => navigate('/setup/sales/gift-cards')}>{t('checkout.cart.manageGiftCards')}</Button>} />
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           {settings.values.map((v) => (
             <GiftTile key={v} icon={<Gift size={30} aria-hidden />} title={t('checkout.cart.giftCard')} sub={money(v)} onClick={() => addGift(v)} />
           ))}
@@ -451,9 +451,9 @@ function GiftCardsCategory() {
 
 function GiftTile({ icon, title, sub, onClick }: { icon: ReactNode; title: string; sub: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex h-[120px] overflow-hidden rounded-lg border border-line bg-surface text-left hover:border-line-strong" data-testid="gift-card-option">
-      <span className="flex w-[96px] shrink-0 items-center justify-center bg-sunken text-primary">{icon}</span>
-      <span className="flex flex-col justify-center px-5">
+    <button type="button" onClick={onClick} className="flex h-[72px] overflow-hidden rounded-lg border border-line bg-surface text-left hover:border-line-strong md:h-[120px]" data-testid="gift-card-option">
+      <span className="flex w-[64px] shrink-0 items-center justify-center bg-sunken text-primary md:w-[96px] [&>svg]:h-6 [&>svg]:w-6 md:[&>svg]:h-[30px] md:[&>svg]:w-[30px]">{icon}</span>
+      <span className="flex min-w-0 flex-col justify-center px-4 md:px-5">
         <span className="text-body-lg text-ink">{title}</span>
         <span className="text-body text-muted">{sub}</span>
       </span>
@@ -482,22 +482,22 @@ function QuickSale() {
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x))
   return (
-    <section className="mt-10">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="mt-8 md:mt-10">
+      <div className="mb-3 flex items-center justify-between md:mb-4">
         <h2 className="text-body-lg font-semibold text-ink">{t('checkout.cart.quickSale')}</h2>
         <button type="button" className="text-body-strong text-primary hover:underline" onClick={() => c.setModal({ kind: 'quickSale' })}>
           {t('checkout.cart.edit')}
         </button>
       </div>
       {tiles.length === 0 ? (
-        <button type="button" onClick={() => c.setModal({ kind: 'quickSale' })} className="flex w-full items-center justify-between rounded-lg border border-dashed border-line-strong px-6 py-6 text-left text-body text-muted hover:bg-sunken/60">
+        <button type="button" onClick={() => c.setModal({ kind: 'quickSale' })} className="flex w-full items-center justify-between gap-3 rounded-lg border border-dashed border-line-strong px-4 py-5 text-left text-body text-muted hover:bg-sunken/60 md:px-6 md:py-6">
           {t('checkout.cart.quickSaleEmpty')}
           <ChevronRight size={18} aria-hidden />
         </button>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
           {tiles.map((tile) => (
-            <button key={tile.key} type="button" onClick={tile.onClick} className="relative flex h-[120px] flex-col justify-center overflow-hidden rounded-lg border border-line bg-surface pl-8 pr-5 text-left hover:border-line-strong" data-testid="quick-sale-tile">
+            <button key={tile.key} type="button" onClick={tile.onClick} className="relative flex min-h-[104px] flex-col justify-center overflow-hidden rounded-lg border border-line bg-surface py-3 pl-5 pr-3 text-left hover:border-line-strong md:h-[120px] md:min-h-0 md:py-0 md:pl-8 md:pr-5" data-testid="quick-sale-tile">
               <span className="absolute bottom-0 left-0 top-0 w-2" style={{ background: tile.color }} aria-hidden />
               <span className="text-body-lg text-ink">{tile.name}</span>
               <span className="text-body text-muted tabular">{money(tile.price)}</span>
@@ -525,7 +525,7 @@ function SearchResults({ query }: { query: string }) {
   return (
     <div className="mt-6 flex flex-col divide-y divide-line rounded-lg border border-line">
       {results.map((r) => (
-        <button key={r.key} type="button" onClick={r.add} className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left hover:bg-sunken/60" data-testid="search-result">
+        <button key={r.key} type="button" onClick={r.add} className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-sunken/60 md:px-6" data-testid="search-result">
           <span>
             <span className="block text-body-lg text-ink">{r.name}</span>
             <span className="block text-body text-muted">{r.kind}</span>

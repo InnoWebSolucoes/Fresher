@@ -146,18 +146,18 @@ export function OpeningHoursEditor({ value, onChange, errors = {} }: { value: Op
             {day.open && (
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 {day.ranges.map((r, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={i} className="flex items-center gap-2 sm:gap-3">
                     <Select
                       aria-label={t('settings.biz.hours.start')}
-                      className="w-32"
+                      className="min-w-0 flex-1 sm:w-32 sm:flex-none"
                       value={r.start}
                       options={TIME_OPTIONS}
                       onChange={(e) => setDay(d, { ...day, ranges: day.ranges.map((x, j) => (j === i ? { ...x, start: e.target.value } : x)) })}
                     />
-                    <span className="text-body text-muted">{t('settings.biz.hours.to')}</span>
+                    <span className="shrink-0 text-body text-muted">{t('settings.biz.hours.to')}</span>
                     <Select
                       aria-label={t('settings.biz.hours.end')}
-                      className="w-32"
+                      className="min-w-0 flex-1 sm:w-32 sm:flex-none"
                       value={r.end}
                       options={TIME_OPTIONS}
                       onChange={(e) => setDay(d, { ...day, ranges: day.ranges.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)) })}
@@ -165,7 +165,7 @@ export function OpeningHoursEditor({ value, onChange, errors = {} }: { value: Op
                     {i === 0 ? (
                       <button
                         type="button"
-                        className="icon-btn"
+                        className="icon-btn shrink-0"
                         aria-label={t('settings.biz.hours.addRange')}
                         title={t('settings.biz.hours.addRange')}
                         onClick={() => {
@@ -178,7 +178,7 @@ export function OpeningHoursEditor({ value, onChange, errors = {} }: { value: Op
                         <Plus size={18} aria-hidden />
                       </button>
                     ) : (
-                      <button type="button" className="icon-btn" aria-label={t('settings.biz.hours.removeRange')} title={t('settings.biz.hours.removeRange')} onClick={() => setDay(d, { ...day, ranges: day.ranges.filter((_, j) => j !== i) })}>
+                      <button type="button" className="icon-btn shrink-0" aria-label={t('settings.biz.hours.removeRange')} title={t('settings.biz.hours.removeRange')} onClick={() => setDay(d, { ...day, ranges: day.ranges.filter((_, j) => j !== i) })}>
                         <Trash2 size={18} aria-hidden />
                       </button>
                     )}

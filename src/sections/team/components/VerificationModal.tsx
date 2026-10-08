@@ -109,7 +109,7 @@ function VerificationForm({ onCancel, onSubmit }: { onCancel: () => void; onSubm
           </svg>
           <span className="absolute inset-0 flex items-center justify-center font-display text-title-1 tabular text-ink">{`${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`}</span>
         </div>
-        <h1 id="verify-title" className="mt-8 font-display text-title-1 text-ink">
+        <h1 id="verify-title" className="mt-8 font-display text-title-2 text-ink md:text-title-1">
           {t('team.payRunNew.code.title')}
         </h1>
         <p className="mt-2 text-body-lg text-ink">{t('team.payRunNew.code.subtitle')}</p>

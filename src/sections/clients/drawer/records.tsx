@@ -381,10 +381,10 @@ export function FilesTab() {
       <div className="mb-5 flex items-center gap-3">
         <SearchInput value={query} onChange={setQuery} placeholder={t('clients.common.search')} className="min-w-0" />
         <div className="inline-flex rounded-md bg-sunken p-1">
-          <button type="button" aria-label={t('clients.files.list')} aria-pressed={view === 'list'} onClick={() => setView('list')} className={clsx('rounded-sm p-1.5', view === 'list' ? 'bg-surface shadow-xs' : 'text-muted')}>
+          <button type="button" aria-label={t('clients.files.list')} aria-pressed={view === 'list'} onClick={() => setView('list')} className={clsx('rounded-sm p-2 md:p-1.5', view === 'list' ? 'bg-surface shadow-xs' : 'text-muted')}>
             <List size={18} aria-hidden />
           </button>
-          <button type="button" aria-label={t('clients.files.grid')} aria-pressed={view === 'grid'} onClick={() => setView('grid')} className={clsx('rounded-sm p-1.5', view === 'grid' ? 'bg-surface shadow-xs' : 'text-muted')}>
+          <button type="button" aria-label={t('clients.files.grid')} aria-pressed={view === 'grid'} onClick={() => setView('grid')} className={clsx('rounded-sm p-2 md:p-1.5', view === 'grid' ? 'bg-surface shadow-xs' : 'text-muted')}>
             <LayoutGrid size={18} aria-hidden />
           </button>
         </div>

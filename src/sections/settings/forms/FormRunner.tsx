@@ -68,13 +68,13 @@ export function FormRunner({
   return (
     <div className={clsx('rounded-xl border border-line bg-surface shadow-sm', className)} data-testid={testId}>
       {phase === 'done' ? (
-        <div className="flex flex-col items-center gap-3 px-8 py-16 text-center" role="status">
+        <div className="flex flex-col items-center gap-3 px-5 py-10 md:px-8 md:py-16 text-center" role="status">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-subtle text-success">
             <CheckCircle2 size={28} aria-hidden />
           </span>
           <h2 className="font-display text-title-2 text-ink">{t('settings.frm.preview.doneTitle')}</h2>
           <p className="max-w-sm text-body text-muted">{t('settings.frm.preview.doneBody')}</p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
             <Button onClick={restart}>
               {t('settings.frm.preview.startAgain')}
             </Button>
@@ -86,10 +86,10 @@ export function FormRunner({
           </div>
         </div>
       ) : !section ? (
-        <p className="px-8 py-16 text-center text-body text-muted">{t('settings.frm.preview.noSections')}</p>
+        <p className="px-5 py-10 md:px-8 md:py-16 text-center text-body text-muted">{t('settings.frm.preview.noSections')}</p>
       ) : (
         <>
-          <div className="px-8 pb-2 pt-8 text-center">
+          <div className="px-5 pb-2 pt-6 text-center md:px-8 md:pt-8">
             {badge && <div className="mb-5 flex justify-center">{badge}</div>}
             <p className="text-body text-ink">{t('settings.frm.preview.step', { step: step + 1, total })}</p>
             <h2 className="mt-1 break-words font-display text-title-2 text-ink">{section.title || t('settings.frm.builder.customSection')}</h2>
@@ -99,20 +99,20 @@ export function FormRunner({
               <ClientDetailsFields answers={answers} set={set} prefix={section.id} />
             ) : (
               section.blocks.map((block) => (
-                <div key={block.id} className="px-8 py-5">
+                <div key={block.id} className="px-5 py-5 md:px-8">
                   <BlockField block={block} value={answers[block.id] ?? ''} onChange={(v) => set(block.id, v)} />
                 </div>
               ))
             )}
             {last && signatureRequired && (
-              <div className="px-8 py-5">
+              <div className="px-5 py-5 md:px-8">
                 <p className="mb-1 text-body-strong text-ink">{t('settings.frm.preview.signature')}</p>
                 <p className="mb-3 text-small text-muted">{t('settings.frm.preview.signAgreement')}</p>
                 <SignaturePad value={answers.__signature ?? ''} onChange={(v) => set('__signature', v)} />
               </div>
             )}
           </div>
-          <div className="flex items-center justify-between gap-3 px-8 pb-8 pt-4">
+          <div className="flex items-center justify-between gap-3 px-5 pb-6 pt-4 md:px-8 md:pb-8">
             <div>
               {step > 0 && (
                 <Button icon={<ArrowLeft size={16} aria-hidden />} onClick={() => go(step - 1)}>
@@ -144,13 +144,13 @@ export function ClientDetailsFields({ answers, set, prefix, readOnly }: { answer
   const common = readOnly ? { readOnly: true, tabIndex: -1, 'aria-readonly': true } : {}
   return (
     <>
-      <div className="px-8 py-5">
+      <div className="px-5 py-5 md:px-8">
         <Field label={t('settings.frm.preview.firstName')}>{(id) => <TextInput id={id} value={value('firstName')} onChange={change('firstName')} autoComplete="given-name" {...common} />}</Field>
       </div>
-      <div className="px-8 py-5">
+      <div className="px-5 py-5 md:px-8">
         <Field label={t('settings.frm.preview.lastName')}>{(id) => <TextInput id={id} value={value('lastName')} onChange={change('lastName')} autoComplete="family-name" {...common} />}</Field>
       </div>
-      <div className="px-8 py-5">
+      <div className="px-5 py-5 md:px-8">
         <Field label={t('settings.frm.preview.mobile')}>
           {(id) => (
             <div className="flex gap-2.5">
@@ -168,7 +168,7 @@ export function ClientDetailsFields({ answers, set, prefix, readOnly }: { answer
           )}
         </Field>
       </div>
-      <div className="px-8 py-5">
+      <div className="px-5 py-5 md:px-8">
         <Field label={t('settings.frm.preview.address')}>{(id) => <TextArea id={id} value={value('address')} onChange={change('address')} autoComplete="street-address" className="min-h-[120px]" {...common} />}</Field>
       </div>
     </>

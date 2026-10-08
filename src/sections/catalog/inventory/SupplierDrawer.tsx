@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
 import { Avatar, Button, EmptyState, Menu, MenuButton } from '@/components/ui'
+import { useIsPhone } from '@/components/ui/responsive'
 import type { DrawerProps } from '@/app/sectionRegistry'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDate, money } from '@/lib/format'
 import { orderTotal } from '@/api/catalog'
-import { InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
+import { HeroInfo, HeroMedia, InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
 import { InventoryStatus, productSku, supplierManager, supplierPhone } from './shared'
 import { confirmDeleteSupplier } from './SuppliersPage'
 import { countryLabel } from '../lib'
@@ -20,6 +21,7 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const drawer = useDrawer()
+  const phone = useIsPhone()
   const supplier = useDb((s) => s.suppliers.find((x) => x.id === id))
   const allProducts = useDb((s) => s.products)
   const allOrders = useDb((s) => s.stockOrders)
@@ -35,39 +37,43 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
 
   const hero = (
     <>
-      <Avatar name={supplier.name} size={96} className="mb-2 text-title-2" />
-      <h2 className="font-display text-title-3 text-ink">{supplier.name}</h2>
-      <p className="text-body text-muted">{t('catalog.inventory.common.products', { count: products.length })}</p>
-      <div className="mt-3">
-        <Menu
-          align="left"
-          width={220}
-          trigger={({ open, toggle }) => (
-            <MenuButton open={open} toggle={toggle}>
-              {t('catalog.common.actions')}
-            </MenuButton>
-          )}
-          groups={[
-            {
-              items: [
-                { label: t('catalog.inventory.suppliers.createOrder'), onSelect: createOrder },
-                { label: t('catalog.inventory.suppliers.edit'), onSelect: edit },
-              ],
-            },
-            {
-              items: [
-                {
-                  label: t('catalog.inventory.suppliers.delete'),
-                  danger: true,
-                  onSelect: async () => {
-                    if (await confirmDeleteSupplier(supplier, t)) close()
+      <HeroMedia>
+        <Avatar name={supplier.name} size={phone ? 64 : 96} className="text-title-2" />
+      </HeroMedia>
+      <HeroInfo>
+        <h2 className="font-display text-title-3 text-ink">{supplier.name}</h2>
+        <p className="text-body text-muted">{t('catalog.inventory.common.products', { count: products.length })}</p>
+        <div className="mt-1 md:mt-3">
+          <Menu
+            align="left"
+            width={220}
+            trigger={({ open, toggle }) => (
+              <MenuButton open={open} toggle={toggle}>
+                {t('catalog.common.actions')}
+              </MenuButton>
+            )}
+            groups={[
+              {
+                items: [
+                  { label: t('catalog.inventory.suppliers.createOrder'), onSelect: createOrder },
+                  { label: t('catalog.inventory.suppliers.edit'), onSelect: edit },
+                ],
+              },
+              {
+                items: [
+                  {
+                    label: t('catalog.inventory.suppliers.delete'),
+                    danger: true,
+                    onSelect: async () => {
+                      if (await confirmDeleteSupplier(supplier, t)) close()
+                    },
                   },
-                },
-              ],
-            },
-          ]}
-        />
-      </div>
+                ],
+              },
+            ]}
+          />
+        </div>
+      </HeroInfo>
     </>
   )
 
@@ -134,7 +140,7 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
             <ul className="flex flex-col gap-3">
               {orders.map((o) => (
                 <li key={o.id}>
-                  <button type="button" onClick={() => drawer.open('stock-order', { id: o.id })} className="flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-4 text-left hover:border-line-strong">
+                  <button type="button" onClick={() => drawer.open('stock-order', { id: o.id })} className="flex w-full items-center gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:border-line-strong md:gap-4">
                     <span className="min-w-0 flex-1">
                       <span className="block text-body-strong text-ink">{t('catalog.inventory.orderDrawer.title', { number: o.number })}</span>
                       <span className="block text-small text-muted">{fmtDate(parseISO(o.createdAt))}</span>
@@ -162,7 +168,7 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
                   <button type="button" onClick={() => drawer.open('product', { id: p.id })} className="flex w-full items-center gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:border-line-strong">
                     <ProductThumb product={p} size={44} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-body text-ink">{p.name}</span>
+                      <span className="block text-body text-ink max-md:break-words md:truncate">{p.name}</span>
                       {productSku(p) && <span className="block text-small text-muted">{t('catalog.inventory.common.sku', { sku: productSku(p) })}</span>}
                     </span>
                     <span className="text-small text-muted">{t('catalog.inventory.common.inStock', { count: p.stock })}</span>

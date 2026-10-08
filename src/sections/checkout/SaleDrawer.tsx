@@ -108,7 +108,7 @@ export function SaleDrawer({ id, params }: DrawerProps) {
   )
 
   return (
-    <div className="flex h-full min-h-0" data-testid="sale-drawer">
+    <div className="flex h-full min-h-0 flex-col md:flex-row" data-testid="sale-drawer">
       <IconRail<Tab>
         label={t('checkout.sale.sections')}
         value={tab}
@@ -119,8 +119,8 @@ export function SaleDrawer({ id, params }: DrawerProps) {
           { value: 'activity', label: t('checkout.sale.tabs.activity'), icon: Activity },
         ]}
       />
-      <div className="min-w-0 flex-1 overflow-y-auto bg-canvas px-8 pb-12 pt-8">
-        <div className="flex items-center justify-between gap-3">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-canvas px-4 pb-8 pt-5 md:px-8 md:pb-12 md:pt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <SaleStatusPill sale={sale} />
           <div className="flex items-center gap-2">
             {headerAction}
@@ -153,11 +153,11 @@ export function SaleDrawer({ id, params }: DrawerProps) {
             />
           </div>
         </div>
-        <h1 className="mt-5 font-display text-title-1 text-ink">{isRefund ? t('checkout.sale.refundTitle') : t('checkout.sale.title')}</h1>
-        <p className="mt-1 text-body-lg text-muted">
+        <h1 className="mt-4 font-display text-title-2 text-ink md:mt-5 md:text-title-1">{isRefund ? t('checkout.sale.refundTitle') : t('checkout.sale.title')}</h1>
+        <p className="mt-1 text-body text-muted md:text-body-lg">
           {format(parseISO(sale.createdAt), 'EEE, MMM d, yyyy')} • {location?.name}
         </p>
-        <div className="mt-6">
+        <div className="mt-5 md:mt-6">
           {tab === 'summary' && <SummaryTab sale={sale} onShareGift={(cardId) => setModal({ kind: 'shareGift', cardId })} />}
           {tab === 'notes' && <NotesTab sale={sale} onAdd={() => setModal({ kind: 'note' })} />}
           {tab === 'activity' && <ActivityTab sale={sale} onEmail={() => setModal({ kind: 'share' })} />}
@@ -182,7 +182,7 @@ function ClientBlock({ clientId }: { clientId: string | null }) {
   const client = useDb((s) => s.clients.find((c) => c.id === clientId))
   if (!client)
     return (
-      <div className="flex items-center justify-between rounded-lg border border-line bg-surface p-6">
+      <div className="flex items-center justify-between rounded-lg border border-line bg-surface p-4 md:p-6">
         <span className="text-body-lg font-semibold text-ink">{t('checkout.client.walkIn')}</span>
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-subtle text-primary">
           <Footprints size={24} aria-hidden />
@@ -190,7 +190,7 @@ function ClientBlock({ clientId }: { clientId: string | null }) {
       </div>
     )
   return (
-    <button type="button" onClick={() => drawer.open('client', { id: client.id })} className="flex w-full items-center justify-between gap-4 rounded-lg border border-line bg-surface p-6 text-left hover:bg-sunken/60" data-testid="sale-client">
+    <button type="button" onClick={() => drawer.open('client', { id: client.id })} className="flex w-full items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 text-left hover:bg-sunken/60 md:p-6" data-testid="sale-client">
       <span className="min-w-0">
         <span className="block truncate text-body-lg font-semibold text-ink">{fullName(client)}</span>
         <span className="block truncate text-body text-muted">{client.email || client.phone}</span>
@@ -211,16 +211,16 @@ function SummaryTab({ sale, onShareGift }: { sale: Sale; onShareGift: (id: strin
   const mems = sale.items.map((i) => (i.clientMembershipId ? data.clientMemberships.find((p) => p.id === i.clientMembershipId) : undefined)).filter((p): p is NonNullable<typeof p> => Boolean(p))
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
       <ClientBlock clientId={sale.clientId} />
       {refund && (
-        <button type="button" onClick={() => drawer.open('sale', { id: refund.id })} className="rounded-lg border border-line bg-surface px-6 py-4 text-left text-body text-ink hover:bg-sunken/60">
+        <button type="button" onClick={() => drawer.open('sale', { id: refund.id })} className="rounded-lg border border-line bg-surface px-4 py-4 text-left text-body text-ink hover:bg-sunken/60 md:px-6">
           <RotateCcw size={16} className="mr-2 inline text-muted" aria-hidden />
           {t('checkout.sale.refundedIn', { number: refund.number })}
         </button>
       )}
       {cards.map((card) => (
-        <div key={card.id} className="rounded-lg border border-line bg-surface p-6" data-testid="sale-gift-card">
+        <div key={card.id} className="rounded-lg border border-line bg-surface p-4 md:p-6" data-testid="sale-gift-card">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-body-lg font-semibold text-ink">
@@ -234,7 +234,7 @@ function SummaryTab({ sale, onShareGift }: { sale: Sale; onShareGift: (id: strin
               <Gift size={28} aria-hidden />
             </span>
           </div>
-          <div className="mt-5 flex gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             <Button className="rounded-full" onClick={() => drawer.open('gift-card', { id: card.id })}>
               {t('checkout.sale.viewGiftCard')}
             </Button>
@@ -247,7 +247,7 @@ function SummaryTab({ sale, onShareGift }: { sale: Sale; onShareGift: (id: strin
       {pkgs.map((p) => {
         const def = data.packages.find((d) => d.id === p.packageId)
         return (
-          <div key={p.id} className="flex items-center justify-between rounded-lg border border-line bg-surface p-6">
+          <div key={p.id} className="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 md:p-6">
             <div>
               <p className="text-body-lg font-semibold text-ink">{def?.name}</p>
               <p className="text-body text-muted">
@@ -261,7 +261,7 @@ function SummaryTab({ sale, onShareGift }: { sale: Sale; onShareGift: (id: strin
         )
       })}
       {mems.map((m) => (
-        <div key={m.id} className="rounded-lg border border-line bg-surface p-6">
+        <div key={m.id} className="rounded-lg border border-line bg-surface p-4 md:p-6">
           <p className="text-body-lg font-semibold text-ink">{data.memberships.find((d) => d.id === m.membershipId)?.name}</p>
           <p className="text-body text-muted">
             <span className="text-success">{t(`checkout.sale.memStatus.${m.status}`)}</span> • {t('checkout.sale.nextBilling', { date: fmtDate(m.nextBillingAt) })}
@@ -292,8 +292,8 @@ function SaleCard({ sale, linkToSale }: { sale: Sale; linkToSale?: boolean }) {
   const member = (id: string | null | undefined) => data.teamMembers.find((m) => m.id === id)
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-6" data-testid="sale-card">
-      <div className="flex items-start justify-between">
+    <div className="rounded-lg border border-line bg-surface p-4 md:p-6" data-testid="sale-card">
+      <div className="flex items-start justify-between gap-3">
         <div>
           {linkToSale ? (
             <button type="button" className="font-display text-title-2 text-primary hover:underline" onClick={() => drawer.open('sale', { id: sale.id })}>
@@ -395,7 +395,7 @@ function SaleCard({ sale, linkToSale }: { sale: Sale; linkToSale?: boolean }) {
               <div key={p.id}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="flex items-center gap-1.5 text-body-lg text-ink">
+                    <p className="flex flex-wrap items-center gap-1.5 text-body-lg text-ink">
                       {p.kind === 'refund' ? t('checkout.sale.refundPayment') : p.kind === 'deposit' ? t('checkout.sale.depositPayment') : t('checkout.sale.payment')} <MethodIcon method={p.method} /> {p.methodLabel}
                     </p>
                     <p className="text-body text-muted">
@@ -455,7 +455,7 @@ function NotesTab({ sale, onAdd }: { sale: Sale; onAdd: () => void }) {
       </div>
       <ul className="flex flex-col gap-3">
         {sale.notes.map((n) => (
-          <li key={n.id} className="rounded-lg border border-line bg-surface p-5">
+          <li key={n.id} className="rounded-lg border border-line bg-surface p-4 md:p-5">
             <p className="whitespace-pre-wrap text-body text-ink">{n.text}</p>
             <p className="mt-2 text-small text-muted">
               {relativeAt(n.at)} • {n.by}
@@ -494,13 +494,13 @@ function ActivityTab({ sale, onEmail }: { sale: Sale; onEmail: () => void }) {
       {groups.map((g) => (
         <section key={g.month} className="mb-6">
           <h2 className="mb-3 text-body-strong text-muted">{g.month}</h2>
-          <ol className="relative flex flex-col gap-4 border-l border-line pl-6">
+          <ol className="relative flex flex-col gap-4 border-l border-line pl-4 md:pl-6">
             {g.items.map((e) => {
               // Payment entries: "… paid by <method>", or a title naming one of this sale's payment methods (entries written in Portuguese).
               const payment = /paid by|pago com/i.test(e.title) || salePayments.some((p) => p.methodLabel && e.title.includes(p.methodLabel))
               return (
-                <li key={e.id} className="relative rounded-lg border border-line bg-surface p-5">
-                  <span className="absolute -left-[29px] top-6 h-2.5 w-2.5 rounded-full bg-line-strong" aria-hidden />
+                <li key={e.id} className="relative rounded-lg border border-line bg-surface p-4 md:p-5">
+                  <span className="absolute -left-[21px] top-6 md:-left-[29px] h-2.5 w-2.5 rounded-full bg-line-strong" aria-hidden />
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-body-lg font-semibold text-ink">{e.title}</p>

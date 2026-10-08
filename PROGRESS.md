@@ -46,6 +46,14 @@ European Portuguese (pt-PT) is the default language and English the second, swit
 - The demo seed is built in the current language (Portuguese by default: services, products, messages, notes, roles…); Reset demo rebuilds it in the current language. Client and product CSV imports accept Portuguese or English headers and values.
 - Layout checked page by page and in drawers, in English and Portuguese at 1440 and 1024 px, with an automated check for text that is cut off, overflows or wraps only in Portuguese.
 
+## Phones and tablets ☑
+Every page, drawer, modal and flow works at phone width (360–430px) and on tablets; desktop (≥768px) is unchanged.
+- Phones: a menu button opens a slide-out menu with every section and page; the current section's pages are a scrollable row of tabs; drawers are full screen with a close bar; modals and menus become bottom sheets; wide tables and the calendar/roster grids scroll sideways inside their own card; the page itself never scrolls sideways, inputs don't trigger iOS zoom and pinch zoom is off.
+- Tablets in portrait (768–1023px): icon rail kept, section menu as a tabs row so pages get the full width.
+- Checked with an automated crawl of 336 pages, drawers and edit/wizard/report pages at 390px (overflow, off-screen, cut-off and squeezed content) plus screenshots of every screen and flow; `e2e/mobile.spec.ts` covers the phone shell.
+- Browsers are told not to auto-translate the app (it has its own PT | EN switch); auto-translation was turning the Portuguese login screen into English on a phone set to English.
+- Presenter panel on a phone or tablet: add `?demo=1` to any URL.
+
 ## Phase 6 — polish ☑
 Loading skeletons, empty states, toasts and confirmations across sections; tablet (1024px) and dark-mode checks of the shell and main pages; Playwright suites; README walkthrough.
 

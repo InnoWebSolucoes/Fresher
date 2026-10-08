@@ -451,9 +451,9 @@ export function ServiceEditorPage() {
       {/* Online booking */}
       <SectionCard id="online" title={t('catalog.service.onlineTitle')} titleExtra={<OnOffChip on={form.onlineBooking} />} subtitle={t('catalog.service.onlineSubtitle')} action={<Switch checked={form.onlineBooking} onChange={(v) => set({ onlineBooking: v })} />}>
         {!locations.some((l) => l.marketplace.listed) && (
-          <div className="mb-5 flex items-center justify-between gap-4 rounded-lg bg-gradient-to-r from-primary to-primary-hover p-6 text-on-primary">
+          <div className="mb-5 flex flex-col items-start justify-between gap-4 rounded-lg bg-gradient-to-r from-primary to-primary-hover p-4 text-on-primary md:flex-row md:items-center md:p-6">
             <div>
-              <p className="font-display text-title-2">{t('catalog.service.promoTitle')}</p>
+              <p className="font-display text-title-3 md:text-title-2">{t('catalog.service.promoTitle')}</p>
               <p className="mt-1 text-body-lg opacity-90">{t('catalog.service.promoBody')}</p>
             </div>
             <Button variant="accent" iconRight={<ArrowRight size={16} />} onClick={() => navigate('/online-presence/locations')}>
@@ -517,12 +517,12 @@ export function ServiceEditorPage() {
             label={t('catalog.service.limitWeekly')}
           />
           {limitsWeekly && (
-            <div className="flex flex-col gap-2 pl-1">
+            <div className="flex flex-col gap-4 pl-1 md:gap-2">
               {WEEKDAYS.map((d) => {
                 const range = limitsWeekly[d]?.[0]
                 return (
-                  <div key={d} className="grid grid-cols-[150px_1fr_1fr] items-center gap-3">
-                    <Checkbox checked={Boolean(range)} onChange={(v) => setWeekly(d, v ? { start: '09:00', end: '19:00' } : null)} label={t(`catalog.weekdays.${d}`)} />
+                  <div key={d} className="grid grid-cols-2 items-center gap-x-3 gap-y-2 md:grid-cols-[150px_1fr_1fr] md:gap-3">
+                    <Checkbox className="col-span-2 md:col-span-1" checked={Boolean(range)} onChange={(v) => setWeekly(d, v ? { start: '09:00', end: '19:00' } : null)} label={t(`catalog.weekdays.${d}`)} />
                     {range ? (
                       <>
                         <TextInput type="time" value={range.start} aria-label={t('catalog.service.from')} onChange={(e) => setWeekly(d, { ...range, start: e.target.value })} />
@@ -564,7 +564,7 @@ export function ServiceEditorPage() {
       >
         {form.formIds.length > 0 && (
           <div className="mb-4">
-            <div className="grid grid-cols-[1fr_1fr_40px] border-b border-line pb-3 text-body-strong text-ink">
+            <div className="hidden grid-cols-[1fr_1fr_40px] border-b border-line pb-3 text-body-strong text-ink md:grid">
               <span>{t('catalog.forms.name')}</span>
               <span>{t('catalog.forms.policy')}</span>
               <span />
@@ -573,17 +573,18 @@ export function ServiceEditorPage() {
               const f = formTemplates.find((x) => x.id === fid)
               if (!f) return null
               return (
-                <div key={fid} className="grid grid-cols-[1fr_1fr_40px] items-center border-b border-line py-3 last:border-0">
-                  <span className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-md border border-line">
+                <div key={fid} className="grid grid-cols-[minmax(0,1fr)_40px] items-center gap-2 border-b border-line py-3 last:border-0 md:grid-cols-[1fr_1fr_40px] md:gap-0">
+                  <span className="flex items-center gap-3 max-md:min-w-0">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-line">
                       <FileText size={20} aria-hidden />
                     </span>
-                    <span>
+                    <span className="max-md:min-w-0">
                       <span className="block text-body-lg text-ink">{f.name}</span>
                       <span className={f.status === 'active' ? 'text-small text-success' : 'text-small text-warning'}>{f.status === 'active' ? t('catalog.common.active') : t('catalog.common.inactive')}</span>
+                      <span className="block text-small text-muted md:hidden">{f.frequency === 'every' ? t('catalog.forms.every') : t('catalog.forms.once')}</span>
                     </span>
                   </span>
-                  <span className="text-body text-ink">{f.frequency === 'every' ? t('catalog.forms.every') : t('catalog.forms.once')}</span>
+                  <span className="hidden text-body text-ink md:inline">{f.frequency === 'every' ? t('catalog.forms.every') : t('catalog.forms.once')}</span>
                   <Menu groups={[{ items: [{ label: t('catalog.common.remove'), danger: true, onSelect: () => set({ formIds: form.formIds.filter((x) => x !== fid) }) }] }]} />
                 </div>
               )
@@ -649,7 +650,7 @@ export function ServiceEditorPage() {
           )}
           <Checkbox checked={rebook.on} onChange={(v) => setRebook({ ...rebook, on: v })} label={t('catalog.service.rebook')} hint={t('catalog.service.rebookHint')} />
           {rebook.on && (
-            <div className="grid grid-cols-2 gap-3 pl-8">
+            <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3 pl-8 md:grid-cols-2">
               <TextInput type="number" min={1} max={104} value={rebook.value} aria-label={t('catalog.service.rebookValue')} onChange={(e) => setRebook({ ...rebook, value: Math.max(1, Number(e.target.value) || 1) })} />
               <Select
                 value={rebook.unit}

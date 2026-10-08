@@ -37,12 +37,12 @@ export function AcceptInvitePage() {
   }
 
   return (
-    <div className="flex min-h-full items-center justify-center bg-canvas p-6">
-      <div className="card w-full max-w-md p-8">
+    <div className="flex min-h-full items-center justify-center bg-canvas p-4 md:p-6">
+      <div className="card w-full max-w-md p-6 md:p-8">
         <p className="font-display text-title-3 text-primary">Innoweb Bookings</p>
         {!member || member.invite?.status !== 'pending' ? (
           <>
-            <h1 className="mt-4 font-display text-title-1 text-ink">{t('team.invite.invalidTitle')}</h1>
+            <h1 className="mt-4 font-display text-title-2 text-ink md:text-title-1">{t('team.invite.invalidTitle')}</h1>
             <p className="mt-2 text-body text-muted">{t('team.invite.errors.invalid')}</p>
             <Button className="mt-6" onClick={() => navigate('/login')}>{t('team.invite.toLogin')}</Button>
           </>
@@ -53,7 +53,7 @@ export function AcceptInvitePage() {
               void submit()
             }}
           >
-            <h1 className="mt-4 font-display text-title-1 text-ink">{t('team.invite.title', { workspace })}</h1>
+            <h1 className="mt-4 font-display text-title-2 text-ink md:text-title-1">{t('team.invite.title', { workspace })}</h1>
             <p className="mt-2 text-body text-muted">{t('team.invite.body', { name: member.firstName, email: member.email })}</p>
             <div className="mt-6 flex flex-col gap-4">
               <Field label={t('team.invite.password')} hint={t('team.invite.passwordHint')}>{(id) => <TextInput id={id} type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />}</Field>

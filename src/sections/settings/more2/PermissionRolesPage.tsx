@@ -130,7 +130,7 @@ export function PermissionRolesPage() {
         leading={<RoleIcon roleId={role.id} />}
         title={
           <span className="flex items-center gap-2">
-            <span className="truncate">{role.name}</span>
+            <span className="min-w-0 md:truncate">{role.name}</span>
             {defaultRole === role.id && (
               <span className="inline-flex items-center gap-1 text-caption text-muted" title={t('settings.more2.roles.defaultBadge')}>
                 <CircleCheck size={16} aria-hidden />
@@ -139,10 +139,22 @@ export function PermissionRolesPage() {
             )}
           </span>
         }
-        subtitle={role.description}
+        subtitle={
+          <>
+            {role.description}
+            {/* Phones: the avatars sit under the description so the text keeps its width. */}
+            {members.length > 0 && (
+              <div className="mt-2 md:hidden">
+                <MemberAvatars members={members} />
+              </div>
+            )}
+          </>
+        }
         trailing={
           <>
-            <MemberAvatars members={members} />
+            <div className="hidden md:contents">
+              <MemberAvatars members={members} />
+            </div>
             <ActionsPill width={260} groups={groupsFor(role, index)} testId={`role-actions-${role.id}`} />
           </>
         }

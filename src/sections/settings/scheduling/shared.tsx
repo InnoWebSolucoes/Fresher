@@ -5,7 +5,7 @@ import { useId, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MenuGroup } from '@/components/ui'
 import { useDismiss } from '@/lib/useDismiss'
-import { PillMenu } from '../components/ui'
+import { ActionsPill } from '../components/ui'
 
 /**
  * Small form and menu building blocks shared by the settings pages (cards,
@@ -25,7 +25,7 @@ export function FormHeading({ title, description, level = 'title' }: { title: Re
 /** "Options ▾" in the header of a full-screen edit form (reference: Options › Delete). */
 export function OverlayOptions({ groups }: { groups: MenuGroup[] }) {
   const { t } = useTranslation()
-  return <PillMenu label={t('settings.common.options')} groups={groups} width={220} testId="overlay-options" />
+  return <ActionsPill label={t('settings.common.options')} groups={groups} width={220} testId="overlay-options" />
 }
 
 /** Delete item for an Options / Actions menu. */

@@ -48,8 +48,8 @@ export function OnlineReputationPage() {
       ) : (
         <>
           {!tipHidden && (
-            <div className="mb-8 flex flex-col gap-5 rounded-lg border border-primary/20 bg-primary-subtle p-3 pl-7 md:flex-row md:items-center">
-              <div className="flex-1 py-3">
+            <div className="mb-6 flex flex-col gap-4 rounded-lg border border-primary/20 bg-primary-subtle p-4 md:mb-8 md:flex-row md:items-center md:gap-5 md:p-3 md:pl-7">
+              <div className="flex-1 md:py-3">
                 <p className="text-body-lg text-ink">{t('clients.more.reputation.tip')}</p>
                 <div className="mt-4 flex items-center gap-4">
                   <Button icon={<Play size={16} />} onClick={() => setVideo(true)}>
@@ -149,7 +149,7 @@ function Overview({ reviews, connected, onConnect, onView }: { reviews: Review[]
             list={google}
           />
         ) : (
-          <div className="card relative flex flex-col items-center justify-center overflow-hidden p-8 text-center">
+          <div className="card relative flex flex-col items-center justify-center overflow-hidden p-6 text-center md:p-8">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent-subtle via-surface to-info-subtle" aria-hidden />
             <div className="relative flex flex-col items-center">
               <GoogleMark size={40} />
@@ -177,7 +177,7 @@ function PlatformCard({ name, list, action }: { name: ReactNode; list: { rating:
       </div>
       <div className="grid items-center gap-6 sm:grid-cols-[160px_minmax(0,1fr)]">
         <div>
-          <p className="font-display text-[48px] font-bold leading-none text-ink tabular">{rating1(avg)}</p>
+          <p className="font-display text-[40px] font-bold leading-none text-ink tabular md:text-[48px]">{rating1(avg)}</p>
           <p className="mt-2 flex items-center gap-1.5 text-small text-ink">
             <Stars value={avg} size={14} /> ({list.length})
           </p>
@@ -193,7 +193,7 @@ function PlatformCard({ name, list, action }: { name: ReactNode; list: { rating:
 
 function VideoArt({ className }: { className?: string }) {
   return (
-    <div className={clsx('absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-accent', className)} aria-hidden>
+    <div className={clsx('absolute inset-0 overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent', className)} aria-hidden>
       <div className="absolute left-5 top-5 h-16 w-24 rounded-md bg-surface/90 p-2 shadow-md">
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -251,8 +251,8 @@ function VideoModal({ onClose }: { onClose: () => void }) {
             </span>
           )}
         </button>
-        {cc && <p className="pointer-events-none absolute bottom-16 left-1/2 max-w-[80%] -translate-x-1/2 rounded-sm bg-ink/80 px-3 py-1.5 text-center text-body text-white">{caption}</p>}
-        <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 bg-gradient-to-t from-ink/80 to-transparent px-4 pb-3 pt-6 text-white">
+        {cc && <p className="pointer-events-none absolute bottom-14 left-1/2 max-w-[90%] -translate-x-1/2 rounded-sm bg-ink/80 px-3 py-1 text-center text-small text-white md:bottom-16 md:max-w-[80%] md:py-1.5 md:text-body">{caption}</p>}
+        <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-ink/80 to-transparent px-2 pb-2 pt-6 text-white md:gap-3 md:px-4 md:pb-3">
           <IconButton label={playing ? t('clients.more.reputation.player.pause') : t('clients.more.reputation.player.play')} onClick={toggle} className="h-9 w-9 text-white hover:bg-white/10">
             {playing ? <Pause size={18} aria-hidden /> : <Play size={18} aria-hidden />}
           </IconButton>
@@ -265,7 +265,7 @@ function VideoModal({ onClose }: { onClose: () => void }) {
             aria-label={t('clients.more.reputation.videoTitle')}
             className="h-1 flex-1 cursor-pointer accent-white"
           />
-          <span className="text-small tabular">
+          <span className="whitespace-nowrap text-caption tabular md:text-small">
             {clock(time)} / {clock(DURATION)}
           </span>
           <IconButton label={t('clients.more.reputation.player.captions')} aria-pressed={cc} onClick={() => setCc((c) => !c)} className={clsx('h-9 w-9 text-white hover:bg-white/10', cc && 'bg-white/20')}>

@@ -42,8 +42,8 @@ export function StocktakeNewPage() {
       }
     >
       <p className="text-body text-muted">{t('catalog.inventory.stocktakeNew.eyebrow')}</p>
-      <h1 className="mt-1 font-display text-display text-ink">{t('catalog.inventory.stocktakeNew.title')}</h1>
-      <p className="mt-2 text-body-lg text-muted">
+      <h1 className="mt-1 font-display text-title-1 text-ink md:text-display">{t('catalog.inventory.stocktakeNew.title')}</h1>
+      <p className="mt-2 text-body text-muted md:text-body-lg">
         {t('catalog.inventory.stocktakeNew.subtitle')} <LearnMore topic={t('catalog.inventory.stocktakes.title')}>{t('catalog.common.learnMore')}</LearnMore>
       </p>
       {!tracked ? (
@@ -58,7 +58,7 @@ export function StocktakeNewPage() {
         />
       ) : (
         <form
-          className="mt-8 flex flex-col gap-6"
+          className="mt-6 flex flex-col gap-5 md:mt-8 md:gap-6"
           onSubmit={(e) => {
             e.preventDefault()
             void start()

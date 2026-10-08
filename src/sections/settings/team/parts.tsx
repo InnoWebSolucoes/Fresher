@@ -83,7 +83,7 @@ export function StepCrumbs({ steps, current, onSelect }: { steps: string[]; curr
 /** Three-segment progress bar across the top of a wizard. */
 function SegmentedProgress({ total, current }: { total: number; current: number }) {
   return (
-    <div className="grid shrink-0 gap-2 px-6 pt-3" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }} role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={current + 1}>
+    <div className="grid shrink-0 gap-2 px-4 pt-3 md:px-6" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }} role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={current + 1}>
       {Array.from({ length: total }, (_, index) => (
         <span key={index} className={clsx('h-1 rounded-full transition-colors duration-base', index <= current ? 'bg-primary' : 'bg-sunken')} />
       ))}

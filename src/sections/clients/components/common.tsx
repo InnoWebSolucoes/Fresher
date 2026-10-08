@@ -1,9 +1,9 @@
 import clsx from 'clsx'
-import { Check, ChevronDown, ChevronUp, Info, Star } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Check, ChevronDown, ChevronUp, Info, MoreVertical, Star } from 'lucide-react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Client } from '@/types'
-import { Select } from '@/components/ui'
+import { MenuButton, Select } from '@/components/ui'
 import { COUNTRY_CODES, SWATCHES, swatchFor } from '../lib/constants'
 
 /** Round client avatar: the profile photo (`Client.photo`), otherwise the initial(s) on a soft circle. */
@@ -60,7 +60,7 @@ export function BadgeChip({ name, colorKey, className }: { name: string; colorKe
 
 export function Swatches({ value, onChange, label }: { value: string; onChange: (key: string) => void; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid grid-cols-[repeat(11,minmax(0,1fr))] gap-2.5">
+    <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2.5 md:grid md:grid-cols-[repeat(11,minmax(0,1fr))]">
       {SWATCHES.map((s) => (
         <button
           key={s.key}
@@ -180,4 +180,67 @@ export function LinkButton({ children, onClick, className }: { children: ReactNo
 export function IconTile({ children, tone = 'primary', className }: { children: ReactNode; tone?: 'primary' | 'accent' | 'success' | 'neutral'; className?: string }) {
   const tones = { primary: 'bg-primary text-on-primary', accent: 'bg-accent text-on-accent', success: 'bg-success-subtle text-success', neutral: 'bg-sunken text-ink' }
   return <span className={clsx('inline-flex shrink-0 items-center justify-center rounded-full', tones[tone], className)}>{children}</span>
+}
+
+/**
+ * Phone only: a sideways-scrolling row of pill tabs (replaces vertical tab lists and side navs below md).
+ * The active tab is kept in view.
+ */
+export function PhoneTabs<T extends string>({ items, value, onChange, label, className }: { items: { value: T; label: ReactNode; count?: number }[]; value: T; onChange: (v: T) => void; label: string; className?: string }) {
+  const row = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = row.current
+    const active = el?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (el && active) el.scrollLeft = active.offsetLeft - (el.clientWidth - active.offsetWidth) / 2
+  }, [value])
+  return (
+    <div ref={row} role="tablist" aria-label={label} className={clsx('flex gap-2 overflow-x-auto [scrollbar-width:none] md:hidden', className)}>
+      {items.map((item) => (
+        <button
+          key={item.value}
+          type="button"
+          role="tab"
+          aria-selected={value === item.value}
+          onClick={() => onChange(item.value)}
+          className={clsx(
+            'inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-small font-semibold transition-colors',
+            value === item.value ? 'border-primary bg-primary text-on-primary' : 'border-line bg-surface text-ink',
+          )}
+        >
+          {item.label}
+          {item.count ? <span className={clsx('rounded-full px-1.5 text-caption', value === item.value ? 'bg-white/20' : 'bg-sunken text-muted')}>{item.count}</span> : null}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** Menu trigger: "Actions ▾" from md up, a ⋮ icon button on phones (keeps card rows from being squeezed). */
+export function ActionsTrigger({ label, open, toggle }: { label: string; open: boolean; toggle: () => void }) {
+  return (
+    <>
+      <span className="hidden md:inline-flex">
+        <MenuButton open={open} toggle={toggle}>
+          {label}
+        </MenuButton>
+      </span>
+      <button type="button" aria-label={label} title={label} aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="icon-btn border border-line-strong md:hidden">
+        <MoreVertical size={18} aria-hidden />
+      </button>
+    </>
+  )
+}
+
+/** Client avatar with a smaller size on phones (`size` from md up). */
+export function ResponsiveAvatar({ client, size, phoneSize, initials }: { client: Pick<Client, 'firstName' | 'lastName' | 'photo'>; size: number; phoneSize: number; initials?: boolean }) {
+  return (
+    <>
+      <span className="flex shrink-0 md:hidden">
+        <ClientAvatar client={client} size={phoneSize} initials={initials} />
+      </span>
+      <span className="hidden shrink-0 md:flex">
+        <ClientAvatar client={client} size={size} initials={initials} />
+      </span>
+    </>
+  )
 }

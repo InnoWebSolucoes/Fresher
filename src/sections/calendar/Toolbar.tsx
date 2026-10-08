@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { addWeeks, parseISO } from 'date-fns'
-import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, MapPin, RotateCw, Search, Settings, SlidersHorizontal, Users } from 'lucide-react'
+import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, MapPin, Plus, RotateCw, Search, Settings, SlidersHorizontal, Users } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/ui'
@@ -35,79 +35,85 @@ export function CalendarToolbar(p: ToolbarProps) {
   const { t } = useTranslation()
   const today = todayISO()
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-canvas px-4 py-3" data-testid="calendar-toolbar">
-      <Pill disabled={p.lockDate} onClick={() => p.onPatch({ date: today })}>
+    // Phones: row 1 = Today, ‹ date › and Add; row 2 = a sideways-scrolling strip with location, team, view and the icon buttons.
+    // From md up the strip is `display: contents`, so the desktop row keeps its order and spacing.
+    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-canvas px-3 py-2 md:px-4 md:py-3" data-testid="calendar-toolbar">
+      <Pill disabled={p.lockDate} onClick={() => p.onPatch({ date: today })} className="max-md:px-3">
         {t('calendar.toolbar.today')}
       </Pill>
-      <div className={clsx('inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface', p.lockDate && 'pointer-events-none opacity-50')} aria-disabled={p.lockDate || undefined}>
-        <button type="button" disabled={p.lockDate} className="flex w-10 items-center justify-center rounded-l-full hover:bg-sunken" aria-label={t('calendar.toolbar.prev')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, -1) })}>
+      <div className={clsx('inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface max-md:min-w-0 max-md:flex-1', p.lockDate && 'pointer-events-none opacity-50')} aria-disabled={p.lockDate || undefined}>
+        <button type="button" disabled={p.lockDate} className="flex w-9 shrink-0 items-center justify-center rounded-l-full hover:bg-sunken md:w-10" aria-label={t('calendar.toolbar.prev')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, -1) })}>
           <ChevronLeft size={18} aria-hidden />
         </button>
         <DatePopover date={p.date} view={p.view} onSelect={(date) => p.onPatch({ date })} />
-        <button type="button" disabled={p.lockDate} className="flex w-10 items-center justify-center rounded-r-full hover:bg-sunken" aria-label={t('calendar.toolbar.next')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, 1) })}>
+        <button type="button" disabled={p.lockDate} className="flex w-9 shrink-0 items-center justify-center rounded-r-full hover:bg-sunken md:w-10" aria-label={t('calendar.toolbar.next')} onClick={() => p.onPatch({ date: stepDate(p.view, p.date, 1) })}>
           <ChevronRight size={18} aria-hidden />
         </button>
       </div>
-      <LocationSelector locationId={p.locationId} onSelect={(id) => p.onPatch({ location_id: id, calendar_selected_resources: 'e-all' })} />
-      <TeamSelector team={p.team} members={p.members} onSelect={(value) => p.onPatch({ calendar_selected_resources: value })} />
-      <Pill active={p.filterCount > 0} onClick={p.onFilters} aria-label={t('calendar.toolbar.filters')} title={t('calendar.toolbar.filters')} className="w-[52px] px-0">
-        <SlidersHorizontal size={18} aria-hidden />
-      </Pill>
-      <div className="ml-auto flex items-center gap-2">
-        <Pill onClick={p.onSettings} aria-label={t('calendar.toolbar.settings')} title={t('calendar.toolbar.settings')} className="w-[52px] px-0">
-          <Settings size={18} aria-hidden />
+      <div className="-mx-3 flex w-[calc(100%+24px)] items-center gap-2 overflow-x-auto px-3 py-px [scrollbar-width:none] max-md:order-last md:contents [&::-webkit-scrollbar]:hidden" data-testid="calendar-toolbar-strip">
+        <LocationSelector locationId={p.locationId} onSelect={(id) => p.onPatch({ location_id: id, calendar_selected_resources: 'e-all' })} />
+        <TeamSelector team={p.team} members={p.members} onSelect={(value) => p.onPatch({ calendar_selected_resources: value })} />
+        <Pill active={p.filterCount > 0} onClick={p.onFilters} aria-label={t('calendar.toolbar.filters')} title={t('calendar.toolbar.filters')} className="w-10 px-0 max-md:order-1 md:w-[52px]">
+          <SlidersHorizontal size={18} aria-hidden />
         </Pill>
-        <Pill onClick={p.onWaitlist} aria-label={t('calendar.toolbar.waitlist')} title={t('calendar.toolbar.waitlist')} className={clsx(p.waitlistCount ? 'px-3' : 'w-[52px] px-0')}>
-          <CalendarClock size={18} aria-hidden />
-          {p.waitlistCount > 0 && <CountBadge value={p.waitlistCount} />}
-        </Pill>
-        <div className={clsx('inline-flex h-9 items-stretch rounded-full border border-line-strong bg-surface', p.lockDate && 'pointer-events-none opacity-50')} aria-disabled={p.lockDate || undefined}>
-          <button
-            type="button"
-            disabled={p.lockDate}
-            onClick={() => p.onPatch({ date: today, view: 'day', calendar_selected_resources: 'e-working' })}
-            className="flex w-10 items-center justify-center rounded-l-full border-r border-line hover:bg-sunken"
-            aria-label={t('calendar.toolbar.resetAria')}
-            title={t('calendar.toolbar.reset')}
-          >
-            <RotateCw size={16} aria-hidden />
-          </button>
-          <DropMenu
-            align="right"
-            width={180}
-            trigger={({ open, toggle }) => (
-              <button type="button" onClick={toggle} aria-expanded={open} aria-haspopup="menu" className="inline-flex items-center gap-2 rounded-r-full pl-4 pr-3 text-body hover:bg-sunken">
-                {t(`calendar.views.${p.view}`)}
-                <ChevronDown size={16} aria-hidden />
-              </button>
-            )}
-            groups={[{ items: CAL_VIEWS.map((v) => ({ label: t(`calendar.views.${v}`), checked: v === p.view, onSelect: () => p.onPatch({ view: v }) })) }]}
-          />
-        </div>
-        <DropMenu
-          align="right"
-          width={220}
-          trigger={({ open, toggle }) => (
+        <div className="flex items-center gap-2 max-md:contents md:ml-auto">
+          <Pill onClick={p.onSettings} aria-label={t('calendar.toolbar.settings')} title={t('calendar.toolbar.settings')} className="w-10 px-0 max-md:order-3 md:w-[52px]">
+            <Settings size={18} aria-hidden />
+          </Pill>
+          <Pill onClick={p.onWaitlist} aria-label={t('calendar.toolbar.waitlist')} title={t('calendar.toolbar.waitlist')} className={clsx('max-md:order-2', p.waitlistCount ? 'px-3' : 'w-10 px-0 md:w-[52px]')}>
+            <CalendarClock size={18} aria-hidden />
+            {p.waitlistCount > 0 && <CountBadge value={p.waitlistCount} />}
+          </Pill>
+          <div className={clsx('inline-flex h-9 shrink-0 items-stretch rounded-full border border-line-strong bg-surface', p.lockDate && 'pointer-events-none opacity-50')} aria-disabled={p.lockDate || undefined}>
             <button
               type="button"
-              onClick={toggle}
-              disabled={p.pickMode}
-              aria-expanded={open}
-              aria-haspopup="menu"
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-ink px-4 text-body-strong text-canvas hover:opacity-90 disabled:opacity-50"
-              data-testid="calendar-add"
+              disabled={p.lockDate}
+              onClick={() => p.onPatch({ date: today, view: 'day', calendar_selected_resources: 'e-working' })}
+              className="flex w-10 items-center justify-center rounded-l-full border-r border-line hover:bg-sunken"
+              aria-label={t('calendar.toolbar.resetAria')}
+              title={t('calendar.toolbar.reset')}
             >
-              {t('calendar.toolbar.add')}
-              <ChevronDown size={16} aria-hidden />
+              <RotateCw size={16} aria-hidden />
             </button>
-          )}
-          groups={[
-            {
-              items: (['appointment', 'group', 'blocked', 'sale', 'quick-payment'] as AddAction[]).map((a) => ({ label: t(`calendar.add.${a}`), onSelect: () => p.onAdd(a) })),
-            },
-          ]}
-        />
+            <DropMenu
+              align="right"
+              width={180}
+              trigger={({ open, toggle }) => (
+                <button type="button" onClick={toggle} aria-expanded={open} aria-haspopup="menu" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-r-full pl-3 pr-2.5 text-body hover:bg-sunken md:gap-2 md:pl-4 md:pr-3">
+                  {t(`calendar.views.${p.view}`)}
+                  <ChevronDown size={16} aria-hidden />
+                </button>
+              )}
+              groups={[{ items: CAL_VIEWS.map((v) => ({ label: t(`calendar.views.${v}`), checked: v === p.view, onSelect: () => p.onPatch({ view: v }) })) }]}
+            />
+          </div>
+        </div>
       </div>
+      <DropMenu
+        align="right"
+        width={220}
+        trigger={({ open, toggle }) => (
+          <button
+            type="button"
+            onClick={toggle}
+            disabled={p.pickMode}
+            aria-expanded={open}
+            aria-haspopup="menu"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-ink px-3.5 text-body-strong text-canvas hover:opacity-90 disabled:opacity-50 max-[379px]:w-9 max-[379px]:px-0 md:px-4"
+            data-testid="calendar-add"
+          >
+            {/* The narrowest phones (< 380px) get a round "+" so the date stays readable; the label stays for screen readers. */}
+            <span className="max-[379px]:sr-only">{t('calendar.toolbar.add')}</span>
+            <Plus size={18} className="hidden max-[379px]:block" aria-hidden />
+            <ChevronDown size={16} className="max-md:hidden" aria-hidden />
+          </button>
+        )}
+        groups={[
+          {
+            items: (['appointment', 'group', 'blocked', 'sale', 'quick-payment'] as AddAction[]).map((a) => ({ label: t(`calendar.add.${a}`), onSelect: () => p.onAdd(a) })),
+          },
+        ]}
+      />
     </div>
   )
 }
@@ -120,11 +126,12 @@ function DatePopover({ date, view, onSelect }: { date: ISODate; view: CalView; o
   return (
     <Dropdown
       trigger={({ open, toggle }) => (
-        <button type="button" onClick={toggle} aria-expanded={open} className={clsx('min-w-[175px] border-x border-line px-4 text-body text-ink hover:bg-sunken', open && 'bg-sunken')} data-testid="calendar-date-label">
+        <button type="button" onClick={toggle} aria-expanded={open} className={clsx('border-x border-line text-body text-ink hover:bg-sunken max-md:min-w-0 max-md:flex-1 max-md:whitespace-nowrap max-md:px-2 md:min-w-[175px] md:px-4', open && 'bg-sunken')} data-testid="calendar-date-label">
           {rangeLabel(view, date)}
         </button>
       )}
-      panelClassName="p-6"
+      className="max-md:min-w-0 max-md:flex-1"
+      panelClassName="p-4 md:p-6"
     >
       {(close) => {
         const pick = (d: ISODate) => {
@@ -134,7 +141,7 @@ function DatePopover({ date, view, onSelect }: { date: ISODate; view: CalView; o
         return (
           <div>
             <MonthsPicker value={date} onSelect={pick} wide />
-            <div className="mt-6 flex flex-nowrap items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-6">
               {SHORTCUTS.map((w) => (
                 <Pill key={w} onClick={() => pick(toISODate(addWeeks(parseISO(todayISO()), w)))}>
                   {t('calendar.toolbar.inWeeks', { count: w })}
@@ -165,9 +172,9 @@ function LocationSelector({ locationId, onSelect }: { locationId: ID; onSelect: 
     <DropMenu
       width={260}
       trigger={({ open, toggle }) => (
-        <Pill onClick={toggle} aria-expanded={open} aria-label={t('calendar.toolbar.location')} data-testid="calendar-location">
+        <Pill onClick={toggle} aria-expanded={open} aria-label={t('calendar.toolbar.location')} data-testid="calendar-location" className="max-md:gap-1.5 max-md:px-3">
           <MapPin size={16} aria-hidden />
-          {current?.internalName ?? current?.name}
+          <span className="whitespace-nowrap">{current?.internalName ?? current?.name}</span>
           <ChevronDown size={16} aria-hidden />
         </Pill>
       )}
@@ -211,7 +218,7 @@ function TeamSelector({ team, members, onSelect }: { team: string; members: Team
     <Dropdown
       width={380}
       trigger={({ open, toggle: toggleOpen }) => (
-        <Pill onClick={toggleOpen} aria-expanded={open} data-testid="calendar-team">
+        <Pill onClick={toggleOpen} aria-expanded={open} data-testid="calendar-team" className="max-md:gap-1.5 max-md:px-3">
           <span className="max-w-[180px] truncate">{label}</span>
           <ChevronDown size={16} className={clsx('transition-transform', open && 'rotate-180')} aria-hidden />
         </Pill>

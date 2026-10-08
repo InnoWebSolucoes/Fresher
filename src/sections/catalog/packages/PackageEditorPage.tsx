@@ -169,14 +169,14 @@ export function PackageEditorPage() {
           <div className="flex flex-col gap-3">
             {form.benefits.map((b) => (
               <div key={b.id} className="rounded-lg border border-line p-4">
-                <div className="mb-2 flex items-center justify-between text-body-strong text-ink">
+                <div className="mb-2 flex items-center justify-between gap-3 text-body-strong text-ink">
                   <span>{typeHeading(b.type)}</span>
                   {b.type.endsWith('discount') ? <span>{t('catalog.benefits.uses')}</span> : <span>{b.type.startsWith('service') ? t('catalog.benefits.sessions') : t('catalog.benefits.quantity')}</span>}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 md:flex-nowrap">
                   <span className={clsx('flex h-12 w-12 shrink-0 items-center justify-center rounded-md', b.type.startsWith('service') ? 'bg-success-subtle text-success' : b.type.startsWith('product') ? 'bg-primary-subtle text-primary' : 'bg-accent-subtle text-warning')}>{benefitIcon(b.type)}</span>
-                  <span className="min-w-0 flex-1 text-body-lg text-ink">{benefitName(b)}</span>
-                  {b.quantity === 'unlimited' ? <span className="chip bg-sunken text-ink">{t('catalog.benefits.unlimited')}</span> : <Stepper value={b.quantity} min={1} max={999} onChange={(q) => setBenefit({ ...b, quantity: q })} />}
+                  <span className="min-w-0 flex-1 text-body-lg text-ink max-md:basis-[calc(100%-60px)]">{benefitName(b)}</span>
+                  {b.quantity === 'unlimited' ? <span className="chip bg-sunken text-ink max-md:ml-auto">{t('catalog.benefits.unlimited')}</span> : <Stepper className="max-md:ml-auto" value={b.quantity} min={1} max={999} onChange={(q) => setBenefit({ ...b, quantity: q })} />}
                   <Menu
                     groups={[
                       {
@@ -341,17 +341,17 @@ function BenefitWizard({ benefit, onClose, onApply }: { benefit?: PackageBenefit
 
   return (
     <div className="fixed inset-0 z-[75] flex flex-col bg-canvas">
-      <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-3 md:gap-4 md:px-6">
         {type && !benefit ? (
-          <Button icon={<ArrowLeft size={16} />} onClick={() => setType(null)}>
-            {t('catalog.common.back')}
+          <Button icon={<ArrowLeft size={16} />} aria-label={t('catalog.common.back')} className="max-md:w-10 max-md:px-0" onClick={() => setType(null)}>
+            <span className="hidden md:inline">{t('catalog.common.back')}</span>
           </Button>
         ) : (
           <span />
         )}
         <div className="flex gap-2">
-          <Button icon={<X size={16} />} onClick={onClose}>
-            {t('catalog.common.close')}
+          <Button icon={<X size={16} />} aria-label={t('catalog.common.close')} className="max-md:w-10 max-md:px-0" onClick={onClose}>
+            <span className="hidden md:inline">{t('catalog.common.close')}</span>
           </Button>
           {type && (
             <Button variant="primary" disabled={!valid} onClick={apply}>
@@ -361,16 +361,16 @@ function BenefitWizard({ benefit, onClose, onApply }: { benefit?: PackageBenefit
         </div>
       </header>
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-6 py-10">
+        <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
           {!type ? (
             <>
-              <h1 className="font-display text-display text-ink">{t('catalog.benefits.chooseType')}</h1>
+              <h1 className="font-display text-title-1 text-ink md:text-display">{t('catalog.benefits.chooseType')}</h1>
               {options.map((o) => (
-                <div key={o.section} className="mt-8">
+                <div key={o.section} className="mt-6 md:mt-8">
                   <h2 className="mb-3 text-body-lg font-semibold text-ink">{o.section}</h2>
                   <div className="flex flex-col gap-3">
                     {o.items.map((item) => (
-                      <button key={item.type} type="button" onClick={() => setType(item.type)} className="flex items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left hover:border-line-strong hover:shadow-sm">
+                      <button key={item.type} type="button" onClick={() => setType(item.type)} className="flex items-center gap-4 rounded-lg border border-line bg-surface p-4 text-left hover:border-line-strong hover:shadow-sm md:p-5">
                         <span className={clsx('flex h-12 w-12 shrink-0 items-center justify-center rounded-md', item.tone)}>{item.icon}</span>
                         <span>
                           <span className="block text-body-strong text-ink">{t(`catalog.benefits.type.${item.type}`)}</span>
@@ -384,15 +384,15 @@ function BenefitWizard({ benefit, onClose, onApply }: { benefit?: PackageBenefit
             </>
           ) : type.endsWith('discount') ? (
             <>
-              <h1 className="font-display text-display text-ink">{t(`catalog.benefits.type.${type}`)}</h1>
-              <p className="mt-2 text-body-lg text-muted">{t(`catalog.benefits.typeHint.${type}`)}</p>
+              <h1 className="font-display text-title-1 text-ink md:text-display">{t(`catalog.benefits.type.${type}`)}</h1>
+              <p className="mt-2 text-body text-muted md:text-body-lg">{t(`catalog.benefits.typeHint.${type}`)}</p>
               <Field className="mt-8 max-w-sm" label={t('catalog.benefits.discountValue')}>
                 {(fid) => <TextInput id={fid} type="number" min={0} max={type === 'percent_discount' ? 100 : undefined} prefix={type === 'amount_discount' ? '€' : undefined} suffix={type === 'percent_discount' ? '%' : undefined} value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />}
               </Field>
             </>
           ) : (
             <>
-              <h1 className="font-display text-display text-ink">{type.startsWith('service') ? (single ? t('catalog.benefits.selectService') : t('catalog.benefits.selectServices')) : single ? t('catalog.benefits.selectProduct') : t('catalog.benefits.selectProducts')}</h1>
+              <h1 className="font-display text-title-1 text-ink md:text-display">{type.startsWith('service') ? (single ? t('catalog.benefits.selectService') : t('catalog.benefits.selectServices')) : single ? t('catalog.benefits.selectProduct') : t('catalog.benefits.selectProducts')}</h1>
               <SearchInput className="mt-6" value={query} onChange={setQuery} placeholder={t('catalog.common.search')} />
               <div className="mt-6 flex flex-col gap-6">
                 {type.startsWith('service')
@@ -409,7 +409,7 @@ function BenefitWizard({ benefit, onClose, onApply }: { benefit?: PackageBenefit
                               {list.map((s) => (
                                 <label key={s.id} className="flex cursor-pointer items-center gap-3 px-4 py-3">
                                   <input type={single ? 'radio' : 'checkbox'} name="benefit-service" checked={serviceIds.includes(s.id)} onChange={() => toggle(serviceIds, setServiceIds, s.id)} className="h-5 w-5 accent-[rgb(var(--primary))]" />
-                                  <span className="flex-1 text-body-lg text-ink">{s.name}</span>
+                                  <span className="min-w-0 flex-1 text-body-lg text-ink">{s.name}</span>
                                   <span className="text-body text-muted">{money(s.price)}</span>
                                 </label>
                               ))}
@@ -424,7 +424,7 @@ function BenefitWizard({ benefit, onClose, onApply }: { benefit?: PackageBenefit
                         .map((p) => (
                           <label key={p.id} className="flex cursor-pointer items-center gap-3 px-4 py-3">
                             <input type={single ? 'radio' : 'checkbox'} name="benefit-product" checked={productIds.includes(p.id)} onChange={() => toggle(productIds, setProductIds, p.id)} className="h-5 w-5 accent-[rgb(var(--primary))]" />
-                            <span className="flex-1 text-body-lg text-ink">{p.name}</span>
+                            <span className="min-w-0 flex-1 text-body-lg text-ink">{p.name}</span>
                             <span className="text-body text-muted">{money(p.retailPrice)}</span>
                           </label>
                         ))}

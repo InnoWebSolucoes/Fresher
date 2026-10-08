@@ -80,13 +80,13 @@ export function LocationsPage() {
           const rating = ratings[location.id]
           const open = () => navigate(`/setup/location/${location.id}/business-details`)
           return (
-            <div key={location.id} className="card flex cursor-pointer items-center gap-5 p-4 hover:border-line-strong" onClick={open} data-testid={`location-card-${location.id}`}>
+            <div key={location.id} className="card flex cursor-pointer items-center gap-3 p-4 hover:border-line-strong md:gap-5" onClick={open} data-testid={`location-card-${location.id}`}>
               <LocationImage name={location.name} />
               <div className="min-w-0 flex-1">
                 <button type="button" onClick={open} className="text-left font-display text-title-3 text-ink hover:underline">
                   {location.name}
                 </button>
-                <p className="mt-0.5 flex items-center gap-1 text-body text-muted">
+                <p className="mt-0.5 flex flex-wrap items-center gap-1 text-body text-muted md:flex-nowrap">
                   {rating ? (
                     <>
                       <Star size={14} className="fill-accent text-accent" aria-hidden />
@@ -97,8 +97,8 @@ export function LocationsPage() {
                     t('settings.biz.locations.noReviews')
                   )}
                 </p>
-                <p className="mt-1 flex items-center gap-1.5 truncate text-body text-muted">
-                  <MapPin size={14} aria-hidden />
+                <p className="mt-1 flex items-start gap-1.5 text-body text-muted md:items-center md:truncate">
+                  <MapPin size={14} className="mt-[3px] shrink-0 md:mt-0 md:shrink" aria-hidden />
                   {extras[location.id]?.noAddress ? t('settings.biz.location.noAddress') : formatAddress(location.address)}
                 </p>
               </div>
@@ -133,7 +133,7 @@ export function LocationImage({ name, size = 'md' }: { name: string; size?: 'md'
     .join('')
     .toUpperCase()
   return (
-    <div className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-primary to-[#0B4F4C] font-display text-on-primary ${size === 'lg' ? 'h-24 w-36 text-title-1' : 'h-20 w-28 text-title-2'}`} aria-hidden>
+    <div className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-primary to-[#0B4F4C] font-display text-on-primary ${size === 'lg' ? 'h-24 w-36 text-title-1' : 'h-14 w-16 text-title-3 md:h-20 md:w-28 md:text-title-2'}`} aria-hidden>
       <span className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-accent/60" />
       <span className="relative">{initials}</span>
     </div>

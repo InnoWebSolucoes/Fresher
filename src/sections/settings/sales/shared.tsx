@@ -19,7 +19,7 @@ export function OnOffChip({ on }: { on: boolean }) {
 /** "Gift cards [On]  — Sell and redeem …" card with a switch on the right. */
 export function ToggleCard({ title, description, checked, onChange, children, testId }: { title: ReactNode; description?: ReactNode; checked: boolean; onChange: (v: boolean) => void; children?: ReactNode; testId?: string }) {
   return (
-    <section className="card p-6 sm:p-8" data-testid={testId}>
+    <section className="card p-5 sm:p-8" data-testid={testId}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -28,7 +28,7 @@ export function ToggleCard({ title, description, checked, onChange, children, te
           </div>
           {description && <p className="mt-1 text-body text-muted">{description}</p>}
         </div>
-        <div className="pt-1.5">
+        <div className="shrink-0 pt-1.5">
           <Switch checked={checked} onChange={onChange} />
         </div>
       </div>
@@ -40,7 +40,7 @@ export function ToggleCard({ title, description, checked, onChange, children, te
 /** One switch row: label, hint (or Learn more) and a switch on the right. */
 export function SwitchRow({ label, hint, checked, onChange, disabled, testId }: { label: ReactNode; hint?: ReactNode; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; testId?: string }) {
   return (
-    <div className="flex items-start justify-between gap-6 py-3" data-testid={testId}>
+    <div className="flex items-start justify-between gap-4 py-3 md:gap-6" data-testid={testId}>
       <div className={clsx('min-w-0', disabled && 'opacity-60')}>
         <p className="text-body text-ink">{label}</p>
         {hint && <div className="mt-0.5 text-small text-muted">{hint}</div>}

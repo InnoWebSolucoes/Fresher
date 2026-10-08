@@ -175,16 +175,16 @@ export function RefundSalePage() {
           <IconButton label={t('sales.common.back')} onClick={() => setStep('select')} className="mb-6 h-11 w-11 rounded-full border border-line-strong bg-surface">
             <ArrowLeft size={20} aria-hidden />
           </IconButton>
-          <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{t('sales.refund.refundAmountTitle', { amount: money(refundTotal) })}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] text-ink md:text-[34px] md:leading-[42px]">{t('sales.refund.refundAmountTitle', { amount: money(refundTotal) })}</h1>
           {subtitle}
           <div className="mt-8">{detailsForm}</div>
         </>
       ) : (
         <>
-          <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{t('sales.refund.title')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] text-ink md:text-[34px] md:leading-[42px]">{t('sales.refund.title')}</h1>
           {subtitle}
           <Segmented
-            className="mt-8 grid w-full grid-cols-2"
+            className="mt-6 grid w-full grid-cols-2 md:mt-8"
             value={mode}
             onChange={(m) => {
               setMode(m)

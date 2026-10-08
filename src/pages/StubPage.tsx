@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 function StubBody({ page }: { page: PageDef }) {
   const { t } = useTranslation()
   return (
-    <section className="card max-w-2xl p-6" data-testid="stub-page">
+    <section className="card max-w-2xl p-5 md:p-6" data-testid="stub-page">
       <div className="mb-4 flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-subtle text-warning">
           <Hammer size={20} aria-hidden />
@@ -41,7 +41,7 @@ export function StubPage({ page }: { page: PageDef }) {
   if (page.layout === 'full') {
     return (
       <>
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface px-6">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4 md:px-6">
           <button type="button" className="btn-secondary h-9 px-3" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}>
             <X size={16} aria-hidden />
             {t('fullscreen.close')}
@@ -51,7 +51,7 @@ export function StubPage({ page }: { page: PageDef }) {
             {t('notFound.action')}
           </Link>
         </header>
-        <div className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto px-6 py-10">
+        <div className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-10">
           <PageHeader title={title} subtitle={subtitle} />
           <StubBody page={page} />
         </div>
@@ -61,7 +61,7 @@ export function StubPage({ page }: { page: PageDef }) {
 
   const padded = page.layout === 'shell'
   return (
-    <div className={padded ? 'mx-auto max-w-[1120px] px-8 py-8' : ''}>
+    <div className={padded ? 'mx-auto max-w-[1120px] px-4 py-5 md:px-8 md:py-8' : ''}>
       <PageHeader title={title} subtitle={subtitle} />
       <StubBody page={page} />
     </div>

@@ -50,7 +50,7 @@ export function PinSwitchingPage() {
       <EditCard
         testId="pin-switching"
         title={
-          <span className="flex items-center gap-2">
+          <span className="flex flex-wrap items-center gap-2">
             {t('settings.more2.pin.title')}
             <StateChip on={pin.enabled} onLabel={t('settings.common.on')} offLabel={t('settings.common.off')} />
           </span>
@@ -58,7 +58,7 @@ export function PinSwitchingPage() {
         description={t('settings.more2.pin.cardBody')}
         action={
           pin.enabled ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button size="sm" onClick={() => void turnOff()} loading={busy} data-testid="pin-turn-off">
                 {t('settings.more2.pin.turnOff')}
               </Button>
@@ -166,7 +166,7 @@ export function PinSwitchingSetupPage() {
     <TeamFullPage step={{ total: 3, current: step }} onBack={step > 0 ? () => setStep(step - 1) : undefined} onClose={close} onSave={next} saving={busy} saveLabel={t(step === 2 ? 'settings.more2.pin.turnOn' : 'settings.common.continue')} testId="pin-setup-wizard">
       {step === 0 && (
         <>
-          <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{t('settings.more2.pin.step1')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[34px] md:leading-[42px] text-ink">{t('settings.more2.pin.step1')}</h1>
           <section className="mt-8">
             <h2 className="text-body-lg font-semibold text-ink">{t('settings.more2.pin.autoLock')}</h2>
             <p className="mt-1 text-body text-muted">{t('settings.more2.pin.autoLockBody')}</p>
@@ -209,7 +209,7 @@ export function PinSwitchingSetupPage() {
       )}
       {step === 1 && (
         <>
-          <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{t('settings.more2.pin.step2')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[34px] md:leading-[42px] text-ink">{t('settings.more2.pin.step2')}</h1>
           <p className="mt-2 text-body-lg text-muted">{t('settings.more2.pin.step2Body')}</p>
           <div className="mt-6 flex justify-end">
             <Button icon={<RefreshCw size={16} aria-hidden />} onClick={generateAll}>
@@ -220,13 +220,13 @@ export function PinSwitchingSetupPage() {
             {members.map((m) => {
               const error = showErrors ? errors[m.id] : undefined
               return (
-                <li key={m.id} className="flex flex-wrap items-start gap-4 px-5 py-4">
+                <li key={m.id} className="flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-4 md:gap-4 md:px-5">
                   <Avatar name={fullName(m)} color={m.color} size={40} />
-                  <div className="min-w-0 flex-1 pt-2">
+                  <div className="min-w-0 flex-1 basis-[calc(100%-56px)] pt-2 md:basis-0">
                     <p className="text-body-strong text-ink">{fullName(m)}</p>
                     <p className="text-small text-muted">{m.jobTitle}</p>
                   </div>
-                  <Field error={error} className="w-44">
+                  <Field error={error} className="ml-14 w-44 md:ml-0">
                     {(id) => (
                       <TextInput
                         id={id}
@@ -263,9 +263,9 @@ export function PinSwitchingSetupPage() {
       )}
       {step === 2 && (
         <>
-          <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{t('settings.more2.pin.step3')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[34px] md:leading-[42px] text-ink">{t('settings.more2.pin.step3')}</h1>
           <p className="mt-2 text-body-lg text-muted">{t('settings.more2.pin.step3Body')}</p>
-          <div className="card mt-8 flex flex-col gap-4 p-6">
+          <div className="card mt-6 flex flex-col gap-4 p-5 md:mt-8 md:p-6">
             <SummaryList
               variant="check"
               items={[

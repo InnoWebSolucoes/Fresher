@@ -65,12 +65,12 @@ function AdjustmentForm({ memberId, period, initialKind, onClose }: { memberId: 
           </>
         }
       >
-        <div className="grid gap-8 pb-2 md:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 pb-2 md:grid-cols-[1fr_340px]">
           <div>
             <PillTabs value={kind} onChange={setKind} items={PAY_KINDS.map((k) => ({ value: k, label: t(`team.pay.kinds.${k}`) }))} />
             <Field className="mt-6" label={t('team.pay.amount')}>
               {(id) => (
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-md:flex-wrap">
                   <MoneyInput id={id} value={amount} placeholder="0" onChange={setAmount} />
                   <Segmented
                     value={sign}

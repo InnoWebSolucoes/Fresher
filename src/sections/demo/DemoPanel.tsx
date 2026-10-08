@@ -3,7 +3,7 @@ import { parseISO } from 'date-fns'
 import { format } from '@/lib/dates'
 import { CalendarPlus, CreditCard, Gift, Inbox, MessageSquare, Package, RefreshCw, RotateCcw, Send, ShoppingBag, Star, TimerReset, UserCog, Wallet, X, XCircle, type LucideIcon } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useDb } from '@/store/db'
 import { useSessionStore } from '@/store/session'
@@ -36,11 +36,31 @@ import type { BookingChannel, MessageLog, Review } from '@/types'
 
 type Tab = 'simulate' | 'outbox' | 'settings'
 
-/** Presenter panel, toggled with Ctrl+Shift+D (SPEC §5). */
+/**
+ * Presenter panel, toggled with Ctrl+Shift+D (SPEC §5). Phones and tablets have
+ * no keyboard shortcut, so adding `?demo=1` to any URL opens it too (the flag is
+ * then removed from the address).
+ */
 export function DemoPanel() {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<Tab>('simulate')
+  const [params, setParams] = useSearchParams()
+  const demoFlag = params.get('demo')
+
+  useEffect(() => {
+    if (demoFlag === null || demoFlag === '0') return
+    setOpen(true)
+    if ((['simulate', 'outbox', 'settings'] as string[]).includes(demoFlag)) setTab(demoFlag as Tab)
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('demo')
+        return next
+      },
+      { replace: true },
+    )
+  }, [demoFlag, setParams])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -64,19 +84,25 @@ export function DemoPanel() {
 
   if (!open) return null
   return (
-    <aside className="fixed bottom-4 right-4 top-4 z-[95] flex w-[460px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg" role="dialog" aria-label={t('demo.title')} data-testid="demo-panel">
-      <header className="flex items-center justify-between bg-rail px-5 py-4 text-white">
+    // Phones: full screen, kept under confirm dialogs (z-80) so "Reset demo" can still be confirmed.
+    <aside
+      className="fixed inset-0 z-[75] flex flex-col overflow-hidden bg-surface shadow-lg md:inset-auto md:bottom-4 md:right-4 md:top-4 md:z-[95] md:w-[460px] md:max-w-[calc(100vw-2rem)] md:rounded-xl md:border md:border-line"
+      role="dialog"
+      aria-label={t('demo.title')}
+      data-testid="demo-panel"
+    >
+      <header className="flex items-center justify-between bg-rail px-4 py-3 text-white md:px-5 md:py-4">
         <div>
           <p className="text-caption uppercase tracking-wide text-accent">{t('demo.kicker')}</p>
           <h2 className="font-display text-title-3">{t('demo.title')}</h2>
         </div>
-        <button type="button" onClick={() => setOpen(false)} aria-label={t('common.close')} className="rounded-md p-2 hover:bg-white/10">
+        <button type="button" onClick={() => setOpen(false)} aria-label={t('common.close')} className="rounded-md p-2.5 hover:bg-white/10 md:p-2">
           <X size={20} aria-hidden />
         </button>
       </header>
-      <nav className="flex border-b border-line" role="tablist">
+      <nav className="flex border-b border-line max-md:overflow-x-auto max-md:overflow-y-hidden max-md:[scrollbar-width:none]" role="tablist">
         {(['simulate', 'outbox', 'settings'] as const).map((key) => (
-          <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} className={clsx('flex-1 border-b-2 py-3 text-body-strong', tab === key ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink')}>
+          <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} className={clsx('flex-1 border-b-2 py-3 text-body-strong max-md:flex-auto max-md:whitespace-nowrap max-md:px-4', tab === key ? 'border-primary text-ink' : 'border-transparent text-muted hover:text-ink')}>
             {t(`demo.tabs.${key}`)}
           </button>
         ))}
@@ -277,7 +303,7 @@ function OnlineBookingForm({ onDone }: { onDone: () => void }) {
           <SlotPicker slots={found.slots} value={slot} onChange={setSlot} />
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="primary" loading={busy} onClick={() => book(false)} disabled={!found || !slot}>
           {t('demo.booking.book')}
         </Button>

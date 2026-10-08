@@ -167,28 +167,30 @@ export function EditSaleDetailsModal({ sale, onClose }: { sale: Sale; onClose: (
           <h3 className="mb-3 text-body-lg font-semibold text-ink">{t('checkout.sale.items')}</h3>
           <div className="flex flex-col divide-y divide-line rounded-lg border border-line">
             {sale.items.map((item) => (
-              <div key={item.id} className="grid grid-cols-[1fr_auto_260px] items-center gap-4 px-4 py-3">
+              <div key={item.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 md:grid-cols-[1fr_auto_260px] md:gap-4">
                 <span className="text-body text-ink">
                   {item.quantity > 1 ? `${item.quantity} × ` : ''}
                   {item.name}
                 </span>
                 <span className="text-body text-muted tabular">{money(lineTotal(item))}</span>
-                <Select aria-label={t('checkout.editItem.teamMember')} value={itemTeam[item.id] ?? ''} onChange={(e) => setItemTeam((prev) => ({ ...prev, [item.id]: e.target.value }))} options={options} />
+                <div className="col-span-2 md:col-span-1">
+                  <Select aria-label={t('checkout.editItem.teamMember')} value={itemTeam[item.id] ?? ''} onChange={(e) => setItemTeam((prev) => ({ ...prev, [item.id]: e.target.value }))} options={options} />
+                </div>
               </div>
             ))}
           </div>
         </section>
         <section>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4">
             <h3 className="text-body-lg font-semibold text-ink">{t('checkout.sale.tips')}</h3>
             <span className="text-body text-muted">{t('checkout.sale.tipTotal', { amount: money(tipTotal) })}</span>
           </div>
           {tips.length === 0 && <p className="mb-3 text-body text-muted">{t('checkout.sale.noTips')}</p>}
           <div className="flex flex-col gap-3">
             {tips.map((tip, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <Select aria-label={t('checkout.editItem.teamMember')} className="flex-1" value={tip.teamMemberId} onChange={(e) => setTips((prev) => prev.map((x, j) => (j === i ? { ...x, teamMemberId: e.target.value } : x)))} options={members.map((m) => ({ value: m.id, label: fullName(m) }))} />
-                <MoneyInput aria-label={t('checkout.tip.tipAmount')} className="w-40" value={tip.amount} onChange={(v) => setTips((prev) => prev.map((x, j) => (j === i ? { ...x, amount: v } : x)))} />
+              <div key={i} className="flex items-center gap-2 md:gap-3">
+                <Select aria-label={t('checkout.editItem.teamMember')} className="min-w-0 flex-1" value={tip.teamMemberId} onChange={(e) => setTips((prev) => prev.map((x, j) => (j === i ? { ...x, teamMemberId: e.target.value } : x)))} options={members.map((m) => ({ value: m.id, label: fullName(m) }))} />
+                <MoneyInput aria-label={t('checkout.tip.tipAmount')} className="w-28 shrink-0 md:w-40" value={tip.amount} onChange={(v) => setTips((prev) => prev.map((x, j) => (j === i ? { ...x, amount: v } : x)))} />
                 <button type="button" className="icon-btn" aria-label={t('checkout.tip.removeRow')} onClick={() => setTips((prev) => prev.filter((_, j) => j !== i))}>
                   <X size={18} aria-hidden />
                 </button>
@@ -196,7 +198,7 @@ export function EditSaleDetailsModal({ sale, onClose }: { sale: Sale; onClose: (
             ))}
           </div>
           {duplicate && <p className="mt-2 text-small text-danger">{t('checkout.tip.duplicate')}</p>}
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <Button className="rounded-full" icon={<Plus size={16} aria-hidden />} disabled={tips.length >= members.length} onClick={() => setTips((prev) => [...prev, { teamMemberId: members.find((m) => !prev.some((x) => x.teamMemberId === m.id))?.id ?? members[0].id, amount: '' }])}>
               {t('checkout.tip.addMember')}
             </Button>
@@ -210,13 +212,13 @@ export function EditSaleDetailsModal({ sale, onClose }: { sale: Sale; onClose: (
             <h3 className="mb-3 text-body-lg font-semibold text-ink">{t('checkout.sale.payments')}</h3>
             <div className="flex flex-col divide-y divide-line rounded-lg border border-line">
               {payments.map((p) => (
-                <div key={p.id} className="grid grid-cols-[1fr_auto_260px] items-center gap-4 px-4 py-3">
+                <div key={p.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 md:grid-cols-[1fr_auto_260px] md:gap-4">
                   <span className="text-body text-ink">
                     {p.methodLabel}
                     <span className="block text-small text-muted">{fmtDateTime(p.at)}</span>
                   </span>
                   <span className="text-body text-muted tabular">{money(p.amount)}</span>
-                  <Field label={t('checkout.sale.collectedBy')}>{(id) => <Select id={id} value={collected[p.id] ?? ''} onChange={(e) => setCollected((prev) => ({ ...prev, [p.id]: e.target.value }))} options={options} />}</Field>
+                  <Field className="col-span-2 md:col-span-1" label={t('checkout.sale.collectedBy')}>{(id) => <Select id={id} value={collected[p.id] ?? ''} onChange={(e) => setCollected((prev) => ({ ...prev, [p.id]: e.target.value }))} options={options} />}</Field>
                 </div>
               ))}
             </div>

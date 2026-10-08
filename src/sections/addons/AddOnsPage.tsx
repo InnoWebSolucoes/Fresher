@@ -26,7 +26,7 @@ export function AddOnsPage() {
     document.getElementById('integrations')?.scrollIntoView({ block: 'start' })
   }, [loading, location.hash])
 
-  if (loading) return <div className="mx-auto w-full max-w-[1120px] px-8 py-8"><PageSkeleton /></div>
+  if (loading) return <div className="mx-auto w-full max-w-[1120px] px-4 py-5 md:px-8 md:py-8"><PageSkeleton /></div>
 
   const goTo = (id: 'addons' | 'integrations') => {
     setTab(id)
@@ -40,7 +40,7 @@ export function AddOnsPage() {
     const on = integration ? isAddOnOn(rec) && configBool(rec, 'connected') !== false : isAddOnOn(rec)
     const href = cardHref(slug, on, published)
     return (
-      <li key={slug} className="card flex flex-col p-6">
+      <li key={slug} className="card flex flex-col p-5 md:p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <AddOnIcon slug={slug} size={24} className="h-14 w-14 rounded-md" />
           {isOnTrial(rec) ? <Chip tone="info">{t('addons.onTrial')}</Chip> : on ? <Chip tone="success">{integration ? t('addons.integration.connected') : t('addons.active')}</Chip> : null}
@@ -57,12 +57,12 @@ export function AddOnsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1120px] px-8 py-8">
+    <div className="mx-auto w-full max-w-[1120px] px-4 py-5 md:px-8 md:py-8">
       <header className="mb-5">
         <h1 className="font-display text-title-1 text-ink">{t('addons.title')}</h1>
         <p className="mt-1 text-body-lg text-muted">{t('addons.subtitle')}</p>
       </header>
-      <div className="sticky top-0 z-10 -mx-2 mb-6 flex gap-1 bg-canvas px-2 py-2" role="tablist" aria-label={t('addons.title')}>
+      <div className="sticky top-0 z-10 -mx-4 mb-5 flex gap-1 bg-canvas px-4 py-2 md:-mx-2 md:mb-6 md:px-2" role="tablist" aria-label={t('addons.title')}>
         {(['addons', 'integrations'] as const).map((id) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => goTo(id)} className={clsx('h-10 rounded-full px-5 text-body-strong transition-colors', tab === id ? 'bg-ink text-canvas' : 'text-ink hover:bg-sunken')}>
             {id === 'addons' ? t('addons.tabAddons') : t('addons.integrations')}
@@ -72,7 +72,7 @@ export function AddOnsPage() {
       <ul id="addons" className="grid scroll-mt-20 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label={t('addons.tabAddons')}>
         {ADDONS.map(card)}
       </ul>
-      <h2 id="integrations" className="mb-5 mt-12 scroll-mt-20 font-display text-title-2 text-ink">
+      <h2 id="integrations" className="mb-5 mt-10 scroll-mt-20 md:mt-12 font-display text-title-2 text-ink">
         {t('addons.integrations')}
       </h2>
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label={t('addons.integrations')}>

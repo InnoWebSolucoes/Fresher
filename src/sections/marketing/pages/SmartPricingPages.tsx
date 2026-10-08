@@ -130,13 +130,13 @@ export function SmartPricingDetailsPage() {
       <div className="mb-6">
         <DateRangeButton value={range} onChange={setRange} presets={['last_7_days', 'last_30_days', 'last_90_days', 'next_7_days', 'next_30_days']} />
       </div>
-      <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-4">
+      <div className="mb-6 grid gap-5 md:mb-8 md:gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+        <div className="grid grid-cols-2 gap-3 md:flex md:flex-col md:gap-4">
           <StatCard label={t('marketing.smartPricing.apptValue')} value={money(stats.apptValue)} hint={t('marketing.smartPricing.apptCount', { count: stats.apptCount })} />
           <StatCard label={t('marketing.smartPricing.salesValue')} value={money(stats.salesValue)} hint={t('marketing.smartPricing.salesCount', { count: stats.salesCount })} />
         </div>
-        <section className="card p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
+        <section className="card min-w-0 p-4 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3 max-md:flex-wrap">
             <h2 className="font-display text-title-3 text-ink">{t('marketing.smartPricing.dayOfWeek')}</h2>
             <Select
               aria-label={t('marketing.smartPricing.metric')}
@@ -165,14 +165,14 @@ export function SmartPricingDetailsPage() {
         </section>
       </div>
 
-      <section className="card p-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4 rounded-lg bg-sunken p-5">
-          <div>
-            <p className="flex items-center gap-3 text-body-lg font-semibold text-ink">
+      <section className="card p-4 md:p-6">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-4 rounded-lg bg-sunken p-4 md:mb-6 md:p-5">
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-lg font-semibold text-ink md:flex-nowrap md:gap-3">
               {workspace.name}
               <Chip tone={sp.status === 'active' ? 'success' : 'warning'}>{sp.status === 'active' ? t('marketing.common.active') : t('marketing.common.paused')}</Chip>
             </p>
-            <div className="mt-2 flex items-center gap-2 text-body text-ink">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-body text-ink md:flex-nowrap">
               <span className="flex -space-x-2">
                 {members.slice(0, 5).map((m) => (
                   <Avatar key={m.id} name={`${m.firstName} ${m.lastName}`} color={m.color} size={30} className="ring-2 ring-sunken" />
@@ -202,13 +202,13 @@ export function SmartPricingDetailsPage() {
             ]}
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {WEEKDAYS.map((d) => {
             const rules = sp.rules[d] ?? []
             return (
               <div key={d} className="overflow-hidden rounded-lg border border-line">
                 <p className="bg-primary-subtle py-3 text-center text-body-strong text-primary">{t(`marketing.smartPricing.days.${d}`)}</p>
-                <div className="flex min-h-[110px] flex-col justify-center divide-y divide-line">
+                <div className="flex min-h-[88px] flex-col justify-center divide-y divide-line md:min-h-[110px]">
                   {rules.length ? (
                     rules.map((r, i) => (
                       <div key={i} className="px-2 py-3 text-center">
@@ -277,9 +277,9 @@ export function SmartPricingSetupPage() {
       >
         <div className="flex flex-col items-center pt-8 text-center">
           <SuccessBadge />
-          <h1 className="mt-6 font-display text-[30px] font-bold text-ink">{t('marketing.smartPricing.done.title')}</h1>
+          <h1 className="mt-6 font-display text-[26px] font-bold leading-[32px] text-ink md:text-[30px] md:leading-[inherit]">{t('marketing.smartPricing.done.title')}</h1>
         </div>
-        <ul className="card mt-8 flex flex-col gap-3 p-8 text-body-lg text-ink">
+        <ul className="card mt-6 flex flex-col gap-3 p-5 text-body-lg text-ink md:mt-8 md:p-8">
           <li>{sp.serviceIds === 'all' ? t('marketing.smartPricing.done.allServices') : t('marketing.smartPricing.done.someServices', { count: sp.serviceIds.length })}</li>
           {inc.length > 0 && (
             <li className="flex items-center gap-2">
@@ -360,7 +360,7 @@ export function SmartPricingSetupPage() {
       {step === 'team' && (
         <>
           <WizardTitle eyebrow={t('marketing.smartPricing.setupEyebrow')} title={t('marketing.smartPricing.team.title')} subtitle={t('marketing.smartPricing.team.subtitle')} />
-          <div className="card flex flex-col gap-3 p-6">
+          <div className="card flex flex-col gap-3 p-4 md:p-6">
             <Checkbox label={<span className="font-semibold">{t('marketing.common.selectAll')}</span>} checked={selected.length === members.length} onChange={(v) => setDraft({ ...draft, teamMemberIds: v ? 'all' : [] })} />
             <div className="flex flex-col gap-3 border-t border-line pt-3">
               {members.map((m) => (
@@ -383,12 +383,12 @@ export function SmartPricingSetupPage() {
       {step === 'services' && (
         <>
           <WizardTitle eyebrow={t('marketing.smartPricing.setupEyebrow')} title={t('marketing.smartPricing.services.title')} subtitle={t('marketing.smartPricing.services.subtitle')} />
-          <div className="card flex items-center justify-between gap-4 p-6">
+          <div className="card flex items-center justify-between gap-4 p-4 md:p-6">
             <div>
               <p className="text-body-strong text-ink">{t('marketing.smartPricing.services.applyTo')}</p>
               <p className="text-body text-muted">{draft.serviceIds === 'all' ? t('marketing.smartPricing.allServices') : t('marketing.smartPricing.nServices', { count: draft.serviceIds.length })}</p>
             </div>
-            <Button size="sm" className="rounded-full" onClick={() => setServicesOpen(true)}>
+            <Button size="sm" className="rounded-full max-md:h-10 max-md:px-4" onClick={() => setServicesOpen(true)}>
               {t('marketing.common.edit')}
             </Button>
           </div>
@@ -419,8 +419,63 @@ export function SmartPricingSetupPage() {
               </>
             }
           />
-          <div className="overflow-x-auto">
+          {/* Phones: one card per day with the time ranges stacked, instead of the wide table. */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {WEEKDAYS.map((d) => {
+              const ranges = draft.rules[d] ?? []
+              const on = ranges.length > 0
+              return (
+                <div key={d} className="card p-4">
+                  <Checkbox label={<span className="font-semibold">{t(`marketing.smartPricing.days.${d}`)}</span>} checked={on} onChange={(v) => setDay(d, v ? [{ start: '09:00', end: '11:00', direction: 'increase', value: 10, unit: 'percent' }] : [])} />
+                  {!on ? (
+                    <p className="mt-1 pl-8 text-body text-muted">{t('marketing.smartPricing.rules.none')}</p>
+                  ) : (
+                    <div className="mt-3 flex flex-col gap-2">
+                      {ranges.map((r, i) => (
+                        <div key={i} className="flex flex-col gap-2 rounded-md bg-sunken p-3">
+                          <div className="flex items-center gap-2">
+                            <Select aria-label={t('marketing.smartPricing.rules.start')} className="min-w-0 flex-1" value={r.start} onChange={(e) => updateRange(d, i, { start: e.target.value })} options={TIMES} />
+                            <span className="text-muted">-</span>
+                            <Select aria-label={t('marketing.smartPricing.rules.end')} className="min-w-0 flex-1" value={r.end} onChange={(e) => updateRange(d, i, { end: e.target.value })} options={[...TIMES.slice(1), '23:59']} />
+                            <button type="button" className="icon-btn shrink-0" aria-label={t('marketing.smartPricing.rules.delete')} onClick={() => setDay(d, ranges.filter((_, j) => j !== i))}>
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                          <Select
+                            aria-label={t('marketing.smartPricing.rules.change')}
+                            value={r.direction}
+                            onChange={(e) => updateRange(d, i, { direction: e.target.value as SmartPricingRule['direction'] })}
+                            options={[
+                              { value: 'increase', label: `↑ ${t('marketing.smartPricing.rules.increase')}` },
+                              { value: 'decrease', label: `↓ ${t('marketing.smartPricing.rules.decrease')}` },
+                            ]}
+                          />
+                          <div className="flex items-center gap-2">
+                            <TextInput aria-label={t('marketing.smartPricing.rules.by')} className="min-w-0 flex-1" type="number" min={0} prefix={r.unit === 'percent' ? '%' : '€'} value={Number.isFinite(r.value) ? r.value : ''} onChange={(e) => updateRange(d, i, { value: Number(e.target.value) })} />
+                            <UnitToggle value={r.unit} onChange={(unit) => updateRange(d, i, { unit })} labels={{ percent: t('marketing.dealWizard.percentage'), amount: t('marketing.dealWizard.amount') }} />
+                          </div>
+                        </div>
+                      ))}
+                      <Button
+                        variant="link"
+                        className="self-start max-md:h-10"
+                        onClick={() => {
+                          const last = ranges[ranges.length - 1]
+                          const start = Math.min(toMinutes(last.end) + 60, 22 * 60)
+                          setDay(d, [...ranges, { start: toClock(start), end: toClock(start + 60), direction: 'decrease', value: 10, unit: 'percent' }])
+                        }}
+                      >
+                        {t('marketing.smartPricing.rules.addHours')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <div className="overflow-x-auto max-md:hidden">
             <table className="w-full min-w-[860px] text-left text-body">
+
               <thead>
                 <tr className="border-b border-line text-body-strong text-ink">
                   <th className="w-44 py-3">{t('marketing.smartPricing.rules.day')}</th>
@@ -470,7 +525,7 @@ export function SmartPricingSetupPage() {
                             ))}
                             <Button
                               variant="link"
-                              className="self-start"
+                              className="self-start max-md:h-10"
                               onClick={() => {
                                 const last = ranges[ranges.length - 1]
                                 const start = Math.min(toMinutes(last.end) + 60, 22 * 60)

@@ -142,7 +142,7 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
 
   return createPortal(
     <div ref={panel} role="dialog" aria-modal="true" aria-labelledby="breakdown-title" className="fixed inset-0 z-[70] overflow-y-auto bg-canvas">
-      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-canvas/95 px-6 py-4 backdrop-blur">
+      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-canvas/95 px-4 py-3 backdrop-blur md:px-6 md:py-4">
         <Menu
           align="right"
           groups={[
@@ -174,8 +174,8 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
           {t('team.common.close')}
         </Button>
       </div>
-      <div className="mx-auto max-w-6xl px-6 pb-16">
-        <h1 id="breakdown-title" className="font-display text-display text-ink">
+      <div className="mx-auto max-w-6xl px-4 pb-16 md:px-6">
+        <h1 id="breakdown-title" className="font-display text-title-1 text-ink md:text-display">
           {t('team.pay.breakdown')}
         </h1>
         <div className="card mt-6 flex items-center gap-4 p-5">
@@ -197,7 +197,7 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
         />
         {tab === 'overview' ? (
           <>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
               <StatCard label={t('team.pay.earnings')} value={money(e.earnings)} />
               <StatCard label={t('team.pay.kinds.other')} value={money(e.other.total)} />
               <StatCard label={t('team.pay.paid')} value={money(e.paid)} />
@@ -205,7 +205,7 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
             </div>
             <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
               <div className="flex flex-col gap-6">
-                <section className="card p-8">
+                <section className="card p-5 md:p-8">
                   <h2 className="mb-4 font-display text-title-3 text-ink">{t('team.pay.earnings')}</h2>
                   <Row label={t('team.pay.kinds.wages')} value={money(e.wages.total)} strong />
                   <Row label={t('team.pay.hourlyRate')} value={money(e.wages.rate)} />
@@ -230,7 +230,7 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
                   <div className="my-4 border-t border-line" />
                   <Row label={t('team.pay.earningsTotal')} value={money(e.earnings)} strong className="text-body-lg" />
                 </section>
-                <section className="card p-8">
+                <section className="card p-5 md:p-8">
                   <h2 className="mb-4 font-display text-title-3 text-ink">{t('team.pay.kinds.other')}</h2>
                   <Row label={t('team.pay.kinds.other')} value={money(e.other.total)} strong />
                   <Row label={t('team.pay.processingFees')} value={money(e.other.processing)} />
@@ -240,7 +240,7 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
                   <Row label={t('team.pay.otherTotal')} value={money(e.other.total)} strong className="text-body-lg" />
                 </section>
               </div>
-              <section className="card p-8">
+              <section className="card p-5 md:p-8">
                 <h2 className="mb-4 font-display text-title-3 text-ink">{t('team.pay.paid')}</h2>
                 {paidRows.length ? (
                   paidRows.map((r) => <Row key={r.id} label={`${t(`team.pay.types.${r.type}`)} · ${format(parseISO(r.at), 'MMM d, yyyy')}`} value={money(r.paid)} />)
@@ -252,9 +252,10 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
           </>
         ) : (
           <>
-            <div className="mb-4 mt-6 flex flex-wrap items-center gap-2">
-              <Select aria-label={t('team.pay.filterKindsLabel')} value={kind} onChange={(ev) => setKind(ev.target.value as KindFilter)} className="h-10 w-auto rounded-full" options={(['all', 'wages', 'commissions', 'tips', 'other', 'paid'] as const).map((k) => ({ value: k, label: t(`team.pay.filterKinds.${k}`) }))} />
-              <select aria-label={t('team.pay.allTypes')} value={type} onChange={(ev) => setType(ev.target.value)} className="input h-10 w-auto appearance-none rounded-full bg-[length:16px] bg-[right_12px_center] bg-no-repeat pr-9" style={{ backgroundImage: CHEVRON }}>
+            {/* Phones: two selects side by side, the long type select on its own row, sort on the right. */}
+            <div className="mb-4 mt-6 grid grid-cols-2 items-center gap-2 md:flex md:flex-wrap">
+              <Select aria-label={t('team.pay.filterKindsLabel')} value={kind} onChange={(ev) => setKind(ev.target.value as KindFilter)} className="order-1 h-10 rounded-full max-md:w-full md:order-none md:w-auto" options={(['all', 'wages', 'commissions', 'tips', 'other', 'paid'] as const).map((k) => ({ value: k, label: t(`team.pay.filterKinds.${k}`) }))} />
+              <select aria-label={t('team.pay.allTypes')} value={type} onChange={(ev) => setType(ev.target.value)} className="input order-3 col-span-2 h-10 appearance-none rounded-full bg-[length:16px] bg-[right_12px_center] bg-no-repeat pr-9 max-md:w-full md:order-none md:w-auto" style={{ backgroundImage: CHEVRON }}>
                 <option value="all">{t('team.pay.allTypes')}</option>
                 {ACTIVITY_TYPE_GROUPS.map((group, gi) => (
                   <optgroup key={gi} label={t(`team.pay.typeGroups.${gi}`)}>
@@ -266,8 +267,8 @@ function Breakdown({ memberId, period: initialPeriod, initialTab = 'overview', i
                   </optgroup>
                 ))}
               </select>
-              <Select aria-label={t('team.pay.period')} value={period.start} onChange={(ev) => setPeriod(periods.find((p) => p.start === ev.target.value) ?? period)} className="h-10 w-auto rounded-full" options={periods.map((p) => ({ value: p.start, label: rangeLabel(p.start, p.end) }))} />
-              <div className="ml-auto">
+              <Select aria-label={t('team.pay.period')} value={period.start} onChange={(ev) => setPeriod(periods.find((p) => p.start === ev.target.value) ?? period)} options={periods.map((p) => ({ value: p.start, label: rangeLabel(p.start, p.end) }))} className="order-2 h-10 rounded-full max-md:w-full md:order-none md:w-auto" />
+              <div className="order-4 col-span-2 justify-self-end md:order-none md:ml-auto">
                 <SortMenu label={t('team.pay.sortLabel')} value={sort} onChange={setSort} options={['dateDesc', 'dateAsc', 'totalDesc', 'totalAsc', 'paidDesc', 'paidAsc'].map((s) => ({ value: s, label: t(`team.pay.sort.${s}`) }))} />
               </div>
             </div>

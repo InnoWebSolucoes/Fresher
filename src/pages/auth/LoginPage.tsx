@@ -83,7 +83,7 @@ export function LoginPage() {
           )}
         </div>
         <div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-x-3">
             <label htmlFor="password" className="label">
               {t('auth.password')}
             </label>
@@ -128,7 +128,7 @@ export function LoginPage() {
         <p className="mb-3 text-small text-muted">
           {t('auth.demoAccountsHint')} {t('demo.loginHint')}.
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {DEMO_ACCOUNTS.map((account) => (
             <button
               key={account.email}

@@ -37,7 +37,7 @@ export function ClientPicker() {
         </button>
         <h1 className="font-display text-title-2 text-ink">{t('checkout.client.selectClient')}</h1>
       </div>
-      <SearchInput className="mt-6" value={query} onChange={setQuery} placeholder={t('checkout.client.search')} />
+      <SearchInput className="mt-4 md:mt-6" value={query} onChange={setQuery} placeholder={t('checkout.client.search')} />
       <div className="mt-4 flex flex-col">
         <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-4 rounded-md px-3 py-3 text-left hover:bg-sunken/60">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-subtle text-primary">

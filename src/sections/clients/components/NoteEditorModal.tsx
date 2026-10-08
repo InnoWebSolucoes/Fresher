@@ -79,10 +79,12 @@ function Editor({ onClose, client, initialHtml = '', title, onSave }: Props) {
       size="xl"
       title={title ?? t('clients.note.title')}
       footer={
-        <div className="flex w-full items-center justify-between">
-          <span className="inline-flex items-center gap-2 rounded-full border border-line-strong py-1 pl-1 pr-3 text-body">
+        <div className="flex w-full items-center justify-between gap-3">
+          <span className="inline-flex min-w-0 items-center gap-2 rounded-full border border-line-strong py-1 pl-1 pr-3 text-body">
             <ClientAvatar client={client} size={26} initials />
-            {client.firstName} {client.lastName}
+            <span className="truncate">
+              {client.firstName} {client.lastName}
+            </span>
           </span>
           <Button variant="primary" disabled={empty} loading={saving} onClick={() => void save()}>
             {t('clients.common.save')}

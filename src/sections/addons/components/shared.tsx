@@ -90,20 +90,20 @@ export function IntroScreen({
   }, [onClose])
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="addon-intro-heading" className="relative min-h-0 flex-1 overflow-y-auto bg-surface">
-      <button type="button" className="icon-btn absolute right-8 top-6 z-10 h-11 w-11" aria-label={t('addons.closeModal')} onClick={onClose}>
+      <button type="button" className="icon-btn absolute right-3 top-3 z-10 h-11 w-11 md:right-8 md:top-6" aria-label={t('addons.closeModal')} onClick={onClose}>
         <X size={24} aria-hidden />
       </button>
-      <div className="mx-auto grid min-h-full w-full max-w-[1240px] items-center gap-12 px-8 py-16 lg:grid-cols-[1fr_minmax(0,460px)]">
+      <div className="mx-auto grid min-h-full w-full max-w-[1240px] items-center gap-12 px-5 pb-10 pt-16 md:px-8 md:py-16 lg:grid-cols-[1fr_minmax(0,460px)]">
         <div>
           <div className="flex items-center gap-3">
             <AddOnIcon slug={slug} size={22} className="h-12 w-12 rounded-md" />
-            <p className="text-body-lg font-semibold text-ink">{label}</p>
+            <p className="min-w-0 text-body-lg font-semibold text-ink">{label}</p>
             {badge}
           </div>
-          <h1 id="addon-intro-heading" className="mt-6 max-w-[620px] font-display text-[44px] font-bold leading-[52px] text-ink">
+          <h1 id="addon-intro-heading" className="mt-5 max-w-[620px] md:mt-6 font-display text-[30px] font-bold leading-[38px] md:text-[44px] md:leading-[52px] text-ink">
             {heading}
           </h1>
-          {body && <p className="mt-4 max-w-[620px] text-[18px] leading-7 text-ink">{body}</p>}
+          {body && <p className="mt-4 max-w-[620px] text-body-lg text-ink md:text-[18px] md:leading-7">{body}</p>}
           <ul className="mt-6 flex max-w-[640px] flex-col gap-2.5">
             {bullets.map((b) => (
               <li key={b} className="flex items-start gap-3 text-body-lg text-ink">
@@ -112,8 +112,8 @@ export function IntroScreen({
               </li>
             ))}
           </ul>
-          {price && <div className="mt-12">{price}</div>}
-          <div className="mt-10 flex items-center gap-6">
+          {price && <div className="mt-8 md:mt-12">{price}</div>}
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 md:mt-10">
             <Button variant="primary" size="lg" className="rounded-full px-7" loading={primary.loading} onClick={primary.onClick}>
               {primary.label}
             </Button>
@@ -121,7 +121,7 @@ export function IntroScreen({
               <span className="text-body-lg font-semibold text-ink hover:underline">{t('addons.learnMore')}</span>
             </LearnMore>
           </div>
-          {footer && <div className="mt-12">{footer}</div>}
+          {footer && <div className="mt-10 md:mt-12">{footer}</div>}
         </div>
         <div className="hidden lg:block">
           <IntroArt slug={slug} words={words} />
@@ -156,17 +156,17 @@ export function WizardFrame({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
       {steps !== undefined && step !== undefined && (
-        <div className="mx-auto flex w-full max-w-[1720px] gap-2 px-8 pt-4" role="progressbar" aria-valuemin={0} aria-valuemax={steps} aria-valuenow={step} aria-label={t('addons.progress', { step, steps })}>
+        <div className="mx-auto flex w-full max-w-[1720px] gap-1.5 px-4 pt-3 md:gap-2 md:px-8 md:pt-4" role="progressbar" aria-valuemin={0} aria-valuemax={steps} aria-valuenow={step} aria-label={t('addons.progress', { step, steps })}>
           {Array.from({ length: steps }, (_, i) => (
             <span key={i} className={clsx('h-1 flex-1 rounded-full', i < step ? 'bg-primary' : 'bg-line')} />
           ))}
         </div>
       )}
-      <header className="mx-auto flex w-full max-w-[1720px] items-center justify-between gap-4 px-8 py-4">
+      <header className="mx-auto flex w-full max-w-[1720px] items-center justify-between gap-2 px-4 py-3 md:gap-4 md:px-8 md:py-4">
         {onBack ? (
-          <button type="button" className="flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-surface hover:bg-sunken" aria-label={t('addons.back')} onClick={onBack}>
+          <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface hover:bg-sunken md:h-12 md:w-12" aria-label={t('addons.back')} onClick={onBack}>
             <ArrowLeft size={20} aria-hidden />
           </button>
         ) : (
@@ -183,7 +183,7 @@ export function WizardFrame({
           )}
         </div>
       </header>
-      <main className={clsx('mx-auto w-full flex-1 px-8 pb-16 pt-6', maxWidth)}>{children}</main>
+      <main className={clsx('mx-auto w-full flex-1 px-4 pb-12 pt-3 md:px-8 md:pb-16 md:pt-6', maxWidth)}>{children}</main>
     </div>
   )
 }

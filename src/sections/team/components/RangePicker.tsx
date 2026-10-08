@@ -47,7 +47,7 @@ export function RangePicker({ value, onChange, presets }: { value: RangeValue; o
   const label = value.preset === 'custom' ? rangeLabel(value.from, value.to) : t(`team.range.${value.preset}`)
   return (
     <Popover
-      className="w-[340px]"
+      className="w-[310px] md:w-[340px]"
       trigger={({ open, toggle }) => (
         <button
           type="button"
@@ -71,7 +71,7 @@ export function RangePicker({ value, onChange, presets }: { value: RangeValue; o
             {t('team.range.label')}
           </label>
           <Select id="range-preset" value={draft.preset} onChange={(e) => setDraft(resolveRange(e.target.value as RangePreset, draft))} options={[...presets, 'custom'].map((p) => ({ value: p, label: t(`team.range.${p}`) }))} />
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <label className="label" htmlFor="range-from">
                 {t('team.range.from')}

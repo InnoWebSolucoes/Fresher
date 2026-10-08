@@ -306,7 +306,7 @@ function TypeCarousel({ types, value, onChoose, onNew }: { types: BlockedTimeTyp
       role={role}
       aria-checked={role === 'radio' ? checked : undefined}
       onClick={onClick}
-      className={clsx('flex h-[150px] w-[200px] shrink-0 snap-start flex-col items-center justify-center gap-1 rounded-xl border bg-surface px-3 text-center transition-colors', checked ? 'border-2 border-primary' : 'border-line hover:bg-sunken')}
+      className={clsx('flex h-[150px] w-[200px] shrink-0 snap-start flex-col items-center justify-center gap-1 rounded-xl border bg-surface px-3 text-center transition-colors max-md:h-[132px] max-md:w-[164px]', checked ? 'border-2 border-primary' : 'border-line hover:bg-sunken')}
       data-testid={`blocked-type-${key}`}
     >
       <span className="mb-1 flex h-9 items-center text-[28px] leading-none text-ink">{icon}</span>
@@ -324,12 +324,12 @@ function TypeCarousel({ types, value, onChoose, onNew }: { types: BlockedTimeTyp
         {card('new', false, <Plus size={24} aria-hidden />, t('calendar.blocked.newType'), t('calendar.blocked.newTypeHint'), onNew, 'button')}
       </div>
       {!edges.start && (
-        <button type="button" onClick={() => page(-1)} aria-label={t('calendar.blocked.prev')} className="absolute -left-5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
+        <button type="button" onClick={() => page(-1)} aria-label={t('calendar.blocked.prev')} className="absolute -left-5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken max-md:left-1 max-md:h-10 max-md:w-10">
           <ArrowLeft size={20} aria-hidden />
         </button>
       )}
       {!edges.end && (
-        <button type="button" onClick={() => page(1)} aria-label={t('calendar.blocked.next')} className="absolute -right-5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
+        <button type="button" onClick={() => page(1)} aria-label={t('calendar.blocked.next')} className="absolute -right-5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken max-md:right-1 max-md:h-10 max-md:w-10">
           <ArrowRight size={20} aria-hidden />
         </button>
       )}
@@ -441,9 +441,9 @@ function BlockedTypeModal({ open, onClose, onCreated }: { open: boolean; onClose
         </Button>
       }
     >
-      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink">{t('calendar.blocked.typeModal.title')}</h1>
+      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink max-md:text-[28px] max-md:leading-9">{t('calendar.blocked.typeModal.title')}</h1>
       <p className="mt-2 text-body-lg text-muted">{t('calendar.blocked.typeModal.subtitle')}</p>
-      <div className="mt-10 flex flex-col gap-6">
+      <div className="mt-10 flex flex-col gap-6 max-md:mt-6 max-md:gap-5">
         <Field label={t('calendar.blocked.typeModal.type')} error={nameError}>
           {(fid) => (
             <div className="relative flex gap-3">

@@ -46,9 +46,10 @@ export function TeamMemberDrawer({ id, close }: DrawerProps) {
   const hasLogin = Boolean(linkedUser(member.id))
 
   return (
-    <div className="flex h-full flex-col md:flex-row">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto md:flex-row md:overflow-visible">
+      {/* Phones: the profile card, tab row and tab content scroll together. */}
       <aside className="flex w-full shrink-0 flex-col border-b border-line md:w-[380px] md:border-b-0 md:border-r">
-        <div className="p-6">
+        <div className="p-5 md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h2 className="font-display text-title-2 text-ink">{member.firstName}</h2>
@@ -58,7 +59,8 @@ export function TeamMemberDrawer({ id, close }: DrawerProps) {
                 <PortalMenu align="left" groups={[{ items: actions.items(member, 'drawer') }]} trigger={({ open, toggle }) => <ActionsPill open={open} toggle={toggle} label={t('team.common.actions')} />} />
               </div>
             </div>
-            <MemberAvatar member={member} size={112} />
+            <MemberAvatar member={member} size={88} className="md:hidden" />
+            <MemberAvatar member={member} size={112} className="hidden md:inline-flex" />
           </div>
           {member.role !== 'owner' && (
             <div className="mt-6 rounded-lg bg-primary-subtle/60 p-4">
@@ -133,7 +135,7 @@ export function TeamMemberDrawer({ id, close }: DrawerProps) {
           ))}
         </nav>
       </aside>
-      <div className="min-w-0 flex-1 overflow-y-auto bg-canvas p-6">
+      <div className="min-w-0 flex-1 bg-canvas p-5 md:overflow-y-auto md:p-6">
         {tab === 'overview' && <OverviewTab member={member} />}
         {tab === 'personal' && <PersonalTab member={member} onEdit={() => edit('profile')} />}
         {tab === 'workspace' && <WorkspaceTab member={member} onEdit={() => edit('settings')} />}
@@ -202,7 +204,7 @@ function OverviewTab({ member }: { member: TeamMember }) {
   return (
     <>
       <h2 className="font-display text-title-1 text-ink">{t('team.drawer.tabs.overview')}</h2>
-      <div className="mb-5 mt-4 flex items-end justify-between gap-4">
+      <div className="mb-5 mt-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div>
           <h3 className="text-body-lg font-semibold text-ink">{t('team.drawer.dashboard')}</h3>
           <button type="button" className="text-body text-primary hover:underline" onClick={() => navigate(`/reports/table/performance?teamMemberId=${member.id}`)}>

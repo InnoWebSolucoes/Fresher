@@ -7,7 +7,7 @@ import type { Client, ID } from '@/types'
 import { useDb } from '@/store/db'
 import { duplicatesOf, mergeClients } from '@/api/clients'
 import { Button, Checkbox, EmptyState, Field, IconButton, LearnMore, Modal, PageSkeleton, Select, toast, usePageLoading } from '@/components/ui'
-import { ClientAvatar } from '../components/common'
+import { ResponsiveAvatar } from '../components/common'
 import { ClientSearchModal } from '../components/ClientSearchModal'
 import { clientName } from '../lib/helpers'
 
@@ -22,8 +22,8 @@ export function ClientMergePage() {
 
   return (
     <div className="flex h-full flex-col bg-canvas">
-      <header className="mx-auto flex w-full max-w-[1400px] shrink-0 items-center justify-between px-6 py-4">
-        <IconButton label={t('clients.more.common.back')} onClick={leave} className="h-12 w-12 border border-line-strong">
+      <header className="mx-auto flex w-full max-w-[1400px] shrink-0 items-center justify-between px-4 py-3 md:px-6 md:py-4">
+        <IconButton label={t('clients.more.common.back')} onClick={leave} className="h-11 w-11 border border-line-strong md:h-12 md:w-12">
           <ArrowLeft size={20} aria-hidden />
         </IconButton>
         <Button size="lg" onClick={leave}>
@@ -31,7 +31,7 @@ export function ClientMergePage() {
         </Button>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1220px] px-6 pb-16 pt-4">
+        <div className="mx-auto w-full max-w-[1220px] px-4 pb-16 pt-2 md:px-6 md:pt-4">
           {loading ? (
             <PageSkeleton rows={4} />
           ) : !client ? (
@@ -89,13 +89,13 @@ function MergeBody({ client, clients }: { client: Client; clients: Client[] }) {
   }
 
   const row = (c: Client, opts: { locked?: boolean; removable?: boolean }) => (
-    <li key={c.id} className="flex items-center gap-4 border-b border-line py-4 pl-11 last:border-0">
-      <span className="-ml-11 w-7">
+    <li key={c.id} className="flex items-center gap-3 border-b border-line py-4 pl-10 last:border-0 md:gap-4 md:pl-11">
+      <span className="-ml-10 w-7 md:-ml-11">
         <Checkbox label={<span className="sr-only">{clientName(c)}</span>} checked={opts.locked || selected.has(c.id)} disabled={opts.locked} onChange={(v) => toggle(c.id, v)} />
       </span>
-      <ClientAvatar client={c} size={56} />
-      <div className={clsx('grid min-w-0 flex-1 grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.6fr)] items-center gap-4', opts.locked && 'text-muted')}>
-        <span className="truncate text-body-strong text-ink">
+      <ResponsiveAvatar client={c} size={56} phoneSize={40} />
+      <div className={clsx('grid min-w-0 flex-1 grid-cols-1 items-center gap-0.5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.6fr)] md:gap-4', opts.locked && 'text-muted')}>
+        <span className="text-body-strong text-ink md:truncate">
           {clientName(c)}
           {opts.locked && <span className="ml-2 chip bg-sunken text-caption text-muted">{t('clients.more.merge.primary')}</span>}
         </span>
@@ -119,17 +119,17 @@ function MergeBody({ client, clients }: { client: Client; clients: Client[] }) {
 
   return (
     <>
-      <h1 className="font-display text-display text-ink">{t('clients.more.merge.title', { count: candidates.length })}</h1>
-      <p className="mt-3 max-w-4xl text-body-lg text-muted">
+      <h1 className="font-display text-title-1 text-ink md:text-display">{t('clients.more.merge.title', { count: candidates.length })}</h1>
+      <p className="mt-3 max-w-4xl text-body text-muted md:text-body-lg">
         {t('clients.more.merge.subtitle')} <LearnMore topic={t('clients.list.mergeClients')}>{t('clients.more.merge.subtitleLink')}</LearnMore> {t('clients.more.merge.subtitleTail')}
       </p>
 
-      <div className="mt-8 rounded-lg border border-line bg-sunken px-6 py-5">
+      <div className="mt-6 rounded-lg border border-line bg-sunken px-4 py-4 md:mt-8 md:px-6 md:py-5">
         <p className="text-body-strong text-ink">{foundClients.length ? t('clients.more.merge.found', { count: foundClients.length }) : t('clients.more.merge.foundNone')}</p>
         <p className="mt-1 text-body text-muted">{foundClients.length ? t('clients.more.merge.foundBody') : t('clients.more.merge.foundNoneBody')}</p>
       </div>
 
-      <div className="mt-6 flex items-center justify-between gap-4 border-b border-line pb-4">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4 md:gap-4">
         <Checkbox
           label={<span className="text-body-strong">{t('clients.more.merge.selectAll')}</span>}
           checked={allSelected}

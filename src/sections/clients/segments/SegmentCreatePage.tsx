@@ -64,8 +64,8 @@ function RulesStep() {
         </Button>
       }
     >
-      <h1 className="font-display text-display text-ink">{t('clients.segments.create.title')}</h1>
-      <p className="mb-8 mt-2 text-body-lg text-muted">
+      <h1 className="font-display text-title-1 text-ink md:text-display">{t('clients.segments.create.title')}</h1>
+      <p className="mb-6 mt-2 text-body text-muted md:mb-8 md:text-body-lg">
         {t('clients.segments.create.subtitle')} <LearnMore topic={t('clients.topics.segments')}>{t('clients.common.learnMore')}</LearnMore>
       </p>
       <RulesEditor
@@ -144,8 +144,8 @@ function DetailsStep() {
         </>
       }
     >
-      <h1 className="font-display text-display text-ink">{t('clients.segments.create.nameTitle')}</h1>
-      <p className="mb-8 mt-2 text-body-lg text-muted">{t('clients.segments.create.nameSubtitle')}</p>
+      <h1 className="font-display text-title-1 text-ink md:text-display">{t('clients.segments.create.nameTitle')}</h1>
+      <p className="mb-6 mt-2 text-body text-muted md:mb-8 md:text-body-lg">{t('clients.segments.create.nameSubtitle')}</p>
       <form
         className="flex flex-col gap-6"
         onSubmit={(e) => {

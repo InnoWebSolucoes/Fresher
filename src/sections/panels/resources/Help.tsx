@@ -58,7 +58,7 @@ function HelpHome() {
   ] as const
 
   return (
-    <div className="px-6 pb-8 pt-6">
+    <div className="px-4 pb-8 pt-6 md:px-6">
       <h2 className="font-display text-title-2 text-ink">{t('panels.help.greeting', { name: user?.firstName ?? '' })}</h2>
       <div className="mt-5 flex flex-col gap-2.5">
         {options.map(({ key, icon: Icon, view }) => (
@@ -143,7 +143,7 @@ function HelpCenter({ initialQuery }: { initialQuery: string }) {
   return (
     <div className="pb-8">
       <PanelHeader title={t('panels.help.center.title')} subtitle={t('panels.help.center.subtitle')} onBack={() => drawer.update({ d_view: undefined, d_q: undefined })} />
-      <div className="px-6">
+      <div className="px-4 md:px-6">
         <label className="relative block">
           <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
           <input
@@ -215,7 +215,7 @@ function ArticleView({ slug }: { slug: string }) {
   return (
     <div className="pb-8">
       <PanelHeader title={title} subtitle={summary} onBack={() => drawer.update({ d_view: 'help-center', d_article: undefined })} />
-      <div className="px-6">
+      <div className="px-4 md:px-6">
         <div className="flex flex-col gap-3 text-body-lg text-ink">
           {body.split('\n\n').map((para, i) =>
             para.startsWith('- ') ? (
@@ -333,8 +333,8 @@ function EmailSupport() {
     return (
       <div className="pb-8">
         <PanelHeader title={t('panels.help.email.sentTitle')} onBack={() => drawer.update({ d_view: undefined, d_q: undefined })} />
-        <div className="px-6">
-          <div className="flex flex-col items-center rounded-lg bg-success-subtle px-6 py-8 text-center">
+        <div className="px-4 md:px-6">
+          <div className="flex flex-col items-center rounded-lg bg-success-subtle px-4 py-8 text-center md:px-6">
             <CheckCircle2 size={40} className="text-success" aria-hidden />
             <p className="mt-3 font-display text-title-3 text-ink">{t('panels.help.email.sentRef', { ref: sent.ref })}</p>
             <p className="mt-1 text-body text-muted">{t('panels.help.email.sentBody', { email: sent.email })}</p>
@@ -350,7 +350,7 @@ function EmailSupport() {
   return (
     <form onSubmit={submit} className="pb-8" noValidate>
       <PanelHeader title={t('panels.help.email.title')} subtitle={t('panels.help.email.subtitle')} onBack={() => drawer.update({ d_view: 'help-center' })} />
-      <div className="flex flex-col gap-5 px-6">
+      <div className="flex flex-col gap-5 px-4 md:px-6">
         <Field label={t('panels.help.email.email')} hint={t('panels.help.email.emailHint')} error={errors.email}>
           {(id) => <TextInput id={id} type="email" value={email} onChange={(e) => setEmail(e.target.value)} invalid={!!errors.email} autoComplete="email" />}
         </Field>
@@ -381,7 +381,7 @@ function EmailSupport() {
             setDragging(false)
             addFiles(e.dataTransfer.files)
           }}
-          className={clsx('flex flex-col items-center rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors', dragging ? 'border-primary bg-primary-subtle' : 'border-line-strong bg-sunken')}
+          className={clsx('flex flex-col items-center rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors md:px-6', dragging ? 'border-primary bg-primary-subtle' : 'border-line-strong bg-sunken')}
         >
           <FileUp size={26} className="text-ink" aria-hidden />
           <p className="mt-2 font-display text-title-3 text-ink">{t('panels.help.email.addFiles')}</p>
@@ -440,13 +440,13 @@ function PhoneSupport() {
 
   return (
     <div className="pb-8">
-      <div className="px-6 pt-6">
+      <div className="px-4 pt-6 md:px-6">
         <button type="button" onClick={() => drawer.update({ d_view: undefined })} className="btn-secondary h-9 rounded-full px-3">
           <ArrowRight size={16} className="rotate-180" aria-hidden />
           {t('common.back')}
         </button>
       </div>
-      <div className="flex flex-col items-center px-6 pt-6 text-center">
+      <div className="flex flex-col items-center px-4 pt-6 text-center md:px-6">
         <h2 className="font-display text-title-2 text-ink">{t('panels.help.phone.title')}</h2>
         <p className="mt-1 text-body text-muted">{t('panels.help.phone.subtitle')}</p>
         <div className="mt-6">
@@ -534,7 +534,7 @@ function LiveChatView() {
 
   return (
     <div className="flex h-full min-h-[600px] flex-col">
-      <div className="relative bg-gradient-to-br from-primary to-primary-active px-6 pb-6 pt-5 text-center text-on-primary">
+      <div className="relative bg-gradient-to-br from-primary to-primary-active px-4 pb-6 pt-5 text-center text-on-primary md:px-6">
         <div className="flex items-center justify-between">
           <button type="button" onClick={() => drawer.update({ d_view: undefined })} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/15 px-3 text-small hover:bg-white/25">
             <ArrowRight size={14} className="rotate-180" aria-hidden />
@@ -553,7 +553,7 @@ function LiveChatView() {
       </div>
 
       {chat.status === 'connecting' || chat.status === 'idle' ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center" role="status">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-16 text-center md:px-6" role="status">
           <Spinner />
           <p className="text-body text-ink">
             {t('panels.chat.finding')}

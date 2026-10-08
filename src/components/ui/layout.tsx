@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Check, Search, X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useDrawer } from '@/lib/drawer'
@@ -9,7 +9,7 @@ import { Button } from './Button'
 
 /** Standard content width for shell pages. */
 export function Page({ children, wide, className }: { children: ReactNode; wide?: boolean; className?: string }) {
-  return <div className={clsx('mx-auto w-full px-8 py-8', wide ? 'max-w-[1400px]' : 'max-w-[1120px]', className)}>{children}</div>
+  return <div className={clsx('mx-auto w-full px-4 py-5 md:px-8 md:py-8', wide ? 'max-w-[1400px]' : 'max-w-[1120px]', className)}>{children}</div>
 }
 
 /** Search box used in list toolbars. */
@@ -46,10 +46,10 @@ export function LearnMore({ topic, children }: { topic: string; children?: React
 export function IntroPage({ badge, title, body, bullets, primary, secondary, price, art }: { badge?: string; title: ReactNode; body: ReactNode; bullets: string[]; primary: { label: string; onClick: () => void; loading?: boolean }; secondary?: ReactNode; price?: ReactNode; art?: ReactNode }) {
   const { t } = useTranslation()
   return (
-    <div className="grid items-center gap-10 py-6 lg:grid-cols-[1fr_minmax(0,420px)]">
+    <div className="grid items-center gap-10 py-2 md:py-6 lg:grid-cols-[1fr_minmax(0,420px)]">
       <div>
         <span className="chip bg-accent-subtle text-warning">{badge ?? t('addons.includedInPlan')}</span>
-        <h1 className="mt-4 font-display text-[36px] font-bold leading-[44px] text-ink">{title}</h1>
+        <h1 className="mt-4 break-words font-display text-[28px] font-bold leading-[36px] text-ink md:text-[36px] md:leading-[44px]">{title}</h1>
         <p className="mt-3 max-w-xl text-body-lg text-muted">{body}</p>
         <ul className="mt-6 flex flex-col gap-3">
           {bullets.map((b) => (
@@ -60,7 +60,7 @@ export function IntroPage({ badge, title, body, bullets, primary, secondary, pri
           ))}
         </ul>
         {price && <p className="mt-6 text-body-lg text-ink">{price}</p>}
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap gap-3">
           <Button variant="primary" size="lg" onClick={primary.onClick} loading={primary.loading}>
             {primary.label}
           </Button>
@@ -134,16 +134,18 @@ export function FullscreenFrame({
           <div className="h-full bg-primary transition-all duration-base" style={{ width: `${Math.round(progress * 100)}%` }} />
         </div>
       )}
-      <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-6">
-        <Button icon={<X size={16} />} onClick={close}>
-          {closeLabel ?? t('common.close')}
+      {/* Phones: Close shrinks to an icon and the title gets its own row under the buttons. */}
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-surface px-3 py-3 md:h-16 md:flex-nowrap md:gap-4 md:px-6 md:py-0">
+        <Button icon={<X size={16} />} onClick={close} aria-label={closeLabel ?? t('common.close')} className="max-md:w-10 max-md:px-0">
+          <span className="hidden md:inline">{closeLabel ?? t('common.close')}</span>
         </Button>
-        {title && <h1 className="truncate font-display text-title-3 text-ink">{title}</h1>}
-        <div className="flex items-center gap-2">{actions}</div>
+        {title && <h1 className="order-last w-full break-words font-display text-title-3 text-ink md:order-none md:w-auto md:truncate">{title}</h1>}
+        <div className="flex items-center gap-2 max-md:min-w-0 max-md:flex-wrap max-md:justify-end">{actions}</div>
       </header>
-      <div className="flex min-h-0 flex-1 overflow-y-auto">
+      {/* `relative` keeps absolutely positioned content (sr-only labels etc.) inside the scroll area. */}
+      <div className="relative flex min-h-0 flex-1 overflow-y-auto">
         {nav && <aside className="sticky top-0 hidden w-64 shrink-0 p-6 md:block">{nav}</aside>}
-        <div className={clsx('mx-auto w-full flex-1 px-6 py-8', maxWidth)}>{children}</div>
+        <div className={clsx('mx-auto w-full flex-1 px-4 py-5 max-md:min-w-0 md:px-6 md:py-8', maxWidth)}>{children}</div>
       </div>
     </div>
   )
@@ -177,20 +179,35 @@ export function SectionNav<T extends string>({ groups, value, onChange }: { grou
 /** Right-hand drawer panel used inside a page (filters etc.). Registered drawers get the same chrome from DrawerHost. */
 export function SideDrawer({ open, onClose, title, children, footer, width = 481 }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; footer?: ReactNode; width?: number }) {
   const { t } = useTranslation()
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  useEffect(() => {
+    if (!open) return
+    // Escape closes the drawer unless a menu or list inside it is open.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.querySelector('[role="menu"], [role="listbox"]')) onCloseRef.current()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" aria-label={t('drawers.closeDrawer')} tabIndex={-1} className="absolute inset-0 cursor-default bg-ink/10" onClick={onClose} />
       <div className="relative flex h-full animate-[slideIn_var(--dur-slow)_var(--ease)]">
-        <button type="button" onClick={onClose} aria-label={t('drawers.closeDrawer')} className="absolute -left-16 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
+        <button type="button" onClick={onClose} aria-label={t('drawers.closeDrawer')} className="absolute -left-16 top-4 hidden h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken md:flex">
           <X size={20} aria-hidden />
         </button>
-        <div role="dialog" aria-modal="true" aria-label={typeof title === 'string' ? title : undefined} className="flex h-full max-w-[100vw] flex-col bg-surface shadow-lg" style={{ width }}>
-          <div className="border-b border-line px-6 py-5">
-            <h2 className="font-display text-title-2 text-ink">{title}</h2>
+        {/* Phones: full-screen panel with its close button in the header. */}
+        <div role="dialog" aria-modal="true" aria-label={typeof title === 'string' ? title : undefined} className="flex h-full w-screen max-w-[100vw] flex-col bg-surface shadow-lg md:w-[var(--side-drawer-w)]" style={{ '--side-drawer-w': `${width}px` } as CSSProperties}>
+          <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 md:px-6 md:py-5">
+            <h2 className="min-w-0 font-display text-title-2 text-ink">{title}</h2>
+            <button type="button" onClick={onClose} aria-label={t('drawers.closeDrawer')} className="icon-btn -mr-1 shrink-0 md:hidden">
+              <X size={20} aria-hidden />
+            </button>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
-          {footer && <div className="flex items-center justify-end gap-2 border-t border-line px-6 py-4">{footer}</div>}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5">{children}</div>
+          {footer && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-4 py-3 md:flex-nowrap md:px-6 md:py-4">{footer}</div>}
         </div>
       </div>
     </div>

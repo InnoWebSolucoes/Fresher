@@ -57,8 +57,8 @@ export function TimeStep({ draft, members, selected, onSelect, onDate, onMember,
   }
 
   return (
-    <div className="flex flex-col gap-6" data-testid="time-step">
-      <h2 className="font-display text-title-1 text-ink">{t('calendar.time.title')}</h2>
+    <div className="flex flex-col gap-6 max-md:gap-5" data-testid="time-step">
+      <h2 className="font-display text-title-2 text-ink md:text-title-1">{t('calendar.time.title')}</h2>
       <div className="flex items-center justify-between gap-3">
         <MemberChip value={commonMember} members={members} short onChange={(id) => {
           onSelect(null)
@@ -98,13 +98,13 @@ export function TimeStep({ draft, members, selected, onSelect, onDate, onMember,
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-2 max-md:gap-1">
           {strip.map((day) => {
             const closed = isClosed(day)
             const active = day === draft.date
             return (
               <button key={day} type="button" disabled={closed} onClick={() => pickDate(day)} className="flex flex-col items-center gap-1.5 disabled:cursor-not-allowed" aria-pressed={active} aria-label={format(parseISO(day), 'EEEE d MMMM')}>
-                <span className={clsx('flex h-12 w-12 items-center justify-center rounded-full border text-body-lg font-semibold tabular', active ? 'border-primary bg-primary text-on-primary' : closed ? 'border-line text-subtle line-through' : 'border-line-strong text-ink hover:bg-sunken')}>
+                <span className={clsx('flex h-12 w-12 items-center justify-center rounded-full border text-body-lg font-semibold tabular max-md:h-10 max-md:w-10', active ? 'border-primary bg-primary text-on-primary' : closed ? 'border-line text-subtle line-through' : 'border-line-strong text-ink hover:bg-sunken')}>
                   {parseISO(day).getDate()}
                 </span>
                 <span className={clsx('text-small', closed ? 'text-subtle' : 'text-ink')}>{format(parseISO(day), 'EEE')}</span>
@@ -114,7 +114,7 @@ export function TimeStep({ draft, members, selected, onSelect, onDate, onMember,
         </div>
       </div>
       <div>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between max-md:flex-wrap max-md:gap-3">
           <h3 className="text-body-lg font-semibold text-ink">{t('calendar.time.available')}</h3>
           <Button size="sm" icon={<CalendarSearch size={16} />} onClick={onPickFromCalendar} className="rounded-full">
             {t('calendar.time.pickFromCalendar')}

@@ -8,12 +8,13 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities'
 import { Button, Chip, DataTable, EmptyState, IntroPage, LearnMore, Menu, Modal, Page, PageHeader, PillTabs, SearchInput, SideDrawer, TextInput, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDate, money } from '@/lib/format'
 import type { ClientPackage, ID, PackageDef } from '@/types'
 import { deletePackage, savePackageOrder, setPackageArchived } from '@/api/catalog'
 import { themeOf } from '../lib'
-import { CardsSkeleton, CategoryModal, CountBadge, FiltersButton, PillButton, SortButton, ToolbarCard, useIntroProps } from '../ui'
+import { CardsSkeleton, CategoryChips, CategoryModal, CountBadge, FiltersButton, PillButton, SortButton, ToolbarCard, useIntroProps } from '../ui'
 
 type Tri = 'all' | 'yes' | 'no'
 interface PackageFilters {
@@ -94,6 +95,11 @@ export function PackagesPage() {
   const shown = filtered.filter(inCat)
   const usedCats = categories.filter((c) => packages.some((p) => p.categoryId === c.id) || createdCats.includes(c.id)).sort((a, b) => a.order - b.order)
   const filterCount = Object.entries(filters).filter(([k, v]) => v !== NO_FILTERS[k as keyof PackageFilters]).length
+  const catItems: { id: ID | 'all' | 'none'; name: string; count: number }[] = [
+    { id: 'all', name: t('catalog.menu.allCategories'), count: filtered.length },
+    { id: 'none', name: t('catalog.packages.uncategorized'), count: filtered.filter((p) => !p.categoryId).length },
+    ...usedCats.map((c) => ({ id: c.id, name: c.name, count: filtered.filter((p) => p.categoryId === c.id).length })),
+  ]
 
   const archive = async (p: PackageDef, archived: boolean) => {
     if (archived && !(await confirm({ title: t('catalog.packages.archiveTitle'), body: t('catalog.packages.archiveBody'), confirmLabel: t('catalog.common.archive') }))) return
@@ -157,7 +163,7 @@ export function PackagesPage() {
       {tab === 'packages' ? (
         <>
           <ToolbarCard>
-            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-[300px]" />
+            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-[300px] max-md:max-w-none max-md:basis-full" />
             <FiltersButton count={filterCount} onClick={() => setFiltersOpen(true)} />
             <div className="ml-auto">
               <PillButton icon={<ArrowDownUp size={16} aria-hidden />} onClick={() => setOrderOpen(true)}>
@@ -165,14 +171,11 @@ export function PackagesPage() {
               </PillButton>
             </div>
           </ToolbarCard>
-          <div className="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
-            <aside className="card p-5">
+          <div className="grid items-start gap-5 md:gap-8 lg:grid-cols-[320px_1fr]">
+            <CategoryChips label={t('catalog.menu.categories')} items={catItems} value={cat} onChange={setCat} addLabel={t('catalog.menu.addCategory')} onAdd={() => setCategoryOpen(true)} />
+            <aside className="card hidden p-5 md:block">
               <h2 className="mb-3 px-3 font-display text-title-3 text-ink">{t('catalog.menu.categories')}</h2>
-              {[
-                { id: 'all' as const, name: t('catalog.menu.allCategories'), count: filtered.length },
-                { id: 'none' as const, name: t('catalog.packages.uncategorized'), count: filtered.filter((p) => !p.categoryId).length },
-                ...usedCats.map((c) => ({ id: c.id, name: c.name, count: filtered.filter((p) => p.categoryId === c.id).length })),
-              ].map((c) => (
+              {catItems.map((c) => (
                 <button key={c.id} type="button" onClick={() => setCat(c.id)} className={clsx('flex h-11 w-full items-center justify-between gap-2 rounded-md px-3 text-left text-body', cat === c.id ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}>
                   <span className="truncate">{c.name}</span>
                   <CountBadge value={c.count} />
@@ -210,15 +213,27 @@ export function PackagesPage() {
                   tabIndex={0}
                   onClick={() => navigate(`/catalogue/packages/edit/${p.id}`)}
                   onKeyDown={(e) => e.key === 'Enter' && navigate(`/catalogue/packages/edit/${p.id}`)}
-                  className="flex cursor-pointer items-center gap-4 rounded-lg border border-line bg-surface px-6 py-5 hover:shadow-sm"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-surface py-4 pl-4 pr-2 hover:shadow-sm md:gap-4 md:px-6 md:py-5"
                 >
                   <PackageSwatch theme={p.theme} />
                   <div className="min-w-0 flex-1">
                     <p className="text-body-lg font-semibold text-ink">{p.name}</p>
-                    <p className="text-body text-muted">{t('catalog.packages.benefits', { count: p.benefits.length })}</p>
+                    <p className="text-body text-muted">
+                      {t('catalog.packages.benefits', { count: p.benefits.length })}
+                      <span className="text-ink md:hidden"> · {money(p.price)}</span>
+                    </p>
+                    {p.archived && (
+                      <span className="mt-1 inline-flex md:hidden">
+                        <Chip>{t('catalog.common.archived')}</Chip>
+                      </span>
+                    )}
                   </div>
-                  {p.archived && <Chip>{t('catalog.common.archived')}</Chip>}
-                  <span className="text-body-lg text-ink">{money(p.price)}</span>
+                  {p.archived && (
+                    <span className="hidden md:inline-flex">
+                      <Chip>{t('catalog.common.archived')}</Chip>
+                    </span>
+                  )}
+                  <span className="hidden text-body-lg text-ink md:inline">{money(p.price)}</span>
                   <Menu
                     label={t('catalog.common.more')}
                     groups={[
@@ -259,6 +274,7 @@ export function PackagesPage() {
 
 function HoldersTab({ holders, packages, clientName, onOpenClient }: { holders: ClientPackage[]; packages: PackageDef[]; clientName: (id: ID) => string; onOpenClient: (id: ID) => void }) {
   const { t } = useTranslation()
+  const phone = useIsPhone()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<'start_desc' | 'start_asc' | 'expiry_asc' | 'expiry_desc'>('start_desc')
   const [status, setStatus] = useState<'all' | ClientPackage['status']>('all')
@@ -288,10 +304,30 @@ function HoldersTab({ holders, packages, clientName, onOpenClient }: { holders: 
     { key: 'price', header: t('catalog.packages.colPrice'), align: 'right', cell: (h) => money(h.price) },
     { key: 'status', header: t('catalog.packages.colStatus'), cell: (h) => <Chip tone={tone(h.status)}>{t(`catalog.packages.status.${h.status}`)}</Chip> },
   ]
+  // Phones: one column with holder, package, dates, price and status.
+  const phoneColumns: Column<ClientPackage>[] = [
+    {
+      key: 'holder',
+      header: t('catalog.packages.colHolder'),
+      cell: (h) => (
+        <div className="flex max-w-[calc(100vw-70px)] flex-col items-start gap-1 whitespace-normal">
+          <div className="flex w-full items-start justify-between gap-3">
+            <span className="min-w-0 break-words text-body-strong text-primary">{clientName(h.clientId)}</span>
+            <span className="shrink-0 tabular text-body text-ink">{money(h.price)}</span>
+          </div>
+          <span className="break-words text-body text-ink">{pkgName(h.packageId)}</span>
+          <span className="text-small text-muted">
+            {fmtDate(h.startDate)} – {fmtDate(h.expiresAt)}
+          </span>
+          <Chip tone={tone(h.status)}>{t(`catalog.packages.status.${h.status}`)}</Chip>
+        </div>
+      ),
+    },
+  ]
   return (
     <>
       <Toolbar>
-        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-[300px]" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-[300px] max-md:max-w-none max-md:basis-full" />
         <Menu
           align="left"
           trigger={({ open, toggle }) => (
@@ -315,7 +351,7 @@ function HoldersTab({ holders, packages, clientName, onOpenClient }: { holders: 
           />
         </div>
       </Toolbar>
-      <DataTable columns={columns} rows={rows} rowKey={(h) => h.id} onRowClick={(h) => onOpenClient(h.clientId)} empty={<EmptyState icon={<Users size={26} />} title={t('catalog.packages.noHoldersTitle')} body={t('catalog.packages.noHoldersBody')} />} />
+      <DataTable columns={phone ? phoneColumns : columns} rows={rows} rowKey={(h) => h.id} onRowClick={(h) => onOpenClient(h.clientId)} empty={<EmptyState icon={<Users size={26} />} title={t('catalog.packages.noHoldersTitle')} body={t('catalog.packages.noHoldersBody')} />} />
     </>
   )
 }
@@ -404,7 +440,7 @@ function SortablePackage({ p }: { p: PackageDef }) {
         <GripVertical size={18} aria-hidden />
       </button>
       <PackageSwatch theme={p.theme} size={36} />
-      <span className="flex-1 text-body-lg text-ink">{p.name}</span>
+      <span className="min-w-0 flex-1 text-body-lg text-ink">{p.name}</span>
       <span className="text-body text-muted">{money(p.price)}</span>
     </div>
   )

@@ -22,8 +22,8 @@ import { addressLines, addressName } from '../components/AddressModal'
 
 export function TabHeader({ title, action }: { title: string; action?: ReactNode }) {
   return (
-    <div className="mb-6 flex items-start justify-between gap-3">
-      <h2 className="font-display text-title-1 text-ink">{title}</h2>
+    <div className="mb-4 flex items-start justify-between gap-3 md:mb-6">
+      <h2 className="font-display text-title-2 text-ink md:text-title-1">{title}</h2>
       {action}
     </div>
   )
@@ -74,12 +74,12 @@ export function OverviewTab() {
   const rating = mine.length ? num(mine.reduce((s, r) => s + r.rating, 0) / mine.length, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '–'
   const totalSales = sales.filter(isPaidSale).reduce((s, x) => s + saleItemsTotal(x), 0)
   const stat = (label: string, value: ReactNode, tip: string, wide?: boolean) => (
-    <div className={clsx('rounded-lg border border-line bg-surface p-5', wide && 'col-span-2')}>
+    <div className={clsx('rounded-lg border border-line bg-surface p-4 md:p-5', wide && 'col-span-2')}>
       <p className="flex items-center justify-between text-body-lg font-semibold text-ink">
         {label}
         <InfoTip text={tip} />
       </p>
-      <p className="mt-2 font-display text-title-1 text-ink tabular">{value}</p>
+      <p className="mt-2 font-display text-title-2 text-ink tabular md:text-title-1">{value}</p>
     </div>
   )
   return (
@@ -308,7 +308,7 @@ export function DetailsTab() {
     </button>
   )
   const rows = (items: [string, ReactNode][]) => (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-4 md:gap-x-6">
       {items.map(([label, value]) => (
         <div key={label} className="min-w-0">
           <dt className="text-body-strong text-ink">{label}</dt>
@@ -453,7 +453,7 @@ export function ItemsTab() {
     <div key={key} className="rounded-lg border border-line bg-surface p-4">
       <div className="flex items-start justify-between gap-3 border-l-4 border-primary/40 pl-3">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 text-body-lg font-semibold text-ink">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-lg font-semibold text-ink md:flex-nowrap">
             {title} {chip}
           </p>
           <p className="text-small text-muted">{sub}</p>

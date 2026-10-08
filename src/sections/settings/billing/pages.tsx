@@ -190,7 +190,7 @@ export function BankAccountsPage() {
               testId={`bank-${a.id}`}
               leading={<Landmark size={20} aria-hidden />}
               title={
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 md:flex-nowrap md:gap-2">
                   {a.bankName}
                   {a.primary && <Chip tone="primary">{t('settings.bill.bank.primary')}</Chip>}
                 </span>
@@ -528,7 +528,7 @@ export function SubscriptionsPage() {
   const active = addOns.filter((a) => a.status !== 'inactive')
   return (
     <SettingsPage title={t('settings.bill.subs.title')} description={t('settings.bill.subs.description')} learnMore={t('settings.bill.subs.title')}>
-      <div className="card flex flex-wrap items-center justify-between gap-4 p-6">
+      <div className="card flex flex-wrap items-center justify-between gap-4 p-5 md:p-6">
         <p className="font-display text-title-3 text-ink">{t('settings.bill.subs.discover')}</p>
         <Button onClick={() => navigate('/add-ons')}>{t('settings.bill.subs.viewAddons')}</Button>
       </div>
@@ -720,7 +720,7 @@ export function ChangePlanPage() {
               </div>
             )}
           </dl>
-          <div className="mt-4 flex items-center justify-between gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
             <CardLine compact />
             <Button variant="link" onClick={() => setCardOpen(true)}>
               {workspace.plan.card ? t('settings.bill.change.changeCard') : t('settings.bill.change.addCard')}

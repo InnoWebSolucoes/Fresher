@@ -57,10 +57,10 @@ export function SectionCard({
         <button type="button" className="cursor-grab touch-none rounded-sm p-1 hover:bg-white/15 active:cursor-grabbing" aria-label={t('settings.frm.builder.dragSection')} {...attributes} {...listeners}>
           <GripVertical size={16} aria-hidden />
         </button>
-        <span className="truncate">{t('settings.frm.builder.sectionTab', { index: index + 1, total, kind: kindLabel })}</span>
+        <span className="min-w-0 md:truncate">{t('settings.frm.builder.sectionTab', { index: index + 1, total, kind: kindLabel })}</span>
       </div>
       <div className={clsx('rounded-b-lg rounded-tr-lg border bg-surface shadow-xs', titleError || blocksError ? 'border-danger' : 'border-line')}>
-        <div className="flex items-start gap-3 px-8 pb-2 pt-7">
+        <div className="flex items-start gap-3 px-5 pb-2 pt-5 md:px-8 md:pt-7">
           <div className="min-w-0 flex-1">
             {custom ? (
               <>
@@ -134,7 +134,7 @@ function BlocksEditor({ section, onChange, errorState, blocksError }: { section:
   return (
     <div className="pb-6">
       {blocks.length === 0 ? (
-        <div className="mx-8 my-4 flex flex-col items-center gap-1 rounded-lg border border-dashed border-line-strong px-6 py-8 text-center">
+        <div className="mx-5 my-4 flex flex-col items-center gap-1 rounded-lg border border-dashed border-line-strong px-5 py-8 text-center md:mx-8 md:px-6">
           <MessageSquarePlus size={24} className="mb-1 text-primary" aria-hidden />
           <p className="text-body-strong text-ink">{t('settings.frm.builder.noQuestionsTitle')}</p>
           <p className="text-body text-muted">{t('settings.frm.builder.noQuestionsBody')}</p>
@@ -159,8 +159,8 @@ function BlocksEditor({ section, onChange, errorState, blocksError }: { section:
           </SortableContext>
         </DndContext>
       )}
-      {blocksError && <p className="mx-8 mt-3 text-small text-danger">{blocksError}</p>}
-      <div className="mt-4 px-8">
+      {blocksError && <p className="mx-5 mt-3 text-small text-danger md:mx-8">{blocksError}</p>}
+      <div className="mt-4 px-5 md:px-8">
         <Menu
           align="left"
           width={300}
@@ -201,7 +201,7 @@ function BlockRow({ block, index, count, onLabel, onMove, onDelete, errorState }
     autoFocus: !block.label,
   }
   return (
-    <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} className={clsx('flex items-start gap-2 bg-surface py-5 pl-4 pr-6', isDragging && 'relative z-10 shadow-md')}>
+    <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} className={clsx('flex items-start gap-2 bg-surface py-5 pl-2 pr-4 md:pl-4 md:pr-6', isDragging && 'relative z-10 shadow-md')}>
       <button type="button" className="mt-7 cursor-grab touch-none rounded-sm p-1 text-muted hover:bg-sunken active:cursor-grabbing" aria-label={t('settings.frm.builder.dragBlock')} {...attributes} {...listeners}>
         <GripVertical size={18} aria-hidden />
       </button>
@@ -240,7 +240,7 @@ function AnswerHint({ type }: { type: FormBlockType }) {
   return (
     <div className="mt-3" aria-hidden>
       {type === 'yes_no' && (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {[t('settings.common.yes'), t('settings.common.no')].map((label) => (
             <span key={label} className="flex h-9 min-w-[88px] items-center gap-2 rounded-md border border-line px-3 text-body text-subtle">
               <span className="h-3.5 w-3.5 rounded-full border border-line-strong" />

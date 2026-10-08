@@ -50,9 +50,9 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
       }
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.orderNew.picker.search')} />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.orderNew.picker.search')} className="max-md:basis-full" />
         {supplierOnly && (
-          <span className="chip h-9 gap-1 bg-primary-subtle pl-3 pr-1 text-primary">
+          <span className="chip h-auto min-h-9 gap-1 bg-primary-subtle pl-3 pr-1 text-primary md:h-9">
             {t('catalog.inventory.orderNew.picker.supplier', { name: supplierName })}
             <button type="button" aria-label={t('catalog.common.remove')} onClick={() => setSupplierOnly(false)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-surface">
               <X size={14} aria-hidden />
@@ -77,9 +77,9 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
             <tr className="border-b border-line">
               <th className="w-10 px-2 py-2" />
               <th className="px-2 py-2 text-body-strong text-ink">{t('catalog.inventory.orderNew.picker.cols.name')}</th>
-              <th className="px-2 py-2 text-body-strong text-ink">{t('catalog.inventory.orderNew.picker.cols.category')}</th>
-              <th className="px-2 py-2 text-right text-body-strong text-ink">{t('catalog.inventory.orderNew.picker.cols.quantity')}</th>
-              <th className="px-2 py-2 text-right text-body-strong text-ink">{t('catalog.inventory.orderNew.picker.cols.cost')}</th>
+              <th className="hidden px-2 py-2 text-body-strong text-ink md:table-cell">{t('catalog.inventory.orderNew.picker.cols.category')}</th>
+              <th className="hidden px-2 py-2 text-right text-body-strong text-ink md:table-cell">{t('catalog.inventory.orderNew.picker.cols.quantity')}</th>
+              <th className="hidden px-2 py-2 text-right text-body-strong text-ink md:table-cell">{t('catalog.inventory.orderNew.picker.cols.cost')}</th>
             </tr>
           </thead>
           <tbody>
@@ -87,8 +87,8 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
               const already = inOrder.has(p.id)
               return (
                 <tr key={p.id} className={clsx('border-b border-line last:border-0', !already && 'cursor-pointer hover:bg-sunken/60')} onClick={() => !already && toggle(p.id, !selected.has(p.id))}>
-                  <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" aria-label={p.name} disabled={already} checked={already || selected.has(p.id)} onChange={(e) => toggle(p.id, e.target.checked)} className="h-4 w-4 accent-[rgb(var(--primary))]" />
+                  <td className="px-2 py-3 md:py-2" onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" aria-label={p.name} disabled={already} checked={already || selected.has(p.id)} onChange={(e) => toggle(p.id, e.target.checked)} className="h-5 w-5 accent-[rgb(var(--primary))] md:h-4 md:w-4" />
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-3">
@@ -96,12 +96,15 @@ export function ProductPickerModal({ supplierId, supplierName, existing, onClose
                       <div className="min-w-0">
                         <p className="text-body text-ink">{p.name}</p>
                         <p className="text-small text-muted">{already ? t('catalog.inventory.orderNew.picker.inOrder') : productSku(p) && t('catalog.inventory.common.sku', { sku: productSku(p) })}</p>
+                        <p className="text-small text-muted md:hidden">
+                          {[categories.find((c) => c.id === p.categoryId)?.name, t('catalog.inventory.common.inStock', { count: p.stock }), money(p.supplyPrice)].filter(Boolean).join(' · ')}
+                        </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-muted">{categories.find((c) => c.id === p.categoryId)?.name ?? '-'}</td>
-                  <td className="px-2 py-2 text-right tabular">{p.stock}</td>
-                  <td className="px-2 py-2 text-right tabular">{money(p.supplyPrice)}</td>
+                  <td className="hidden px-2 py-2 text-muted md:table-cell">{categories.find((c) => c.id === p.categoryId)?.name ?? '-'}</td>
+                  <td className="hidden px-2 py-2 text-right tabular md:table-cell">{p.stock}</td>
+                  <td className="hidden px-2 py-2 text-right tabular md:table-cell">{money(p.supplyPrice)}</td>
                 </tr>
               )
             })}
@@ -147,8 +150,8 @@ export function FeesModal({ fees, onClose, onSave }: { fees: StockOrder['fees'];
     >
       <div className="flex flex-col gap-4 pb-2">
         {rows.map((r, i) => (
-          <div key={i} className="grid grid-cols-[1fr_1fr_auto_auto] items-end gap-3">
-            <Field label={t('catalog.inventory.orderNew.feesModal.name')} error={submitted && invalid(r) ? t('catalog.inventory.orderNew.feesModal.nameRequired') : undefined}>
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-end gap-3 max-md:border-b max-md:border-line max-md:pb-4 md:grid-cols-[1fr_1fr_auto_auto]">
+            <Field className="col-span-3 md:col-span-1" label={t('catalog.inventory.orderNew.feesModal.name')} error={submitted && invalid(r) ? t('catalog.inventory.orderNew.feesModal.nameRequired') : undefined}>
               {(id) => <TextInput id={id} value={r.name} invalid={submitted && invalid(r)} onChange={(e) => patch(i, { name: e.target.value })} placeholder={t('catalog.inventory.orderNew.feesModal.namePlaceholder')} />}
             </Field>
             <Field label={t('catalog.inventory.orderNew.feesModal.amount')}>

@@ -140,10 +140,10 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
     const c = key ? counted(key, expected) : null
     return (
       <>
-        <td className={clsx('py-1.5 pl-4 text-right tabular', opts.strong ? 'font-semibold text-ink' : 'text-muted')}>{money(expected)}</td>
-        {!open && <td className={clsx('py-1.5 pl-4 text-right tabular', opts.strong ? 'font-semibold text-ink' : 'text-muted')}>{c !== null && opts.showCounted !== false ? money(c) : ''}</td>}
+        <td className={clsx('py-1.5 pl-2 text-right tabular md:pl-4', opts.strong ? 'font-semibold text-ink' : 'text-muted')}>{money(expected)}</td>
+        {!open && <td className={clsx('py-1.5 pl-2 text-right tabular md:pl-4', opts.strong ? 'font-semibold text-ink' : 'text-muted')}>{c !== null && opts.showCounted !== false ? money(c) : ''}</td>}
         {!open && (
-          <td className={clsx('py-1.5 pl-4 text-right tabular', opts.strong ? 'font-semibold' : '', c !== null && c - expected < 0 ? 'text-danger' : opts.strong ? 'text-ink' : 'text-muted')}>{c !== null && opts.showCounted !== false ? money(c - expected) : ''}</td>
+          <td className={clsx('py-1.5 pl-2 text-right tabular md:pl-4', opts.strong ? 'font-semibold' : '', c !== null && c - expected < 0 ? 'text-danger' : opts.strong ? 'text-ink' : 'text-muted')}>{c !== null && opts.showCounted !== false ? money(c - expected) : ''}</td>
         )}
       </>
     )
@@ -157,9 +157,9 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
         </th>
         {groupCounted !== undefined && !open ? (
           <>
-            <td className="pl-4 pt-4 text-right font-semibold tabular text-ink">{money(expected)}</td>
-            <td className="pl-4 pt-4 text-right font-semibold tabular text-ink">{money(groupCounted)}</td>
-            <td className={clsx('pl-4 pt-4 text-right font-semibold tabular', groupCounted - expected < 0 ? 'text-danger' : 'text-ink')}>{money(groupCounted - expected)}</td>
+            <td className="pl-2 pt-4 text-right font-semibold tabular text-ink md:pl-4">{money(expected)}</td>
+            <td className="pl-2 pt-4 text-right font-semibold tabular text-ink md:pl-4">{money(groupCounted)}</td>
+            <td className={clsx('pl-2 pt-4 text-right font-semibold tabular md:pl-4', groupCounted - expected < 0 ? 'text-danger' : 'text-ink')}>{money(groupCounted - expected)}</td>
           </>
         ) : (
           <>{amountCols(expected, countedKey, { strong: true })}</>
@@ -175,7 +175,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
   const summary = (
     <>
       {open && (
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           <Button className="rounded-full" icon={<Plus size={16} aria-hidden />} onClick={() => setFlow({ kind: 'cash_in', sessionId: session.id })}>
             {t('sales.register.cashIn')}
           </Button>
@@ -184,26 +184,26 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
           </Button>
         </div>
       )}
-      <section className="card p-6">
-        <table className="w-full text-body">
+      <section className="card overflow-x-auto p-3 md:overflow-visible md:p-6">
+        <table className="w-full text-small md:text-body md:font-normal">
           <thead>
             <tr>
               <th scope="col" className="pb-2 text-left align-top">
-                <span className="flex items-center gap-1.5 text-body-lg font-semibold text-ink">
+                <span className="flex items-center gap-1.5 text-body-strong text-ink md:text-body-lg md:font-semibold">
                   {t('sales.register.drawer.payments')}
                   <Info size={14} className="text-subtle" aria-label={t('sales.register.drawer.paymentsInfo')} />
                 </span>
                 <span className="block text-body font-normal text-muted">{t('sales.register.drawer.collectedThrough')}</span>
               </th>
-              <th scope="col" className="pb-2 pl-4 text-right align-top text-body-lg font-semibold text-ink">
+              <th scope="col" className="pb-2 pl-2 text-right align-top text-body-strong text-ink md:pl-4 md:text-body-lg md:font-semibold">
                 {t('sales.register.expected')}
               </th>
               {!open && (
                 <>
-                  <th scope="col" className="pb-2 pl-4 text-right align-top text-body-lg font-semibold text-ink">
+                  <th scope="col" className="pb-2 pl-2 text-right align-top text-body-strong text-ink md:pl-4 md:text-body-lg md:font-semibold">
                     {t('sales.register.counted')}
                   </th>
-                  <th scope="col" className="pb-2 pl-4 text-right align-top text-body-lg font-semibold text-ink">
+                  <th scope="col" className="pb-2 pl-2 text-right align-top text-body-strong text-ink md:pl-4 md:text-body-lg md:font-semibold">
                     {t('sales.register.difference')}
                   </th>
                 </>
@@ -218,7 +218,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
               null,
               g.lines.map((l) => (
                 <tr key={l.key}>
-                  <td className="py-1.5 pl-4 text-muted">{lineLabel(l)}</td>
+                  <td className="py-1.5 pl-3 text-muted md:pl-4">{lineLabel(l)}</td>
                   {amountCols(l.expected, l.key)}
                 </tr>
               )),
@@ -237,7 +237,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
               ['cashOut', breakdown.cash.cashOut],
             ].map(([key, value]) => (
               <tr key={key as string}>
-                <td className="py-1.5 pl-4 text-muted">{t(`sales.register.drawer.cash.${key}`)}</td>
+                <td className="py-1.5 pl-3 text-muted md:pl-4">{t(`sales.register.drawer.cash.${key}`)}</td>
                 {amountCols(value as number, null)}
               </tr>
             )),
@@ -247,11 +247,11 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
               <th scope="row" className="pt-4 text-left text-body-lg font-semibold text-ink">
                 {t('sales.register.totalBalance')}
               </th>
-              <td className="pl-4 pt-4 text-right font-semibold tabular text-ink">{money(breakdown.total)}</td>
+              <td className="pl-2 pt-4 text-right font-semibold tabular text-ink md:pl-4">{money(breakdown.total)}</td>
               {!open && (
                 <>
-                  <td className="pl-4 pt-4 text-right font-semibold tabular text-ink">{money(countedTotal)}</td>
-                  <td className={clsx('pl-4 pt-4 text-right font-semibold tabular', countedTotal - breakdown.total < 0 ? 'text-danger' : 'text-ink')}>{money(countedTotal - breakdown.total)}</td>
+                  <td className="pl-2 pt-4 text-right font-semibold tabular text-ink md:pl-4">{money(countedTotal)}</td>
+                  <td className={clsx('pl-2 pt-4 text-right font-semibold tabular md:pl-4', countedTotal - breakdown.total < 0 ? 'text-danger' : 'text-ink')}>{money(countedTotal - breakdown.total)}</td>
                 </>
               )}
             </tr>
@@ -259,14 +259,14 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
               <th scope="row" className="pt-2 text-left font-normal text-muted">
                 {t('sales.register.ofWhichTips')}
               </th>
-              <td className="pl-4 pt-2 text-right tabular text-muted">{money(breakdown.tips)}</td>
+              <td className="pl-2 pt-2 text-right tabular text-muted md:pl-4">{money(breakdown.tips)}</td>
               {!open && <td colSpan={2} />}
             </tr>
           </tbody>
         </table>
       </section>
       {!open && (
-        <section className="card mt-4 p-6">
+        <section className="card mt-4 p-4 md:p-6">
           <dl className="grid grid-cols-2 gap-4 text-body">
             <div>
               <dt className="text-muted">{t('sales.register.countFlow.closingFloat')}</dt>
@@ -332,7 +332,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
             const Icon = a.kind === 'payments' ? Receipt : a.kind === 'events' ? Wallet : Banknote
             const Badge = a.tone === 'in' ? ArrowDownLeft : a.tone === 'out' ? ArrowUpRight : Check
             return (
-              <li key={a.id} className="card flex items-center gap-4 p-5">
+              <li key={a.id} className="card flex items-center gap-3 p-4 md:gap-4 md:p-5">
                 <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-sunken text-ink">
                   <Icon size={20} aria-hidden />
                   <span className={clsx('absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-white ring-2 ring-surface', a.tone === 'out' ? 'bg-danger' : 'bg-success')}>
@@ -343,7 +343,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
                   <p className="text-body-strong text-ink">{a.title}</p>
                   <p className="truncate text-body text-muted">{[a.by, a.detail].filter(Boolean).join(' • ')}</p>
                 </div>
-                <div className="text-right">
+                <div className="shrink-0 text-right">
                   <p className={clsx('text-body-strong tabular', a.tone === 'in' && a.amount !== 0 ? 'text-success' : a.tone === 'out' ? 'text-danger' : 'text-ink')}>{money(a.amount)}</p>
                   <p className="text-small text-muted">{dayOf(a.at) === dayOf(session.openedAt) ? format(parseISO(a.at), 'HH:mm') : format(parseISO(a.at), 'MMM d, HH:mm')}</p>
                 </div>
@@ -361,23 +361,27 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
   ] as const
 
   return (
-    <div className="flex h-full min-h-0">
-      <nav aria-label={t('sales.register.drawer.sections')} className="w-40 shrink-0 border-r border-line bg-surface py-6">
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
+      {/* Phones: the side menu becomes a tab row above the content. */}
+      <nav aria-label={t('sales.register.drawer.sections')} className="flex shrink-0 gap-1 border-b border-line bg-surface px-2 md:block md:w-40 md:border-b-0 md:border-r md:px-0 md:py-6">
         {tabs.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             type="button"
             aria-current={tab === value ? 'page' : undefined}
             onClick={() => drawer.update({ tab: value })}
-            className={clsx('relative mx-2 mb-1 flex w-[calc(100%-1rem)] flex-col items-start gap-1.5 rounded-md px-4 py-3 text-left text-body', tab === value ? 'bg-primary-subtle font-semibold text-primary' : 'text-muted hover:bg-sunken hover:text-ink')}
+            className={clsx(
+              'relative flex items-center gap-2 border-b-[3px] px-3 py-3 text-left text-body md:mx-2 md:mb-1 md:w-[calc(100%-1rem)] md:flex-col md:items-start md:gap-1.5 md:rounded-md md:border-b-0 md:px-4',
+              tab === value ? 'border-primary font-semibold text-primary md:bg-primary-subtle' : 'border-transparent text-muted hover:bg-sunken hover:text-ink',
+            )}
           >
-            {tab === value && <span className="absolute -left-2 top-0 h-full w-1 rounded-r bg-primary" aria-hidden />}
+            {tab === value && <span className="absolute -left-2 top-0 hidden h-full w-1 rounded-r bg-primary md:block" aria-hidden />}
             <Icon size={20} aria-hidden />
             {label}
           </button>
         ))}
       </nav>
-      <div className="min-w-0 flex-1 overflow-y-auto bg-canvas px-8 py-6">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-canvas px-4 py-5 md:px-8 md:py-6">
         <div className="mb-4 flex items-start justify-between gap-4">
           <span className={clsx('chip h-9 gap-1.5 whitespace-nowrap px-4 text-body-strong', open ? 'bg-success text-white' : 'bg-warning text-ink')}>
             {open && <Check size={16} aria-hidden />}
@@ -401,7 +405,7 @@ export function RegisterPeriodDrawer({ id, params }: DrawerProps) {
           </div>
         </div>
         <p className="text-body-lg text-ink">{t('sales.register.balance', { name: register.name })}</p>
-        <h1 className="font-display text-[40px] font-bold leading-[48px] text-ink tabular">{money(headerBalance)}</h1>
+        <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink tabular md:text-[40px] md:leading-[48px]">{money(headerBalance)}</h1>
         <p className="mb-6 mt-1 text-body text-muted">{meta}</p>
         {tab === 'summary' ? summary : activityView}
       </div>

@@ -9,7 +9,7 @@ import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDateTime, money2, round2 } from '@/lib/format'
 import type { ProductOrder } from '@/types'
-import { OptionsMenu, TableLink } from '../shared/ui'
+import { HiddenHeader, OptionsMenu, TableLink } from '../shared/ui'
 import { matches, useLookups } from '../shared/data'
 import { NoResults } from '../lists/AppointmentsListPage'
 
@@ -96,7 +96,7 @@ export function ProductOrdersPage() {
     { key: 'status', header: t('sales.orders.cols.status'), cell: (r) => <Chip tone={TONES[r.order.status]}>{t(`sales.orders.status.${r.order.status}`)}</Chip> },
     {
       key: 'actions',
-      header: <span className="sr-only">{t('sales.common.actions')}</span>,
+      header: <HiddenHeader>{t('sales.common.actions')}</HiddenHeader>,
       width: '56px',
       cell: (r) => {
         const steps = nextSteps(r.order)

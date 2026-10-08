@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CheckCircle2, Info, Lock, MinusCircle, TriangleAlert, X } from 'lucide-react'
+import { CheckCircle2, Info, Lock, MinusCircle, MoreVertical, TriangleAlert, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, LearnMore, Menu, MenuButton, PageSkeleton, usePageLoading, type MenuGroup } from '@/components/ui'
@@ -36,11 +36,11 @@ export function SettingsPage({
   const loading = usePageLoading()
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-title-1 text-ink">{title}</h1>
+      <header className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start md:justify-between">
+        <div className="min-w-0 md:flex-1">
+          <h1 className="break-words font-display text-title-2 text-ink md:text-title-1">{title}</h1>
           {(description || learnMore) && (
-            <p className="mt-1 max-w-3xl text-body-lg text-muted">
+            <p className="mt-1 max-w-3xl text-body text-muted md:text-body-lg">
               {description}
               {learnMore && (
                 <>
@@ -95,13 +95,14 @@ export function EditCard({
   const { t } = useTranslation()
   return (
     <section className={clsx('card', className)} data-testid={testId}>
-      {banner && <div className="rounded-t-lg border-b border-line bg-sunken px-6 py-3 text-body text-ink">{banner}</div>}
-      <div className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="font-display text-title-3 text-ink">{title}</h2>
+      {banner && <div className="rounded-t-lg border-b border-line bg-sunken px-5 py-3 text-body text-ink md:px-6">{banner}</div>}
+      <div className="p-5 md:p-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 md:flex md:justify-between md:gap-4">
+          {/* Phones: the description runs full width under the title and the action. */}
+          <div className="contents md:block md:min-w-0">
+            <h2 className="self-center font-display text-title-3 text-ink md:self-auto">{title}</h2>
             {(description || learnMore) && (
-              <p className="mt-1 text-body text-muted">
+              <p className="col-span-2 mt-1 text-body text-muted">
                 {description}
                 {learnMore && (
                   <>
@@ -113,7 +114,7 @@ export function EditCard({
               </p>
             )}
           </div>
-          {action ?? (onEdit && <CardButton onClick={onEdit}>{editLabel ?? t('settings.common.edit')}</CardButton>)}
+          {(action || onEdit) && <div className="col-start-2 row-start-1 flex justify-end md:contents">{action ?? (onEdit && <CardButton onClick={onEdit}>{editLabel ?? t('settings.common.edit')}</CardButton>)}</div>}
         </div>
         {children && <div className="mt-5">{children}</div>}
       </div>
@@ -124,7 +125,7 @@ export function EditCard({
 /** White card holding the fields of a full-screen edit form. */
 export function FormCard({ title, description, children, className, testId }: { title?: ReactNode; description?: ReactNode; children?: ReactNode; className?: string; testId?: string }) {
   return (
-    <section className={clsx('card flex flex-col gap-5 p-6 sm:p-8', className)} data-testid={testId}>
+    <section className={clsx('card flex flex-col gap-5 p-5 sm:p-8', className)} data-testid={testId}>
       {(title || description) && (
         <header>
           {title && <h2 className="font-display text-title-2 text-ink">{title}</h2>}
@@ -190,13 +191,13 @@ export function Banner({ tone = 'info', title, children, action, onDismiss, clas
   const Icon = tone === 'warning' || tone === 'danger' ? TriangleAlert : tone === 'success' ? CheckCircle2 : Info
   const iconTone = { info: 'text-info', warning: 'text-warning', success: 'text-success', neutral: 'text-muted', danger: 'text-danger' }[tone]
   return (
-    <div className={clsx('flex items-start gap-3 rounded-lg px-4 py-3', tones[tone], className)} role="note">
+    <div className={clsx('flex flex-wrap items-start gap-x-3 gap-y-2 rounded-lg px-4 py-3 md:flex-nowrap md:gap-3', tones[tone], className)} role="note">
       <Icon size={18} className={clsx('mt-0.5 shrink-0', iconTone)} aria-hidden />
       <div className="min-w-0 flex-1 text-body">
         {title && <p className="text-body-strong">{title}</p>}
         {children && <div className={clsx(title && 'mt-0.5', 'text-ink/90')}>{children}</div>}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="order-last w-full shrink-0 pl-[30px] md:order-none md:w-auto md:pl-0">{action}</div>}
       {onDismiss && (
         <button type="button" onClick={onDismiss} aria-label={t('common.dismiss')} className="icon-btn -my-1 -mr-2 h-8 w-8 shrink-0">
           <X size={16} aria-hidden />
@@ -210,8 +211,8 @@ export function Banner({ tone = 'info', title, children, action, onDismiss, clas
 export function PromoCard({ eyebrow, title, body, action, onDismiss, art = 'cards' }: { eyebrow?: ReactNode; title: ReactNode; body?: ReactNode; action?: ReactNode; onDismiss?: () => void; art?: 'cards' | 'phone' | 'terminal' }) {
   const { t } = useTranslation()
   return (
-    <section className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-[#0B4F4C] p-7 text-on-primary">
-      <div className="relative z-10 max-w-[60%]">
+    <section className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-[#0B4F4C] p-5 text-on-primary md:p-7">
+      <div className="relative z-10 pr-6 md:max-w-[60%] md:pr-0">
         {eyebrow && <p className="text-caption uppercase tracking-wide text-on-primary/80">{eyebrow}</p>}
         <h2 className="mt-1 font-display text-title-2">{title}</h2>
         {body && <p className="mt-2 text-body-lg text-on-primary/90">{body}</p>}
@@ -229,7 +230,7 @@ export function PromoCard({ eyebrow, title, body, action, onDismiss, art = 'card
 
 function PromoArt({ kind }: { kind: 'cards' | 'phone' | 'terminal' }) {
   return (
-    <div className="pointer-events-none absolute inset-y-0 right-0 w-[38%]" aria-hidden>
+    <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[38%] md:block" aria-hidden>
       <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-accent/50" />
       <div className="absolute bottom-[-30px] right-24 h-32 w-32 rounded-full bg-white/10" />
       {kind === 'phone' && (
@@ -282,10 +283,33 @@ export function PillMenu({ label, groups, primary, align = 'right', width = 280,
   )
 }
 
-/** "Actions ▾" menu used on cards and list rows (same look as Options ▾). */
+/** "Actions ▾" menu used on cards and list rows (same look as Options ▾); a ⋮ icon button on phones. */
 export function ActionsPill({ groups, label, width = 240, testId }: { groups: MenuGroup[]; label?: string; width?: number; testId?: string }) {
   const { t } = useTranslation()
-  return <PillMenu label={label ?? t('settings.common.actions')} groups={groups} width={width} testId={testId} />
+  const text = label ?? t('settings.common.actions')
+  return (
+    <Menu
+      groups={groups}
+      align="right"
+      width={width}
+      trigger={({ open, toggle }) => (
+        <span data-testid={testId} className="contents">
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            aria-label={text}
+            onClick={toggle}
+            className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-md border border-line-strong bg-surface text-body-strong text-ink transition-colors hover:bg-sunken md:w-auto md:px-4"
+          >
+            <MoreVertical size={18} aria-hidden className="md:hidden" />
+            <span className="hidden md:inline">{text}</span>
+            <span aria-hidden className="hidden text-[10px] md:inline">▼</span>
+          </button>
+        </span>
+      )}
+    />
+  )
 }
 
 /** A list of rows; each row is its own card (reference: Cancellation reasons, Registers…). */
@@ -320,11 +344,11 @@ export function ListRow({
   testId?: string
 }) {
   return (
-    <div className={clsx('card relative flex items-center gap-4 px-6 py-5', onClick && 'cursor-pointer transition-colors hover:bg-sunken/50')} onClick={onClick} data-testid={testId}>
+    <div className={clsx('card relative flex items-center gap-3 px-4 py-4 md:gap-4 md:px-6 md:py-5', onClick && 'cursor-pointer transition-colors hover:bg-sunken/50')} onClick={onClick} data-testid={testId}>
       {accent && <span className="absolute inset-y-0 left-0 w-1 rounded-l-lg" style={{ background: accent }} aria-hidden />}
       {leading && (tile ? <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-sunken text-title-3 text-ink">{leading}</div> : <div className="shrink-0">{leading}</div>)}
       <div className="min-w-0 flex-1">
-        <div className="truncate text-body-strong text-ink">{title}</div>
+        <div className="break-words text-body-strong text-ink md:truncate">{title}</div>
         {subtitle && <div className="mt-0.5 text-body text-muted">{subtitle}</div>}
       </div>
       {trailing && (

@@ -76,7 +76,7 @@ export function AddOnManagePage() {
   if (!meta) return <Navigate to="/add-ons" replace />
   if (meta.kind === 'integration') return <Navigate to={`/add-ons/integration/${slug}/intro`} replace />
   if (meta.kind === 'external' && slug !== 'payments') return <Navigate to={meta.href ?? '/add-ons'} replace />
-  if (loading) return <div className="mx-auto max-w-[1200px] px-8 py-8"><PageSkeleton /></div>
+  if (loading) return <div className="mx-auto max-w-[1200px] px-4 py-5 md:px-8 md:py-8"><PageSkeleton /></div>
 
   const name = t(`addons.manage.names.${slug}`, { defaultValue: t(`addons.items.${slug}.name`) })
   const on = isAddOnOn(record)
@@ -101,8 +101,8 @@ export function AddOnManagePage() {
   const options = on && (activated || !trial) ? [{ label: t('addons.disable'), danger: true, onSelect: () => setDisableOpen(true) }] : [{ label: t('addons.enable'), onSelect: () => navigate(enableHref) }, ...(on ? [{ label: t('addons.disable'), danger: true, onSelect: () => setDisableOpen(true) }] : [])]
 
   return (
-    <div className="mx-auto w-full max-w-[1340px] px-8 py-8">
-      <div className="mb-6 flex items-center gap-4">
+    <div className="mx-auto w-full max-w-[1340px] px-4 py-5 md:px-8 md:py-8">
+      <div className="mb-5 flex items-center gap-3 md:mb-6 md:gap-4">
         <Button icon={<ArrowLeft size={16} />} className="rounded-full" onClick={() => navigate('/add-ons')}>
           {t('addons.back')}
         </Button>
@@ -111,10 +111,10 @@ export function AddOnManagePage() {
         </nav>
       </div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <AddOnIcon slug={slug} size={32} className="h-[72px] w-[72px] rounded-lg" />
-          <div>
-            <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 text-ink">
+        <div className="flex min-w-0 items-center gap-4">
+          <AddOnIcon slug={slug} size={32} className="h-14 w-14 rounded-lg md:h-[72px] md:w-[72px]" />
+          <div className="min-w-0">
+            <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-title-2 text-ink md:gap-3 md:text-title-1">
               {name}
               {trial ? <Chip tone="info">{t('addons.onTrial')}</Chip> : on ? <Chip tone="success">{t('addons.active')}</Chip> : <Chip>{t('addons.inactive')}</Chip>}
             </h1>
@@ -123,9 +123,9 @@ export function AddOnManagePage() {
         </div>
         <Menu trigger={({ open, toggle }) => <MenuButton open={open} toggle={toggle}>{t('addons.options')}</MenuButton>} groups={[{ items: options }]} />
       </div>
-      <p className="mb-8 max-w-[1100px] text-body-lg text-muted">{t(`addons.taglines.${slug}`, { defaultValue: t(`addons.items.${slug}.description`) })}</p>
+      <p className="mb-6 max-w-[1100px] text-body-lg text-muted md:mb-8">{t(`addons.taglines.${slug}`, { defaultValue: t(`addons.items.${slug}.description`) })}</p>
       {trial && !activated && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-subtle px-6 py-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-subtle px-4 py-3 md:mb-8 md:px-6 md:py-4">
           <p className="text-body-lg text-ink">
             {t('addons.manage.trialBannerPrefix')} <strong>{t('addons.manage.days', { count: trialDays })}</strong>
           </p>
@@ -135,13 +135,13 @@ export function AddOnManagePage() {
         </div>
       )}
       {trial && activated && record?.trialEndsAt && (
-        <div className="mb-8 flex items-center gap-3 rounded-lg bg-info-subtle px-6 py-4 text-body-lg text-ink">
+        <div className="mb-6 flex items-center gap-3 rounded-lg bg-info-subtle px-4 py-3 text-body-lg text-ink md:mb-8 md:px-6 md:py-4">
           <Info size={20} className="shrink-0 text-info" aria-hidden />
           {t('addons.manage.trialActivated', { end: fmtDate(record.trialEndsAt), start: fmtDate(configString(record, 'billingStartsAt') ?? record.trialEndsAt) })}
         </div>
       )}
       {!on && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface px-6 py-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface px-4 py-3 md:mb-8 md:px-6 md:py-4">
           <p className="text-body-lg text-muted">{record?.disabledAt ? t('addons.manage.disabledOn', { date: fmtDate(record.disabledAt) }) : t('addons.manage.notActive')}</p>
           <Button variant="primary" className="rounded-full" onClick={() => navigate(enableHref)}>
             {t('addons.enable')}
@@ -155,7 +155,7 @@ export function AddOnManagePage() {
             {features.map((f, i) => {
               const Icon = icons[i]
               return (
-                <article key={f.title} className="card flex flex-col p-8">
+                <article key={f.title} className="card flex flex-col p-5 md:p-8">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-body-lg font-semibold text-ink">{f.title}</h3>
@@ -176,7 +176,7 @@ export function AddOnManagePage() {
         </section>
         <section aria-labelledby="details-heading">
           <h2 id="details-heading" className="mb-4 font-display text-title-2 text-ink">{t('addons.manage.details')}</h2>
-          <div className="card p-8">
+          <div className="card p-5 md:p-8">
             {pricing && (
               <div className="mb-6 border-b border-line pb-6">
                 <h3 className="mb-3 text-body-lg font-semibold text-ink">{t('addons.manage.pricing')}</h3>
@@ -233,23 +233,23 @@ function DisableScreen({ slug, name, onClose }: { slug: string; name: string; on
   }
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="disable-title" className="fixed inset-0 z-[80] overflow-y-auto bg-surface">
-      <button type="button" className="fixed right-8 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface hover:bg-sunken" aria-label={t('addons.close')} onClick={onClose}>
+      <button type="button" className="fixed right-4 top-3 flex h-12 w-12 md:right-8 md:top-4 items-center justify-center rounded-full border border-line bg-surface hover:bg-sunken" aria-label={t('addons.close')} onClick={onClose}>
         <X size={22} aria-hidden />
       </button>
-      <div className="mx-auto flex max-w-[880px] flex-col gap-10 px-8 py-24">
-        <h1 id="disable-title" className="font-display text-[44px] font-bold leading-[52px] text-ink">{t('addons.manage.disableTitle', { name })}</h1>
-        <div className="card flex items-center gap-4 p-7">
-          <AddOnIcon slug={slug} size={30} className="h-[70px] w-[70px] rounded-lg" />
-          <div>
+      <div className="mx-auto flex max-w-[880px] flex-col gap-6 px-5 pb-12 pt-20 md:gap-10 md:px-8 md:py-24">
+        <h1 id="disable-title" className="font-display text-[30px] font-bold leading-[38px] md:text-[44px] md:leading-[52px] text-ink">{t('addons.manage.disableTitle', { name })}</h1>
+        <div className="card flex items-center gap-4 p-5 md:p-7">
+          <AddOnIcon slug={slug} size={30} className="h-14 w-14 rounded-lg md:h-[70px] md:w-[70px]" />
+          <div className="min-w-0">
             <p className="text-body-lg font-semibold text-ink">{name}</p>
             <p className="text-body-lg text-muted">{t(`addons.taglines.${slug}`, { defaultValue: t(`addons.items.${slug}.description`) })}</p>
           </div>
         </div>
-        <div className="card p-7">
+        <div className="card p-5 md:p-7">
           <p className="mb-4 text-body-lg font-semibold text-ink">{t('addons.manage.noLonger')}</p>
           <ol className="flex flex-col gap-3">
             {lose.map((l, i) => (
-              <li key={l} className="flex items-center gap-3 text-body-lg text-ink">
+              <li key={l} className="flex items-start gap-3 text-body-lg text-ink md:items-center">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-primary text-caption text-primary">{i + 1}</span>
                 {l}
               </li>
@@ -262,7 +262,7 @@ function DisableScreen({ slug, name, onClose }: { slug: string; name: string; on
           <Select id="disable-reason" value={reason} placeholder={t('addons.manage.selectReason')} aria-invalid={Boolean(error)} className={clsx('h-14', error && 'border-danger')} onChange={(e) => { setReason(e.target.value); setError('') }} options={REASONS.map((r) => ({ value: r, label: t(`addons.manage.reasons.${r}`) }))} />
           {error && <p className="mt-1.5 text-small text-danger">{error}</p>}
         </div>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-5">
           <Button size="lg" className="h-14 rounded-full" onClick={onClose}>
             {t('addons.manage.goBack')}
           </Button>
@@ -288,7 +288,7 @@ function FeatureExtra({ slug, index, record, disabled }: { slug: string; index: 
 
   if (slug === 'premium-support' && index === 0) {
     return (
-      <div className="mt-6 grid grid-cols-2 gap-6 text-body-lg">
+      <div className="mt-6 grid grid-cols-2 gap-4 text-body-lg md:gap-6">
         <div>
           <p className="text-ink">{t('addons.manage.supportNumber')}</p>
           <a href="tel:800319927" className="font-display text-title-3 font-semibold text-ink hover:underline">800 319 927</a>
@@ -384,7 +384,7 @@ function FeatureExtra({ slug, index, record, disabled }: { slug: string; index: 
         {rows.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-3 py-2">
             <dt className="text-muted">{k}</dt>
-            <dd className="text-ink">{v}</dd>
+            <dd className="min-w-0 text-right text-ink">{v}</dd>
           </div>
         ))}
       </dl>

@@ -243,7 +243,7 @@ export function OpenRegisterModal({ onClose }: { onClose: () => void }) {
         </div>
         {counting && (
           <div className="rounded-lg border border-line p-4">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {DENOMINATIONS.map((d) => (
                 <label key={d} className="flex items-center justify-between gap-2 text-body text-ink">
                   <span className="w-14 tabular">{denomination(d)}</span>
@@ -251,7 +251,7 @@ export function OpenRegisterModal({ onClose }: { onClose: () => void }) {
                 </label>
               ))}
             </div>
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-body-strong text-ink">{t('checkout.register.totalCounted', { amount: money(counted) })}</p>
               <Button size="sm" onClick={() => setFloat(counted)}>
                 {t('checkout.register.useCount')}

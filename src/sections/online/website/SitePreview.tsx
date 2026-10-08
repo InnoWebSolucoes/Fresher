@@ -1,10 +1,10 @@
 import clsx from 'clsx'
-import { useMemo, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useDb } from '@/store/db'
 import { money } from '@/lib/format'
 import { durationLabel } from '@/lib/time'
 import type { WebsiteConfig } from '@/api/online'
-import { sampleImage } from '../shared'
+import { sampleImage, usePhone } from '../shared'
 
 export interface Template {
   id: string
@@ -69,7 +69,7 @@ export function SitePreview({ config, mobile, compact, page = 'home' }: { config
   const heroImg = sampleImage(template.id.length)
   const s = compact ? 0.7 : 1
   const cta = (
-    <span className="inline-block px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.15em]" style={{ background: accent, color: onAccent }}>
+    <span className="inline-block px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.15em] max-md:whitespace-nowrap" style={{ background: accent, color: onAccent }}>
       {config.hero.button}
     </span>
   )
@@ -178,8 +178,39 @@ export function SitePreview({ config, mobile, compact, page = 'home' }: { config
   )
 }
 
-/** Browser chrome around a preview. */
+/** Width the desktop rendering is laid out at before it is scaled down on phones. */
+const DESKTOP_PREVIEW_WIDTH = 820
+/** Lays children out at a fixed desktop width and scales them down to fit the available width. */
+function ScaledToFit({ width, children }: { width: number; children: ReactNode }) {
+  const outer = useRef<HTMLDivElement>(null)
+  const inner = useRef<HTMLDivElement>(null)
+  const [box, setBox] = useState<{ scale: number; height?: number }>({ scale: 1 })
+  useLayoutEffect(() => {
+    const o = outer.current
+    const i = inner.current
+    if (!o || !i) return
+    const update = () => {
+      const scale = Math.min(1, o.clientWidth / width)
+      setBox({ scale, height: Math.ceil(i.offsetHeight * scale) })
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(o)
+    ro.observe(i)
+    return () => ro.disconnect()
+  }, [width])
+  return (
+    <div ref={outer} className="overflow-hidden" style={{ height: box.height }}>
+      <div ref={inner} style={{ width, transform: `scale(${box.scale})`, transformOrigin: 'top left' }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Browser chrome around a preview. On phones the desktop rendering is shown scaled down to fit, like a thumbnail. */
 export function BrowserFrame({ url, mobile, children }: { url: string; mobile?: boolean; children: ReactNode }) {
+  const phone = usePhone()
   return (
     <div className={clsx('mx-auto overflow-hidden rounded-lg border border-line bg-surface shadow-md', mobile ? 'max-w-[380px]' : 'w-full')}>
       <div className="flex items-center gap-2 border-b border-line bg-sunken px-3 py-2">
@@ -188,7 +219,7 @@ export function BrowserFrame({ url, mobile, children }: { url: string; mobile?: 
         <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
         <span className="ml-2 flex-1 truncate rounded-full bg-surface px-3 py-0.5 text-caption text-muted">{url}</span>
       </div>
-      <div className="relative max-h-[560px] overflow-y-auto">{children}</div>
+      <div className="relative max-h-[560px] overflow-y-auto">{phone && !mobile ? <ScaledToFit width={DESKTOP_PREVIEW_WIDTH}>{children}</ScaledToFit> : children}</div>
     </div>
   )
 }

@@ -153,14 +153,14 @@ function Details({ template }: { template: FormTemplate }) {
           {mine.length === 0 ? (
             <EmptyState icon={<Inbox size={24} aria-hidden />} title={t('settings.more2.forms.noRequestsTitle')} body={t('settings.more2.forms.noRequestsBody')} />
           ) : (
-            <div className="-mx-6 overflow-x-auto">
+            <div className="-mx-5 overflow-x-auto md:-mx-6">
               <table className="w-full text-left text-body">
                 <thead>
                   <tr className="border-y border-line text-small text-muted">
-                    <th className="px-6 py-2 font-semibold">{t('settings.more2.forms.colClient')}</th>
-                    <th className="px-6 py-2 font-semibold">{t('settings.more2.forms.colAppointment')}</th>
-                    <th className="px-6 py-2 font-semibold">{t('settings.more2.forms.colSent')}</th>
-                    <th className="px-6 py-2 font-semibold">{t('settings.more2.forms.colStatus')}</th>
+                    <th className="whitespace-nowrap px-5 py-2 font-semibold md:px-6">{t('settings.more2.forms.colClient')}</th>
+                    <th className="whitespace-nowrap px-5 py-2 font-semibold md:px-6">{t('settings.more2.forms.colAppointment')}</th>
+                    <th className="whitespace-nowrap px-5 py-2 font-semibold md:px-6">{t('settings.more2.forms.colSent')}</th>
+                    <th className="whitespace-nowrap px-5 py-2 font-semibold md:px-6">{t('settings.more2.forms.colStatus')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -168,10 +168,10 @@ function Details({ template }: { template: FormTemplate }) {
                     const date = apptDate(r.appointmentId)
                     return (
                       <tr key={r.id}>
-                        <td className="px-6 py-3 text-ink">{clientName(r.clientId)}</td>
-                        <td className="px-6 py-3 text-muted">{date ? fmtDate(date) : '-'}</td>
-                        <td className="px-6 py-3 text-muted">{fmtDate(r.sentAt)}</td>
-                        <td className="px-6 py-3">
+                        <td className="px-5 py-3 md:px-6 text-ink">{clientName(r.clientId)}</td>
+                        <td className="px-5 py-3 md:px-6 text-muted">{date ? fmtDate(date) : '-'}</td>
+                        <td className="px-5 py-3 md:px-6 text-muted">{fmtDate(r.sentAt)}</td>
+                        <td className="px-5 py-3 md:px-6">
                           <Chip tone={STATUS_TONE[r.status]}>{t(`settings.more2.forms.status.${r.status}`)}</Chip>
                         </td>
                       </tr>

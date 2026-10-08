@@ -26,7 +26,7 @@ type Errors = Partial<Record<'name' | 'subject' | 'body' | 'audience' | 'schedul
 
 function Section({ n, title, subtitle, children }: { n: number; title: string; subtitle?: string; children: ReactNode }) {
   return (
-    <section className="card p-6">
+    <section className="card p-4 md:p-6">
       <div className="mb-4 flex items-start gap-3">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-small font-semibold text-primary">{n}</span>
         <div>
@@ -249,11 +249,17 @@ export function BlastBuilderPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-canvas">
-      <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-6">
-        <Button icon={<X size={16} />} onClick={() => navigate(existing ? `/marketing/blast-campaigns/${existing.id}` : '/marketing/blast-campaigns/home')}>
-          {t('marketing.common.close')}
+      {/* Phones: Close shrinks to an icon and the title gets its own row under the buttons. */}
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-surface px-3 py-3 md:h-16 md:flex-nowrap md:gap-4 md:px-6 md:py-0">
+        <Button
+          icon={<X size={16} />}
+          aria-label={t('marketing.common.close')}
+          className="max-md:w-10 max-md:px-0"
+          onClick={() => navigate(existing ? `/marketing/blast-campaigns/${existing.id}` : '/marketing/blast-campaigns/home')}
+        >
+          <span className="hidden md:inline">{t('marketing.common.close')}</span>
         </Button>
-        <h1 className="truncate font-display text-title-3 text-ink">{existing ? t('marketing.builder.editTitle') : t('marketing.builder.title')}</h1>
+        <h1 className="order-last w-full break-words font-display text-title-3 text-ink md:order-none md:w-auto md:truncate">{existing ? t('marketing.builder.editTitle') : t('marketing.builder.title')}</h1>
         <div className="flex items-center gap-2">
           <Button onClick={() => void saveDraft()} loading={busy === 'draft'}>
             {t('marketing.builder.saveDraft')}
@@ -264,7 +270,7 @@ export function BlastBuilderPage() {
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto grid max-w-[1280px] gap-6 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_460px]">
+        <div className="mx-auto grid max-w-[1280px] gap-5 px-4 py-5 md:gap-6 md:px-6 md:py-8 lg:grid-cols-[minmax(0,1fr)_460px]">
           <div className="flex min-w-0 flex-col gap-5">
             <Section n={1} title={t('marketing.builder.details')} subtitle={t('marketing.builder.detailsHint')}>
               <Field label={t('marketing.builder.name')} error={errors.name}>
@@ -342,7 +348,7 @@ export function BlastBuilderPage() {
                           <li key={c.id}>
                             <button
                               type="button"
-                              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-sunken"
+                              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-sunken max-md:flex-wrap max-md:gap-y-1"
                               onClick={() => {
                                 set({ audience: { ...form.audience, clientIds: [...form.audience.clientIds, c.id] } })
                                 setClientQuery('')
@@ -352,9 +358,9 @@ export function BlastBuilderPage() {
                                 <span className="block text-body text-ink">
                                   {c.firstName} {c.lastName}
                                 </span>
-                                <span className="block text-small text-muted">{form.channel === 'email' ? c.email : c.phone}</span>
+                                <span className="block text-small text-muted max-md:[overflow-wrap:anywhere]">{form.channel === 'email' ? c.email : c.phone}</span>
                               </span>
-                              {!consent && <span className="chip bg-warning-subtle text-warning">{t('marketing.builder.noConsent')}</span>}
+                              {!consent && <span className="chip bg-warning-subtle text-warning max-md:whitespace-nowrap">{t('marketing.builder.noConsent')}</span>}
                             </button>
                           </li>
                         )
@@ -372,7 +378,7 @@ export function BlastBuilderPage() {
                             <button
                               type="button"
                               aria-label={t('marketing.builder.removeClient', { name: c.firstName })}
-                              className="rounded-full p-0.5 hover:bg-sunken"
+                              className="rounded-full p-0.5 hover:bg-sunken max-md:p-1.5"
                               onClick={() => set({ audience: { ...form.audience, clientIds: form.audience.clientIds.filter((x) => x !== cid) } })}
                             >
                               <X size={14} />
@@ -450,8 +456,9 @@ export function BlastBuilderPage() {
           </div>
 
           <aside className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-0 lg:self-start">
-            <div className="card p-5">
+            <div className="card p-4 md:p-5">
               <h2 className="mb-3 font-display text-title-3 text-ink">{t('marketing.builder.cost')}</h2>
+
               <dl className="flex flex-col gap-2 text-body">
                 <div className="flex justify-between">
                   <dt className="text-muted">{t('marketing.builder.costRecipients')}</dt>

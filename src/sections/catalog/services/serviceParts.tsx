@@ -7,6 +7,7 @@ import { durationLong } from '@/lib/time'
 import { money, num } from '@/lib/format'
 import { uid } from '@/lib/ids'
 import type { ExtraTime, ExtraTimeType, FormTemplate, ID, Location, Service, ServiceAddOnGroup, ServiceVariant, TeamMember } from '@/types'
+import { useIsPhone } from '@/components/ui/responsive'
 import { DurationSelect } from '../ui'
 
 export type PriceType = Service['priceType']
@@ -23,19 +24,20 @@ export function usePriceTypeOptions() {
 /** Extra time rows (processing / blocked / servicing) + "Add extra time". */
 export function ExtraTimeRows({ value, onChange, showAdd = true }: { value: ExtraTime[]; onChange: (v: ExtraTime[]) => void; showAdd?: boolean }) {
   const { t } = useTranslation()
+  const phone = useIsPhone()
   const types: { value: ExtraTimeType; label: string }[] = [
     { value: 'processing', label: t('catalog.extraTime.processing') },
     { value: 'blocked', label: t('catalog.extraTime.blocked') },
     { value: 'servicing', label: t('catalog.extraTime.servicing') },
   ]
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5 md:gap-3">
       {value.map((row, i) => (
-        <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
-          <Field label={i === 0 ? t('catalog.extraTime.type') : undefined}>
+        <div key={i} className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 md:grid-cols-[1fr_1fr_auto]">
+          <Field className="col-span-2 md:col-span-1" label={i === 0 || phone ? t('catalog.extraTime.type') : undefined}>
             {(id) => <Select id={id} value={row.type} options={types} onChange={(e) => onChange(value.map((r, j) => (j === i ? { ...r, type: e.target.value as ExtraTimeType } : r)))} />}
           </Field>
-          <Field label={i === 0 ? t('catalog.extraTime.duration') : undefined}>{(id) => <DurationSelect id={id} value={row.durationMin} onChange={(v) => onChange(value.map((r, j) => (j === i ? { ...r, durationMin: v } : r)))} />}</Field>
+          <Field label={i === 0 || phone ? t('catalog.extraTime.duration') : undefined}>{(id) => <DurationSelect id={id} value={row.durationMin} onChange={(v) => onChange(value.map((r, j) => (j === i ? { ...r, durationMin: v } : r)))} />}</Field>
           <button type="button" className="icon-btn mb-1" aria-label={t('catalog.extraTime.remove')} onClick={() => onChange(value.filter((_, j) => j !== i))}>
             <Trash2 size={18} aria-hidden />
           </button>
@@ -90,10 +92,10 @@ export function VariantModal({ variant, onClose, onSave, isBase }: { variant: Se
         </>
       }
     >
-      <div className="grid min-h-[360px] gap-6 pb-4 md:grid-cols-[200px_1fr]">
-        <nav className="flex flex-col gap-1">
+      <div className="grid gap-4 pb-4 md:min-h-[360px] md:grid-cols-[200px_1fr] md:gap-6">
+        <nav className="flex gap-2 md:flex-col md:gap-1">
           {(['basic', 'settings'] as const).map((k) => (
-            <button key={k} type="button" onClick={() => setTab(k)} className={clsx('h-10 rounded-md px-3 text-left text-body', tab === k ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken')}>
+            <button key={k} type="button" onClick={() => setTab(k)} className={clsx('h-10 rounded-full px-4 text-left text-body md:rounded-md md:px-3', tab === k ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken max-md:ring-1 max-md:ring-inset max-md:ring-line')}>
               {t(`catalog.variant.${k}`)}
             </button>
           ))}
@@ -186,8 +188,8 @@ export function AdvancedPricingModal({
     const basePrice = inherit?.price ?? service.price
     const effectiveType = o?.priceType ?? basePriceType
     return (
-      <div key={`${locationId}-${teamMemberId ?? ''}`} className="grid grid-cols-1 items-center gap-3 border-b border-line py-3 last:border-0 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
-        <div className="flex items-center gap-3">{label}</div>
+      <div key={`${locationId}-${teamMemberId ?? ''}`} className="grid grid-cols-1 items-center gap-3 border-b border-line py-4 last:border-0 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:py-3">
+        <div className="flex items-center gap-3 max-md:min-w-0">{label}</div>
         <DurationSelect value={o?.durationMin ?? baseDuration} placeholder={o?.durationMin === undefined ? `${durationLong(baseDuration)} (${t('catalog.advanced.default')})` : undefined} onChange={(v) => set(locationId, teamMemberId, { durationMin: v })} className={clsx(o?.durationMin === undefined && 'text-muted')} />
         <select value={o?.priceType ?? ''} onChange={(e) => set(locationId, teamMemberId, { priceType: (e.target.value || undefined) as PriceType | undefined })} className={clsx('input', o?.priceType === undefined && 'text-muted')} aria-label={t('catalog.service.priceType')}>
           <option value="">{`${priceTypeLabel(basePriceType)} (${t('catalog.advanced.default')})`}</option>
@@ -225,8 +227,8 @@ export function AdvancedPricingModal({
       }
     >
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg bg-sunken p-2">
-        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-xs" />
-        <Select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} placeholder={t('catalog.advanced.allLocations')} options={locations.filter((l) => service.locationIds.includes(l.id)).map((l) => ({ value: l.id, label: l.name }))} className="w-56" aria-label={t('catalog.common.filters')} />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.common.search')} className="max-w-xs max-md:max-w-none max-md:basis-full" />
+        <Select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} placeholder={t('catalog.advanced.allLocations')} options={locations.filter((l) => service.locationIds.includes(l.id)).map((l) => ({ value: l.id, label: l.name }))} className="w-56 max-md:w-auto max-md:min-w-0 max-md:flex-1" aria-label={t('catalog.common.filters')} />
         <Button className="ml-auto" size="sm" icon={<RotateCcw size={14} />} onClick={() => setRows([])}>
           {t('catalog.advanced.resetAll')}
         </Button>
@@ -335,13 +337,15 @@ export function AddOnGroupModal({ group, onClose, onSave }: { group: ServiceAddO
         <Switch checked={draft.multiple} onChange={(v) => setDraft({ ...draft, multiple: v })} label={t('catalog.addOns.multiple')} hint={t('catalog.addOns.multipleHint')} />
         <div>
           <p className="mb-2 text-body-strong text-ink">{t('catalog.addOns.options')}</p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3 md:gap-2">
             {draft.options.map((o, i) => (
-              <div key={o.id} className="grid grid-cols-[1.5fr_1fr_1fr_auto] items-center gap-2">
-                <TextInput value={o.name} placeholder={t('catalog.addOns.optionName')} aria-label={t('catalog.addOns.optionName')} onChange={(e) => setOption(i, { name: e.target.value })} />
+              <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 max-md:border-b max-md:border-line max-md:pb-3 max-md:last:border-0 md:grid-cols-[1.5fr_1fr_1fr_auto]">
+                <div className="col-span-2 md:col-span-1">
+                  <TextInput value={o.name} placeholder={t('catalog.addOns.optionName')} aria-label={t('catalog.addOns.optionName')} onChange={(e) => setOption(i, { name: e.target.value })} />
+                </div>
                 <MoneyInput value={o.price} aria-label={t('catalog.service.price')} onChange={(v) => setOption(i, { price: v === '' ? 0 : v })} />
                 <DurationSelect value={o.durationMin} allowZero onChange={(v) => setOption(i, { durationMin: v })} />
-                <button type="button" className="icon-btn" aria-label={t('catalog.common.remove')} onClick={() => setDraft({ ...draft, options: draft.options.filter((_, j) => j !== i) })}>
+                <button type="button" className="icon-btn col-start-3 row-start-1 md:col-start-auto md:row-start-auto" aria-label={t('catalog.common.remove')} onClick={() => setDraft({ ...draft, options: draft.options.filter((_, j) => j !== i) })}>
                   <X size={16} aria-hidden />
                 </button>
               </div>
@@ -397,20 +401,20 @@ export function FormsPickerModal({ open, onClose, templates, selected, onAdd }: 
 export function VariantRow({ name, durationMin, price, priceType, color, menu }: { name: string; durationMin: number; price: number; priceType: PriceType; color: string; menu: MenuGroup[] }) {
   const { t } = useTranslation()
   return (
-    <div className="flex items-center gap-4 py-2">
+    <div className="flex items-center gap-3 py-2 md:gap-4">
       <span className="h-14 w-1 shrink-0 rounded-full" style={{ background: color }} aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="text-body-lg text-ink">{name}</p>
         <p className="text-body text-muted">{durationLong(durationMin)}</p>
       </div>
-      <span className="text-body-lg text-ink">{priceType === 'free' ? t('catalog.priceTypes.free') : `${priceType === 'from' ? `${t('catalog.common.from')} ` : ''}${money(price)}`}</span>
+      <span className="text-right text-body-lg text-ink">{priceType === 'free' ? t('catalog.priceTypes.free') : `${priceType === 'from' ? `${t('catalog.common.from')} ` : ''}${money(price)}`}</span>
       <Menu
         width={220}
         groups={menu}
         trigger={({ open, toggle }) => (
-          <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="inline-flex h-9 items-center gap-1 rounded-full border border-line-strong bg-surface px-4 text-body-strong text-ink hover:bg-sunken">
-            {t('catalog.common.actions')}
-            <MoreVertical size={14} aria-hidden />
+          <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={toggle} aria-label={t('catalog.common.actions')} className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-1 rounded-full border border-line-strong bg-surface text-body-strong text-ink hover:bg-sunken md:h-9 md:w-auto md:justify-start md:px-4">
+            <span className="hidden md:inline">{t('catalog.common.actions')}</span>
+            <MoreVertical size={14} className="max-md:h-[18px] max-md:w-[18px]" aria-hidden />
           </button>
         )}
       />

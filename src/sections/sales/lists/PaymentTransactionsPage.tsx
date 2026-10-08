@@ -9,7 +9,7 @@ import { now, toISODate } from '@/lib/time'
 import { fmtDateEU, money2, round2 } from '@/lib/format'
 import { exportCsv, exportedFileName } from '@/lib/export'
 import type { Payment, Sale } from '@/types'
-import { AmountInput, FilterButton, FilterChips, FiltersModal, OptionsMenu, SortHeader, TableLink, parseAmount, sortBy, useFilters, type FilterChip, type SortDir } from '../shared/ui'
+import { AmountInput, FilterButton, FilterChips, FiltersModal, HiddenHeader, OptionsMenu, SortHeader, TableLink, parseAmount, sortBy, useFilters, type FilterChip, type SortDir } from '../shared/ui'
 import { dayOf, matches, useLookups } from '../shared/data'
 import { NoResults, WIDE_PRESETS } from './AppointmentsListPage'
 
@@ -119,7 +119,7 @@ export function PaymentTransactionsPage() {
     { key: 'amount', header: header('amount', t('sales.payments.cols.amount')), align: 'right', cell: (r) => <span className="whitespace-nowrap">{money2(r.payment.amount)}</span> },
     {
       key: 'actions',
-      header: <span className="sr-only">{t('sales.common.actions')}</span>,
+      header: <HiddenHeader>{t('sales.common.actions')}</HiddenHeader>,
       width: '56px',
       cell: (r) =>
         r.sale && r.payment.kind !== 'refund' ? (

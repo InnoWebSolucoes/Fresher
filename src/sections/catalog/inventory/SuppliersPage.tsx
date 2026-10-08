@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { parseISO } from 'date-fns'
 import { Avatar, Button, DataTable, EmptyState, LearnMore, Menu, Page, PageHeader, PageSkeleton, SearchInput, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDrawer } from '@/lib/drawer'
 import { fmtDateTimeUS } from '@/lib/format'
 import type { Supplier } from '@/types'
@@ -29,6 +30,7 @@ export function SuppliersPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const drawer = useDrawer()
+  const phone = useIsPhone()
   const loading = usePageLoading()
   const suppliers = useDb((s) => s.suppliers)
   const products = useDb((s) => s.products)
@@ -68,6 +70,43 @@ export function SuppliersPage() {
       </Page>
     )
 
+  const actionsColumn: Column<Supplier> = {
+    key: 'actions',
+    header: '',
+    width: '56px',
+    cell: (s) => (
+      <Menu
+        label={t('catalog.common.actions')}
+        groups={[
+          {
+            items: [
+              { label: t('catalog.inventory.suppliers.edit'), onSelect: () => navigate(`/catalogue/suppliers/edit/${s.id}`) },
+              { label: t('catalog.inventory.suppliers.createOrder'), onSelect: () => navigate(`/catalogue/orders/new?supplier=${s.id}`) },
+            ],
+          },
+          { items: [{ label: t('catalog.inventory.suppliers.delete'), danger: true, onSelect: () => void confirmDeleteSupplier(s, t) }] },
+        ]}
+      />
+    ),
+  }
+  // Phones: name with phone / email underneath, plus the actions menu.
+  const phoneColumns: Column<Supplier>[] = [
+    {
+      key: 'name',
+      header: t('catalog.inventory.suppliers.cols.name'),
+      cell: (s) => (
+        <div className="flex max-w-[calc(100vw-138px)] items-center gap-3 whitespace-normal">
+          <Avatar name={s.name} size={40} />
+          <div className="min-w-0">
+            <p className="break-words text-body-strong text-ink">{s.name}</p>
+            {(supplierPhone(s) || s.email) && <p className="text-small text-muted [overflow-wrap:anywhere]">{supplierPhone(s) || s.email}</p>}
+            <p className="text-small text-muted">{t('catalog.inventory.common.products', { count: counts.get(s.id) ?? 0 })}</p>
+          </div>
+        </div>
+      ),
+    },
+    actionsColumn,
+  ]
   const columns: Column<Supplier>[] = [
     {
       key: 'name',
@@ -83,25 +122,7 @@ export function SuppliersPage() {
     { key: 'email', header: t('catalog.inventory.suppliers.cols.email'), cell: (s) => s.email || '-' },
     { key: 'products', header: t('catalog.inventory.suppliers.cols.products'), align: 'right', cell: (s) => counts.get(s.id) ?? 0 },
     { key: 'updated', header: t('catalog.inventory.suppliers.cols.updated'), cell: (s) => fmtDateTimeUS(parseISO(s.updatedAt)) },
-    {
-      key: 'actions',
-      header: '',
-      width: '56px',
-      cell: (s) => (
-        <Menu
-          label={t('catalog.common.actions')}
-          groups={[
-            {
-              items: [
-                { label: t('catalog.inventory.suppliers.edit'), onSelect: () => navigate(`/catalogue/suppliers/edit/${s.id}`) },
-                { label: t('catalog.inventory.suppliers.createOrder'), onSelect: () => navigate(`/catalogue/orders/new?supplier=${s.id}`) },
-              ],
-            },
-            { items: [{ label: t('catalog.inventory.suppliers.delete'), danger: true, onSelect: () => void confirmDeleteSupplier(s, t) }] },
-          ]}
-        />
-      ),
-    },
+    actionsColumn,
   ]
 
   return (
@@ -136,13 +157,13 @@ export function SuppliersPage() {
       ) : (
         <>
           <Toolbar>
-            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.suppliers.search')} className="max-w-md" />
+            <SearchInput value={query} onChange={setQuery} placeholder={t('catalog.inventory.suppliers.search')} className="max-w-md max-md:min-w-0" />
             <div className="ml-auto">
               <SortButton value={sort} onChange={setSort} options={(['nameAsc', 'nameDesc', 'updatedDesc', 'updatedAsc'] as Sort[]).map((v) => ({ value: v, label: t(`catalog.inventory.suppliers.sort.${v}`) }))} />
             </div>
           </Toolbar>
           <DataTable
-            columns={columns}
+            columns={phone ? phoneColumns : columns}
             rows={rows}
             rowKey={(s) => s.id}
             onRowClick={(s) => drawer.open('supplier', { id: s.id })}

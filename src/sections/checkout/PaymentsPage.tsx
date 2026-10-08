@@ -41,14 +41,14 @@ export function PaymentsProcessingPage() {
       {loading ? (
         <PageSkeleton rows={4} />
       ) : (
-        <div className="flex flex-col gap-8" data-testid="payments-page">
-          <div className="grid items-center gap-8 lg:grid-cols-[1fr_360px]">
+        <div className="flex flex-col gap-6 md:gap-8" data-testid="payments-page">
+          <div className="grid items-center gap-6 md:gap-8 lg:grid-cols-[1fr_360px]">
             <div>
               <div className="flex items-center gap-3">
                 <span className="text-body-strong text-muted">{t('checkout.payments.addon')}</span>
                 {active ? <Chip tone="success">{t('checkout.payments.active')}</Chip> : <Chip>{t('checkout.payments.notActive')}</Chip>}
               </div>
-              <h1 className="mt-3 font-display text-[36px] font-bold leading-[44px] text-ink">{t('checkout.payments.title')}</h1>
+              <h1 className="mt-3 font-display text-[28px] font-bold leading-[36px] text-ink md:text-[36px] md:leading-[44px]">{t('checkout.payments.title')}</h1>
               <ul className="mt-6 flex flex-col gap-3">
                 {(['b1', 'b2', 'b3'] as const).map((b) => (
                   <li key={b} className="flex items-start gap-3 text-body-lg text-ink">
@@ -120,7 +120,7 @@ export function PaymentsProcessingPage() {
           <Card title={t('checkout.payments.ratesTitle')} subtitle={t('checkout.payments.ratesSubtitle')}>
             <ul className="divide-y divide-line">
               {rates.map((r) => (
-                <li key={r.title} className="flex items-center justify-between gap-6 py-4">
+                <li key={r.title} className="flex flex-col gap-1.5 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
                   <span className="flex items-start gap-3">
                     <r.icon size={20} className="mt-0.5 shrink-0 text-primary" aria-hidden />
                     <span>
@@ -128,7 +128,7 @@ export function PaymentsProcessingPage() {
                       <span className="block text-body text-muted">{r.body}</span>
                     </span>
                   </span>
-                  <span className="shrink-0 text-body-strong text-ink">{r.price}</span>
+                  <span className="shrink-0 pl-8 text-body-strong text-ink md:pl-0">{r.price}</span>
                 </li>
               ))}
             </ul>

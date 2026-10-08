@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Bell, ChartColumn, ChevronRight, MessageCircle, Rocket, Search, Wallet } from 'lucide-react'
+import { Bell, ChartColumn, ChevronRight, Menu, MessageCircle, Rocket, Search, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Wordmark } from './Wordmark'
@@ -12,7 +12,7 @@ import { useDismiss } from '@/lib/useDismiss'
 import { useDb } from '@/store/db'
 
 /** Full-width top bar (reference home.md §1.1, top-bar.md). */
-export function TopBar({ minimal = false }: { minimal?: boolean }) {
+export function TopBar({ minimal = false, onMenu }: { minimal?: boolean; onMenu?: () => void }) {
   const { t } = useTranslation()
   const user = useCurrentUser()
   usePermissionRoles()
@@ -32,15 +32,22 @@ export function TopBar({ minimal = false }: { minimal?: boolean }) {
   const isManager = canAccess(user.role, 'settings')
 
   return (
-    <header className="relative z-40 flex h-topbar shrink-0 items-center justify-between border-b border-line bg-surface px-4">
-      <Link to="/calendar" aria-label={t('topbar.goToCalendar')} className="rounded-md">
-        <Wordmark />
-      </Link>
-      <div className="flex items-center gap-1">
+    <header className="relative z-40 flex h-topbar shrink-0 items-center justify-between gap-2 border-b border-line bg-surface px-2 md:px-4">
+      <div className="flex min-w-0 items-center gap-1">
+        {onMenu && (
+          <button type="button" className="icon-btn md:hidden" aria-label={t('nav.mainMenu')} onClick={onMenu} data-testid="mobile-menu-button">
+            <Menu size={22} strokeWidth={1.75} aria-hidden />
+          </button>
+        )}
+        <Link to="/calendar" aria-label={t('topbar.goToCalendar')} className="min-w-0 rounded-md">
+          <Wordmark compact />
+        </Link>
+      </div>
+      <div className="flex shrink-0 items-center gap-0.5 md:gap-1">
         {!minimal && (
           <>
             {isManager && (
-              <button type="button" className="btn-primary mr-2 h-9 pl-3 pr-2.5" onClick={() => drawer.open('resources', { tab: 'guides' })}>
+              <button type="button" className="btn-primary mr-2 hidden h-9 pl-3 pr-2.5 lg:inline-flex" onClick={() => drawer.open('resources', { tab: 'guides' })}>
                 <Rocket size={17} aria-hidden />
                 {t('topbar.continueSetup')}
                 <ChevronRight size={16} aria-hidden />
@@ -52,7 +59,7 @@ export function TopBar({ minimal = false }: { minimal?: boolean }) {
             {isManager && (
               <button
                 type="button"
-                className="icon-btn"
+                className="icon-btn hidden md:inline-flex"
                 aria-label={t('topbar.performanceInsights')}
                 onClick={() => drawer.open('performance-insights')}
               >
@@ -68,13 +75,13 @@ export function TopBar({ minimal = false }: { minimal?: boolean }) {
               )}
             </button>
             {canAccess(user.role, 'connect') && (
-              <Link to="/connect" className="icon-btn relative" aria-label={t('topbar.inbox')}>
+              <Link to="/connect" className="icon-btn relative hidden md:inline-flex" aria-label={t('topbar.inbox')}>
                 <MessageCircle size={21} strokeWidth={1.75} aria-hidden />
                 {unreadMessages && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent ring-2 ring-surface" aria-hidden />}
               </Link>
             )}
             {isManager && (
-              <button type="button" className="icon-btn relative" aria-label={t('topbar.wallet')} onClick={() => drawer.open('wallet', { tab: 'accounts' })}>
+              <button type="button" className="icon-btn relative hidden md:inline-flex" aria-label={t('topbar.wallet')} onClick={() => drawer.open('wallet', { tab: 'accounts' })}>
                 <Wallet size={21} strokeWidth={1.75} aria-hidden />
                 {payoutsInTransit > 0 && (
                   <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{payoutsInTransit}</span>
@@ -83,8 +90,8 @@ export function TopBar({ minimal = false }: { minimal?: boolean }) {
             )}
           </>
         )}
-        <LanguageToggle className="ml-2" />
-        <div className="relative ml-2">
+        <LanguageToggle className="ml-2 hidden md:inline-flex" />
+        <div className="relative ml-1 md:ml-2">
           <button
             ref={avatarRef}
             type="button"

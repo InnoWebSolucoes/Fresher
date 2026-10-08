@@ -11,7 +11,7 @@ import { fmtDate, money, num } from '@/lib/format'
 import { Button, confirm, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, SearchInput, SideDrawer, toast, Toolbar, usePageLoading } from '@/components/ui'
 import { deleteClients, findDuplicateGroups } from '@/api/clients'
 import { useExt, writeExt } from '@/api/ext'
-import { ClientAvatar, FilterGroup, OptionList } from '../components/common'
+import { FilterGroup, OptionList, ResponsiveAvatar } from '../components/common'
 import { AddTagsModal, BlockClientModal } from '../components/ClientDialogs'
 import { SegmentsPickerModal } from '../components/SegmentsPickerModal'
 import { GENDERS, SORTS, type SortKey } from '../lib/constants'
@@ -196,12 +196,12 @@ export function ClientsListPage() {
       />
 
       {!bannerHidden && (
-        <section className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-ink via-primary-active to-primary p-7 text-white shadow-sm">
-          <div className="relative z-10 max-w-[60%]">
-            <h2 className="font-display text-title-2">{t('clients.banner.title')}</h2>
-            <p className="mt-1 text-body-lg text-white/85">{t('clients.banner.body')}</p>
-            <div className="mt-5 flex items-center gap-5">
-              <button type="button" onClick={() => navigate('/clients/client-import/upload')} className="h-10 rounded-full bg-white px-5 text-body-strong text-ink hover:bg-white/90">
+        <section className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-ink via-primary-active to-primary p-5 text-white shadow-sm md:p-7">
+          <div className="relative z-10 max-w-full pr-8 sm:max-w-[60%] sm:pr-0">
+            <h2 className="font-display text-title-3 sm:text-title-2">{t('clients.banner.title')}</h2>
+            <p className="mt-1 text-body text-white/85 sm:text-body-lg">{t('clients.banner.body')}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 md:mt-5 md:flex-nowrap">
+              <button type="button" onClick={() => navigate('/clients/client-import/upload')} className="h-10 whitespace-nowrap rounded-full bg-white px-5 text-body-strong text-ink hover:bg-white/90 md:whitespace-normal">
                 {t('clients.banner.start')}
               </button>
               <LearnMore topic={t('clients.list.importClients')}>
@@ -226,7 +226,7 @@ export function ClientsListPage() {
             type="button"
             aria-label={t('clients.common.dismiss')}
             onClick={() => writeExt('clients', 'importBannerDismissed', true)}
-            className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-white hover:bg-white/15"
+            className="absolute right-2 top-2 z-10 rounded-full p-2.5 text-white hover:bg-white/15 md:right-4 md:top-4 md:p-1.5"
           >
             <X size={18} aria-hidden />
           </button>
@@ -241,7 +241,7 @@ export function ClientsListPage() {
             setPage(0)
           }}
           placeholder={t('clients.list.search')}
-          className="max-w-xs"
+          className="min-w-0 basis-full md:min-w-[240px] md:max-w-xs md:basis-0"
         />
         <Button
           icon={<SlidersHorizontal size={16} aria-hidden />}
@@ -258,8 +258,8 @@ export function ClientsListPage() {
           <Menu
             width={260}
             trigger={({ toggle, open }) => (
-              <Button className="rounded-full" iconRight={<ArrowUpDown size={16} aria-hidden />} onClick={toggle} aria-expanded={open} aria-haspopup="menu">
-                {t(`clients.sort.${sort}`)}
+              <Button className="rounded-full" iconRight={<ArrowUpDown size={16} aria-hidden />} onClick={toggle} aria-expanded={open} aria-haspopup="menu" aria-label={t(`clients.sort.${sort}`)}>
+                <span className="hidden md:inline">{t(`clients.sort.${sort}`)}</span>
               </Button>
             )}
             groups={[{ items: SORTS.map((key) => ({ label: t(`clients.sort.${key}`), checked: key === sort, onSelect: () => setSort(key) })) }]}
@@ -301,10 +301,10 @@ export function ClientsListPage() {
       ) : (
         <div className="overflow-hidden rounded-lg border border-line bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left text-body">
+            <table className="w-full border-collapse text-left text-body md:min-w-[760px]">
               <thead>
                 <tr className="h-14 border-b border-line">
-                  <th className="w-12 px-4">
+                  <th className="w-12 pl-4 pr-2 md:px-4">
                     <input
                       type="checkbox"
                       aria-label={t('clients.list.selectAll')}
@@ -321,14 +321,14 @@ export function ClientsListPage() {
                     />
                   </th>
                   {selectedIds.length > 0 ? (
-                    <th colSpan={5} className="pr-4">
-                      <div className="flex items-center gap-3">
+                    <th colSpan={5} className="py-2 pr-4 md:py-0">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                         <span className="text-body-strong text-ink">{t('clients.list.selected', { count: selectedIds.length })}</span>
                         <span aria-hidden className="text-muted">•</span>
                         <Button variant="link" onClick={() => setSelected(new Set())}>
                           {t('clients.list.deselect')}
                         </Button>
-                        <div className="ml-auto flex items-center gap-2">
+                        <div className="flex items-center gap-2 md:ml-auto">
                           <Menu
                             width={200}
                             trigger={({ open, toggle }) => (
@@ -353,11 +353,11 @@ export function ClientsListPage() {
                     </th>
                   ) : (
                     <>
-                      <th className="px-4 text-body-strong text-ink">{t('clients.list.colName')}</th>
-                      <th className="px-4 text-body-strong text-ink">{t('clients.list.colMobile')}</th>
-                      <th className="px-4 text-body-strong text-ink">{t('clients.list.colReviews')}</th>
-                      <th className="px-4 text-body-strong text-ink">{t('clients.list.colSales')}</th>
-                      <th className="px-4 text-body-strong text-ink">
+                      <th className="px-2 text-body-strong text-ink md:px-4">{t('clients.list.colName')}</th>
+                      <th className="hidden px-4 text-body-strong text-ink md:table-cell">{t('clients.list.colMobile')}</th>
+                      <th className="hidden px-4 text-body-strong text-ink md:table-cell">{t('clients.list.colReviews')}</th>
+                      <th className="px-4 text-right text-body-strong text-ink md:text-left">{t('clients.list.colSales')}</th>
+                      <th className="hidden px-4 text-body-strong text-ink md:table-cell">
                         <button type="button" className="inline-flex items-center gap-1 hover:text-primary" onClick={() => setSort(sort === 'created_desc' ? 'created_asc' : 'created_desc')}>
                           {t('clients.list.colCreated')}
                           {sort.startsWith('created') && <ArrowDown size={14} aria-hidden className={sort === 'created_asc' ? 'rotate-180' : ''} />}
@@ -371,8 +371,8 @@ export function ClientsListPage() {
                 {visible.map((c) => {
                   const r = metrics.reviewStats.get(c.id)
                   return (
-                    <tr key={c.id} onClick={() => drawer.open('client', { id: c.id })} className={clsx('h-[88px] cursor-pointer border-b border-line last:border-0 hover:bg-sunken/60', selected.has(c.id) && 'bg-primary-subtle/40')}>
-                      <td className="px-4" onClick={(e) => e.stopPropagation()}>
+                    <tr key={c.id} onClick={() => drawer.open('client', { id: c.id })} className={clsx('h-[72px] cursor-pointer md:h-[88px] border-b border-line last:border-0 hover:bg-sunken/60', selected.has(c.id) && 'bg-primary-subtle/40')}>
+                      <td className="pl-4 pr-2 md:px-4" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           aria-label={t('clients.list.selectRow', { name: clientName(c) })}
@@ -386,11 +386,11 @@ export function ClientsListPage() {
                           className="h-4 w-4 accent-[rgb(var(--primary))]"
                         />
                       </td>
-                      <td className="px-4">
-                        <div className="flex items-center gap-4">
-                          <ClientAvatar client={c} size={56} />
+                      <td className="w-full max-w-0 px-2 py-3 md:w-auto md:max-w-none md:px-4 md:py-0">
+                        <div className="flex items-center gap-3 md:gap-4">
+                          <ResponsiveAvatar client={c} size={56} phoneSize={40} />
                           <div className="min-w-0">
-                            <p className="flex items-center gap-2 truncate text-body-lg text-ink">
+                            <p className="flex flex-wrap items-center gap-x-2 text-body-lg text-ink md:flex-nowrap md:gap-2 md:truncate">
                               {clientName(c)}
                               {c.blocked && <span className="chip h-5 bg-danger-subtle px-2 text-caption text-danger">{t('clients.drawer.blocked')}</span>}
                             </p>
@@ -398,10 +398,10 @@ export function ClientsListPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap px-4 text-ink">{c.phone || '-'}</td>
-                      <td className="whitespace-nowrap px-4 text-ink">{r ? `${num(r.sum / r.count, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★ (${r.count})` : '-'}</td>
-                      <td className="whitespace-nowrap px-4 tabular text-ink">{money(metrics.salesTotal.get(c.id) ?? 0)}</td>
-                      <td className="whitespace-nowrap px-4 text-ink">{fmtDate(c.createdAt)}</td>
+                      <td className="hidden whitespace-nowrap px-4 text-ink md:table-cell">{c.phone || '-'}</td>
+                      <td className="hidden whitespace-nowrap px-4 text-ink md:table-cell">{r ? `${num(r.sum / r.count, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★ (${r.count})` : '-'}</td>
+                      <td className="whitespace-nowrap px-4 text-right tabular text-ink md:text-left">{money(metrics.salesTotal.get(c.id) ?? 0)}</td>
+                      <td className="hidden whitespace-nowrap px-4 text-ink md:table-cell">{fmtDate(c.createdAt)}</td>
                     </tr>
                   )
                 })}
@@ -426,7 +426,7 @@ export function ClientsListPage() {
               }
             />
           ) : (
-            <div className="flex items-center justify-center gap-4 border-t border-line px-4 py-4 text-body text-muted">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-line px-4 py-4 text-center text-body text-muted">
               {pages > 1 && (
                 <Button size="sm" variant="ghost" disabled={current === 0} onClick={() => setPage(current - 1)}>
                   {t('clients.common.previous')}

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Folder, Link2, Plus } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { REPORTS } from '@/app/reportCatalog'
@@ -41,10 +41,48 @@ export function ReportsLayout({ active, children }: { active: string; children: 
   const [folderOpen, setFolderOpen] = useState(false)
   const navigate = useNavigate()
   const row = (selected: boolean) => clsx('flex h-11 items-center gap-3 rounded-md px-3 text-body transition-colors', selected ? 'bg-primary-subtle font-semibold text-ink' : 'text-ink hover:bg-sunken')
+  const chip = (selected: boolean) =>
+    clsx('inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-body-strong transition-colors', selected ? 'bg-ink text-canvas' : 'bg-surface text-ink ring-1 ring-line hover:bg-sunken')
+  const count = (selected: boolean) => clsx('rounded-full px-1.5 text-caption', selected ? 'bg-canvas/20' : 'bg-sunken text-muted')
+  const strip = useRef<HTMLElement>(null)
+  // Phones: bring the current group's chip into view in the sideways strip.
+  useEffect(() => {
+    strip.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })
+  }, [active])
 
   return (
-    <div className="mx-auto flex w-full max-w-[1440px] gap-8 px-8 py-8">
-      <aside className="w-[280px] shrink-0">
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-4 px-4 py-5 md:flex-row md:gap-8 md:px-8 md:py-8">
+      {/* Phones: groups, folders and the Data connector as one sideways-scrolling row above the page. */}
+      <nav ref={strip} className="-mx-4 flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-px [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden" aria-label={t('reports.landing.navLabel')}>
+        {GROUPS.map(({ id, key, icon: Icon }) => (
+          <NavLink key={id} to={`/reports/report-group/${id}?category=all`} className={chip(active === id)} aria-current={active === id ? 'page' : undefined}>
+            <Icon size={16} aria-hidden className="shrink-0" />
+            {t(`reports.landing.groups.${key}`)}
+            <span className={count(active === id)}>{counts[key]}</span>
+          </NavLink>
+        ))}
+        {folders.map((f) => {
+          const id = `f_${f.id}`
+          return (
+            <NavLink key={f.id} to={`/reports/report-group/${id}?category=all`} className={chip(active === id)} aria-current={active === id ? 'page' : undefined}>
+              <Folder size={16} aria-hidden className="shrink-0" />
+              {f.name}
+              <span className={count(active === id)}>{insights ? f.items.length : 0}</span>
+            </NavLink>
+          )
+        })}
+        <button type="button" className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-surface px-3.5 text-body-strong text-primary ring-1 ring-line transition-colors hover:bg-sunken" onClick={() => (insights ? setFolderOpen(true) : gate())}>
+          <Plus size={16} aria-hidden />
+          {t('reports.landing.addFolder')}
+        </button>
+        <NavLink to="/reports/data-connector" className={chip(active === 'dc')} aria-current={active === 'dc' ? 'page' : undefined}>
+          <span className="flex h-5 w-5 items-center justify-center rounded-xs bg-success text-white">
+            <Link2 size={12} aria-hidden />
+          </span>
+          {t('reports.landing.dataConnector')}
+        </NavLink>
+      </nav>
+      <aside className="hidden w-[280px] shrink-0 md:block">
         <nav className="card sticky top-6 p-4" aria-label={t('reports.landing.navLabel')}>
           <h2 className="px-3 pb-2 pt-1 font-display text-title-3 text-ink">{t('reports.landing.reports')}</h2>
           <ul className="flex flex-col gap-0.5">

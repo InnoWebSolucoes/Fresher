@@ -113,7 +113,7 @@ function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () =>
             role="radio"
             aria-checked={draft.type === type}
             onClick={() => setType(type)}
-            className={clsx('flex h-28 w-28 flex-col items-center justify-center gap-2 rounded-lg border text-body-strong text-ink transition-colors', draft.type === type ? 'border-primary bg-primary-subtle/40 ring-1 ring-primary' : 'border-line hover:border-line-strong')}
+            className={clsx('flex h-24 min-w-0 flex-1 flex-col items-center justify-center gap-2 rounded-lg border text-body-strong md:h-28 md:w-28 md:flex-none text-ink transition-colors', draft.type === type ? 'border-primary bg-primary-subtle/40 ring-1 ring-primary' : 'border-line hover:border-line-strong')}
           >
             <Icon size={22} aria-hidden />
             {typeLabel(type)}
@@ -162,7 +162,7 @@ function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () =>
           </div>
         )}
       </Field>
-      <div className="mt-5 rounded-lg border border-line p-5">
+      <div className="mt-5 rounded-lg border border-line p-4 md:p-5">
         <div className="flex items-start justify-between gap-4">
           <dl className="flex flex-1 flex-col gap-3">
             {rows.map((r) => (

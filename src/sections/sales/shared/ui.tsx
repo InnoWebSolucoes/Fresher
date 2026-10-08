@@ -193,6 +193,19 @@ export function OptionsMenu({ groups, width = 260 }: { groups: MenuGroup[]; widt
   )
 }
 
+/**
+ * Visually hidden column header (e.g. the ⋮ actions column). The relative wrapper keeps the
+ * absolutely positioned sr-only text inside the table's own sideways scroller, so on phones it
+ * doesn't stretch the page to the table's full width.
+ */
+export function HiddenHeader({ children }: { children: ReactNode }) {
+  return (
+    <span className="relative block">
+      <span className="sr-only">{children}</span>
+    </span>
+  )
+}
+
 /** Link-styled button inside table cells (doesn't trigger the row click). */
 export function TableLink({ onClick, children, className }: { onClick: () => void; children: ReactNode; className?: string }) {
   return (
@@ -278,13 +291,13 @@ export function FullscreenOverlay({
   return createPortal(
     <div ref={ref} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} className="fixed inset-0 z-[75] flex flex-col overflow-y-auto bg-canvas outline-none">
       {steps && (
-        <div className="flex gap-2 px-6 pt-3" role="progressbar" aria-valuemin={0} aria-valuemax={steps.total} aria-valuenow={steps.current}>
+        <div className="flex gap-2 px-4 pt-3 md:px-6" role="progressbar" aria-valuemin={0} aria-valuemax={steps.total} aria-valuenow={steps.current}>
           {Array.from({ length: steps.total }, (_, i) => (
             <span key={i} className={clsx('h-1 flex-1 rounded-full transition-colors', i < steps.current ? 'bg-primary' : 'bg-sunken')} />
           ))}
         </div>
       )}
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-4 bg-canvas/95 px-6 py-4 backdrop-blur">
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-canvas/95 px-4 py-3 backdrop-blur md:gap-4 md:px-6 md:py-4">
         <div>
           {onBack && (
             <IconButton label={t('sales.common.back')} onClick={onBack} className="h-11 w-11 rounded-full border border-line-strong bg-surface">
@@ -297,7 +310,7 @@ export function FullscreenOverlay({
           {actions}
         </div>
       </header>
-      <div className={clsx('mx-auto w-full flex-1 px-6 pb-16 pt-2', width)}>{children}</div>
+      <div className={clsx('mx-auto w-full flex-1 px-4 pb-10 pt-2 md:px-6 md:pb-16', width)}>{children}</div>
     </div>,
     document.body,
   )
@@ -306,9 +319,9 @@ export function FullscreenOverlay({
 /** Big title + subtitle at the top of a full-screen flow. */
 export function FlowHeading({ title, subtitle }: { title: ReactNode; subtitle?: ReactNode }) {
   return (
-    <div className="mb-8">
-      <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{title}</h1>
-      {subtitle && <p className="mt-2 text-body-lg text-muted">{subtitle}</p>}
+    <div className="mb-6 md:mb-8">
+      <h1 className="font-display text-[26px] font-bold leading-[34px] text-ink md:text-[34px] md:leading-[42px]">{title}</h1>
+      {subtitle && <p className="mt-2 text-body text-muted md:text-body-lg">{subtitle}</p>}
     </div>
   )
 }
@@ -379,12 +392,12 @@ export function CashCounterModal({ open, onClose, onApply }: { open: boolean; on
   const row = (d: number, kind: 'notes' | 'coins') => {
     const n = counts[String(d)] ?? 0
     return (
-      <div key={d} className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-2.5">
+      <div key={d} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-2.5 md:gap-4">
         <div>
           <p className="text-body-strong text-ink">{money(d)}</p>
           <p className="text-small text-muted">{t(`sales.counter.${kind}`)}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           <button type="button" aria-label={t('sales.counter.decrease', { value: money(d) })} disabled={n === 0} onClick={() => set(d, n - 1)} className={clsx('flex h-11 w-11 items-center justify-center rounded-md', n > 0 ? 'bg-primary text-on-primary' : 'bg-sunken text-subtle')}>
             <Minus size={16} aria-hidden />
           </button>
@@ -395,7 +408,7 @@ export function CashCounterModal({ open, onClose, onApply }: { open: boolean; on
             aria-label={t('sales.counter.quantity', { value: money(d) })}
             value={n}
             onChange={(e) => set(d, Number(e.target.value))}
-            className="h-11 w-24 rounded-sm border border-line-strong bg-surface text-center text-body text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="h-11 w-14 rounded-sm border border-line-strong bg-surface text-center md:w-24 text-body text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
           <button type="button" aria-label={t('sales.counter.increase', { value: money(d) })} onClick={() => set(d, n + 1)} className={clsx('flex h-11 w-11 items-center justify-center rounded-md', n > 0 ? 'bg-primary text-on-primary' : 'bg-sunken text-ink hover:bg-line')}>
             <Plus size={16} aria-hidden />

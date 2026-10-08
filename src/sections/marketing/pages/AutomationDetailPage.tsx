@@ -33,8 +33,8 @@ export function AutomationPreview({ automation }: { automation: Automation }) {
   const [channel, setChannel] = useState<Channel>(automation.channels.email ? 'email' : automation.channels.sms ? 'sms' : automation.channels.whatsapp ? 'whatsapp' : 'email')
   const off = !automation.channels[channel]
   return (
-    <div className="rounded-lg border border-line bg-sunken/50 p-6">
-      <div className="mb-6 flex justify-center">
+    <div className="rounded-lg border border-line bg-sunken/50 p-3 md:p-6">
+      <div className="mb-4 flex justify-center md:mb-6">
         <Segmented
           value={channel}
           onChange={setChannel}
@@ -150,15 +150,15 @@ export function AutomationDetailPage() {
   }
 
   const funnelCard = (k: 'sent' | 'delivered' | 'opened' | 'clicked') => (
-    <div key={k} className="rounded-lg border border-line bg-surface p-5">
+    <div key={k} className="min-w-0 rounded-lg border border-line bg-surface p-4 md:p-5">
       <p className="flex items-center gap-1.5 text-body-strong text-ink">
         {t(`marketing.automationDetail.funnel.${k}`)}
         <span title={t(`marketing.automationDetail.funnel.${k}Info`)} className="text-subtle">
           <Info size={14} aria-hidden />
         </span>
       </p>
-      <p className="mt-2 font-display text-title-1 text-ink">{sum(k)}</p>
-      <ul className="mt-3 flex flex-col gap-1 text-body text-muted">
+      <p className="mt-1 font-display text-title-2 text-ink md:mt-2 md:text-title-1">{sum(k)}</p>
+      <ul className="mt-2 flex flex-col gap-1 text-body text-muted md:mt-3">
         {(['email', 'sms', 'whatsapp'] as Channel[]).map((ch) => {
           const v = perf.totals[ch][k]
           const base = k === 'sent' ? 0 : perf.totals[ch].sent
@@ -179,7 +179,7 @@ export function AutomationDetailPage() {
         crumbs={[{ label: t('marketing.automations.title'), onClick: () => navigate('/marketing/automated-messages') }, { label: t(`marketing.automationDetail.short.${automation.section}`) }]}
       />
       <header className="mb-2 flex flex-wrap items-start justify-between gap-4">
-        <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 text-ink">
+        <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 break-words font-display text-title-2 text-ink md:gap-3 md:text-title-1">
           {automation.name}
           <Chip tone={automation.enabled ? 'success' : 'neutral'}>{automation.enabled ? t('marketing.common.enabled') : t('marketing.common.disabled')}</Chip>
         </h1>
@@ -202,7 +202,7 @@ export function AutomationDetailPage() {
           ]}
         />
       </header>
-      <p className="mb-6 text-body-lg text-muted">{automation.description}</p>
+      <p className="mb-5 text-body text-muted md:mb-6 md:text-body-lg">{automation.description}</p>
       <PillTabs
         className="mb-6"
         value={tab}
@@ -225,7 +225,7 @@ export function AutomationDetailPage() {
               options={(['ytd', '30d', '90d', '12m'] as Period[]).map((p) => ({ value: p, label: t(`marketing.automationDetail.periods.${p}`) }))}
             />
           </div>
-          <section className="card p-6">
+          <section className="card p-4 md:p-6">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-title-3 text-ink">{t('marketing.automationDetail.chartTitle')}</h2>
               <Select
@@ -251,15 +251,16 @@ export function AutomationDetailPage() {
               </ResponsiveContainer>
             </div>
           </section>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{(['sent', 'delivered', 'opened', 'clicked'] as const).map(funnelCard)}</div>
+          <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">{(['sent', 'delivered', 'opened', 'clicked'] as const).map(funnelCard)}</div>
         </div>
       )}
 
       {tab === 'preview' && <AutomationPreview automation={automation} />}
 
       {tab === 'details' && (
-        <section className="card p-6">
+        <section className="card p-4 md:p-6">
           <DetailList
+
             rows={[
               { label: t('marketing.automationDetail.details.sendTo'), value: triggerText(automation) },
               { label: t('marketing.automationDetail.details.created'), value: fmtDateTimeUS(automation.createdAt) },

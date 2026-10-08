@@ -145,7 +145,7 @@ export function BundleEditorPage() {
             const color = PALETTE[categories.find((c) => c.id === s.categoryId)?.color ?? 'blue'].edge
             const ex = extra[s.id] ?? s.extraTime
             return (
-              <div key={`${s.id}-${i}`} className="flex items-center gap-4">
+              <div key={`${s.id}-${i}`} className="flex items-center gap-3 md:gap-4">
                 <span className="h-14 w-1 shrink-0 rounded-full" style={{ background: color }} aria-hidden />
                 <div className="min-w-0 flex-1">
                   <p className="text-body-lg text-ink">{s.name}</p>

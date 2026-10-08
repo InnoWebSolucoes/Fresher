@@ -74,8 +74,8 @@ export function StocktakeSummaryPage() {
         <ArrowLeft size={16} aria-hidden />
         {t('catalog.inventory.summary.back')}
       </Link>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 text-ink">
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-3 md:mb-6 md:gap-4">
+        <h1 className="flex flex-wrap items-center gap-3 font-display text-title-2 text-ink max-md:min-w-0 max-md:break-words md:text-title-1">
           {stocktake.name}
           <InventoryStatus status={stocktake.status} />
         </h1>

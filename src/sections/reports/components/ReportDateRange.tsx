@@ -4,7 +4,7 @@ import { format } from '@/lib/dates'
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Select, resolvePreset, type DateRangeValue, type PresetKey } from '@/components/ui'
+import { Button, Select, resolvePreset, useIsPhone, type DateRangeValue, type PresetKey } from '@/components/ui'
 import { todayISO } from '@/lib/time'
 import { Pill, Popover } from './Popover'
 
@@ -49,8 +49,11 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
   const [fromText, setFromText] = useState(draft.from)
   const [toText, setToText] = useState(draft.to)
   const [picking, setPicking] = useState<'from' | 'to'>('from')
+  // Phones show one month (the one holding the end date) instead of two side by side.
+  const phone = useIsPhone()
+  const oneMonth = single || phone
   const initialMonth = value.preset === 'all_time' ? parseISO(todayISO()) : parseISO(single ? value.from : value.to)
-  const [month, setMonth] = useState(() => startOfMonth(addMonths(initialMonth, single ? 0 : -1)))
+  const [month, setMonth] = useState(() => startOfMonth(addMonths(initialMonth, oneMonth ? 0 : -1)))
 
   const set = (next: DateRangeValue) => {
     setDraft(next)
@@ -60,7 +63,7 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
   const pickPreset = (preset: PresetKey) => {
     const next = resolvePreset(preset)
     set(next)
-    setMonth(startOfMonth(addMonths(parseISO(preset === 'all_time' ? todayISO() : next.to), -1)))
+    setMonth(startOfMonth(addMonths(parseISO(preset === 'all_time' ? todayISO() : next.to), oneMonth ? 0 : -1)))
   }
   const clickDay = (day: string) => {
     if (single) return set({ preset: 'custom', from: day, to: day })
@@ -81,11 +84,11 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
     if (side === 'from' && single) setToText(text)
   }
   const invalid = !isIsoDate(fromText) || (!single && !isIsoDate(toText)) || draft.from > draft.to
-  const months = single ? [month] : [month, addMonths(month, 1)]
+  const months = oneMonth ? [month] : [month, addMonths(month, 1)]
 
   return (
     <div>
-      <div className="flex flex-col gap-4 p-5">
+      <div className="flex flex-col gap-4 p-4 md:p-5">
         {!single && (
           <div>
             <label className="label" htmlFor="report-range-preset">
@@ -99,8 +102,8 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
             />
           </div>
         )}
-        <div className="flex items-end gap-3">
-          <div className="flex-1">
+        <div className="flex items-end gap-2 md:gap-3">
+          <div className="min-w-0 flex-1">
             <label className="label" htmlFor="report-range-from">
               {single ? t('reports.range.date') : t('reports.range.from')}
             </label>
@@ -109,7 +112,7 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
           {!single && (
             <>
               <ArrowRight size={18} className="mb-3 shrink-0 text-muted" aria-hidden />
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <label className="label" htmlFor="report-range-to">
                   {t('reports.range.to')}
                 </label>
@@ -132,7 +135,7 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
           ))}
         </div>
       </div>
-      <div className="flex items-center justify-end gap-2 border-t border-line px-5 py-4">
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-4 py-3 md:flex-nowrap md:px-5 md:py-4">
         {invalid && <p className="mr-auto text-small text-danger">{t('reports.range.invalid')}</p>}
         <Button variant="ghost" onClick={onCancel}>
           {t('reports.common.cancel')}

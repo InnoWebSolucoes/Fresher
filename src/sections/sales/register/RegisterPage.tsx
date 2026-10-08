@@ -133,7 +133,7 @@ export function RegisterPage() {
     const session = sessions.find((s) => s.registerId === register.id && !s.closedAt)
     const balance = session ? registerBreakdown(session, register, payments, sales, customMethods).cash.expected : 0
     return (
-      <section key={register.id} className="card p-8" data-testid="register-card">
+      <section key={register.id} className="card p-5 md:p-8" data-testid="register-card">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-body-lg text-ink">{t('sales.register.balance', { name: register.name })}</p>
@@ -143,9 +143,9 @@ export function RegisterPage() {
             {session ? t('sales.register.open.status') : t('sales.register.closed')}
           </span>
         </div>
-        <p className={clsx('mt-2 font-display text-[40px] font-bold leading-[48px] tabular', session ? 'text-ink' : 'text-subtle')}>{money(balance)}</p>
-        {session && <p className="mt-1 text-body-lg text-muted">{openedText(session)}</p>}
-        <div className="mt-6 flex flex-wrap gap-2">
+        <p className={clsx('mt-2 font-display text-[32px] font-bold leading-[40px] tabular md:text-[40px] md:leading-[48px]', session ? 'text-ink' : 'text-subtle')}>{money(balance)}</p>
+        {session && <p className="mt-1 text-body text-muted md:text-body-lg">{openedText(session)}</p>}
+        <div className="mt-5 flex flex-wrap gap-2 md:mt-6">
           {session ? (
             <>
               <Button className="rounded-full" onClick={() => drawer.open('register-period', { id: session.id })}>
@@ -225,7 +225,7 @@ export function RegisterPage() {
       <div className="flex flex-col gap-4">
         {active.map(card)}
         {missing.map((l) => (
-          <section key={l.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-dashed border-line-strong p-6">
+          <section key={l.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-dashed border-line-strong p-5 md:p-6">
             <div className="flex items-center gap-4">
               <span className="flex h-12 w-12 items-center justify-center rounded-md bg-sunken text-muted">
                 <Store size={22} aria-hidden />
@@ -240,7 +240,7 @@ export function RegisterPage() {
         ))}
       </div>
 
-      <h2 className="mb-4 mt-10 font-display text-title-2 text-ink">{t('sales.register.closedRegisters')}</h2>
+      <h2 className="mb-3 mt-8 font-display text-title-3 text-ink md:mb-4 md:mt-10 md:text-title-2">{t('sales.register.closedRegisters')}</h2>
       {closed.length === 0 ? (
         <div className="card">
           <EmptyState icon={<Wallet size={24} aria-hidden />} title={t('sales.register.noClosed')} body={t('sales.register.noClosedHint')} />
@@ -249,13 +249,13 @@ export function RegisterPage() {
         <>
           <div className="flex flex-col gap-3">
             {visible.map(({ session, register, balance }) => (
-              <div key={session.id} className="card flex items-center gap-4 p-5 hover:bg-sunken/40">
+              <div key={session.id} className="card flex items-center gap-2 p-4 hover:bg-sunken/40 md:gap-4 md:p-5">
                 <button
                   type="button"
                   onClick={() => drawer.open('register-period', { id: session.id })}
-                  className="flex min-w-0 flex-1 items-center gap-4 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary md:gap-4"
                 >
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-sunken text-ink">
+                  <span className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-md bg-sunken text-ink md:flex">
                     <Wallet size={22} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -267,12 +267,14 @@ export function RegisterPage() {
                       </span>
                     )}
                   </span>
-                  <span className="text-right">
+                  <span className="shrink-0 text-right">
                     <span className="block text-small text-muted">{t('sales.register.balanceLabel')}</span>
                     <span className="block text-body-lg font-semibold text-ink tabular">{money(balance)}</span>
                   </span>
                 </button>
-                <Chip tone="outline">{t('sales.register.closed')}</Chip>
+                <span className="hidden md:contents">
+                  <Chip tone="outline">{t('sales.register.closed')}</Chip>
+                </span>
                 <Menu label={t('sales.common.actions')} groups={[{ items: [{ label: t('sales.register.view'), onSelect: () => drawer.open('register-period', { id: session.id }) }] }]} />
               </div>
             ))}

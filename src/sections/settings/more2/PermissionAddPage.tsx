@@ -91,9 +91,9 @@ export function PermissionAddPage() {
       testId="permission-add"
     >
       <StepCrumbs steps={stepLabels} current={index} onSelect={go} />
-      <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{headings[0]}</h1>
+      <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[34px] md:leading-[42px] text-ink">{headings[0]}</h1>
       <p className="mt-2 text-body-lg text-muted">{headings[1]}</p>
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         {index === 0 && (
           <form
             onSubmit={(e) => {
@@ -125,7 +125,7 @@ export function PermissionAddPage() {
                 const Icon = area.icon
                 const on = isAreaActive(perms, area.key)
                 return (
-                  <li key={area.key} className="flex items-center gap-4 px-5 py-4">
+                  <li key={area.key} className="flex items-center gap-3 px-4 py-4 md:gap-4 md:px-5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-sunken text-ink">
                       <Icon size={18} aria-hidden />
                     </span>
@@ -147,14 +147,14 @@ export function PermissionAddPage() {
             <p className="card px-6 py-10 text-center text-body text-muted">{t('settings.more2.roles.noEligible')}</p>
           ) : (
             <div className="card">
-              <div className="border-b border-line px-5 py-4">
+              <div className="border-b border-line px-4 py-4 md:px-5">
                 <Checkbox checked={allSelected} onChange={(on) => setMembers(on ? eligible.map((m) => m.id) : [])} label={t('settings.more2.add.selectAll', { count: eligible.length })} />
               </div>
               <ul className="divide-y divide-line">
                 {eligible.map((m) => {
                   const current = roleName(m.id)
                   return (
-                    <li key={m.id} className="px-5 py-3">
+                    <li key={m.id} className="px-4 py-3 md:px-5">
                       <Checkbox
                         checked={members.includes(m.id)}
                         onChange={(on) => setMembers((list) => (on ? [...list, m.id] : list.filter((x) => x !== m.id)))}

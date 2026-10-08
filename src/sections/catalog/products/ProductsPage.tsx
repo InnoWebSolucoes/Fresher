@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Button, Checkbox, DataTable, EmptyState, IntroPage, LearnMore, Menu, MenuButton, Modal, Page, PageHeader, PageSkeleton, RadioGroup, SearchInput, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
+import { useIsPhone } from '@/components/ui/responsive'
 import { useDrawer } from '@/lib/drawer'
 import { exportCsv, exportXlsx, exportedFileName, type ExportTable } from '@/lib/export'
 import { money } from '@/lib/format'
@@ -32,6 +33,7 @@ export function ProductsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const drawer = useDrawer()
+  const phone = useIsPhone()
   const loading = usePageLoading()
   const intro = useIntroProps(t('nav.products'))
   const products = useDb((s) => s.products)
@@ -141,6 +143,39 @@ export function ProductsPage() {
     },
     { key: 'price', header: t(`${P}.cols.retailPrice`), align: 'right', cell: (p) => (p.retailSales ? money(p.retailPrice) : '-') },
   ]
+  // Phones: one column (thumbnail, name, SKU, stock and price) that fits the screen without sideways scrolling.
+  const phoneColumns: Column<Product>[] = [
+    {
+      key: 'name',
+      header: t(`${P}.cols.name`),
+      cell: (p) => {
+        const state = stockState(p)
+        return (
+          <div className="flex max-w-[calc(100vw-118px)] items-center gap-3 whitespace-normal">
+            <ProductThumb product={p} size={48} />
+            <div className="min-w-0">
+              <p className="break-words text-body text-ink">{p.name}</p>
+              {p.skus[0] && (
+                <p className="text-small text-muted">
+                  {t(`${P}.cols.sku`)} {p.skus[0]}
+                </p>
+              )}
+              <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-small text-muted">
+                {p.trackStock ? <span className="tabular text-ink">{t(`${P}.inStock`, { count: p.stock })}</span> : <span>{t(`${P}.notTracked`)}</span>}
+                {p.trackStock && state !== 'ok' && <span className={state === 'out' ? 'chip h-5 bg-danger-subtle text-caption text-danger' : 'chip h-5 bg-warning-subtle text-caption text-warning'}>{state === 'out' ? t(`${P}.filters.out`) : t(`${P}.filters.low`)}</span>}
+                {p.retailSales && (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span className="tabular text-ink">{money(p.retailPrice)}</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        )
+      },
+    },
+  ]
 
   if (loading) {
     return (
@@ -224,10 +259,10 @@ export function ProductsPage() {
         }
       />
       <Toolbar>
-        <SearchInput value={query} onChange={setQuery} placeholder={t(`${P}.search`)} className="w-full max-w-[300px]" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t(`${P}.search`)} className="w-full max-w-[300px] max-md:max-w-none max-md:basis-full" />
         <FiltersButton count={filterCount} onClick={() => setFiltersOpen(true)} />
         {visibleSelected.size > 0 && (
-          <div className="flex items-center gap-2 pl-2">
+          <div className="flex items-center gap-2 md:pl-2">
             <span className="text-body-strong text-ink">{t(`${P}.selected`, { count: visibleSelected.size })}</span>
             <Button size="sm" variant="ghost" icon={<Trash2 size={16} aria-hidden />} onClick={() => void removeSelected()}>
               {t('catalog.common.delete')}
@@ -239,7 +274,7 @@ export function ProductsPage() {
         </div>
       </Toolbar>
       <DataTable
-        columns={columns}
+        columns={phone ? phoneColumns : columns}
         rows={shown}
         rowKey={(p) => p.id}
         onRowClick={(p) => drawer.open('product', { id: p.id })}

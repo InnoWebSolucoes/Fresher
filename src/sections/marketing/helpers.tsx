@@ -1,5 +1,6 @@
+import clsx from 'clsx'
 import { Mail, MessageSquare } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import { useDb } from '@/store/db'
@@ -44,6 +45,42 @@ export function ChannelLabel({ channel }: { channel: Campaign['channel'] }) {
       {channel === 'email' ? <Mail size={16} className="text-muted" aria-hidden /> : <MessageSquare size={16} className="text-muted" aria-hidden />}
       {t(`marketing.campaigns.channel.${channel}`)}
     </span>
+  )
+}
+
+/**
+ * Phones only (hidden from md up, where the DataTable shows): the rows as a
+ * list, `cards` = one card per row, `rows` = one card with divided rows,
+ * with the same "Viewing 1 - 50 of N" pager as DataTable.
+ */
+export function PhoneList<T>({ rows, rowKey, render, empty, variant = 'cards', pageSize = 50 }: { rows: T[]; rowKey: (row: T) => string; render: (row: T) => ReactNode; empty: ReactNode; variant?: 'cards' | 'rows'; pageSize?: number }) {
+  const { t } = useTranslation()
+  const [page, setPage] = useState(0)
+  const pages = Math.max(1, Math.ceil(rows.length / pageSize))
+  const current = Math.min(page, pages - 1)
+  const visible = rows.slice(current * pageSize, (current + 1) * pageSize)
+  if (!rows.length) return <div className="card md:hidden">{empty}</div>
+  return (
+    <div className="md:hidden">
+      <ul className={clsx(variant === 'cards' ? 'flex flex-col gap-3' : 'card divide-y divide-line overflow-hidden')}>
+        {visible.map((row) => (
+          <li key={rowKey(row)} className={clsx('relative', variant === 'cards' && 'card')}>
+            {render(row)}
+          </li>
+        ))}
+      </ul>
+      {pages > 1 && (
+        <div className="mt-3 flex items-center justify-between gap-2 text-small text-muted">
+          <button type="button" className="btn-ghost h-10 px-3" disabled={current === 0} onClick={() => setPage(current - 1)}>
+            {t('common.table.previous')}
+          </button>
+          <span className="text-center">{t('common.table.viewing', { from: current * pageSize + 1, to: Math.min(rows.length, (current + 1) * pageSize), total: rows.length })}</span>
+          <button type="button" className="btn-ghost h-10 px-3" disabled={current >= pages - 1} onClick={() => setPage(current + 1)}>
+            {t('common.table.next')}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 

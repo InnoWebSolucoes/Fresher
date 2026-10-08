@@ -67,11 +67,11 @@ export function ProfileSection({ form, set, mode, errors }: SectionProps & { mod
   return (
     <>
       <SectionTitle title={t('team.form.nav.profile')} subtitle={t('team.form.profile.subtitle')} />
-      <div className="relative mb-8 h-36 w-36">
+      <div className="relative mb-8 h-28 w-28 md:h-36 md:w-36">
         {form.photo ? (
-          <img src={form.photo} alt="" className="h-36 w-36 rounded-full object-cover" />
+          <img src={form.photo} alt="" className="h-28 w-28 rounded-full object-cover md:h-36 md:w-36" />
         ) : (
-          <span className="flex h-36 w-36 items-center justify-center rounded-full font-display text-[44px] font-semibold" style={{ background: palette.fill, color: palette.text }}>
+          <span className="flex h-28 w-28 items-center justify-center rounded-full font-display text-[36px] font-semibold md:h-36 md:w-36 md:text-[44px]" style={{ background: palette.fill, color: palette.text }}>
             {initials || <UserIcon size={56} aria-hidden />}
           </span>
         )}
@@ -388,7 +388,7 @@ export function ServicesSection({ form, set }: SectionProps) {
               {items.map((s) => (
                 <li key={s.id} className="flex items-start justify-between gap-4">
                   <Checkbox label={s.name} hint={duration(s)} checked={selected.has(s.id)} onChange={(v) => toggleMany([s.id], v)} />
-                  <span className="text-body text-ink">{s.priceType === 'free' ? t('team.form.services.free') : `${s.priceType === 'from' ? t('team.form.services.from') + ' ' : ''}${money(s.price)}`}</span>
+                  <span className="text-body text-ink max-md:whitespace-nowrap">{s.priceType === 'free' ? t('team.form.services.free') : `${s.priceType === 'from' ? t('team.form.services.from') + ' ' : ''}${money(s.price)}`}</span>
                 </li>
               ))}
             </ul>
@@ -440,7 +440,7 @@ export function SettingsSection({ form, set, member, roleRef }: SectionProps & {
   return (
     <>
       <SectionTitle title={t('team.form.nav.settings')} />
-      <div className="card p-6">
+      <div className="card p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="font-display text-title-3 text-ink">{t('team.form.settings.bookingsTitle')}</h3>
@@ -465,7 +465,7 @@ export function SettingsSection({ form, set, member, roleRef }: SectionProps & {
         )}
       </div>
 
-      <div className="card mt-5 p-6">
+      <div className="card mt-5 p-5 md:p-6">
         <h3 className="font-display text-title-3 text-ink">{t('team.form.settings.roleTitle')}</h3>
         <p className="mb-4 mt-1 text-body text-muted">{t('team.form.settings.roleBody')}</p>
         {owner ? (
@@ -479,7 +479,7 @@ export function SettingsSection({ form, set, member, roleRef }: SectionProps & {
       </div>
 
       {member && (
-        <div className="card mt-5 p-6">
+        <div className="card mt-5 p-5 md:p-6">
           <h3 className="font-display text-title-3 text-ink">{t('team.form.settings.linkedTitle')}</h3>
           <p className="mb-4 mt-1 text-body text-muted">
             {t('team.form.settings.linkedBody', { name: member.firstName })} <LearnMore topic={t('team.topics.linkedCalendars')} />
@@ -597,7 +597,7 @@ export function WagesSection({ form, set }: SectionProps) {
   return (
     <>
       <SectionTitle title={t('team.form.nav.wagesAndTimesheets')} />
-      <div className="card p-6">
+      <div className="card p-5 md:p-6">
         <Switch
           label={t('team.form.wages.enable')}
           hint={
@@ -611,7 +611,7 @@ export function WagesSection({ form, set }: SectionProps) {
       </div>
       {form.wagesEnabled && (
         <>
-          <div className="card mt-5 flex flex-col gap-5 p-6">
+          <div className="card mt-5 flex flex-col gap-5 p-5 md:p-6">
             <Field label={t('team.form.wages.compensation')}>
               {(id) => (
                 <Select
@@ -638,7 +638,7 @@ export function WagesSection({ form, set }: SectionProps) {
               </>
             )}
           </div>
-          <div className="card mt-5 flex flex-col gap-5 p-6">
+          <div className="card mt-5 flex flex-col gap-5 p-5 md:p-6">
             <div>
               <h3 className="font-display text-title-3 text-ink">{t('team.form.wages.tsTitle')}</h3>
               <p className="mt-1 text-body text-muted">
@@ -670,7 +670,7 @@ export function CommissionsSection({ form, set }: SectionProps) {
   return (
     <>
       <SectionTitle title={t('team.form.nav.commissions')} />
-      <div className="card grid gap-6 p-6 md:grid-cols-[1fr_200px]">
+      <div className="card grid gap-6 p-5 md:grid-cols-[1fr_200px] md:p-6">
         <div>
           <span className="chip bg-accent-subtle text-warning">{t('team.common.includedInPlan')}</span>
           <h3 className="mt-3 font-display text-title-3 text-ink">{t('team.form.commissions.title')}</h3>
@@ -680,7 +680,7 @@ export function CommissionsSection({ form, set }: SectionProps) {
             <li>{t('team.form.commissions.b2')}</li>
             <li>{t('team.form.commissions.b3')}</li>
           </ul>
-          <div className="mt-5 flex gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             <Button variant="primary" onClick={() => navigate('/setup/team/commissions')}>
               {t('team.form.commissions.setup')}
             </Button>
@@ -691,7 +691,7 @@ export function CommissionsSection({ form, set }: SectionProps) {
           <span className="font-display text-[44px] font-bold text-primary">%</span>
         </div>
       </div>
-      <div className="card mt-5 flex flex-col gap-5 p-6">
+      <div className="card mt-5 flex flex-col gap-5 p-5 md:p-6">
         <Switch label={t('team.form.commissions.enable')} hint={t('team.form.commissions.enableHint')} checked={form.commissionEnabled} onChange={(v) => set('commissionEnabled', v)} />
         {form.commissionEnabled && (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -725,7 +725,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
   return (
     <>
       <SectionTitle title={t('team.form.nav.payruns')} />
-      <div className="card p-6">
+      <div className="card p-5 md:p-6">
         <Switch
           label={t('team.form.payruns.enable')}
           hint={
@@ -739,7 +739,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
       </div>
       {form.payRunsEnabled && (
         <>
-          <div className="card mt-5 p-6">
+          <div className="card mt-5 p-5 md:p-6">
             <h3 className="font-display text-title-3 text-ink">{t('team.form.payruns.methodTitle')}</h3>
             <p className="mt-1 text-body text-muted">
               {t('team.form.payruns.methodBody')} <LearnMore topic={t('team.topics.payRunPaymentMethods')} />
@@ -754,7 +754,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
               </Button>
             </div>
           </div>
-          <div className="card mt-5 p-6">
+          <div className="card mt-5 p-5 md:p-6">
             <h3 className="font-display text-title-3 text-ink">{t('team.form.payruns.calcTitle')}</h3>
             <p className="mb-4 mt-1 text-body text-muted">{t('team.form.payruns.calcBody')}</p>
             <Field hint={prs.calculation === 'automatic' ? t('team.form.payruns.autoHint') : t('team.form.payruns.manualEntryHint')}>
@@ -772,7 +772,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
               )}
             </Field>
           </div>
-          <div className="card mt-5 flex flex-col gap-4 p-6">
+          <div className="card mt-5 flex flex-col gap-4 p-5 md:p-6">
             <div>
               <h3 className="font-display text-title-3 text-ink">{t('team.form.payruns.deductTitle')}</h3>
               <p className="mt-1 text-body text-muted">
@@ -782,7 +782,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
             <Checkbox label={t('team.form.payruns.deductProcessing')} hint={t('team.form.payruns.deductProcessingHint')} checked={prs.deductProcessingFees} onChange={(v) => setPrs({ deductProcessingFees: v })} />
             <Checkbox label={t('team.form.payruns.deductNewClient')} hint={t('team.form.payruns.deductNewClientHint')} checked={prs.deductNewClientFees} onChange={(v) => setPrs({ deductNewClientFees: v })} />
           </div>
-          <div className="card mt-5 flex flex-col gap-4 p-6">
+          <div className="card mt-5 flex flex-col gap-4 p-5 md:p-6">
             <div>
               <h3 className="font-display text-title-3 text-ink">{t('team.form.payruns.cashTitle')}</h3>
               <p className="mt-1 text-body text-muted">{t('team.form.payruns.cashBody')}</p>

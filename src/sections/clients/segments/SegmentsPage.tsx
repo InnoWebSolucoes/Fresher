@@ -8,6 +8,7 @@ import { useDb } from '@/store/db'
 import { deleteSegment, duplicateSegment } from '@/api/clients'
 import { Button, Chip, confirm, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, PillTabs, SearchInput, toast, usePageLoading } from '@/components/ui'
 import { useSegmentEvaluator } from '../lib/hooks'
+import { ActionsTrigger } from '../components/common'
 
 type Tab = 'standard' | 'custom'
 
@@ -51,8 +52,8 @@ function SegmentCard({ segment, count }: { segment: ClientSegment; count: number
   const actions = useSegmentActions()
   const custom = !segment.standard
   return (
-    <li className="card flex items-center gap-4 p-5">
-      <span className={clsx('flex h-12 w-12 shrink-0 items-center justify-center rounded-full', custom ? 'bg-accent text-on-accent' : 'bg-primary text-on-primary')}>
+    <li className="card flex items-start gap-3 p-4 md:items-center md:gap-4 md:p-5">
+      <span className={clsx('flex h-10 w-10 shrink-0 md:h-12 md:w-12 items-center justify-center rounded-full', custom ? 'bg-accent text-on-accent' : 'bg-primary text-on-primary')}>
         {custom ? <PenLine size={20} aria-hidden /> : (STANDARD_ICONS[segment.key ?? ''] ?? <Users size={22} aria-hidden />)}
       </span>
       <div className="min-w-0 flex-1">
@@ -68,11 +69,7 @@ function SegmentCard({ segment, count }: { segment: ClientSegment; count: number
       </div>
       <Menu
         width={240}
-        trigger={({ open, toggle }) => (
-          <MenuButton open={open} toggle={toggle}>
-            {t('clients.segments.actions')}
-          </MenuButton>
-        )}
+        trigger={({ open, toggle }) => <ActionsTrigger label={t('clients.segments.actions')} open={open} toggle={toggle} />}
         groups={[
           {
             items: [
@@ -184,7 +181,7 @@ export function SegmentsPage() {
             { value: 'custom', label: t('clients.segments.tabs.custom') },
           ]}
         />
-        <SearchInput value={query} onChange={setQuery} placeholder={t('clients.segments.search')} className="max-w-xs" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('clients.segments.search')} className="min-w-0 basis-full md:min-w-[240px] md:max-w-xs md:basis-0" />
       </div>
 
       {noResults ? (

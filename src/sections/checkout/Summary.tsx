@@ -19,8 +19,9 @@ export function Summary() {
   const { t } = useTranslation()
   const c = useCheckout()
   return (
-    <aside className="flex w-[460px] shrink-0 flex-col border-l border-line bg-surface" aria-label={t('checkout.summary.label')}>
-      <div className="min-h-0 flex-1 overflow-y-auto px-8 pb-4 pt-8">
+    // Phones: the aside's parts join the drawer's single scrolling column, so the totals bar can stick to the bottom of the screen.
+    <aside className="contents w-[460px] shrink-0 flex-col border-l border-line bg-surface md:flex" aria-label={t('checkout.summary.label')}>
+      <div className="flex-none border-t border-line px-4 pb-4 pt-5 md:min-h-0 md:flex-1 md:overflow-y-auto md:border-t-0 md:px-8 md:pt-8">
         <ClientCard />
         {c.lines.length ? (
           <>
@@ -37,7 +38,7 @@ export function Summary() {
             {(c.cartDiscount || c.receiptNote || c.serviceCharges.length > 0) && <Extras />}
           </>
         ) : (
-          <div className="flex flex-col items-center px-6 py-20 text-center" data-testid="empty-cart">
+          <div className="flex flex-col items-center px-6 py-8 text-center md:py-20" data-testid="empty-cart">
             <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle text-primary">
               <ShoppingCart size={28} aria-hidden />
             </span>
@@ -152,7 +153,7 @@ function OffersBar() {
   const available = rows.reduce((n, r) => n + r.offers.filter((o) => o.key !== appliedOfferKey(r.line)).length, 0)
   const applied = c.lines.filter((l) => appliedOfferKey(l)).length
   return (
-    <div className="px-8 pb-7 pt-2">
+    <div className="px-4 pb-4 pt-2 md:px-8 md:pb-7">
       <button type="button" onClick={() => c.setModal({ kind: 'offers' })} className="flex w-full items-center gap-3 rounded-lg border border-primary/30 bg-primary-subtle/60 px-4 py-3 text-left text-body-strong text-primary hover:bg-primary-subtle" data-testid="apply-offers">
         <Sparkles size={20} aria-hidden />
         <span className="flex-1">{t('checkout.offers.title')}</span>
@@ -265,7 +266,7 @@ function Totals() {
   })()
 
   return (
-    <div className="relative border-t border-line bg-surface px-8 pb-6 pt-5">
+    <div className="sticky bottom-0 z-10 mt-auto border-t border-line bg-surface px-4 pb-4 pt-5 md:relative md:bottom-auto md:z-auto md:mt-0 md:px-8 md:pb-6">
       {c.lines.length > 0 && (
         <button type="button" onClick={() => setExpanded((e) => !e)} aria-label={expanded ? t('checkout.summary.collapse') : t('checkout.summary.expand')} aria-expanded={expanded} className="absolute -top-5 left-1/2 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-xs hover:bg-sunken">
           {expanded ? <ChevronDown size={18} aria-hidden /> : <ChevronUp size={18} aria-hidden />}

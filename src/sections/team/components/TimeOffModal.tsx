@@ -141,7 +141,7 @@ function TimeOffForm({ onClose, memberId, date, timeOff }: Props) {
         <Checkbox label={t('team.timeOff.approved')} checked={form.approved} onChange={(v) => set('approved', v)} />
         <p className="text-body-strong text-ink">{t('team.timeOff.total', { total: hoursLabel(total) })}</p>
         <p className="flex items-center gap-2 rounded-md bg-sunken px-3 py-2.5 text-small text-muted">
-          <Info size={16} aria-hidden />
+          <Info size={16} className="shrink-0" aria-hidden />
           {t('team.timeOff.info')}
         </p>
         {error && <p className="text-small text-danger">{error}</p>}

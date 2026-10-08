@@ -171,11 +171,11 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
       maxWidth="max-w-[1280px]"
     >
       <p className="text-small text-muted">{t('addons.setup.stepsLeft', { count: progress.steps - progress.step })}</p>
-      <h1 className="mt-1 font-display text-[40px] font-bold leading-[48px] text-ink">{title}</h1>
+      <h1 className="mt-1 font-display text-[28px] font-bold leading-[36px] md:text-[40px] md:leading-[48px] text-ink">{title}</h1>
       <p className="mt-2 text-body-lg text-muted">{intro}</p>
-      <form id="addon-setup" noValidate onSubmit={handleSubmit(submit)} className="mt-8 grid items-start gap-10 lg:grid-cols-[1fr_440px]">
-        <div className="flex flex-col gap-10">
-          <section className="card p-8" aria-label={t('addons.setup.payment')}>
+      <form id="addon-setup" noValidate onSubmit={handleSubmit(submit)} className="mt-6 grid items-start gap-6 md:mt-8 md:gap-10 lg:grid-cols-[1fr_440px]">
+        <div className="flex flex-col gap-6 md:gap-10">
+          <section className="card p-5 md:p-8" aria-label={t('addons.setup.payment')}>
             {saved && (
               <div className="mb-6">
                 <RadioGroup
@@ -206,7 +206,7 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
               </div>
             )}
           </section>
-          <section className="card p-8" aria-labelledby="billing-heading">
+          <section className="card p-5 md:p-8" aria-labelledby="billing-heading">
             <h2 id="billing-heading" className="font-display text-title-2 text-ink">{t('addons.setup.billing')}</h2>
             <p className="mb-6 text-body text-muted">{t('addons.setup.billingHint')}</p>
             <div className="flex flex-col gap-5">
@@ -217,7 +217,7 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
               <Field label={t('addons.setup.address')} error={fieldError('address')}>{(id) => <TextInput id={id} autoComplete="street-address" prefix={<MapPin size={18} aria-hidden />} invalid={Boolean(err.address)} {...register('address')} />}</Field>
               <div>
                 <p className="mb-1.5 text-body-strong text-ink">{t('addons.setup.vat')}</p>
-                <div className="rounded-lg bg-primary-subtle/60 p-5">
+                <div className="rounded-lg bg-primary-subtle/60 p-4 md:p-5">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-body-strong text-ink">{t('addons.setup.vatNumber')}</span>
                     {!vatOpen && (
@@ -236,7 +236,7 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
             </div>
           </section>
         </div>
-        <aside className="card p-8 lg:sticky lg:top-6" aria-label={t('addons.setup.order')}>
+        <aside className="card p-5 md:p-8 lg:sticky lg:top-6" aria-label={t('addons.setup.order')}>
           <div className="flex items-start gap-3">
             <AddOnIcon slug={slug} />
             <div>
@@ -378,9 +378,9 @@ function AccountingSetup({ slug }: { slug: string }) {
       <p className="text-small text-muted">{t('addons.setup.stepsLeft', { count: 6 - step })}</p>
       {step === 1 && (
         <>
-          <h1 className="mt-1 font-display text-[40px] font-bold leading-[48px] text-ink">{t('addons.accounting.readyTitle', { name: provider })}</h1>
+          <h1 className="mt-1 font-display text-[28px] font-bold leading-[36px] md:text-[40px] md:leading-[48px] text-ink">{t('addons.accounting.readyTitle', { name: provider })}</h1>
           <p className="mt-3 text-body-lg text-muted">{t('addons.accounting.readyBody', { name: provider })}</p>
-          <ul className="mt-8 flex list-disc flex-col gap-4 pl-6 text-body-lg">
+          <ul className="mt-6 flex list-disc flex-col gap-4 pl-6 text-body-lg md:mt-8">
             {checks.map((c) => (
               <li key={c.title}>
                 <p className="font-semibold text-ink">{c.title}</p>
@@ -395,9 +395,9 @@ function AccountingSetup({ slug }: { slug: string }) {
       )}
       {step === 2 && (
         <>
-          <h1 className="mt-1 font-display text-[40px] font-bold leading-[48px] text-ink">{t('addons.accounting.connectTitle', { name: provider })}</h1>
+          <h1 className="mt-1 font-display text-[28px] font-bold leading-[36px] md:text-[40px] md:leading-[48px] text-ink">{t('addons.accounting.connectTitle', { name: provider })}</h1>
           <p className="mt-3 text-body-lg text-muted">{t('addons.accounting.connectBody', { name: provider })}</p>
-          <div className="card mt-8 flex flex-col items-center gap-6 px-8 py-14 text-center">
+          <div className="card mt-6 flex flex-col items-center gap-6 px-5 py-10 text-center md:mt-8 md:px-8 md:py-14">
             <div className="flex items-center gap-5" aria-hidden>
               <span className="flex h-20 w-20 items-center justify-center rounded-lg bg-primary font-display text-title-3 font-bold text-on-primary">ib.</span>
               <ArrowRight size={22} className="text-ink" />
@@ -412,7 +412,7 @@ function AccountingSetup({ slug }: { slug: string }) {
               <div className="w-full max-w-sm text-left">
                 <p className="mb-3 text-body-strong text-ink">{t('addons.accounting.chooseOrg', { name: provider })}</p>
                 <Field label={t('addons.accounting.organisation')}>{(id) => <Select id={id} value={choice} onChange={(e) => setChoice(e.target.value)} options={orgs} />}</Field>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <Button onClick={() => setSignIn(false)}>{t('addons.accounting.cancel')}</Button>
                   <Button variant="primary" disabled={connecting} icon={connecting ? <Loader2 size={16} className="animate-spin" aria-hidden /> : undefined} onClick={authorise}>
                     {connecting ? t('addons.accounting.connecting', { name: provider }) : t('addons.accounting.allow')}
@@ -432,9 +432,9 @@ function AccountingSetup({ slug }: { slug: string }) {
       )}
       {step === 4 && (
         <>
-          <h1 className="mt-1 font-display text-[40px] font-bold leading-[48px] text-ink">{t('addons.accounting.mapTitle')}</h1>
+          <h1 className="mt-1 font-display text-[28px] font-bold leading-[36px] md:text-[40px] md:leading-[48px] text-ink">{t('addons.accounting.mapTitle')}</h1>
           <p className="mt-3 text-body-lg text-muted">{t('addons.accounting.mapBody', { name: provider, org })}</p>
-          <div className="card mt-8 flex flex-col gap-5 p-8">
+          <div className="card mt-6 flex flex-col gap-5 p-5 md:mt-8 md:p-8">
             <Field label={t('addons.accounting.salesAccount')}>{(id) => <Select id={id} value={mapping.salesAccount} onChange={(e) => setMapping((m) => ({ ...m, salesAccount: e.target.value }))} options={SALES_ACCOUNTS.map((a) => ({ value: a, label: ledgerLabel(t, a) }))} />}</Field>
             <Field label={t('addons.accounting.paymentsAccount')}>{(id) => <Select id={id} value={mapping.paymentsAccount} onChange={(e) => setMapping((m) => ({ ...m, paymentsAccount: e.target.value }))} options={PAYMENT_ACCOUNTS.map((a) => ({ value: a, label: ledgerLabel(t, a) }))} />}</Field>
             <Field label={t('addons.accounting.tipsAccount')}>{(id) => <Select id={id} value={mapping.tipsAccount} onChange={(e) => setMapping((m) => ({ ...m, tipsAccount: e.target.value }))} options={TIPS_ACCOUNTS.map((a) => ({ value: a, label: ledgerLabel(t, a) }))} />
@@ -444,9 +444,9 @@ function AccountingSetup({ slug }: { slug: string }) {
       )}
       {step === 5 && (
         <>
-          <h1 className="mt-1 font-display text-[40px] font-bold leading-[48px] text-ink">{t('addons.accounting.syncTitle')}</h1>
+          <h1 className="mt-1 font-display text-[28px] font-bold leading-[36px] md:text-[40px] md:leading-[48px] text-ink">{t('addons.accounting.syncTitle')}</h1>
           <p className="mt-3 text-body-lg text-muted">{t('addons.accounting.syncBody', { name: provider })}</p>
-          <div className="card mt-8 flex flex-col gap-5 p-8">
+          <div className="card mt-6 flex flex-col gap-5 p-5 md:mt-8 md:p-8">
             <Field label={t('addons.accounting.syncFrom')}>{(id) => <input id={id} type="date" className="input" value={sync.from} max={toISODate(now())} onChange={(e) => setSync((s) => ({ ...s, from: e.target.value || s.from }))} />}</Field>
             <div>
               <p className="mb-2 text-body-strong text-ink">{t('addons.accounting.frequency')}</p>

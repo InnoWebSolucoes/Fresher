@@ -131,7 +131,7 @@ export function AutomationEmailBody({ automation, sample, content }: { automatio
   const showAppointment = APPOINTMENT_KINDS.includes(kind)
   return (
     <div className="text-ink">
-      <p className="font-display text-[26px] font-bold leading-[32px]">{copy.heading(automation, sample)}</p>
+      <p className="font-display text-[22px] font-bold leading-[28px] md:text-[26px] md:leading-[32px]">{copy.heading(automation, sample)}</p>
       <p className="mt-3 text-body-lg">{copy.intro(automation, sample)}</p>
       {showAppointment && (
         <div className="mt-6 divide-y divide-line">
@@ -154,12 +154,13 @@ export function AutomationEmailBody({ automation, sample, content }: { automatio
               <p className="text-muted">{sample.service}</p>
             </div>
           </div>
-          <div className="flex gap-2 py-3">
-            <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong px-4 text-small font-semibold">
+          <div className="flex gap-2 py-3 max-md:flex-wrap">
+            <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong px-4 text-small font-semibold max-md:whitespace-nowrap">
               <MapPin size={14} aria-hidden />
               {t('marketing.content.getDirections')}
             </span>
-            <span className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-small font-semibold">{t('marketing.content.manage')}</span>
+            <span className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-small font-semibold max-md:whitespace-nowrap">{t('marketing.content.manage')}</span>
+
           </div>
           <div className="py-4">
             <p className="mb-2 text-body-strong">{t('marketing.content.details')}</p>

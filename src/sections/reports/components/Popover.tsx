@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useKeepOnScreen } from '@/components/ui'
 import { useDismiss } from '@/lib/useDismiss'
 
 interface PopoverProps {
@@ -25,14 +26,23 @@ export function Popover({ trigger, children, open: controlled, onOpenChange, ali
     [controlled, onOpenChange],
   )
   const ref = useRef<HTMLDivElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
   const refs = useMemo(() => [ref], [])
+  // Phones: slide the panel sideways so it stays on screen.
+  const shift = useKeepOnScreen(panel, open)
   const close = useCallback(() => set(false), [set])
   useDismiss(refs, open, close)
   return (
     <div ref={ref} className="relative inline-flex">
       {trigger({ open, toggle: () => set(!open) })}
       {open && (
-        <div role="dialog" aria-label={label} className={clsx('absolute top-full z-[60] mt-2 rounded-lg border border-line bg-raised shadow-md', align === 'right' ? 'right-0' : 'left-0', className)}>
+        <div
+          ref={panel}
+          role="dialog"
+          aria-label={label}
+          style={{ maxWidth: 'calc(100vw - 16px)', transform: shift ? `translateX(${shift}px)` : undefined }}
+          className={clsx('absolute top-full z-[60] mt-2 rounded-lg border border-line bg-raised shadow-md', align === 'right' ? 'right-0' : 'left-0', className)}
+        >
           {children(close)}
         </div>
       )}
@@ -49,7 +59,7 @@ export function Pill({ open, onClick, children, active, className, ...rest }: { 
       aria-expanded={open}
       onClick={onClick}
       className={clsx(
-        'inline-flex h-11 items-center gap-2 rounded-full border bg-surface px-5 text-body-strong text-ink transition-colors hover:bg-sunken',
+        'inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full border bg-surface px-4 text-body-strong text-ink transition-colors hover:bg-sunken md:px-5',
         open || active ? 'border-primary ring-2 ring-primary/20' : 'border-line-strong',
         className,
       )}

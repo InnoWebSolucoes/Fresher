@@ -43,8 +43,11 @@ export function ConfirmHost() {
       size="sm"
       footer={
         <>
-          <Button onClick={() => close(false)}>{current?.cancelLabel ?? t('common.cancel')}</Button>
-          <Button variant={current?.tone === 'primary' ? 'primary' : 'danger'} loading={busy} onClick={() => close(true)} data-testid="confirm-ok">
+          {/* Phones: the two buttons share the bottom sheet's width. */}
+          <Button className="flex-1 sm:flex-none" onClick={() => close(false)}>
+            {current?.cancelLabel ?? t('common.cancel')}
+          </Button>
+          <Button className="flex-1 sm:flex-none" variant={current?.tone === 'primary' ? 'primary' : 'danger'} loading={busy} onClick={() => close(true)} data-testid="confirm-ok">
             {current?.confirmLabel ?? t('common.confirm')}
           </Button>
         </>

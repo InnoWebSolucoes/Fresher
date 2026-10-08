@@ -34,7 +34,7 @@ function PickerBody({ onClose, value, onApply }: { onClose: () => void; value: I
         </>
       }
       footer={
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <span className="text-body text-muted">{t('clients.segmentsModal.selected', { count: selected.length })}</span>
           <Button
             variant="primary"

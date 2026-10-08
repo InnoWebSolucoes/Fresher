@@ -91,15 +91,15 @@ export function FullModal({
           <div className="h-full bg-primary transition-all duration-base" style={{ width: `${Math.round(progress * 100)}%` }} />
         </div>
       )}
-      <header className="flex shrink-0 items-center justify-between gap-3 px-6 py-4">
-        <div>
+      <header className="flex shrink-0 items-center justify-between gap-2 px-4 py-3 md:gap-3 md:px-6 md:py-4">
+        <div className="shrink-0">
           {onBack && (
             <button type="button" onClick={onBack} aria-label={t('common.back')} className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface hover:bg-sunken">
               <ArrowLeft size={18} aria-hidden />
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           {actions}
           <Button onClick={onClose} data-testid="fullmodal-close">
             {t('common.close')}
@@ -111,11 +111,11 @@ export function FullModal({
           )}
         </div>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className={clsx('mx-auto w-full px-6 pb-16 pt-2', width)}>
-          {title && <h1 className="font-display text-[34px] font-bold leading-[42px] text-ink">{title}</h1>}
+      <div className="relative min-h-0 flex-1 overflow-y-auto">
+        <div className={clsx('mx-auto w-full px-4 pb-12 pt-1 md:px-6 md:pb-16 md:pt-2', width)}>
+          {title && <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[34px] md:leading-[42px] text-ink">{title}</h1>}
           {subtitle && <div className="mt-2 text-body-lg text-muted">{subtitle}</div>}
-          <div className={clsx(title && 'mt-8')}>{children}</div>
+          <div className={clsx(title && 'mt-6 md:mt-8')}>{children}</div>
         </div>
       </div>
     </div>

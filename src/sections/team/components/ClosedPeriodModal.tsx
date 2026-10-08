@@ -94,7 +94,7 @@ function ClosedPeriodForm({ onClose, locationId, date, period }: Props) {
           {(id) => <TextInput id={id} value={description} placeholder={t('team.closed.placeholder')} onChange={(e) => setDescription(e.target.value)} />}
         </Field>
         <p className="flex items-center gap-2 rounded-md bg-sunken px-3 py-2.5 text-small text-muted">
-          <Info size={16} aria-hidden />
+          <Info size={16} className="shrink-0" aria-hidden />
           {t('team.closed.info')}
         </p>
       </div>

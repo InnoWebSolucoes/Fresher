@@ -27,7 +27,7 @@ function ConnectorIntro() {
   const bullets = t('reports.dc.bullets', { returnObjects: true }) as string[]
   return (
     <section className="card overflow-hidden">
-      <div className="grid items-center gap-10 bg-gradient-to-br from-surface via-surface to-success-subtle p-10 lg:grid-cols-[1fr_minmax(0,360px)]">
+      <div className="grid items-center gap-10 bg-gradient-to-br from-surface via-surface to-success-subtle p-5 md:p-10 lg:grid-cols-[1fr_minmax(0,360px)]">
         <div>
           <p className="flex items-center gap-3 text-body-strong text-ink">
             <span className="flex h-12 w-12 items-center justify-center rounded-md bg-success text-white">
@@ -35,7 +35,7 @@ function ConnectorIntro() {
             </span>
             {t('reports.dc.tag')}
           </p>
-          <h1 className="mt-6 font-display text-[32px] font-bold leading-[40px] text-ink">{t('reports.dc.title')}</h1>
+          <h1 className="mt-5 break-words font-display text-[26px] font-bold leading-[34px] text-ink md:mt-6 md:text-[32px] md:leading-[40px]">{t('reports.dc.title')}</h1>
           <p className="mt-4 max-w-xl text-body-lg text-ink">{t('reports.dc.body')}</p>
           <ul className="mt-5 flex flex-col gap-2">
             {bullets.map((b) => (
@@ -45,8 +45,8 @@ function ConnectorIntro() {
               </li>
             ))}
           </ul>
-          <p className="mt-10 font-display text-title-2 text-ink">{t('reports.dc.price')}</p>
-          <div className="mt-8 flex items-center gap-6">
+          <p className="mt-8 font-display text-title-2 text-ink md:mt-10">{t('reports.dc.price')}</p>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 md:mt-8">
             <Button variant="primary" size="lg" onClick={() => navigate('/add-ons/add-on/data-connector/setup?return=/reports/data-connector')}>
               {t('reports.dc.startNow')}
             </Button>
@@ -70,9 +70,9 @@ function ConnectorIntro() {
           </div>
         </div>
       </div>
-      <div className="px-10 pb-10">
+      <div className="px-5 pb-6 md:px-10 md:pb-10">
         <h2 className="mb-4 text-body-strong text-ink">{t('reports.dc.sync')}</h2>
-        <ul className="flex flex-wrap gap-3">
+        <ul className="flex flex-wrap gap-2 md:gap-3">
           {LOGOS.map((l) => (
             <li key={l} title={l} className="flex h-14 w-14 items-center justify-center rounded-md border border-line bg-surface px-1 text-center text-[10px] font-bold uppercase leading-tight text-muted">
               {l}
@@ -120,14 +120,14 @@ function ActiveConnector() {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-3 font-display text-title-1 text-ink">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 md:mb-6 md:gap-4">
+        <div className="min-w-0">
+          <h1 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-title-2 text-ink md:text-title-1">
             {t('reports.dc.activeTitle')} <Chip tone="success">{t('reports.dc.active')}</Chip>
           </h1>
-          <p className="mt-1 max-w-2xl text-body-lg text-muted">{t('reports.dc.activeBody')}</p>
+          <p className="mt-1 max-w-2xl text-body text-muted md:text-body-lg">{t('reports.dc.activeBody')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={() => navigate('/add-ons/manage/data-connector')}>{t('reports.dc.manage')}</Button>
           <Button icon={<RefreshCw size={16} />} loading={busy === 'sync'} onClick={() => void sync()}>
             {t('reports.dc.syncNow')}
@@ -135,15 +135,15 @@ function ActiveConnector() {
         </div>
       </div>
       <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
-        <section className="card p-6">
+        <section className="card p-4 max-md:min-w-0 md:p-6">
           <h2 className="mb-2 text-body-strong text-ink">{t('reports.dc.credentials')}</h2>
           <dl className="flex flex-col divide-y divide-line">
             {rows.map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-3 py-3">
-                <dt className="text-body text-muted">{label}</dt>
-                <dd className="flex items-center gap-2 font-mono text-body text-ink">
+                <dt className="shrink-0 text-body text-muted">{label}</dt>
+                <dd className="flex min-w-0 items-center gap-2 break-all text-right font-mono text-body text-ink">
                   {value}
-                  <button type="button" className="icon-btn h-8 w-8" aria-label={`${t('reports.dc.copy')} ${label}`} onClick={() => void copy(value)}>
+                  <button type="button" className="icon-btn h-8 w-8 shrink-0" aria-label={`${t('reports.dc.copy')} ${label}`} onClick={() => void copy(value)}>
                     <Copy size={14} aria-hidden />
                   </button>
                 </dd>
@@ -159,7 +159,7 @@ function ActiveConnector() {
             {username ? t('reports.dc.regenerate') : t('reports.dc.generate')}
           </Button>
         </section>
-        <section className="card p-6">
+        <section className="card p-4 md:p-6">
           <h2 className="mb-3 text-body-strong text-ink">{t('reports.dc.tables')}</h2>
           <ul className="flex flex-col gap-1.5">
             {TABLES.map((tb) => (

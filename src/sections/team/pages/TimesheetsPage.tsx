@@ -148,7 +148,7 @@ export function TimesheetsPage() {
         }
       />
       <Toolbar>
-        <SearchInput value={q} onChange={setQ} placeholder={t('team.common.search')} className="max-w-[300px]" />
+        <SearchInput value={q} onChange={setQ} placeholder={t('team.common.search')} className="md:max-w-[300px]" />
         <RangePicker value={range} onChange={setRange} presets={['today', 'yesterday', 'this_week', 'last_week', 'month_to_date', 'year_to_date']} />
         <Button
           className="rounded-full"

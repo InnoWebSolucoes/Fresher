@@ -47,19 +47,19 @@ export function PaymentsOnboardingPage() {
     <WizardFrame steps={STEPS.length} step={index + 1} onBack={index > 0 ? () => go(index - 1) : undefined} onClose={close} closeLabel={t('addons.payments.close')} primary={primary} maxWidth={step === 'overview' || step === 'what-to-expect' ? 'max-w-[1200px]' : 'max-w-[720px]'}>
       {index < STEPS.length - 1 && <p className="mb-2 text-small text-muted">{t('addons.payments.stepsLeft', { count: STEPS.length - index - 1 })}</p>}
       {step === 'overview' && (
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <h1 className="font-display text-[40px] font-bold leading-[48px] text-ink">{t('addons.payments.overview.title')}</h1>
+        <div className="grid items-center gap-4 md:gap-12 lg:grid-cols-2">
+          <h1 className="font-display text-[28px] font-bold leading-[36px] md:text-[40px] md:leading-[48px] text-ink">{t('addons.payments.overview.title')}</h1>
           <ul className="flex flex-col divide-y divide-line">
             {rows('overview').map((r, i) => {
               const Icon = [Globe2, Smartphone, Store][i] ?? Store
               return (
-                <li key={r.title} className="flex items-start gap-6 py-6">
-                  <div className="flex-1">
+                <li key={r.title} className="flex items-start gap-4 py-5 md:gap-6 md:py-6">
+                  <div className="min-w-0 flex-1">
                     <h2 className="text-title-3 text-ink">{r.title}</h2>
                     <p className="mt-1 text-body-lg text-muted">{r.body}</p>
                   </div>
-                  <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary-subtle to-info-subtle text-primary" aria-hidden>
-                    <Icon size={30} />
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary-subtle to-info-subtle text-primary md:h-16 md:w-16" aria-hidden>
+                    <Icon size={30} className="h-6 w-6 md:h-[30px] md:w-[30px]" />
                   </span>
                 </li>
               )
@@ -69,17 +69,17 @@ export function PaymentsOnboardingPage() {
       )}
       {step === 'rates' && (
         <>
-          <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.payments.rates.title')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[32px] md:leading-[40px] text-ink">{t('addons.payments.rates.title')}</h1>
           <p className="mt-2 text-body-lg text-muted">{t('addons.payments.rates.body')}</p>
-          <div className="card mt-6 p-6">
+          <div className="card mt-6 p-5 md:p-6">
             <ul className="flex flex-col gap-5">
               {rows('rates').map((r) => (
                 <li key={r.title} className="flex items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-body-strong text-ink">{r.title}</p>
                     <p className="text-body text-muted">{r.body}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     {r.per ? <p className="text-body-strong text-primary">{r.price}</p> : <span className="chip bg-success-subtle text-success">{r.price}</span>}
                     {r.per && <p className="text-small text-muted">{r.per}</p>}
                   </div>
@@ -101,19 +101,19 @@ export function PaymentsOnboardingPage() {
         </>
       )}
       {step === 'what-to-expect' && (
-        <div className="grid items-center gap-12 py-10 lg:grid-cols-[320px_1fr]">
-          <span className="mx-auto flex h-56 w-56 items-center justify-center rounded-[48px] bg-gradient-to-br from-primary to-info text-white shadow-lg" aria-hidden>
-            <ShieldCheck size={110} />
+        <div className="grid items-center gap-8 py-4 md:gap-12 md:py-10 lg:grid-cols-[320px_1fr]">
+          <span className="mx-auto flex h-40 w-40 items-center justify-center rounded-[36px] bg-gradient-to-br from-primary to-info text-white shadow-lg md:h-56 md:w-56 md:rounded-[48px]" aria-hidden>
+            <ShieldCheck size={110} className="h-20 w-20 md:h-[110px] md:w-[110px]" />
           </span>
           <div>
-            <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.payments.expect.title')}</h1>
+            <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[32px] md:leading-[40px] text-ink">{t('addons.payments.expect.title')}</h1>
             <p className="mt-4 text-body-lg text-muted">{t('addons.payments.expect.body')}</p>
           </div>
         </div>
       )}
       {step === 'select' && (
         <>
-          <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.payments.select.title')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[32px] md:leading-[40px] text-ink">{t('addons.payments.select.title')}</h1>
           <p className="mt-2 text-body-lg text-muted">
             {t('addons.payments.select.body')} <LearnMore topic={t('addons.payments.topics.accountType')}>{t('addons.learnMore')}</LearnMore>
           </p>
@@ -122,8 +122,8 @@ export function PaymentsOnboardingPage() {
               const Icon = TYPE_ICONS[k]
               return (
                 <li key={k}>
-                  <button type="button" className="card flex w-full items-center gap-4 p-5 text-left transition-colors hover:border-primary hover:bg-primary-subtle/40" onClick={() => go(index + 1, k)}>
-                    <div className="flex-1">
+                  <button type="button" className="card flex w-full items-center gap-3 p-4 text-left transition-colors hover:border-primary hover:bg-primary-subtle/40 md:gap-4 md:p-5" onClick={() => go(index + 1, k)}>
+                    <div className="min-w-0 flex-1">
                       <p className="text-body-strong text-ink">{t(`addons.payments.select.options.${k}.title`)}</p>
                       <p className="text-body text-muted">{t(`addons.payments.select.options.${k}.body`)}</p>
                     </div>
@@ -138,7 +138,7 @@ export function PaymentsOnboardingPage() {
       )}
       {step === 'ready' && (
         <>
-          <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.payments.ready.title')}</h1>
+          <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[32px] md:leading-[40px] text-ink">{t('addons.payments.ready.title')}</h1>
           <p className="mt-2 text-body-lg text-muted">{t('addons.payments.ready.body')}</p>
           <ol className="mt-6 flex flex-col gap-4">
             {rows('ready').map((r, i) => (
@@ -206,14 +206,14 @@ function DetailsForm({ accountType }: { accountType: string }) {
   const e = (k: keyof Form) => err[k]?.message as string | undefined
   return (
     <>
-      <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.payments.details.title')}</h1>
+      <h1 className="font-display text-[26px] font-bold leading-[34px] md:text-[32px] md:leading-[40px] text-ink">{t('addons.payments.details.title')}</h1>
       <p className="mt-2 text-body-lg text-muted">{t('addons.payments.details.body')}</p>
       <form id="payments-details" noValidate onSubmit={handleSubmit(submit)} className="mt-6 flex flex-col gap-5" aria-busy={formState.isSubmitting}>
         <Field label={t('addons.payments.details.firstName')} error={e('firstName')}>{(id) => <TextInput id={id} autoComplete="given-name" invalid={Boolean(err.firstName)} {...register('firstName')} />}</Field>
         <Field label={t('addons.payments.details.lastName')} error={e('lastName')}>{(id) => <TextInput id={id} autoComplete="family-name" invalid={Boolean(err.lastName)} {...register('lastName')} />}</Field>
         <fieldset>
           <legend className="mb-1.5 text-body-strong text-ink">{t('addons.payments.details.dob')}</legend>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 md:grid-cols-3 md:gap-3">
             <Select aria-label={t('addons.payments.details.month')} placeholder={t('addons.payments.details.month')} options={monthNames().map((m, i) => ({ value: String(i + 1), label: m }))}
  {...register('month')} />
             <TextInput aria-label={t('addons.payments.details.day')} placeholder={t('addons.payments.details.day')} inputMode="numeric" {...register('day')} />
@@ -273,7 +273,7 @@ function Finished() {
             {account.businessName}
           </p>
         )}
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button className="rounded-full" onClick={() => navigate('/setup')}>
             {t('addons.payments.finished.done')}
           </Button>

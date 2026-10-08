@@ -393,7 +393,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
   )
 
   const totalsBlock = (
-    <div className="mb-4">
+    <div className="mb-3 md:mb-4">
       <div className="flex justify-between text-body text-muted">
         <span>{t('calendar.totals.total')}</span>
         <span>{money(sums.total)}</span>
@@ -554,17 +554,17 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
     if (panel === 'repeat') return <RepeatPanel value={draft.repeat} date={draft.date} onBack={() => setPanel('main')} onApply={(rule) => void applyRepeat(rule)} applying={saving} />
     if (panel === 'activity' && appointment)
       return (
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
           <Button size="sm" icon={<ArrowLeft size={16} />} onClick={() => setPanel('main')}>
             {t('calendar.common.back')}
           </Button>
-          <h2 className="mt-4 font-display text-title-1 text-ink">{t('calendar.activity.title')}</h2>
-          <ol className="relative mt-6 flex flex-col gap-5 border-l border-line pl-6">
+          <h2 className="mt-4 font-display text-title-2 text-ink md:text-title-1">{t('calendar.activity.title')}</h2>
+          <ol className="relative mt-6 flex flex-col gap-5 border-l border-line pl-6 max-md:gap-4 max-md:pl-5">
             {[...appointment.activity]
               .sort((a, b) => b.at.localeCompare(a.at))
               .map((entry) => (
-                <li key={entry.id} className="relative rounded-lg border border-line p-5">
-                  <span className="absolute -left-[31px] top-6 h-2.5 w-2.5 rounded-full bg-line-strong" aria-hidden />
+                <li key={entry.id} className="relative rounded-lg border border-line p-5 max-md:p-4">
+                  <span className="absolute -left-[31px] top-6 h-2.5 w-2.5 rounded-full bg-line-strong max-md:-left-[27px]" aria-hidden />
                   <p className="text-body-lg font-semibold text-ink">{entry.title}</p>
                   <p className="text-small text-muted">{format(parseISO(entry.at), 'MMM d, yyyy, HH:mm')}</p>
                   {entry.detail && <p className="mt-2 text-body text-ink">{entry.detail}</p>}
@@ -576,7 +576,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
       )
     if (panel === 'pick-service')
       return (
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
           <ServicePicker
             locationId={draft.locationId}
             onPick={onPickService}
@@ -596,11 +596,11 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
     if (panel === 'services' || panel === 'time')
       return (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
             {breadcrumb}
             {panel === 'services' ? (
               <>
-                <h2 className="mb-6 font-display text-title-1 text-ink">{t('calendar.steps.servicesTitle')}</h2>
+                <h2 className="mb-6 font-display text-title-2 text-ink max-md:mb-4 md:text-title-1">{t('calendar.steps.servicesTitle')}</h2>
                 <div className="flex flex-col gap-5">
                   {draft.items.map((item, index) => (
                     <ServiceLine
@@ -636,9 +636,9 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
               />
             )}
           </div>
-          <div className="border-t border-line px-8 py-5">
+          <div className="border-t border-line px-4 py-3 md:px-8 md:py-5">
             {totalsBlock}
-            <div className="flex gap-3">{footerButtons()}</div>
+            <div className="flex gap-2 md:gap-3">{footerButtons()}</div>
           </div>
         </>
       )
@@ -657,7 +657,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
           onRepeat={() => setPanel('repeat')}
           right={statusMenu}
         />
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6">
           <h3 className="mb-4 text-title-3 font-semibold text-ink">{t('calendar.service.title')}</h3>
           <div className="flex flex-col gap-5">
             {laid.map(({ item, start }, index) => (
@@ -779,9 +779,9 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
           )}
           {appointment?.cancellation && <p className="mt-6 text-body text-danger">{t('calendar.status.wasCancelled')}</p>}
         </div>
-        <div className="border-t border-line px-8 py-5">
+        <div className="border-t border-line px-4 py-3 md:px-8 md:py-5">
           {totalsBlock}
-          <div className="flex gap-3">{footerButtons()}</div>
+          <div className="flex gap-2 md:gap-3">{footerButtons()}</div>
         </div>
       </>
     )
@@ -794,9 +794,9 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
   ]
 
   return (
-    <div className="flex h-full" data-cal-drawer data-testid={isNew ? 'new-appointment-drawer' : 'appointment-drawer'}>
+    <div className="group/ws flex h-full flex-col max-md:min-h-0 md:flex-row" data-cal-drawer data-testid={isNew ? 'new-appointment-drawer' : 'appointment-drawer'}>
       <FloatingDrawerButtons drawerWidth={800} buttons={floating} />
-      <aside className="w-[320px] shrink-0 overflow-y-auto border-r border-line">
+      <aside className="shrink-0 border-line max-md:max-h-[40%] max-md:overflow-y-auto max-md:border-b max-md:has-[[data-client-search]]:max-h-none max-md:has-[[data-client-search]]:min-h-0 max-md:has-[[data-client-search]]:flex-1 md:w-[320px] md:overflow-y-auto md:border-r">
         <ClientPanel
           clientId={draft.clientId}
           walkIn={draft.walkIn}
@@ -806,7 +806,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
           onLeaveTo={leaveTo}
         />
       </aside>
-      <section className="flex min-w-0 flex-1 flex-col">{renderMainColumn()}</section>
+      <section className="flex min-w-0 flex-1 flex-col max-md:min-h-0 max-md:group-has-[[data-client-search]]/ws:hidden">{renderMainColumn()}</section>
 
       <NoteModal
         open={modal === 'note'}

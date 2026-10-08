@@ -21,7 +21,7 @@ function PolicyBanner({ text }: { text: string }) {
 function DetailsCard({ title, total, fee, feeLabel, action }: { title: string; total: number; fee: number; feeLabel: string; action: ReactNode }) {
   const { t } = useTranslation()
   return (
-    <div className="rounded-xl border border-line bg-canvas p-8">
+    <div className="rounded-xl border border-line bg-canvas p-8 max-md:p-5">
       <h2 className="text-title-3 font-semibold text-ink">{title}</h2>
       <div className="mt-4 flex justify-between text-body-lg text-ink">
         <span>{t('calendar.status.appointmentTotal')}</span>
@@ -36,7 +36,7 @@ function DetailsCard({ title, total, fee, feeLabel, action }: { title: string; t
       ) : (
         <p className="text-body-lg text-muted">{t('calendar.status.noFee')}</p>
       )}
-      <div className="mt-8">{action}</div>
+      <div className="mt-8 max-md:mt-6">{action}</div>
     </div>
   )
 }
@@ -68,8 +68,8 @@ export function NoShowScreen({ appointment, open, onClose, onDone }: { appointme
 
   return (
     <FullScreen open={open} onClose={onClose} closeLabel={t('calendar.common.close')}>
-      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink">{t('calendar.status.noShowTitle')}</h1>
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_440px]">
+      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink max-md:text-[28px] max-md:leading-9">{t('calendar.status.noShowTitle')}</h1>
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_440px] max-md:mt-6 max-md:gap-6">
         <div className="flex flex-col gap-6">
           <PolicyBanner text={feeApplies ? t('calendar.status.noShowPolicy', { pct: policy.noShowFeePct }) : t('calendar.status.noPolicy')} />
           {feeApplies && <Checkbox checked={charge} onChange={setCharge} label={t('calendar.status.chargeNoShow')} hint={t('calendar.status.chargeHint')} />}
@@ -121,8 +121,8 @@ export function CancelScreen({ appointment, open, onClose, onDone }: { appointme
 
   return (
     <FullScreen open={open} onClose={onClose} closeLabel={t('calendar.common.close')}>
-      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink">{t('calendar.status.cancelTitle')}</h1>
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_440px]">
+      <h1 className="font-display text-[44px] font-bold leading-[52px] text-ink max-md:text-[28px] max-md:leading-9">{t('calendar.status.cancelTitle')}</h1>
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_440px] max-md:mt-6 max-md:gap-6">
         <div className="flex flex-col gap-6">
           <PolicyBanner text={feeApplies ? t('calendar.status.latePolicy', { hours: policy.cancellationWindowHours, pct: policy.lateCancelFeePct }) : t('calendar.status.noPolicy')} />
           <Field label={t('calendar.status.reason')}>

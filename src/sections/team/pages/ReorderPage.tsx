@@ -39,7 +39,7 @@ export function ReorderPage() {
 
   return (
     <FullscreenFrame
-      title={t('team.reorder.title')}
+      title={<span className="hidden md:inline">{t('team.reorder.title')}</span>}
       onClose={() => navigate('/team/team-members')}
       maxWidth="max-w-xl"
       actions={
@@ -48,8 +48,8 @@ export function ReorderPage() {
         </Button>
       }
     >
-      <h1 className="font-display text-title-1 text-ink">{t('team.reorder.title')}</h1>
-      <p className="mb-6 mt-2 text-body-lg text-muted">{t('team.reorder.body')}</p>
+      <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('team.reorder.title')}</h1>
+      <p className="mb-6 mt-2 text-body text-muted md:text-body-lg">{t('team.reorder.body')}</p>
       {loading ? (
         <PageSkeleton rows={4} />
       ) : (

@@ -143,7 +143,7 @@ export function AllergyModal({ client, allergy, onClose }: { client: Client; all
                   role="radio"
                   aria-checked={severity === s}
                   onClick={() => setSeverity(severity === s ? undefined : s)}
-                  className={clsx('flex h-32 flex-col items-center justify-center gap-3 rounded-lg border text-body text-ink transition-colors', severity === s ? 'border-primary bg-primary-subtle/40 ring-1 ring-primary' : 'border-line hover:border-line-strong')}
+                  className={clsx('flex h-24 flex-col items-center justify-center gap-2 rounded-lg border text-body text-ink transition-colors md:h-32 md:gap-3', severity === s ? 'border-primary bg-primary-subtle/40 ring-1 ring-primary' : 'border-line hover:border-line-strong')}
                 >
                   <SeverityIcon severity={s} size={52} />
                   {t(`clients.allergy.severities.${s}`)}
@@ -288,13 +288,13 @@ export function MessagesIntroModal({ client, onClose }: { client: Client; onClos
   }
   return createPortal(
     <div className="fixed inset-0 z-[75] flex overflow-y-auto bg-surface" role="dialog" aria-modal="true" aria-label={t('clients.messages.title')}>
-      <button type="button" onClick={onClose} aria-label={t('clients.common.close')} className="icon-btn absolute right-6 top-6 z-10">
+      <button type="button" onClick={onClose} aria-label={t('clients.common.close')} className="icon-btn absolute right-3 top-3 z-10 md:right-6 md:top-6">
         <X size={22} aria-hidden />
       </button>
-      <div className="grid w-full items-center gap-10 px-8 py-16 lg:grid-cols-2 lg:px-24">
+      <div className="grid w-full items-center gap-10 px-4 py-14 md:px-8 md:py-16 lg:grid-cols-2 lg:px-24">
         <div className="max-w-xl">
           <p className="text-small font-semibold uppercase tracking-wide text-primary">{t('clients.messages.badge')}</p>
-          <h2 className="mt-3 font-display text-[40px] font-bold leading-[48px] text-ink">{t('clients.messages.title')}</h2>
+          <h2 className="mt-3 font-display text-[30px] font-bold leading-[38px] text-ink md:text-[40px] md:leading-[48px]">{t('clients.messages.title')}</h2>
           <p className="mt-4 text-body-lg text-ink">{t('clients.messages.body')}</p>
           <ul className="mt-6 flex flex-col gap-3">
             {(['b1', 'b2', 'b3'] as const).map((b) => (
@@ -305,7 +305,7 @@ export function MessagesIntroModal({ client, onClose }: { client: Client; onClos
             ))}
           </ul>
           {composing ? (
-            <div className="mt-8 rounded-lg border border-line bg-surface p-5">
+            <div className="mt-8 rounded-lg border border-line bg-surface p-4 md:p-5">
               <Field label={t('clients.messages.newTo', { name: client.firstName })} error={error ? t('clients.messages.required') : undefined}>
                 {(id) => (
                   <TextArea
@@ -330,7 +330,7 @@ export function MessagesIntroModal({ client, onClose }: { client: Client; onClos
               </div>
             </div>
           ) : (
-            <div className="mt-8 flex items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <Button variant="primary" size="lg" onClick={() => (conversation ? openInbox(conversation.id) : setComposing(true))}>
                 {t('clients.messages.goToInbox')}
               </Button>

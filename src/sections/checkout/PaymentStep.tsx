@@ -36,8 +36,8 @@ export function PaymentStep() {
     return (
       <div>
         <Breadcrumb />
-        <h1 className="mt-3 font-display text-title-1 text-ink">{t('checkout.payment.title')}</h1>
-        <div className="mt-10 flex flex-col items-center rounded-lg border border-line px-8 py-14 text-center" data-testid="register-closed">
+        <h1 className="mt-3 font-display text-title-2 text-ink md:text-title-1">{t('checkout.payment.title')}</h1>
+        <div className="mt-6 flex flex-col items-center rounded-lg border border-line px-5 py-10 text-center md:mt-10 md:px-8 md:py-14" data-testid="register-closed">
           <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-subtle text-primary">
             <Lock size={26} aria-hidden />
           </span>
@@ -60,10 +60,10 @@ export function PaymentStep() {
   return (
     <div>
       <Breadcrumb />
-      <h1 className="mt-3 font-display text-title-1 text-ink">{t('checkout.payment.title')}</h1>
+      <h1 className="mt-3 font-display text-title-2 text-ink md:text-title-1">{t('checkout.payment.title')}</h1>
       {noDue && c.lines.length > 0 && <p className="mt-4 rounded-md bg-success-subtle px-4 py-3 text-body text-success">{t('checkout.payment.fullyCovered')}</p>}
-      <h2 className="mt-8 text-body-lg font-semibold text-ink">{t('checkout.payment.methods')}</h2>
-      <div className="mt-4 grid grid-cols-3 gap-4">
+      <h2 className="mt-6 text-body-lg font-semibold text-ink md:mt-8">{t('checkout.payment.methods')}</h2>
+      <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:grid-cols-3 md:gap-4">
         <Tile icon={<Banknote size={26} aria-hidden />} label={t('checkout.payment.cash')} disabled={noDue} selected={c.payments.some((p) => p.method === 'cash')} onClick={() => c.setModal({ kind: 'cash', split: false })} testId="pay-cash" />
         <Tile icon={<Gift size={26} aria-hidden />} label={t('checkout.payment.redeemGift')} disabled={noDue} selected={c.payments.some((p) => p.method === 'gift_card')} onClick={() => c.setModal({ kind: 'redeemFind', split: false })} testId="pay-gift" />
         <Tile icon={<Split size={26} aria-hidden />} label={t('checkout.payment.split')} disabled={noDue && !c.payments.length} onClick={() => c.setView('split')} testId="pay-split" />
@@ -91,9 +91,9 @@ export function PaymentStep() {
           />
         ))}
       </div>
-      <h2 className="mt-10 text-body-lg font-semibold text-ink">{t('checkout.payment.innowebMethods')}</h2>
+      <h2 className="mt-8 text-body-lg font-semibold text-ink md:mt-10">{t('checkout.payment.innowebMethods')}</h2>
       {!paymentsActive && <p className="mt-1 text-body text-muted">{t('checkout.payment.setupPayments')}</p>}
-      <div className="mt-4 grid grid-cols-3 gap-4">
+      <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:grid-cols-3 md:gap-4">
         <Tile icon={<CreditCard size={26} aria-hidden />} label={t('checkout.payment.cardTerminal')} disabled={noDue} onClick={() => card('terminal')} testId="pay-terminal" />
         <Tile icon={<Smartphone size={26} aria-hidden />} label={t('checkout.payment.selfCheckout')} disabled={noDue} onClick={() => card('selfCheckout')} testId="pay-self" />
         <Tile icon={<QrCode size={26} aria-hidden />} label={t('checkout.payment.qrCode')} disabled={noDue} onClick={() => card('qr')} testId="pay-qr" />
@@ -114,19 +114,19 @@ function SplitView() {
         <button type="button" onClick={() => c.setView('step')} aria-label={t('checkout.common.goBack')} className="icon-btn -ml-2">
           <ArrowLeft size={22} aria-hidden />
         </button>
-        <h1 className="font-display text-title-1 text-ink">{t('checkout.payment.split')}</h1>
+        <h1 className="font-display text-title-2 text-ink md:text-title-1">{t('checkout.payment.split')}</h1>
       </div>
-      <div className="mt-8 flex flex-col gap-3">
+      <div className="mt-6 flex flex-col gap-3 md:mt-8">
         {c.payments.map((p) => {
           const collector = members.find((m) => m.id === p.collectedById)
           return (
-            <div key={p.key} className="flex items-center justify-between gap-4 rounded-lg border border-line px-6 py-5" data-testid="split-row">
-              <span className="flex items-center gap-3 text-body-lg font-semibold text-ink">
+            <div key={p.key} className="flex items-center justify-between gap-3 rounded-lg border border-line px-4 py-4 md:gap-4 md:px-6 md:py-5" data-testid="split-row">
+              <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-body-lg font-semibold text-ink">
                 <MethodIcon method={p.method} size={22} />
                 {p.methodLabel}
                 {collector && <span className="font-normal text-ink">• {fullName(collector)}</span>}
               </span>
-              <span className="flex items-center gap-3">
+              <span className="flex shrink-0 items-center gap-2 md:gap-3">
                 <span className="text-body-lg font-semibold text-ink tabular">{money(p.amount)}</span>
                 <button type="button" className="icon-btn h-9 w-9" aria-label={t('checkout.totals.removePayment')} title={t('checkout.payment.remove')} onClick={() => c.removePayment(p.key)}>
                   <Trash2 size={18} aria-hidden />
@@ -136,7 +136,7 @@ function SplitView() {
           )
         })}
         {c.due > 0.004 && (
-          <button type="button" onClick={() => c.setModal({ kind: 'splitSelect' })} className="flex items-center gap-3 rounded-lg border border-line px-6 py-5 text-left text-body-lg font-semibold text-primary hover:bg-primary-subtle/40" data-testid="split-add">
+          <button type="button" onClick={() => c.setModal({ kind: 'splitSelect' })} className="flex items-center gap-3 rounded-lg border border-line px-4 py-4 text-left text-body-lg font-semibold text-primary hover:bg-primary-subtle/40 md:px-6 md:py-5" data-testid="split-add">
             <Plus size={20} aria-hidden />
             {t('checkout.payment.addMethod')}
           </button>

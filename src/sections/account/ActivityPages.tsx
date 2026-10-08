@@ -112,13 +112,16 @@ export function AccountReviewsPage() {
         />
       </Toolbar>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="card p-6">
-          <p className="font-display text-display text-ink">{num(summary.avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</p>
-          <Stars value={summary.avg} size={18} className="mt-1" />
-          <p className="mt-1 text-small text-muted">{t('account.reviews.outOf')}</p>
-          <p className="mt-1 text-body-strong text-ink">{t('account.reviews.count', { count: summary.total })}</p>
-          <ul className="mt-5 flex flex-col gap-1">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[280px_1fr]">
+        {/* Phones: the average sits beside the star bars instead of above them. */}
+        <aside className="card grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-5 p-5 md:block md:p-6">
+          <div>
+            <p className="font-display text-display text-ink">{num(summary.avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</p>
+            <Stars value={summary.avg} size={18} className="mt-1" />
+            <p className="mt-1 text-small text-muted">{t('account.reviews.outOf')}</p>
+            <p className="mt-1 text-body-strong text-ink">{t('account.reviews.count', { count: summary.total })}</p>
+          </div>
+          <ul className="flex flex-col gap-1 md:mt-5">
             {summary.counts.map(({ star, count }) => {
               const active = rating === String(star)
               return (
@@ -144,7 +147,7 @@ export function AccountReviewsPage() {
           </ul>
         </aside>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           {visible.length === 0 ? (
             <div className="card">
               <EmptyState
@@ -245,7 +248,7 @@ function ReviewCard({ review, clientName }: { review: Review; clientName: string
 
   return (
     <article className="card p-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 md:flex-nowrap md:gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar name={clientName} size={40} />
           <div className="min-w-0">
@@ -256,7 +259,7 @@ function ReviewCard({ review, clientName }: { review: Review; clientName: string
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 pl-[52px] md:pl-0">
           <Chip tone="outline">{t(`account.reviews.${review.platform}`)}</Chip>
           <Stars value={review.rating} />
         </div>
@@ -381,18 +384,18 @@ export function AccountPayRunsPage() {
         </div>
       ) : (
         <>
-          <div className="mb-4 grid gap-4 sm:grid-cols-3">
-            <div className="card p-5">
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
+            <div className="card min-w-0 p-4 md:p-5">
               <p className="text-small text-muted">{t('account.payRuns.totalEarned')}</p>
-              <p className="mt-1 font-display text-title-1 text-ink">{money2(totals.total)}</p>
+              <p className="mt-1 font-display text-title-2 text-ink md:text-title-1">{money2(totals.total)}</p>
             </div>
-            <div className="card p-5">
+            <div className="card min-w-0 p-4 md:p-5">
               <p className="text-small text-muted">{t('account.payRuns.totalPaid')}</p>
-              <p className="mt-1 font-display text-title-1 text-ink">{money2(totals.paid)}</p>
+              <p className="mt-1 font-display text-title-2 text-ink md:text-title-1">{money2(totals.paid)}</p>
             </div>
-            <div className="card p-5">
+            <div className="card col-span-2 min-w-0 p-4 sm:col-span-1 md:p-5">
               <p className="text-small text-muted">{t('account.payRuns.title')}</p>
-              <p className="mt-1 font-display text-title-1 text-ink">{t('account.payRuns.runs', { count: rows.length })}</p>
+              <p className="mt-1 font-display text-title-2 text-ink md:text-title-1">{t('account.payRuns.runs', { count: rows.length })}</p>
             </div>
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(r) => r.run.id} onRowClick={setOpen} />

@@ -8,6 +8,7 @@ import { useDismiss } from '@/lib/useDismiss'
 import { now, toISODate } from '@/lib/time'
 import { Button } from './Button'
 import { Select } from './form'
+import { useKeepOnScreen } from './responsive'
 
 export type PresetKey =
   | 'today'
@@ -125,7 +126,9 @@ export function DateRangeButton({ value, onChange, presets }: { value: DateRange
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(value)
   const ref = useRef<HTMLDivElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
   useDismiss([ref], open, () => setOpen(false))
+  const shift = useKeepOnScreen(panel, open)
   return (
     <div ref={ref} className="relative">
       <button
@@ -143,7 +146,13 @@ export function DateRangeButton({ value, onChange, presets }: { value: DateRange
         <span aria-hidden className="text-[10px]">▼</span>
       </button>
       {open && (
-        <div role="dialog" aria-label={t('reports.range.label')} className="absolute left-0 top-full z-[60] mt-2 w-[360px] rounded-lg border border-line bg-raised p-5 shadow-md">
+        <div
+          ref={panel}
+          role="dialog"
+          aria-label={t('reports.range.label')}
+          style={shift ? { transform: `translateX(${shift}px)` } : undefined}
+          className="absolute left-0 top-full z-[60] mt-2 w-[calc(100vw-16px)] max-w-[360px] rounded-lg border border-line bg-raised p-4 shadow-md md:p-5"
+        >
           <label className="label">{t('reports.range.label')}</label>
           <Select
             value={draft.preset}

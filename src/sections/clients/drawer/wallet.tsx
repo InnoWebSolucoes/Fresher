@@ -48,7 +48,7 @@ export function WalletTab() {
           />
         }
       />
-      <p className="font-display text-display text-ink tabular">{money(client.walletBalance)}</p>
+      <p className="font-display text-title-1 text-ink tabular md:text-display">{money(client.walletBalance)}</p>
       <p className="text-body text-muted">
         {t('clients.wallet.available')} <LearnMore topic={t('clients.wallet.topic')}>{t('clients.common.learnMore')}</LearnMore>
       </p>
@@ -155,11 +155,11 @@ export function LoyaltyTab() {
             <Gem size={36} aria-hidden />
           </span>
         </div>
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           <p className="text-small font-semibold text-primary">{t('clients.loyalty.badge')}</p>
           <h3 className="mt-1 font-display text-title-2 text-ink">{active ? t('clients.loyalty.activeTitle') : t('clients.loyalty.title')}</h3>
           <p className="mt-2 text-body text-muted">{active ? t('clients.loyalty.activeBody') : t('clients.loyalty.body')}</p>
-          <div className="mt-5 flex gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             <Button
               variant="primary"
               onClick={() => {

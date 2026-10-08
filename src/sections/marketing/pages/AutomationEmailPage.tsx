@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -45,9 +46,10 @@ export function AutomationEmailPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-canvas">
-      <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-6">
-        <h1 className="font-display text-title-3 text-ink">{t('marketing.emailEditor.title')}</h1>
-        <div className="flex items-center gap-2">
+      {/* Phones: Close becomes an icon at the left and the title gets its own row under the buttons. */}
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-surface px-3 py-3 md:h-16 md:flex-nowrap md:gap-4 md:px-6 md:py-0">
+        <h1 className="order-last w-full break-words font-display text-title-3 text-ink md:order-none md:w-auto">{t('marketing.emailEditor.title')}</h1>
+        <div className="flex items-center gap-2 max-md:w-full">
           <Menu
             width={200}
             trigger={({ open, toggle }) => (
@@ -69,14 +71,18 @@ export function AutomationEmailPage() {
               },
             ]}
           />
-          <Button onClick={() => void close()}>{t('marketing.common.close')}</Button>
+          <Button aria-label={t('marketing.common.close')} className="max-md:order-first max-md:mr-auto max-md:w-10 max-md:px-0" onClick={() => void close()}>
+            <X size={16} className="md:hidden" aria-hidden />
+            <span className="hidden md:inline">{t('marketing.common.close')}</span>
+          </Button>
           <Button variant="primary" loading={saving} onClick={() => void save()} data-testid="email-save">
             {t('marketing.common.save')}
           </Button>
         </div>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside className="w-full shrink-0 border-b border-line bg-surface p-8 lg:w-[480px] lg:border-b-0 lg:border-r">
+      {/* Phones: the form and the preview scroll together as one page. */}
+      <div className="flex min-h-0 flex-1 flex-col max-md:overflow-y-auto lg:flex-row">
+        <aside className="w-full shrink-0 border-b border-line bg-surface p-4 md:p-8 lg:w-[480px] lg:border-b-0 lg:border-r">
           <h2 className="font-display text-title-2 text-ink">{t('marketing.emailEditor.details')}</h2>
           <p className="mt-1 text-body text-muted">{automation.description}</p>
           <Checkbox className="mt-6" label={t('marketing.emailEditor.displayPrice')} checked={content.displayPrice} onChange={(displayPrice) => setContent({ ...content, displayPrice })} />
@@ -84,7 +90,8 @@ export function AutomationEmailPage() {
             {(fid) => <TextArea id={fid} rows={5} maxLength={1500} value={content.importantInfo} placeholder={t('marketing.emailEditor.importantInfoPlaceholder')} onChange={(e) => setContent({ ...content, importantInfo: e.target.value })} />}
           </Field>
         </aside>
-        <div className="min-h-0 flex-1 overflow-y-auto bg-sunken/50 p-6 lg:p-10">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-sunken/50 p-3 max-md:flex-none max-md:overflow-visible md:p-6 lg:p-10">
+
           <EmailMock className="mx-auto max-w-[820px]" subject={copy.subject(automation, sample)} fromName={sample.business} fromEmail={sample.businessEmail}>
             <AutomationEmailBody automation={automation} sample={sample} content={content} />
           </EmailMock>

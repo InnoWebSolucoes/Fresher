@@ -34,6 +34,14 @@ export function LinkBuilderPage() {
     await deleteBookingLink(l.id)
     toast(t('online.links.deletedToast'))
   }
+  const rowMenu = (r: BookingLink) => (
+    <Menu
+      groups={[
+        { items: [{ label: t('online.links.viewQr'), onSelect: () => setResult(r) }, { label: t('online.common.copyLink'), onSelect: () => copyText(r.url, t('online.common.linkCopied')) }] },
+        { items: [{ label: t('online.common.delete'), danger: true, icon: <Trash2 size={16} aria-hidden />, onSelect: () => void remove(r) }] },
+      ]}
+    />
+  )
   const columns: Column<BookingLink>[] = [
     { key: 'name', header: t('online.links.cols.name'), cell: (r) => <span className="text-body-strong text-ink">{r.name}</span>, sortValue: (r) => r.name },
     { key: 'type', header: t('online.links.cols.type'), cell: (r) => t(`online.links.kinds.${r.kind}.short`) },
@@ -43,14 +51,7 @@ export function LinkBuilderPage() {
       key: 'actions',
       header: '',
       align: 'right',
-      cell: (r) => (
-        <Menu
-          groups={[
-            { items: [{ label: t('online.links.viewQr'), onSelect: () => setResult(r) }, { label: t('online.common.copyLink'), onSelect: () => copyText(r.url, t('online.common.linkCopied')) }] },
-            { items: [{ label: t('online.common.delete'), danger: true, icon: <Trash2 size={16} aria-hidden />, onSelect: () => void remove(r) }] },
-          ]}
-        />
-      ),
+      cell: rowMenu,
     },
   ]
 
@@ -66,11 +67,11 @@ export function LinkBuilderPage() {
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {KINDS.map(({ kind, icon }) => (
-          <div key={kind} className="card flex flex-col p-5">
-            <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-md bg-primary-subtle text-primary">{icon}</span>
+          <div key={kind} className="card flex flex-col p-5 max-md:grid max-md:grid-cols-[40px_minmax(0,1fr)] max-md:gap-x-3 max-md:p-4">
+            <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-md bg-primary-subtle text-primary max-md:row-span-3 max-md:mb-0 max-md:h-10 max-md:w-10">{icon}</span>
             <h2 className="text-title-3 text-ink">{t(`online.links.kinds.${kind}.title`)}</h2>
             <p className="mt-1 flex-1 text-body text-muted">{t(`online.links.kinds.${kind}.body`)}</p>
-            <Button className="mt-4 self-start" onClick={() => open(kind)}>
+            <Button className="mt-4 self-start max-md:mt-3 max-md:justify-self-start" onClick={() => open(kind)}>
               {t('online.links.create')}
             </Button>
           </div>
@@ -78,7 +79,26 @@ export function LinkBuilderPage() {
       </div>
       <Card title={t('online.links.yours')} className="mt-8">
         {links.length ? (
-          <DataTable columns={columns} rows={links} rowKey={(r) => r.id} onRowClick={setResult} />
+          <>
+            {/* Phones: a simple list instead of the wide table (whose scroller also clipped the row menu). */}
+            <ul className="-my-3 divide-y divide-line md:hidden">
+              {links.map((r) => (
+                <li key={r.id} className="flex items-center gap-2 py-3">
+                  <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setResult(r)}>
+                    <span className="block text-body-strong text-ink">{r.name}</span>
+                    <span className="block text-small text-muted">
+                      {t(`online.links.kinds.${r.kind}.short`)} · {fmtDate(r.createdAt)}
+                    </span>
+                    <span className="block truncate text-small text-muted">{r.url}</span>
+                  </button>
+                  {rowMenu(r)}
+                </li>
+              ))}
+            </ul>
+            <div className="max-md:hidden">
+              <DataTable columns={columns} rows={links} rowKey={(r) => r.id} onRowClick={setResult} />
+            </div>
+          </>
         ) : (
           <EmptyState icon={<CalendarCheck size={32} aria-hidden />} title={t('online.links.emptyTitle')} body={t('online.links.emptyBody')} action={<Button variant="primary" onClick={() => open('everything')}>{t('online.links.create')}</Button>} />
         )}

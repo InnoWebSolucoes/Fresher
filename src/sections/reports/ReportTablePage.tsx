@@ -103,10 +103,10 @@ function ReportResolver({ slug }: { slug: string }) {
   const baseSlug = custom?.base ?? slug
   const def = REPORTS.find((r) => r.slug === baseSlug)
   const spec = SPECS[baseSlug]
-  if (loading) return <div className="mx-auto max-w-[1400px] px-8 py-8"><PageSkeleton /></div>
+  if (loading) return <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-8 md:py-8"><PageSkeleton /></div>
   if (!def || !spec || (isCustomSlug(slug) && !custom))
     return (
-      <div className="mx-auto max-w-[1400px] px-8 py-8">
+      <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-8 md:py-8">
         <div className="card">
           <EmptyState icon={<BarChart3 size={26} />} title={t('reports.page.notFound')} body={t('reports.page.notFoundBody')} action={<Button variant="primary" onClick={() => navigate(LANDING)}>{t('reports.page.allReports')}</Button>} />
         </div>
@@ -114,7 +114,7 @@ function ReportResolver({ slug }: { slug: string }) {
     )
   if (custom && !insights)
     return (
-      <div className="mx-auto max-w-[1400px] px-8 py-8">
+      <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-8 md:py-8">
         <Button icon={<ArrowLeft size={16} />} className="mb-6 rounded-full" onClick={() => navigate(LANDING)}>{t('reports.page.back')}</Button>
         <div className="card">
           <EmptyState icon={<BarChart3 size={26} />} title={t('reports.landing.premiumFeature')} body={t('reports.landing.premiumFeatureBody')} action={<Button onClick={gate}>{t('reports.page.learnMore')}</Button>} />
@@ -378,12 +378,12 @@ function ReportPage({ slug, def, spec, custom }: { slug: string; def: ReportDef;
   const hasTotal = Boolean(ruled.total && rows.length)
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-8 py-8">
-      <div className="mb-6 flex flex-wrap items-center gap-4">
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-5 md:px-8 md:py-8">
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3 md:mb-6 md:gap-4">
         <Button icon={<ArrowLeft size={16} />} className="rounded-full" onClick={() => navigate(custom ? '/reports/report-group/5?category=all' : LANDING)}>
           {t('reports.page.back')}
         </Button>
-        <nav aria-label={t('reports.page.breadcrumb')} className="flex flex-wrap items-center gap-2 text-body text-muted">
+        <nav aria-label={t('reports.page.breadcrumb')} className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-body text-muted md:gap-2">
           <Link to={LANDING} className="hover:text-ink hover:underline">{t('reports.landing.groups.all')}</Link>
           {custom && (
             <>
@@ -402,9 +402,9 @@ function ReportPage({ slug, def, spec, custom }: { slug: string; def: ReportDef;
         </nav>
       </div>
 
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-5 flex items-start justify-between gap-3 md:mb-6 md:gap-4">
         <div className="min-w-0">
-          <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 text-ink">
+          <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 break-words font-display text-title-2 text-ink md:gap-3 md:text-title-1">
             {name}
             <button type="button" className="icon-btn h-9 w-9" aria-label={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} title={t(fav ? 'reports.removeFavourite' : 'reports.addFavourite')} aria-pressed={fav} onClick={() => toggleFav(slug)}>
               <Star size={22} className={fav ? 'fill-accent text-accent' : 'text-ink'} aria-hidden />
@@ -412,7 +412,7 @@ function ReportPage({ slug, def, spec, custom }: { slug: string; def: ReportDef;
             {def.premium && <span className="chip h-7 bg-primary-subtle px-3 text-small text-primary">{t('reports.premium')}</span>}
             {custom && <Chip>{t('reports.custom.chip')}</Chip>}
           </h1>
-          <p className="mt-1 text-body-lg text-muted">
+          <p className="mt-1 text-body text-muted md:text-body-lg">
             {description} {t('reports.page.dataFrom', { count: minutesAgo })}
           </p>
           {custom && <p className="mt-1 text-small text-subtle">{t('reports.custom.basedOnLine', { name: def.name, by: custom.createdBy || t('reports.custom.unknown') })}</p>}
@@ -450,9 +450,9 @@ function ReportPage({ slug, def, spec, custom }: { slug: string; def: ReportDef;
             }}
           />
         )}
-        <span className="flex-1" />
+        <span className="hidden flex-1 md:block" />
         {spec.customize && (
-          <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink hover:bg-sunken" aria-label={t('reports.customize.title')} title={t('reports.customize.title')} onClick={() => setCustomizeOpen(true)}>
+          <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface text-ink hover:bg-sunken" aria-label={t('reports.customize.title')} title={t('reports.customize.title')} onClick={() => setCustomizeOpen(true)}>
             <Settings size={20} aria-hidden />
           </button>
         )}
@@ -591,7 +591,7 @@ function ReportPage({ slug, def, spec, custom }: { slug: string; def: ReportDef;
             </span>
             <p className="font-display text-title-3 text-ink">{t('reports.page.premiumTitle')}</p>
             <p className="text-body text-muted">{t('reports.page.premiumBody')}</p>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
               <Button variant="primary" className="rounded-full" onClick={gate}>{t('reports.page.upgrade')}</Button>
               <Button className="rounded-full" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: t('reports.topics.insights') })}>{t('reports.page.learnMore')}</Button>
             </div>
@@ -647,14 +647,17 @@ function DateStepper({ day, onChange }: { day: string; onChange: (day: string) =
   const today = todayISO()
   const shift = (n: number) => format(addDays(parseISO(day), n), 'yyyy-MM-dd')
   return (
-    <div className="inline-flex h-11 items-stretch overflow-hidden rounded-full border border-line-strong bg-surface text-body-strong text-ink">
+    <div className="inline-flex h-11 max-w-full items-stretch overflow-hidden rounded-full border border-line-strong bg-surface text-body-strong text-ink">
       <button type="button" className="flex w-11 items-center justify-center hover:bg-sunken" aria-label={t('reports.page.prevDay')} onClick={() => onChange(shift(-1))}>
         <ChevronLeft size={18} aria-hidden />
       </button>
-      <button type="button" className={clsx('border-x border-line-strong px-4 hover:bg-sunken', day === today && 'bg-sunken')} onClick={() => onChange(today)}>
+      <button type="button" className={clsx('whitespace-nowrap border-x border-line-strong px-3 hover:bg-sunken md:px-4', day === today && 'bg-sunken')} onClick={() => onChange(today)}>
         {t('reports.page.todaysDate')}
       </button>
-      <span className="flex items-center px-4">{format(parseISO(day), 'EEEE, d MMM yyyy')}</span>
+      <span className="flex items-center whitespace-nowrap px-3 md:px-4">
+        <span className="md:hidden">{format(parseISO(day), 'EEE, d MMM')}</span>
+        <span className="hidden md:inline">{format(parseISO(day), 'EEEE, d MMM yyyy')}</span>
+      </span>
       <button type="button" className="flex w-11 items-center justify-center border-l border-line-strong hover:bg-sunken disabled:opacity-40" aria-label={t('reports.page.nextDay')} disabled={day >= today} onClick={() => onChange(shift(1))}>
         <ChevronRight size={18} aria-hidden />
       </button>

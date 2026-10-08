@@ -123,7 +123,7 @@ export function MembershipEditorPage() {
         ],
       }}
     >
-      <div className="rounded-xl p-6 text-white shadow-md" style={{ background: membershipColor(form.color) }}>
+      <div className="rounded-xl p-5 text-white shadow-md md:p-6" style={{ background: membershipColor(form.color) }}>
         <p className="font-display text-title-2">{form.name || t(`${P}.previewName`)}</p>
         <p className="mt-1 text-body opacity-90">{benefitLines(form, services).join(' • ') || t(`${P}.previewBenefits`)}</p>
         <p className="mt-6 text-right font-display text-title-1">
@@ -149,8 +149,8 @@ export function MembershipEditorPage() {
         title={t(`${P}.secBenefits`)}
         subtitle={t(`${P}.benefitsSubtitle`)}
         action={
-          <Button size="sm" icon={<Plus size={16} aria-hidden />} onClick={() => set({ benefits: [...form.benefits, { serviceIds: [], sessions: 1 }] })}>
-            {t(`${P}.addBenefit`)}
+          <Button size="sm" icon={<Plus size={16} aria-hidden />} aria-label={t(`${P}.addBenefit`)} className="max-md:h-10 max-md:w-10 max-md:px-0" onClick={() => set({ benefits: [...form.benefits, { serviceIds: [], sessions: 1 }] })}>
+            <span className="hidden md:inline">{t(`${P}.addBenefit`)}</span>
           </Button>
         }
       >
@@ -174,7 +174,7 @@ export function MembershipEditorPage() {
                     <Trash2 size={16} aria-hidden />
                   </button>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-4">
+                <div className="mt-3 flex flex-wrap items-center gap-3 md:gap-4">
                   <Button size="sm" onClick={() => setPicker(i)}>
                     {t(`${P}.chooseServices`)}
                   </Button>

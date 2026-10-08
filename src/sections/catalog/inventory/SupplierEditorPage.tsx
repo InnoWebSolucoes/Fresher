@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -90,8 +91,8 @@ function SupplierForm({ supplier }: { supplier?: Supplier }) {
       actions={
         <>
           {supplier && (
-            <Button className="text-danger" onClick={() => void remove()}>
-              {t('catalog.common.delete')}
+            <Button className="text-danger max-md:w-10 max-md:px-0" icon={<Trash2 size={16} className="md:hidden" aria-hidden />} aria-label={t('catalog.common.delete')} onClick={() => void remove()}>
+              <span className="hidden md:inline">{t('catalog.common.delete')}</span>
             </Button>
           )}
           <Button variant="primary" loading={saving} onClick={() => void save()}>

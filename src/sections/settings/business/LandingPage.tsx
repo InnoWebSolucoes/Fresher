@@ -75,11 +75,11 @@ export function LandingPage() {
   const { t } = useTranslation()
   const workspace = useWorkspace()
   return (
-    <div className="mx-auto max-w-[1120px] px-8 py-8">
+    <div className="mx-auto max-w-[1120px] px-4 py-5 md:px-8 md:py-8">
       <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle', { business: workspace?.name ?? '' })} />
-      <nav className="mb-6 flex gap-2" aria-label={t('settings.title')}>
+      <nav className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 py-0.5 [scrollbar-width:none] md:mx-0 md:mb-6 md:overflow-visible md:px-0 md:py-0" aria-label={t('settings.title')}>
         {(['settings', 'online', 'marketing', 'other'] as const).map((tab) => (
-          <a key={tab} href={`#${tab}`} className="chip h-9 bg-surface px-4 text-body-strong text-ink ring-1 ring-line hover:bg-sunken">
+          <a key={tab} href={`#${tab}`} className="chip h-9 shrink-0 whitespace-nowrap bg-surface px-4 text-body-strong text-ink ring-1 ring-line hover:bg-sunken">
             {t(`settings.tabs.${tab}`)}
           </a>
         ))}
@@ -100,10 +100,10 @@ export function LandingPage() {
                 </Link>
                 <span className="mt-1 block text-body text-muted">{t(category.description)}</span>
               </span>
-              <ul className="relative z-10 mt-auto flex flex-wrap gap-x-3 gap-y-1 border-t border-line pt-3" aria-label={t('settings.landing.pagesIn', { category: t(category.title) })}>
+              <ul className="relative z-10 mt-auto flex flex-wrap gap-x-3 gap-y-0 border-t md:gap-y-1 border-line pt-3" aria-label={t('settings.landing.pagesIn', { category: t(category.title) })}>
                 {links.map((link) => (
                   <li key={link.to}>
-                    <Link to={link.to} className="text-small text-muted hover:text-primary hover:underline" data-testid={`settings-link-${link.to.split('/').pop()}`}>
+                    <Link to={link.to} className="inline-block py-1 text-small text-muted hover:text-primary hover:underline md:inline md:py-0" data-testid={`settings-link-${link.to.split('/').pop()}`}>
                       {t(link.label)}
                     </Link>
                   </li>
@@ -122,15 +122,15 @@ export function LandingPage() {
               const [title, description] = t(`settings.rows.${row.key}`, { returnObjects: true }) as [string, string]
               const Icon = row.icon
               return (
-                <Link key={row.key} to={row.to} className="flex items-center gap-4 px-5 py-4 hover:bg-sunken">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-sunken text-primary">
+                <Link key={row.key} to={row.to} className="flex items-center gap-3 px-4 py-4 hover:bg-sunken md:gap-4 md:px-5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sunken text-primary">
                     <Icon size={18} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-body-strong text-ink">{title}</span>
                     <span className="block text-body text-muted">{description}</span>
                   </span>
-                  <span className="text-body-strong text-primary">{t('settings.view')}</span>
+                  <span className="shrink-0 text-body-strong text-primary">{t('settings.view')}</span>
                 </Link>
               )
             })}

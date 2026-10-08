@@ -54,9 +54,9 @@ export function NotificationsDrawer({ params }: DrawerProps) {
 
   return (
     <div className="flex h-full flex-col" aria-label={t('drawers.notifications')}>
-      <div className="flex items-center justify-between gap-3 px-6 pb-3 pt-6">
-        <h2 className="font-display text-title-1 text-ink">{title}</h2>
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-4 md:px-6 md:pt-6">
+        <h2 className="min-w-0 font-display text-title-2 text-ink md:text-title-1">{title}</h2>
+        <div className="flex shrink-0 items-center gap-2">
           {tab.value === 'reviews' && (
             <Button size="sm" variant="link" onClick={() => navigate('/clients/online-reputation?tab=all')}>
               {t('panels.notifications.seeAllReviews')}
@@ -74,7 +74,7 @@ export function NotificationsDrawer({ params }: DrawerProps) {
         </div>
       </div>
       {tab.value === 'actions' && (
-        <div className="px-6 pb-2">
+        <div className="px-4 pb-2 md:px-6">
           <Menu
             align="left"
             trigger={({ open, toggle }) => (
@@ -87,7 +87,7 @@ export function NotificationsDrawer({ params }: DrawerProps) {
           />
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 md:px-6">
         <NotificationList key={tab.value} tab={tab.value} dbTab={tab.db} icon={tab.icon} filter={tab.value === 'actions' ? filter : 'all'} />
       </div>
       <BottomTabs<Tab>

@@ -169,7 +169,7 @@ function EditForm({ segment }: { segment: ClientSegment }) {
         </>
       }
     >
-      <h1 className="mb-8 font-display text-display text-ink">{t('clients.segments.edit.title', { name: segment.name })}</h1>
+      <h1 className="mb-6 break-words font-display text-title-1 text-ink md:mb-8 md:text-display">{t('clients.segments.edit.title', { name: segment.name })}</h1>
 
       {segment.standard ? (
         <div className="flex flex-col gap-5">
@@ -230,7 +230,7 @@ function EditForm({ segment }: { segment: ClientSegment }) {
         </div>
       )}
 
-      <section className="mt-10">
+      <section className="mt-8 md:mt-10">
         <h2 className="mb-4 text-title-3 text-ink">{t('clients.segments.edit.advanced')}</h2>
         <BadgeFields value={badge} onChange={setBadge} showErrors={showErrors} hintKey="hintEdit" />
       </section>

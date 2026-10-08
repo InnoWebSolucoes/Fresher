@@ -95,7 +95,7 @@ export function AllReviewsTab({ reviews, connected, onConnect }: { reviews: Revi
           {t('clients.more.reputation.filters')}
           {count > 0 && <span className="chip ml-1 h-5 bg-primary px-1.5 text-caption text-on-primary">{count}</span>}
         </Button>
-        <SearchInput value={query} onChange={setQuery} placeholder={t('clients.more.reputation.search')} className="max-w-[280px]" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t('clients.more.reputation.search')} className="order-first min-w-0 basis-full md:order-none md:min-w-[240px] md:max-w-[280px] md:basis-0" />
         <div className="ml-auto">
           <Menu
             label={t(`clients.more.reputation.sort.${sort}`)}
@@ -117,7 +117,8 @@ export function AllReviewsTab({ reviews, connected, onConnect }: { reviews: Revi
           </p>
           <p className="mt-2 text-body text-muted">{t('clients.more.reputation.onAllPlatforms', { count: filtered.length })}</p>
           <StarBars counts={ratingCounts(filtered)} className="mt-5" />
-          <div className="mt-6 flex flex-col gap-5 border-t border-line pt-5">
+          {/* Phones: the quick filters live in the Filters drawer (toolbar) to keep the reviews close to the top. */}
+          <div className="mt-6 hidden flex-col gap-5 border-t border-line pt-5 md:flex">
             <QuickGroup title={t('clients.more.reputation.groups.rating')}>
               {[5, 4, 3, 2, 1].map((n) =>
                 chip(
@@ -235,7 +236,7 @@ function ReviewCard({ review }: { review: Review }) {
   }
 
   return (
-    <article className="card p-5">
+    <article className="card p-4 md:p-5">
       <header className="flex items-start gap-3">
         {client ? <ClientAvatar client={client} size={44} /> : <span className="h-11 w-11 shrink-0 rounded-full bg-sunken" />}
         <div className="min-w-0 flex-1">

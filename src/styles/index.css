@@ -65,3 +65,30 @@
     opacity: 1;
   }
 }
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-32px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Phones: the page never scrolls sideways, and iOS doesn't zoom into form fields (it does below 16px). */
+@layer base {
+  html,
+  body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+}

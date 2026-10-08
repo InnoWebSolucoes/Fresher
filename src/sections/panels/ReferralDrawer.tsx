@@ -61,7 +61,7 @@ export function ReferralDrawer() {
   return (
     <div className="flex h-full flex-col" aria-label={t('drawers.referral')}>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="relative bg-gradient-to-br from-[#0B3B37] via-primary-active to-primary px-8 pb-10 pt-6 text-white">
+        <div className="relative bg-gradient-to-br from-[#0B3B37] via-primary-active to-primary px-5 pb-8 pt-5 text-white md:px-8 md:pb-10 md:pt-6">
           <div className="flex justify-end">
             <Menu
               trigger={({ open, toggle }) => (
@@ -80,8 +80,8 @@ export function ReferralDrawer() {
               ]}
             />
           </div>
-          <h2 className="mt-8 font-display text-[40px] font-bold leading-[46px]">{t('panels.referral.title')}</h2>
-          <div className="mt-6 flex gap-2" aria-hidden>
+          <h2 className="mt-6 font-display text-[30px] font-bold leading-[36px] md:mt-8 md:text-[40px] md:leading-[46px]">{t('panels.referral.title')}</h2>
+          <div className="mt-6 flex flex-wrap gap-2" aria-hidden>
             {[money(13), money(13), money(13), '…'].map((x, i) => (
               <span key={i} className="rounded-full bg-white/15 px-3 py-1 text-small">
                 {x}
@@ -91,7 +91,7 @@ export function ReferralDrawer() {
         </div>
 
         {view === 'home' ? (
-          <div className="px-8 py-6">
+          <div className="px-5 py-6 md:px-8">
             <h3 className="font-display text-title-3 text-ink">{t('panels.referral.howItWorks')}</h3>
             <ol className="mt-4 flex flex-col gap-5">
               {steps.map((s, i) => (
@@ -111,7 +111,7 @@ export function ReferralDrawer() {
             )}
           </div>
         ) : (
-          <div className="px-8 py-6">
+          <div className="px-5 py-6 md:px-8">
             <button type="button" onClick={() => setView('home')} className="btn-secondary mb-4 h-9 rounded-full px-3">
               <ArrowLeft size={16} aria-hidden />
               {t('common.back')}
@@ -136,7 +136,7 @@ export function ReferralDrawer() {
           </div>
         )}
       </div>
-      <div className="border-t border-line p-5">
+      <div className="border-t border-line p-4 md:p-5">
         <Button variant="primary" size="lg" className="w-full rounded-full" onClick={() => setShare('link')}>
           {t('panels.referral.share')}
         </Button>
