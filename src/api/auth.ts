@@ -1,47 +1,75 @@
-import { useSessionStore, type DemoUser } from '@/store/session'
+import { useSessionStore } from '@/store/session'
+import { commit, db } from '@/store/db'
+import type { User } from '@/types'
 import { ApiError, latency } from './client'
+import { queueMessage } from './messaging'
+import { nowISO } from '@/lib/time'
 
 const normalise = (email: string) => email.trim().toLowerCase()
 
-export async function login(email: string, password: string): Promise<DemoUser> {
+export async function login(email: string, password: string): Promise<User> {
   await latency()
-  const { users, _setCurrentUser } = useSessionStore.getState()
-  const user = users.find((u) => u.email === normalise(email))
+  const user = db().users.find((u) => u.email === normalise(email))
   if (!user || user.password !== password) {
     throw new ApiError('invalid_credentials', 'auth.errors.invalidCredentials')
   }
   if (user.role === 'none') {
     throw new ApiError('no_access', 'auth.errors.noAccess')
   }
-  _setCurrentUser(user.id)
+  useSessionStore.getState().setCurrentUser(user.id)
   return user
 }
 
 export async function logout(): Promise<void> {
   await latency(150, 300)
-  useSessionStore.getState()._setCurrentUser(null)
+  useSessionStore.getState().setCurrentUser(null)
 }
 
-/**
- * Creates a reset token. Phase 1 delivers the link to the demo outbox; the
- * token is returned so the UI can confirm it was "sent".
- */
+/** Switch the session to another user without a password (demo panel "Switch role"). */
+export async function switchUser(userId: string): Promise<void> {
+  await latency(100, 200)
+  useSessionStore.getState().setCurrentUser(userId)
+}
+
+/** Creates a one-time token and emails the reset link to the demo outbox. */
 export async function requestPasswordReset(email: string): Promise<{ token: string | null }> {
   await latency()
-  const { users, resets, _setResets } = useSessionStore.getState()
-  const user = users.find((u) => u.email === normalise(email))
+  const user = db().users.find((u) => u.email === normalise(email))
   // Same response whether or not the account exists, like a real product.
   if (!user) return { token: null }
   const token = crypto.randomUUID()
-  _setResets([...resets, { token, email: user.email, createdAt: new Date().toISOString(), used: false }])
+  useSessionStore.getState().addReset({ token, email: user.email, createdAt: nowISO(), used: false })
+  queueMessage({
+    clientId: null,
+    to: user.email,
+    toName: `${user.firstName} ${user.lastName}`,
+    channel: 'email',
+    type: 'password_reset',
+    subject: 'Reset your Innoweb Bookings password',
+    body: `Hi ${user.firstName}, we received a request to reset your password. The link below works once and expires in 1 hour.`,
+    link: { label: 'Choose a new password', href: `/reset-password?token=${token}` },
+  })
   return { token }
 }
 
 export async function resetPassword(token: string, password: string): Promise<void> {
   await latency()
-  const { users, resets, _setUsers, _setResets } = useSessionStore.getState()
-  const reset = resets.find((r) => r.token === token && !r.used)
+  const session = useSessionStore.getState()
+  const reset = session.resets.find((r) => r.token === token && !r.used)
   if (!reset) throw new ApiError('invalid_token', 'auth.errors.invalidToken')
-  _setUsers(users.map((u) => (u.email === reset.email ? { ...u, password } : u)))
-  _setResets(resets.map((r) => (r.token === token ? { ...r, used: true } : r)))
+  commit((d) => {
+    const user = d.users.find((u) => u.email === reset.email)
+    if (user) user.password = password
+  })
+  session.useReset(token)
+}
+
+export async function changePassword(userId: string, current: string, next: string): Promise<void> {
+  await latency()
+  const user = db().users.find((u) => u.id === userId)
+  if (!user || user.password !== current) throw new ApiError('invalid_password', 'Current password is incorrect')
+  commit((d) => {
+    const u = d.users.find((x) => x.id === userId)
+    if (u) u.password = next
+  })
 }

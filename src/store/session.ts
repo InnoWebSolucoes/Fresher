@@ -1,16 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { PermissionRole } from '@/lib/permissions'
-
-export interface DemoUser {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  role: PermissionRole
-  /** Demo only: logins are stored in the browser, never sent anywhere. */
-  password: string
-}
+import { useDb } from './db'
+import type { User } from '@/types'
 
 export interface PasswordReset {
   token: string
@@ -20,39 +11,35 @@ export interface PasswordReset {
 }
 
 interface SessionState {
-  users: DemoUser[]
   currentUserId: string | null
   resets: PasswordReset[]
-  /** Store setters, called only from src/api. */
-  _setCurrentUser: (id: string | null) => void
-  _setUsers: (users: DemoUser[]) => void
-  _setResets: (resets: PasswordReset[]) => void
+  setCurrentUser: (id: string | null) => void
+  addReset: (reset: PasswordReset) => void
+  useReset: (token: string) => void
 }
 
-// Ready-made logins from SPEC §4.
-export const SEED_USERS: DemoUser[] = [
-  { id: 'u-owner', email: 'owner@demo.app', firstName: 'Marta', lastName: 'Ribeiro', role: 'owner', password: 'demo1234' },
-  { id: 'u-staff', email: 'staff@demo.app', firstName: 'João', lastName: 'Pereira', role: 'basic', password: 'demo1234' },
-]
-
+/** Who is logged in on this browser (users themselves live in the db store). */
 export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
-      users: SEED_USERS,
       currentUserId: null,
       resets: [],
-      _setCurrentUser: (id) => set({ currentUserId: id }),
-      _setUsers: (users) => set({ users }),
-      _setResets: (resets) => set({ resets }),
+      setCurrentUser: (id) => set({ currentUserId: id }),
+      addReset: (reset) => set((s) => ({ resets: [...s.resets, reset] })),
+      useReset: (token) => set((s) => ({ resets: s.resets.map((r) => (r.token === token ? { ...r, used: true } : r)) })),
     }),
-    { name: 'ib-session', version: 1 },
+    { name: 'ib-session', version: 2 },
   ),
 )
 
-export function useCurrentUser(): DemoUser | null {
-  return useSessionStore((s) => s.users.find((u) => u.id === s.currentUserId) ?? null)
+export type DemoUser = User
+
+export function useCurrentUser(): User | null {
+  const id = useSessionStore((s) => s.currentUserId)
+  const users = useDb((s) => s.users)
+  return users?.find((u) => u.id === id) ?? null
 }
 
-export function initials(user: Pick<DemoUser, 'firstName' | 'lastName'>): string {
+export function initials(user: Pick<User, 'firstName' | 'lastName'>): string {
   return `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
 }

@@ -12,6 +12,7 @@ import { StubPage } from '@/pages/StubPage'
 import { SettingsLandingPage } from '@/pages/settings/SettingsLandingPage'
 import { ReportGroupPage } from '@/pages/reports/ReportGroupPage'
 import { PAGES, REDIRECTS, type PageDef, type PageLayout } from './routeRegistry'
+import { SECTION_PAGES, SECTION_ROUTES } from './sectionRegistry'
 
 /** Pages that already render more than the generic stub in Phase 0. */
 const CUSTOM: Record<string, () => JSX.Element> = {
@@ -20,14 +21,16 @@ const CUSTOM: Record<string, () => JSX.Element> = {
 }
 
 function toRoute(page: PageDef): RouteObject {
-  const element = CUSTOM[page.id]?.() ?? <StubPage page={page} />
+  const SectionPage = SECTION_PAGES[page.id]
+  const element = SectionPage ? <SectionPage /> : (CUSTOM[page.id]?.() ?? <StubPage page={page} />)
   return {
     path: page.path,
     element: <RequireSection section={page.section}>{element}</RequireSection>,
   }
 }
 
-const byLayout = (layout: PageLayout) => PAGES.filter((page) => page.layout === layout).map(toRoute)
+const ALL_PAGES = [...PAGES, ...SECTION_ROUTES]
+const byLayout = (layout: PageLayout) => ALL_PAGES.filter((page) => page.layout === layout).map(toRoute)
 
 const redirects: RouteObject[] = REDIRECTS.map((r) => ({ path: r.from, element: <Navigate to={r.to} replace /> }))
 

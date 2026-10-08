@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useDrawer } from '@/lib/drawer'
+import { SECTION_DRAWERS } from '@/app/sectionRegistry'
 
 /** Phase and reference file for each top-bar drawer (REFERENCE_MAP.md, app shell). */
 const DRAWERS: Record<string, { phase: number; ref: string; tabs?: string[] }> = {
@@ -31,6 +32,28 @@ export function DrawerHost() {
     return () => document.removeEventListener('keydown', onKey)
   }, [name, close])
 
+  const section = drawer.name ? SECTION_DRAWERS[drawer.name] : undefined
+  if (drawer.name && section) {
+    const Component = section.component
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end" data-testid={`drawer-${drawer.name}`}>
+        <button type="button" aria-label={t('drawers.closeDrawer')} className="absolute inset-0 cursor-default bg-ink/10" onClick={drawer.close} tabIndex={-1} />
+        <div className="relative flex h-full max-w-full animate-[slideIn_var(--dur-slow)_var(--ease)]">
+          <button
+            type="button"
+            onClick={drawer.close}
+            aria-label={t('drawers.closeDrawer')}
+            className="absolute -left-16 top-4 hidden h-12 w-12 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-md hover:bg-sunken sm:flex"
+          >
+            <X size={20} aria-hidden />
+          </button>
+          <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" className="flex h-full max-w-[100vw] flex-col overflow-hidden bg-surface shadow-lg outline-none" style={{ width: section.width ?? 480 }}>
+            <Component id={drawer.id} params={drawer.params} close={drawer.close} />
+          </div>
+        </div>
+      </div>
+    )
+  }
   if (!drawer.name || !def) return null
   const title = t(`drawers.${drawer.name}`)
 
