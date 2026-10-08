@@ -105,7 +105,7 @@ export function Switch({ checked, onChange, label, hint, disabled }: { checked: 
       onClick={() => onChange(!checked)}
       className={clsx('relative h-6 w-11 shrink-0 rounded-full transition-colors duration-fast disabled:opacity-50', checked ? 'bg-primary' : 'bg-line-strong')}
     >
-      <span className={clsx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-fast', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
+      <span className={clsx('absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-fast', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
     </button>
   )
   if (!label) return button
@@ -147,7 +147,7 @@ export function RadioGroup<T extends string>({ value, onChange, options, variant
 }
 
 /** Euro amount input that keeps a numeric value. */
-export function MoneyInput({ value, onChange, ...rest }: { value: number | ''; onChange: (v: number | '') => void } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'prefix'>) {
+export function MoneyInput({ value, onChange, ...rest }: { value: number | ''; onChange: (v: number | '') => void; invalid?: boolean } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'prefix'>) {
   return (
     <TextInput
       prefix="€"

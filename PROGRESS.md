@@ -13,33 +13,14 @@ SPEC.md, REFERENCE_MAP.md, DESIGN_TOKENS.md; Vite + React 18 + strict TS + Tailw
 - ☑ Demo panel (Ctrl+Shift+D): reset, switch role, time travel, all 7 client actions, 4 business events, outbox
 - ☑ Golden path covered at the API level (`src/api/goldenPath.test.ts`)
 
-## Phase 2 — Home, Calendar, appointments, checkout
-- ☑ Home dashboard (6 cards, filters, charts, click-through)
-- ◐ Calendar: ☑ toolbar, URL state, day/3 day/week/month views, hatching, current-time line, quick actions, drag to move/resize with conflict warnings, all pick modes, new-appointment drawer (client picker, Services › Time with availability engine, service editor, repeat, notes), appointment drawer (status menu, no-show/cancel with fees, every Options action, activity, minimise), form selection. ◐ filters drawer (status/type/channel/payment only), waitlist (list, book, remove), group drawer (no checkout-all/no-show-all), blocked time (plain form)
-- ☑ Checkout (cart, tips, every payment method incl. cash keypad, redeem gift, split, other/custom, card terminal, self checkout, QR code, manual card, declined state, register rule, discounts, receipt note, service charge, drafts), sale drawer (refund, edit details, notes, email, print, PDF receipt, void), gift card drawer, Payments page
+## Phases 2–5 — every page built
+Every route in `src/app/routeRegistry.ts` now renders a real page (no "Scheduled for Phase" stubs left): Home, Calendar, Checkout, Sales, Clients (list, form, drawer, import, merge, segments, loyalty, online reputation), Catalog (services, bundles, packages, memberships, products, stocktakes, stock orders, suppliers), Online presence (marketplace profile wizard and dashboard, Facebook/Instagram, link builder, Smart Website, product store), Marketing, Team, top-bar panels and inbox, Reports (56 reports + 3 dashboards, filters, CSV/Excel/PDF), Add-ons (intro, enable, manage, integrations, payments onboarding), Settings (all categories), Billing, account area.
 
-## Phase 3 — Sales, Clients, Catalog
-- ☑ Sales: Daily sales (live tables, PDF/CSV/Excel exports), Register (setup, open, cash in/out, count, close, period drawer), Appointments, Sales (+ Drafts), Refund sale, Payment transactions, Gift cards / Packages / Memberships sold, Product orders
-- ◐ Clients: ☑ Clients list (filters, bulk actions, exports), add/edit client (all sections), client drawer (all tabs and Actions dialogs). ☐ Import wizard, Merge, Segments pages, Loyalty, Online reputation (logic written in `src/api/clients.ts` + `src/sections/clients/lib`)
-- ◐ Catalog: ☑ Service menu (all menus, filters, editor, variants, advanced pricing, add-ons, bundles, menu order, booking sequence, bulk edit, PDF/Excel/CSV), ☑ Packages (list, holders, editor, sell). ☐ Memberships, Products, Stocktakes, Stock orders, Suppliers (API written in `src/api/catalog.ts`, no screens yet)
-
-## Phase 4 — Online booking, Marketing, Team, top bar
-- ☐ Online presence pages (API in `src/api/online.ts`, no screens yet)
-- ☑ Marketing: Blast campaigns (Draft / Pending / Scheduled / Sent, builder, billing wizard, approval flow, detail), Automations (+ detail, configure, email editor, top-ups), Messages history, Deals (list + 3-type wizard), Smart pricing (overview + wizard)
-- ☑ Team: members list, add/edit (invites, Independent-plan rule), reorder, calendar sync, member drawer, scheduled shifts (edit day, repeating shifts, time off, closed periods), timesheets, pay runs (breakdown, adjustments, settlements, pay team wizard with emailed code, register tips mode), accept-invite page
-- ☑ Top-bar panels: Guides, Help (help centre, email, phone, live chat), News, Search, Performance insights, Notifications, Wallet, Referral; Client messages inbox
-
-## Phase 5 — Reports, Add-ons, Settings, Billing, account, Help
-- ◐ Reports: 54 of 56 reports compute live (group by, date range, totals, drill-down, premium blur until Insights, CSV export). ☐ 3 dashboards, Performance summary/over time, filters drawer, customize, Excel/PDF export, data connector
-- ◐ Add-ons: page with cards and statuses, enable via API with invoice. ☐ intro modals, enable screens, manage pages, payments onboarding, integrations forms
-- ◐ Settings: ☑ landing, Business details + edit, Locations (+ 4-step add, location page with all tabs), Sales (all 8 pages), Scheduling (Time and calendar, Waitlist, Blocked time types, Resources), Form templates list, Permission matrix editor. ☐ other Scheduling pages, Clients settings, Team settings list pages, Forms builder, Payments pages
-- ☑ Billing: details, bank accounts, payment methods, communication balance, invoices with PDF preview (IVA 23%), subscriptions, Change your plan (Independent €19.95 / Team €12.95 per bookable member, excl. IVA)
-- ☐ Account area pages (My profile, Portfolio, Reviews, Pay runs, Workspaces, Personal settings…) — API in `src/api/panels.ts`, no screens yet
-- ☑ Help (in the top-bar panels)
+Simplified in the calendar: the filters drawer (status/type/channel/payment only), waitlist (list, book, remove), group drawer (no checkout-all / no-show-all) and blocked-time drawer (plain form).
 
 ## Phase 6 — polish
-- ☑ Error boundary so a failing page doesn't take the app down
-- ◐ Playwright: login/menu/permissions suite, every-route crawl and golden-path smoke (`e2e/`)
+- ☑ Error boundary; type-check clean; 31 unit tests pass; production build passes; crawl of all 116 static routes shows no crashes or stubs
+- ◐ Playwright suites in `e2e/` (shell, every-route crawl, golden-path smoke)
 - ☐ Full tablet and dark-mode pass
 
 ## Known follow-ups
