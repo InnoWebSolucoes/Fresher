@@ -21,6 +21,9 @@ const SIZES = { sm: 'max-w-[420px]', md: 'max-w-[560px]', lg: 'max-w-[720px]', x
 /** Centred modal dialog with Escape-to-close and initial focus. */
 export function Modal({ open, onClose, title, subtitle, children, footer, size = 'md', hideClose, className }: ModalProps) {
   const panel = useRef<HTMLDivElement>(null)
+  // Keep the latest onClose without re-running the focus effect on every render.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
   useEffect(() => {
     if (!open) return
     const previous = document.activeElement as HTMLElement | null
@@ -29,7 +32,7 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
-        onClose()
+        onCloseRef.current()
       }
     }
     document.addEventListener('keydown', onKey, true)
@@ -37,7 +40,7 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
       document.removeEventListener('keydown', onKey, true)
       previous?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
   return createPortal(

@@ -32,7 +32,8 @@ const ROLE_SECTIONS: Record<PermissionRole, SectionId[]> = {
 }
 
 export function canAccess(role: PermissionRole, section: SectionId): boolean {
-  return ROLE_SECTIONS[role].includes(section)
+  // Custom roles created in Settings fall back to Medium access.
+  return (ROLE_SECTIONS[role] ?? ROLE_SECTIONS.medium).includes(section)
 }
 
 /** Where a user lands after login: Home when allowed, otherwise the calendar. */
