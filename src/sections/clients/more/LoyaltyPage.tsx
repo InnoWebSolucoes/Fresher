@@ -45,7 +45,7 @@ export function ClientLoyaltyPage() {
         }
         primary={{ label: t('clients.more.loyalty.startNow'), onClick: () => navigate('/add-ons/add-on/loyalty/setup') }}
         secondary={
-          <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', view: 'help-center', d_q: 'Client Loyalty' })}>
+          <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: 'Client Loyalty' })}>
             {t('clients.more.common.learnMore')}
           </Button>
         }

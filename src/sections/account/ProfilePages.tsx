@@ -643,7 +643,7 @@ export function PortfolioPage() {
             <Button variant="primary" size="lg" loading={starting} onClick={start}>
               {t('account.portfolio.continue')}
             </Button>
-            <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', view: 'help-center', d_q: 'portfolio' })}>
+            <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: 'portfolio' })}>
               {t('account.common.learnMore')}
             </Button>
           </div>

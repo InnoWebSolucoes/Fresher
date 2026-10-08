@@ -24,6 +24,37 @@ export interface CartItem {
   /** Gift card options (type 'gift_card'). */
   giftCard?: { value: number; expiry: string; customCode?: string; isGift: boolean; sendEmail: boolean; ownerClientId?: ID | null }
   benefitNote?: string
+  /** Redeem one session of a client package benefit for this line (price usually 0). */
+  redeem?: { clientPackageId: ID; benefitId: ID }
+  /** Client reward applied to this line; marked redeemed when the sale completes. */
+  rewardId?: ID
+}
+
+/** Package benefits a client can still use for a service (checkout "Apply rewards or discounts"). */
+export function availablePackageBenefits(clientId: ID | null, serviceId: ID) {
+  if (!clientId) return []
+  const data = db()
+  const today = todayISO()
+  return data.clientPackages
+    .filter((cp) => cp.clientId === clientId && cp.status === 'active' && cp.expiresAt >= today)
+    .flatMap((cp) => {
+      const def = data.packages.find((p) => p.id === cp.packageId)
+      return (def?.benefits ?? [])
+        .filter((b) => (b.type === 'service' || b.type === 'service_group') && b.serviceIds?.includes(serviceId))
+        .map((b) => {
+          const used = cp.usage.find((u) => u.benefitId === b.id)?.used ?? 0
+          const left = b.quantity === 'unlimited' ? Infinity : b.quantity - used
+          return { clientPackageId: cp.id, benefitId: b.id, packageName: def?.name ?? '', left }
+        })
+        .filter((x) => x.left > 0)
+    })
+}
+
+/** Unredeemed, unexpired rewards for a client. */
+export function availableRewards(clientId: ID | null) {
+  const client = db().clients.find((c) => c.id === clientId)
+  const today = todayISO()
+  return (client?.rewards ?? []).filter((r) => !r.redeemedAt && (!r.expiresAt || r.expiresAt >= today))
 }
 
 export interface PaymentInput {
@@ -134,9 +165,14 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
     throw new ApiError('card_declined', 'Card declined. Ask the client for another payment method.')
   }
 
-  const items: SaleItem[] = input.items.map((c) => ({ ...c, id: c.id ?? uid('si'), taxRate: c.type === 'gift_card' ? 0 : 0.23, giftCard: undefined }) as SaleItem)
+  const items: SaleItem[] = input.items.map((c) => {
+    const { giftCard: _giftCard, redeem, rewardId: _rewardId, ...line } = c
+    void _giftCard
+    void _rewardId
+    return { ...line, ...(redeem ? { clientPackageId: redeem.clientPackageId } : {}), id: c.id ?? uid('si'), taxRate: c.type === 'gift_card' ? 0 : 0.23 } as SaleItem
+  })
   const draft: Sale = existing
-    ? { ...existing, items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote }
+    ? { ...existing, clientId: input.clientId, items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote }
     : {
         id: uid('sale'),
         number: 0,
@@ -194,7 +230,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
       sale = d.sales.find((s) => s.id === draft.id)!
       sale.activity.unshift(activity(`Sale ${draft.number} created`, status === 'completed' ? `Completed by ${by}` : undefined))
     } else {
-      Object.assign(sale, { items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote })
+      Object.assign(sale, { clientId: input.clientId, items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote })
     }
     if (deposit) {
       const dep = d.payments.find((p) => p.id === deposit.id)!
@@ -265,6 +301,21 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
             d.clientMemberships.push(cm)
             line.clientMembershipId = cm.id
           }
+        }
+        if (cartItem.redeem) {
+          const cp = d.clientPackages.find((p) => p.id === cartItem.redeem!.clientPackageId)
+          if (cp) {
+            const usage = cp.usage.find((u) => u.benefitId === cartItem.redeem!.benefitId)
+            if (usage) usage.used += cartItem.quantity
+            else cp.usage.push({ benefitId: cartItem.redeem.benefitId, used: cartItem.quantity })
+            const def = d.packages.find((p) => p.id === cp.packageId)
+            const allUsed = def?.benefits.every((b) => b.quantity !== 'unlimited' && (cp.usage.find((u) => u.benefitId === b.id)?.used ?? 0) >= b.quantity)
+            if (allUsed) cp.status = 'used'
+          }
+        }
+        if (cartItem.rewardId && input.clientId) {
+          const reward = d.clients.find((c) => c.id === input.clientId)?.rewards.find((r) => r.id === cartItem.rewardId)
+          if (reward) reward.redeemedAt = at
         }
         if (cartItem.type === 'product' && cartItem.refId) {
           const product = d.products.find((p) => p.id === cartItem.refId)

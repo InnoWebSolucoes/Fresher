@@ -301,6 +301,7 @@ export interface ServiceCategory {
   color: PaletteColor
   description: string
   order: number
+  archived?: boolean
 }
 
 export type ExtraTimeType = 'processing' | 'blocked' | 'servicing'
@@ -632,6 +633,8 @@ export interface Client {
   patchTests: PatchTest[]
   rewards: ClientReward[]
   walletBalance: number
+  /** Profile photo as a data URL. */
+  photo?: string
   files: { id: ID; name: string; size: number; at: ISODateTime }[]
   createdAt: ISODateTime
   deletedAt?: ISODateTime
@@ -1163,6 +1166,10 @@ export interface AddOnState {
   status: 'inactive' | 'trial' | 'active'
   enabledAt?: ISODateTime
   trialEndsAt?: ISODate
+  /** Add-on or integration settings (tracking IDs, accounting sync…). */
+  config?: Record<string, unknown>
+  disabledAt?: ISODateTime
+  disabledReason?: string
 }
 
 export interface Invoice {
@@ -1262,6 +1269,8 @@ export interface Settings {
   savedFilters: SavedFilter[]
   clientSourcesOrder?: ID[]
   registersEnabled: boolean
+  /** Settings the reference shows that have no dedicated field (per-location overrides, bank accounts, terminals…). */
+  extras?: Record<string, unknown>
 }
 
 export interface DemoMeta {
@@ -1334,4 +1343,10 @@ export interface DbData {
   addOns: AddOnState[]
   invoices: Invoice[]
   settings: Settings
+  /**
+   * Section-owned data with no shared collection, keyed by section namespace
+   * (e.g. ext.marketing, ext.online). Read and write it through @/api/ext so
+   * it persists, syncs between tabs and resets with the demo.
+   */
+  ext: Record<string, Record<string, unknown>>
 }

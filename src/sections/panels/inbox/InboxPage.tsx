@@ -26,7 +26,6 @@ import {
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { DrawerHost } from '@/components/shell/DrawerHost'
 import { Wordmark } from '@/components/shell/Wordmark'
 import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
@@ -289,7 +288,6 @@ export function InboxPage() {
       {user && !introSeen && <IntroModal onClose={() => dismissInboxIntro(user.id)} />}
       <NewMessageModal open={newOpen} onClose={() => setNewOpen(false)} onStarted={(id) => navigate(`/connect/conversations/${id}`)} />
       <ContactPageModal open={contactOpen} onClose={() => setContactOpen(false)} />
-      <DrawerHost />
     </div>
   )
 }
@@ -662,7 +660,7 @@ function IntroModal({ onClose }: { onClose: () => void }) {
               size="lg"
               onClick={() => {
                 onClose()
-                drawer.open('resources', { tab: 'help', view: 'article', d_article: 'client-connect' })
+                drawer.open('resources', { tab: 'help', d_view: 'article', d_article: 'client-connect' })
               }}
             >
               {t('common.learnMore')}
@@ -738,7 +736,7 @@ function TeamConnectPromo() {
         <Button variant="primary" onClick={() => navigate('/add-ons/add-on/team-chat/intro')}>
           {t('panels.inbox.team.cta')}
         </Button>
-        <Button onClick={() => drawer.open('resources', { tab: 'help', view: 'help-center', d_q: 'Team Connect' })}>{t('common.learnMore')}</Button>
+        <Button onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: 'Team Connect' })}>{t('common.learnMore')}</Button>
       </div>
     </div>
   )

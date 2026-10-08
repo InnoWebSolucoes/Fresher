@@ -73,7 +73,7 @@ export function ReferralDrawer() {
                 {
                   items: [
                     { label: t('panels.referral.menuReferrals'), checked: view === 'list', onSelect: () => setView('list') },
-                    { label: t('panels.referral.menuLearn'), onSelect: () => drawer.open('resources', { tab: 'help', view: 'article', d_article: 'referrals' }) },
+                    { label: t('panels.referral.menuLearn'), onSelect: () => drawer.open('resources', { tab: 'help', d_view: 'article', d_article: 'referrals' }) },
                     { label: t('panels.referral.menuSupport'), onSelect: () => drawer.open('resources', { tab: 'help' }) },
                   ],
                 },

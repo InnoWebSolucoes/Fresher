@@ -16,8 +16,7 @@ interface IntroCopy {
   words?: string[]
 }
 
-/** Slug aliases used by links from the reference (fresha-insights → insights). */
-const normalize = (slug: string) => (slug === 'fresha-insights' ? 'insights' : slug)
+const normalize = (slug: string) => slug
 
 /** /add-ons/add-on/:slug/intro (add-ons.md §1.1): intro modal with price and Continue. */
 export function AddOnIntroPage() {

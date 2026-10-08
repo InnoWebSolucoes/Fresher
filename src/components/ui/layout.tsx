@@ -29,7 +29,7 @@ export function Toolbar({ children, className }: { children: ReactNode; classNam
 export function LearnMore({ topic, children = 'Learn more' }: { topic: string; children?: ReactNode }) {
   const drawer = useDrawer()
   return (
-    <button type="button" className="text-primary underline-offset-2 hover:underline" onClick={() => drawer.open('resources', { tab: 'help', view: 'help-center', d_q: topic })}>
+    <button type="button" className="text-primary underline-offset-2 hover:underline" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: topic })}>
       {children}
     </button>
   )
@@ -71,7 +71,7 @@ export function IntroPage({ badge = 'Included in your plan', title, body, bullet
 function LearnMoreButton({ topic }: { topic: string }) {
   const drawer = useDrawer()
   return (
-    <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', view: 'help-center', d_q: topic })}>
+    <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: topic })}>
       Learn more
     </Button>
   )

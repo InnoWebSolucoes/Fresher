@@ -265,7 +265,7 @@ function GuideView({ guide, progress, completed }: { guide: Guide; progress: Rec
         <div className="card mt-6 p-5">
           <h3 className="font-display text-title-3 text-ink">{t('panels.guides.helpCenter.title')}</h3>
           <p className="mt-1 text-body text-muted">{t('panels.guides.helpCenter.body')}</p>
-          <Button className="mt-4" onClick={() => drawer.update({ tab: 'help', view: 'help-center', d_guide: undefined })}>
+          <Button className="mt-4" onClick={() => drawer.update({ tab: 'help', d_view: 'help-center', d_guide: undefined })}>
             {t('panels.guides.helpCenter.cta')}
           </Button>
         </div>

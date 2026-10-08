@@ -3,6 +3,7 @@ import { ChevronLeft } from 'lucide-react'
 import { NavLink as RouterLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { matchesPrefix, type NavLink, type RailItem } from '@/app/navigation'
+import { useDb } from '@/store/db'
 
 interface SectionPanelProps {
   item: RailItem
@@ -20,6 +21,8 @@ function isLinkActive(link: NavLink, pathname: string, search: string): boolean 
 export function SectionPanel({ item, onCollapse, onNavigate }: SectionPanelProps) {
   const { t } = useTranslation()
   const { pathname, search } = useLocation()
+  const sessions = useDb((s) => s.registerSessions)
+  const openRegisters = sessions.filter((x) => !x.closedAt).length
   if (!item.panel) return null
 
   return (
@@ -48,11 +51,14 @@ export function SectionPanel({ item, onCollapse, onNavigate }: SectionPanelProps
                       onClick={onNavigate}
                       aria-current={active ? 'page' : undefined}
                       className={clsx(
-                        'flex h-10 items-center rounded-md px-3 text-body transition-colors duration-fast',
+                        'flex min-h-10 items-center rounded-md px-3 py-1.5 text-body transition-colors duration-fast',
                         active ? 'bg-primary-subtle font-semibold text-primary' : 'text-ink hover:bg-sunken',
                       )}
                     >
-                      {t(link.label)}
+                      <span className="flex flex-col">
+                        {t(link.label)}
+                        {link.hint === 'openRegisters' && openRegisters > 0 && <span className="text-caption font-normal text-muted">{t('nav.openRegisters', { count: openRegisters })}</span>}
+                      </span>
                     </RouterLink>
                   </li>
                 )

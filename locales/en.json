@@ -80,7 +80,9 @@
     "paymentSettings": "Payment settings",
     "salesSettings": "Sales settings",
     "collapsePanel": "Collapse Navigation Menu",
-    "expandPanel": "Expand Navigation Menu"
+    "expandPanel": "Expand Navigation Menu",
+    "openRegisters_one": "{{count}} open register",
+    "openRegisters_other": "{{count}} open registers"
   },
   "topbar": {
     "continueSetup": "Continue setup",

@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 /** Search params owned by drawers; cleared together when a drawer closes. Extra params must start with `d_`. */
-const isDrawerParam = (key: string) => key === 'drawer' || key === 'tab' || key === 'id' || key === 'view' || key.startsWith('d_')
+const isDrawerParam = (key: string) => key === 'drawer' || key === 'tab' || key === 'id' || key.startsWith('d_')
 
 /**
  * Drawers open over the current page through `?drawer=<name>` (see

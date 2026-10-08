@@ -28,8 +28,13 @@ export function downloadBlob(blob: Blob, filename: string): void {
 
 const quote = (cell: Cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`
 
-export function toCsv(tables: ExportTable[]): string {
-  return tables.map((t) => [t.headers, ...t.rows].map((row) => row.map(quote).join(',')).join('\n')).join('\n""\n') + '\n""\n'
+/**
+ * Sales exports separate tables with a `""` line and end with one; report
+ * exports are a single table with no trailing line (pass trailingBlank: false).
+ */
+export function toCsv(tables: ExportTable[], options: { trailingBlank?: boolean } = {}): string {
+  const body = tables.map((t) => [t.headers, ...t.rows].map((row) => row.map(quote).join(',')).join('\n')).join('\n""\n')
+  return options.trailingBlank === false ? `${body}\n` : `${body}\n""\n`
 }
 
 /** `exported_file_2026-10-07-11-53-53-pm` (Sales exports). */
@@ -37,11 +42,11 @@ export const exportedFileName = () => `exported_file_${format(now(), 'yyyy-MM-dd
 /** `report_sales-summary_2026-10-08` (Reports exports). */
 export const reportFileName = (slug: string) => `report_${slug}_${format(now(), 'yyyy-MM-dd')}`
 
-export function exportCsv(filename: string, tables: ExportTable[]): void {
-  downloadBlob(new Blob([toCsv(tables)], { type: 'text/csv;charset=utf-8' }), `${filename}.csv`)
+export function exportCsv(filename: string, tables: ExportTable[], options: { trailingBlank?: boolean } = {}): void {
+  downloadBlob(new Blob([toCsv(tables, options)], { type: 'text/csv;charset=utf-8' }), `${filename}.csv`)
 }
 
-export async function exportXlsx(filename: string, tables: ExportTable[]): Promise<void> {
+export async function exportXlsx(filename: string, tables: ExportTable[], options: { sheetName?: string } = {}): Promise<void> {
   const XLSX = await import('xlsx')
   const aoa: Cell[][] = []
   tables.forEach((t, i) => {
@@ -51,7 +56,9 @@ export async function exportXlsx(filename: string, tables: ExportTable[]): Promi
   })
   const sheet = XLSX.utils.aoa_to_sheet(aoa)
   const book = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(book, sheet, 'Sheet1')
+  // Sheet names: max 31 characters, none of : \ / ? * [ ]
+  const sheetName = (options.sheetName ?? 'Sheet1').replace(/[:\\/?*[\]]/g, ' ').slice(0, 31)
+  XLSX.utils.book_append_sheet(book, sheet, sheetName)
   const data = XLSX.write(book, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
   downloadBlob(new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${filename}.xlsx`)
 }

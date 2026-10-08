@@ -21,6 +21,8 @@ export interface NavLink {
   to: string
   /** Extra path prefixes that should also mark this link active. */
   match?: string[]
+  /** Live sub-label under the link (e.g. "1 open register"). */
+  hint?: 'openRegisters'
 }
 
 export interface NavGroup {
@@ -57,7 +59,7 @@ export const RAIL_ITEMS: RailItem[] = [
           heading: 'nav.sales',
           links: [
             { label: 'nav.dailySales', to: '/sales/daily-sales' },
-            { label: 'nav.register', to: '/sales/register' },
+            { label: 'nav.register', to: '/sales/register', hint: 'openRegisters' },
             { label: 'nav.appointments', to: '/sales/appointments-list' },
             { label: 'nav.salesList', to: '/sales/sales-list', match: ['/sales/refund-sale'] },
             { label: 'nav.payments', to: '/sales/payment-transactions' },

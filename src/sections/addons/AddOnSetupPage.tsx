@@ -17,7 +17,7 @@ import { AddOnIcon } from './components/shared'
 
 const ACCOUNT_TYPES = ['sole_trader', 'company', 'partnership', 'association', 'non_profit'] as const
 
-const normalize = (slug: string) => (slug === 'fresha-insights' ? 'insights' : slug)
+const normalize = (slug: string) => slug
 
 /** /add-ons/add-on/:slug/setup: paid enable screen, or the accounting connect wizard. */
 export function AddOnSetupPage() {

@@ -240,7 +240,7 @@ function ReportTable({ slug }: { slug: string }) {
               <p className="text-body text-muted">{t('reports.page.premiumBody')}</p>
               <div className="mt-2 flex gap-2">
                 <Button variant="primary" onClick={() => navigate('/add-ons/add-on/insights/intro')}>{t('reports.page.upgrade')}</Button>
-                <Button onClick={() => drawer.open('resources', { tab: 'help', view: 'help-center', d_q: 'Insights' })}>{t('reports.page.learnMore')}</Button>
+                <Button onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: 'Insights' })}>{t('reports.page.learnMore')}</Button>
               </div>
             </div>
           )}

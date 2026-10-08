@@ -42,7 +42,7 @@ import { defaultPermissionRoles } from './permissionRoles'
  * 2 locations, 6 team members, 40 services, 200 clients, 10 weeks of history
  * and 3 weeks of upcoming bookings, generated relative to `today`.
  */
-export const SEED_VERSION = 1
+export const SEED_VERSION = 2
 const TAX = 0.23
 const PAST_DAYS = 70
 const FUTURE_DAYS = 21
@@ -1010,6 +1010,7 @@ export function buildSeed(todayDate: Date): DbData {
     ],
     invoices,
     settings,
+    ext: {},
   }
   return data
 }

@@ -30,7 +30,7 @@ export function ResourcesDrawer({ params }: DrawerProps) {
       </div>
       <BottomTabs<Tab>
         value={tab}
-        onChange={(v) => drawer.update({ tab: v, view: undefined, d_article: undefined, d_guide: undefined, d_q: undefined })}
+        onChange={(v) => drawer.update({ tab: v, d_view: undefined, d_article: undefined, d_guide: undefined, d_q: undefined })}
         items={[
           { value: 'news', label: t('panels.resources.news'), icon: Newspaper, badge: unreadNews },
           { value: 'help', label: t('panels.resources.help'), icon: CircleHelp },

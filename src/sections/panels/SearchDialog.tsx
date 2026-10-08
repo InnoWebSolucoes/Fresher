@@ -91,7 +91,7 @@ const ACTIONS: ActionDef[] = [
   { key: 'newCampaign', section: 'marketing', run: (o) => o.go('/marketing/blast-campaigns/new') },
   { key: 'messageClient', section: 'connect', run: (o) => o.go('/connect') },
   { key: 'performanceInsights', section: 'home', run: (o) => o.open('performance-insights') },
-  { key: 'contactSupport', section: 'account', run: (o) => o.open('resources', { tab: 'help', view: 'email' }) },
+  { key: 'contactSupport', section: 'account', run: (o) => o.open('resources', { tab: 'help', d_view: 'email' }) },
 ]
 
 const SALE_TONES: Record<SaleStatus, 'success' | 'warning' | 'danger' | 'neutral'> = { completed: 'success', part_paid: 'warning', unpaid: 'warning', refunded: 'danger', voided: 'neutral', draft: 'neutral' }
@@ -288,8 +288,8 @@ export function SearchDialog({ close }: DrawerProps) {
   const q = query.trim()
 
   const footer = q && q !== '/' ? [
-    { key: 'help', icon: CircleHelp, label: t('panels.search.searchHelp', { query: q }), run: () => openDrawer('resources', { tab: 'help', view: 'help-center', d_q: q }) },
-    { key: 'chat', icon: MessageCircle, label: t('panels.search.chatSupport'), run: () => openDrawer('resources', { tab: 'help', view: 'chat' }) },
+    { key: 'help', icon: CircleHelp, label: t('panels.search.searchHelp', { query: q }), run: () => openDrawer('resources', { tab: 'help', d_view: 'help-center', d_q: q }) },
+    { key: 'chat', icon: MessageCircle, label: t('panels.search.chatSupport'), run: () => openDrawer('resources', { tab: 'help', d_view: 'chat' }) },
   ] : []
   const total = (filtersOpen ? filterOptions.length : visible.length) + (filtersOpen ? 0 : footer.length)
 

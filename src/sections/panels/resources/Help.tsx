@@ -20,7 +20,7 @@ const MAX_FILE = 100 * 1024 * 1024
 
 /** Help tab: home, help centre (search + articles), email form, phone support and live chat (help.md). */
 export function HelpPanel({ params }: { params: URLSearchParams }) {
-  const view = params.get('view')
+  const view = params.get('d_view')
   const q = params.get('d_q') ?? ''
   if (view === 'help-center') return <HelpCenter key={q} initialQuery={q} />
   if (view === 'article') return <ArticleView slug={params.get('d_article') ?? ''} />
@@ -63,7 +63,7 @@ function HelpHome() {
           <button
             key={key}
             type="button"
-            onClick={() => drawer.update({ view })}
+            onClick={() => drawer.update({ d_view: view })}
             className="flex items-center gap-4 rounded-md bg-primary px-5 py-3.5 text-left text-on-primary transition-colors hover:bg-primary-hover"
           >
             <Icon size={22} aria-hidden />
@@ -101,7 +101,7 @@ function HelpHome() {
       )}
 
       <h3 className="mt-8 font-display text-title-3 text-ink">{t('panels.help.needMore')}</h3>
-      <button type="button" onClick={() => drawer.update({ view: 'help-center' })} className="card mt-3 flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-sunken">
+      <button type="button" onClick={() => drawer.update({ d_view: 'help-center' })} className="card mt-3 flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-sunken">
         <LifeBuoy size={18} className="text-muted" aria-hidden />
         <span className="flex-1 text-body text-ink">{t('panels.help.visitCenter')}</span>
         <ArrowUpRight size={18} className="text-muted" aria-hidden />
@@ -136,11 +136,11 @@ function HelpCenter({ initialQuery }: { initialQuery: string }) {
   const results = useMemo(() => (query.trim() ? searchArticles(query, text) : []), [query, text])
   const searching = query.trim().length > 0
 
-  const openArticle = (slug: string) => drawer.update({ view: 'article', d_article: slug, d_q: query || undefined })
+  const openArticle = (slug: string) => drawer.update({ d_view: 'article', d_article: slug, d_q: query || undefined })
 
   return (
     <div className="pb-8">
-      <PanelHeader title={t('panels.help.center.title')} subtitle={t('panels.help.center.subtitle')} onBack={() => drawer.update({ view: undefined, d_q: undefined })} />
+      <PanelHeader title={t('panels.help.center.title')} subtitle={t('panels.help.center.subtitle')} onBack={() => drawer.update({ d_view: undefined, d_q: undefined })} />
       <div className="px-6">
         <label className="relative block">
           <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
@@ -171,7 +171,7 @@ function HelpCenter({ initialQuery }: { initialQuery: string }) {
           </ul>
         )}
 
-        <Button className="mt-6 w-full" onClick={() => drawer.update({ view: 'email', d_q: query || undefined })}>
+        <Button className="mt-6 w-full" onClick={() => drawer.update({ d_view: 'email', d_q: query || undefined })}>
           {t('panels.help.center.cantFind')}
         </Button>
         {!searching && (
@@ -203,7 +203,7 @@ function ArticleView({ slug }: { slug: string }) {
   if (!article) {
     return (
       <div>
-        <PanelHeader title={t('panels.help.article.missing')} onBack={() => drawer.update({ view: 'help-center', d_article: undefined })} />
+        <PanelHeader title={t('panels.help.article.missing')} onBack={() => drawer.update({ d_view: 'help-center', d_article: undefined })} />
       </div>
     )
   }
@@ -212,7 +212,7 @@ function ArticleView({ slug }: { slug: string }) {
 
   return (
     <div className="pb-8">
-      <PanelHeader title={title} subtitle={summary} onBack={() => drawer.update({ view: 'help-center', d_article: undefined })} />
+      <PanelHeader title={title} subtitle={summary} onBack={() => drawer.update({ d_view: 'help-center', d_article: undefined })} />
       <div className="px-6">
         <div className="flex flex-col gap-3 text-body-lg text-ink">
           {body.split('\n\n').map((para, i) =>
@@ -258,7 +258,7 @@ function ArticleView({ slug }: { slug: string }) {
             </div>
           )}
           {feedback === 'no' && (
-            <Button variant="link" className="mt-2" onClick={() => drawer.update({ view: 'email', d_article: undefined })}>
+            <Button variant="link" className="mt-2" onClick={() => drawer.update({ d_view: 'email', d_article: undefined })}>
               {t('panels.help.center.cantFind')}
             </Button>
           )}
@@ -330,14 +330,14 @@ function EmailSupport() {
   if (sent) {
     return (
       <div className="pb-8">
-        <PanelHeader title={t('panels.help.email.sentTitle')} onBack={() => drawer.update({ view: undefined, d_q: undefined })} />
+        <PanelHeader title={t('panels.help.email.sentTitle')} onBack={() => drawer.update({ d_view: undefined, d_q: undefined })} />
         <div className="px-6">
           <div className="flex flex-col items-center rounded-lg bg-success-subtle px-6 py-8 text-center">
             <CheckCircle2 size={40} className="text-success" aria-hidden />
             <p className="mt-3 font-display text-title-3 text-ink">{t('panels.help.email.sentRef', { ref: sent.ref })}</p>
             <p className="mt-1 text-body text-muted">{t('panels.help.email.sentBody', { email: sent.email })}</p>
           </div>
-          <Button className="mt-6 w-full" onClick={() => drawer.update({ view: undefined, d_q: undefined })}>
+          <Button className="mt-6 w-full" onClick={() => drawer.update({ d_view: undefined, d_q: undefined })}>
             {t('panels.help.email.backToHelp')}
           </Button>
         </div>
@@ -347,7 +347,7 @@ function EmailSupport() {
 
   return (
     <form onSubmit={submit} className="pb-8" noValidate>
-      <PanelHeader title={t('panels.help.email.title')} subtitle={t('panels.help.email.subtitle')} onBack={() => drawer.update({ view: 'help-center' })} />
+      <PanelHeader title={t('panels.help.email.title')} subtitle={t('panels.help.email.subtitle')} onBack={() => drawer.update({ d_view: 'help-center' })} />
       <div className="flex flex-col gap-5 px-6">
         <Field label={t('panels.help.email.email')} hint={t('panels.help.email.emailHint')} error={errors.email}>
           {(id) => <TextInput id={id} type="email" value={email} onChange={(e) => setEmail(e.target.value)} invalid={!!errors.email} autoComplete="email" />}
@@ -439,7 +439,7 @@ function PhoneSupport() {
   return (
     <div className="pb-8">
       <div className="px-6 pt-6">
-        <button type="button" onClick={() => drawer.update({ view: undefined })} className="btn-secondary h-9 rounded-full px-3">
+        <button type="button" onClick={() => drawer.update({ d_view: undefined })} className="btn-secondary h-9 rounded-full px-3">
           <ArrowRight size={16} className="rotate-180" aria-hidden />
           {t('common.back')}
         </button>
@@ -533,7 +533,7 @@ function LiveChatView() {
     <div className="flex h-full min-h-[600px] flex-col">
       <div className="relative bg-gradient-to-br from-primary to-primary-active px-6 pb-6 pt-5 text-center text-on-primary">
         <div className="flex items-center justify-between">
-          <button type="button" onClick={() => drawer.update({ view: undefined })} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/15 px-3 text-small hover:bg-white/25">
+          <button type="button" onClick={() => drawer.update({ d_view: undefined })} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/15 px-3 text-small hover:bg-white/25">
             <ArrowRight size={14} className="rotate-180" aria-hidden />
             {t('common.back')}
           </button>
