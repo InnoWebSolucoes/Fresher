@@ -455,8 +455,6 @@ function AppointmentBlock({ appt, item, pxPerMin, style, lookups, mode, selected
       <div
         ref={move.setNodeRef}
         data-block
-        role="button"
-        tabIndex={0}
         aria-label={`${item.start} ${fullName(client, t('calendar.walkIn'))} ${item.name}`}
         {...move.listeners}
         {...move.attributes}

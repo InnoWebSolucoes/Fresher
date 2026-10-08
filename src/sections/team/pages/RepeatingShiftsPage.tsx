@@ -169,7 +169,7 @@ function RepeatingForm({ locationId, memberId, date }: { locationId: string; mem
           {weeks.map((week, wi) => (
             <section key={wi} aria-label={scheduleType === 1 ? t('team.repeat.weekly') : t('team.repeat.weekOf', { n: wi + 1, total: scheduleType })}>
               <h2 className="font-display text-title-3 text-ink">{scheduleType === 1 ? t('team.repeat.weekly') : t('team.repeat.weekOf', { n: wi + 1, total: scheduleType })}</h2>
-              <p className="mb-4 text-body text-muted">{t('team.repeat.total', { hours: Math.round((WEEKDAYS.reduce((s, d) => s + (errors[wi][d] ? 0 : rangesMinutes(week[d])), 0) / 60) * 10) / 10 })}</p>
+              <p className="mb-4 text-body text-muted">{t('team.repeat.total', { hours: Math.round((WEEKDAYS.reduce<number>((s, d) => s + (errors[wi][d] ? 0 : rangesMinutes(week[d] ?? [])), 0) / 60) * 10) / 10 })}</p>
               <div className="flex flex-col divide-y divide-line">
                 {WEEKDAYS.map((d) => (
                   <DayRow key={d} name={DAY_NAMES[d]} ranges={week[d]} error={errors[wi][d]} onChange={(r) => updateDay(wi, d, r)} />

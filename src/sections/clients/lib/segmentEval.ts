@@ -244,14 +244,14 @@ export function makeEvaluator(data: EvalData): Evaluator {
       if (segment.rules.length === 0) return new Set()
       return new Set(clientsInSegment(data, segment as ClientSegment, stats).map((c) => c.id))
     }
-    let result: Set<ID> | null = null
+    let result = null as Set<ID> | null
     for (const rule of segment.rules) {
       if (!rule.attribute) continue
       const matched = LOCAL_ATTRS.has(rule.attribute)
         ? new Set(live.filter((c) => localRule(rule, c)).map((c) => c.id))
         : new Set(clientsInSegment(data, { id: '', name: '', description: '', standard: false, rules: [rule] }, stats).map((c) => c.id))
-      const prev: Set<ID> | null = result
-      result = prev ? new Set([...prev].filter((id) => matched.has(id))) : matched
+      const prev = result as Set<ID> | null
+      result = prev ? new Set<ID>(Array.from(prev).filter((id: ID) => matched.has(id))) : matched
     }
     return result ?? new Set()
   }

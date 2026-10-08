@@ -15,18 +15,18 @@ SPEC.md, REFERENCE_MAP.md, DESIGN_TOKENS.md; Vite + React 18 + strict TS + Tailw
 
 ## Phase 2 — Home, Calendar, appointments, checkout
 - ☑ Home dashboard (6 cards, filters, charts, click-through)
-- ◐ Calendar (agent was still finishing at the time limit; see its pages/drawers in `src/sections/calendar`)
+- ◐ Calendar: ☑ toolbar, URL state, day/3 day/week/month views, hatching, current-time line, quick actions, drag to move/resize with conflict warnings, all pick modes, new-appointment drawer (client picker, Services › Time with availability engine, service editor, repeat, notes), appointment drawer (status menu, no-show/cancel with fees, every Options action, activity, minimise), form selection. ◐ filters drawer (status/type/channel/payment only), waitlist (list, book, remove), group drawer (no checkout-all/no-show-all), blocked time (plain form)
 - ☑ Checkout (cart, tips, every payment method incl. cash keypad, redeem gift, split, other/custom, card terminal, self checkout, QR code, manual card, declined state, register rule, discounts, receipt note, service charge, drafts), sale drawer (refund, edit details, notes, email, print, PDF receipt, void), gift card drawer, Payments page
 
 ## Phase 3 — Sales, Clients, Catalog
 - ☑ Sales: Daily sales (live tables, PDF/CSV/Excel exports), Register (setup, open, cash in/out, count, close, period drawer), Appointments, Sales (+ Drafts), Refund sale, Payment transactions, Gift cards / Packages / Memberships sold, Product orders
-- ◐ Clients (agent was still finishing at the time limit)
+- ◐ Clients: ☑ Clients list (filters, bulk actions, exports), add/edit client (all sections), client drawer (all tabs and Actions dialogs). ☐ Import wizard, Merge, Segments pages, Loyalty, Online reputation (logic written in `src/api/clients.ts` + `src/sections/clients/lib`)
 - ◐ Catalog: ☑ Service menu (all menus, filters, editor, variants, advanced pricing, add-ons, bundles, menu order, booking sequence, bulk edit, PDF/Excel/CSV), ☑ Packages (list, holders, editor, sell). ☐ Memberships, Products, Stocktakes, Stock orders, Suppliers (API written in `src/api/catalog.ts`, no screens yet)
 
 ## Phase 4 — Online booking, Marketing, Team, top bar
 - ☐ Online presence pages (API in `src/api/online.ts`, no screens yet)
 - ☑ Marketing: Blast campaigns (Draft / Pending / Scheduled / Sent, builder, billing wizard, approval flow, detail), Automations (+ detail, configure, email editor, top-ups), Messages history, Deals (list + 3-type wizard), Smart pricing (overview + wizard)
-- ◐ Team (agent was still finishing at the time limit)
+- ☑ Team: members list, add/edit (invites, Independent-plan rule), reorder, calendar sync, member drawer, scheduled shifts (edit day, repeating shifts, time off, closed periods), timesheets, pay runs (breakdown, adjustments, settlements, pay team wizard with emailed code, register tips mode), accept-invite page
 - ☑ Top-bar panels: Guides, Help (help centre, email, phone, live chat), News, Search, Performance insights, Notifications, Wallet, Referral; Client messages inbox
 
 ## Phase 5 — Reports, Add-ons, Settings, Billing, account, Help

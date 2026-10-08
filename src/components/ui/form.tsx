@@ -37,7 +37,7 @@ export function Field({ label, hint, error, optional, counter, children, classNa
   )
 }
 
-export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { prefix?: ReactNode; suffix?: ReactNode; invalid?: boolean }>(function TextInput(
+export const TextInput = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> & { prefix?: ReactNode; suffix?: ReactNode; invalid?: boolean }>(function TextInput(
   { prefix, suffix, invalid, className, ...rest },
   ref,
 ) {
@@ -147,7 +147,7 @@ export function RadioGroup<T extends string>({ value, onChange, options, variant
 }
 
 /** Euro amount input that keeps a numeric value. */
-export function MoneyInput({ value, onChange, ...rest }: { value: number | ''; onChange: (v: number | '') => void } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+export function MoneyInput({ value, onChange, ...rest }: { value: number | ''; onChange: (v: number | '') => void } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'prefix'>) {
   return (
     <TextInput
       prefix="€"

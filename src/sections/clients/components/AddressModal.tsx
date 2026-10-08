@@ -123,7 +123,6 @@ function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () =>
           <div ref={box} className="relative">
             <TextInput
               id={id}
-              prefix={<MapPin size={16} aria-hidden />}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value)

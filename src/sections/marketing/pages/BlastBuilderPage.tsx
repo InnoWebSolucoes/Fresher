@@ -159,7 +159,7 @@ export function BlastBuilderPage() {
     subject: form.subject.trim(),
     heading: form.heading.trim(),
     body: form.body.trim(),
-    buttonLabel: form.buttonLabel.trim() || undefined,
+    buttonLabel: (form.buttonLabel ?? '').trim() || undefined,
     dealId: form.dealId,
     scheduledAt,
   })
