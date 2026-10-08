@@ -1,0 +1,105 @@
+{
+  "frm": {
+    "templates": {
+      "title": "Form templates",
+      "description": "Create and manage form templates to be added to clients or appointments.",
+      "add": "Add",
+      "sectionsCount_one": "{{count}} section",
+      "sectionsCount_other": "{{count}} sections",
+      "emptyTitle": "No form templates yet",
+      "emptyBody": "Create a form to collect client details, consultation answers and signatures before appointments.",
+      "emptyAction": "Add form template"
+    },
+    "actions": {
+      "overview": "Overview",
+      "edit": "Edit",
+      "preview": "Preview",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    },
+    "toast": {
+      "activated": "Form template activated",
+      "deactivated": "Form template deactivated",
+      "created": "Form template created",
+      "updated": "Form template updated",
+      "duplicated": "Form template duplicated",
+      "deleted": "Form template deleted"
+    },
+    "confirm": {
+      "activateTitle": "Activate form template?",
+      "activateBefore": "{{name}} will be sent to clients before their appointments for {{services}}, every time they book.",
+      "activateBeforeOnce": "{{name}} will be sent to clients before their appointments for {{services}}, once per client.",
+      "activateManual": "{{name}} will be available for your team to send to clients from their appointments and client profiles.",
+      "deleteTitle": "Delete form template?",
+      "deleteBody": "{{name}} will be deleted. Forms your clients already completed stay on their profiles.",
+      "copyName": "{{name}} (copy)"
+    },
+    "values": {
+      "before": "Before appointment",
+      "manual": "Manually",
+      "every": "Every time they book an appointment",
+      "once": "Only once",
+      "allServices": "All services",
+      "allServicesLower": "all services",
+      "servicesCount_one": "{{count}} service",
+      "servicesCount_other": "{{count}} services",
+      "selectedServices_one": "the selected service",
+      "selectedServices_other": "the {{count}} selected services",
+      "required": "Required",
+      "notRequired": "Not required"
+    },
+    "builder": {
+      "clientDetails": "Client details",
+      "customSection": "Custom section",
+      "sectionTab": "Section {{index}} of {{total}}: {{kind}}",
+      "sectionOptions": "Section options",
+      "dragSection": "Drag to reorder section",
+      "personalInformation": "Personal Information",
+      "sectionTitle": "Section title",
+      "sectionTitlePlaceholder": "Enter a section title",
+      "sectionTitleRequired": "Enter a section title",
+      "sectionNoBlocks": "Add at least one question to this section",
+      "noQuestionsTitle": "No questions yet",
+      "noQuestionsBody": "Add a question, some text or a signature to this section.",
+      "addQuestion": "Add question",
+      "blockOptions": "Question options",
+      "dragBlock": "Drag to reorder",
+      "labelRequired": "Enter a question",
+      "textRequired": "Enter some text",
+      "shortAnswerHint": "Short answer text",
+      "longAnswerHint": "Long answer text",
+      "checkboxHint": "Clients tick this box"
+    },
+    "blocks": {
+      "paragraph": { "name": "Text", "hint": "Instructions or information for your clients", "placeholder": "Write some text for your clients" },
+      "yes_no": { "name": "Yes or No", "hint": "A question answered with Yes or No", "placeholder": "Ask a yes or no question" },
+      "short_text": { "name": "Short answer", "hint": "A one-line text answer", "placeholder": "Ask a question" },
+      "long_text": { "name": "Long answer", "hint": "A longer, multi-line text answer", "placeholder": "Ask a question" },
+      "checkbox": { "name": "Checkbox", "hint": "A box clients tick, e.g. to give consent", "placeholder": "e.g. I agree to the treatment terms" },
+      "signature": { "name": "Signature", "hint": "Clients sign with their finger or mouse", "placeholder": "e.g. Client signature" }
+    },
+    "preview": {
+      "step": "Step {{step}} of {{total}}",
+      "previous": "Previous",
+      "next": "Next step",
+      "submit": "Submit",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "mobile": "Mobile number",
+      "address": "Address",
+      "countryCode": "Country code",
+      "answerPlaceholder": "Your answer",
+      "signature": "Signature",
+      "signAgreement": "By signing, you confirm the information you've given is correct.",
+      "signHere": "Sign here",
+      "signaturePad": "Signature pad",
+      "clear": "Clear",
+      "noSections": "Add a section to preview your form",
+      "doneTitle": "Form submitted",
+      "doneBody": "This is a preview, so no answers were saved.",
+      "startAgain": "Start again"
+    }
+  }
+}

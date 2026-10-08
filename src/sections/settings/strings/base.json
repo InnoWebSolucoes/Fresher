@@ -1,0 +1,146 @@
+{
+  "title": "Workspace settings",
+  "subtitle": "Manage settings for {{business}}.",
+  "breadcrumb": "Workspace settings",
+  "tabs": {
+    "settings": "Settings",
+    "online": "Online presence",
+    "marketing": "Marketing",
+    "other": "Other"
+  },
+  "view": "View",
+  "businessSetup": {
+    "title": "Business setup",
+    "description": "Customize business details and manage locations."
+  },
+  "scheduling": {
+    "title": "Scheduling",
+    "description": "Set your availability, manage bookable resources and online booking preferences.",
+    "onlineBooking": "Online booking"
+  },
+  "sales": {
+    "title": "Sales",
+    "description": "Configure payment methods, taxes, receipts, service charges and gift cards."
+  },
+  "clients": {
+    "title": "Clients",
+    "description": "Customize client sources and manage client tags"
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Manage Innoweb invoices, text messages, add-ons and billing."
+  },
+  "team": {
+    "title": "Team",
+    "description": "Manage permissions, compensation and time-off."
+  },
+  "forms": {
+    "title": "Forms",
+    "description": "Configure templates for client forms."
+  },
+  "payments": {
+    "title": "Payments",
+    "description": "Configure payment methods, terminals and your payment policy."
+  },
+  "rows": {
+    "marketplaceProfile": [
+      "Marketplace profile",
+      "Attract new clients with online bookings."
+    ],
+    "reserveWithGoogle": [
+      "Reserve with Google",
+      "Get online bookings from Google Search and Maps."
+    ],
+    "facebookInstagram": [
+      "Book with Facebook and Instagram",
+      "Get online bookings from your social media pages."
+    ],
+    "productStore": [
+      "Product store",
+      "Set up your digital store so clients can buy your products online."
+    ],
+    "linkBuilder": [
+      "Link builder",
+      "Create shareable booking links and QR codes."
+    ],
+    "blast": [
+      "Blast marketing",
+      "Share special offers and important updates over email and text message."
+    ],
+    "automations": [
+      "Automations",
+      "Engage with your clients and keep them up to date with automations."
+    ],
+    "deals": [
+      "Deals",
+      "Reward and retain clients with discount codes, flash sales and promotion offers."
+    ],
+    "smartPricing": [
+      "Smart pricing",
+      "Adjust your prices to charge different amounts during more or less busy hours."
+    ],
+    "sentMessages": [
+      "Sent messages",
+      "View the list of all email, text and push messages sent to your clients."
+    ],
+    "ratings": [
+      "Ratings and reviews",
+      "View star ratings and reviews left by clients after their visit."
+    ],
+    "addons": [
+      "Add-ons",
+      "Take your business to the next level with Innoweb add-ons."
+    ],
+    "integrations": [
+      "Integrations",
+      "Integrate Innoweb Bookings with third party applications."
+    ]
+  },
+  "common": {
+    "edit": "Edit",
+    "save": "Save",
+    "saveOrder": "Save order",
+    "add": "Add",
+    "addNew": "Add new",
+    "actions": "Actions",
+    "options": "Options",
+    "delete": "Delete",
+    "remove": "Remove",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "changeOrder": "Change order",
+    "close": "Close",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "done": "Done",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "on": "On",
+    "off": "Off",
+    "yes": "Yes",
+    "no": "No",
+    "view": "View",
+    "manage": "Manage",
+    "search": "Search",
+    "optional": "(Optional)",
+    "required": "This field is required",
+    "none": "None",
+    "saved": "Changes saved",
+    "learnMore": "Learn more",
+    "chooseEmoji": "Choose emoji",
+    "selectIcon": "Select icon",
+    "dragToReorder": "Drag to reorder",
+    "orderDescription": "Drag and drop the order of items, these will be reflected in all lists.",
+    "previous": "Previous",
+    "next": "Next",
+    "minutes": "{{count}} minutes",
+    "allLocations": "All locations",
+    "deleteConfirmBody": "This can't be undone.",
+    "noResults": "No results found",
+    "copied": "Link copied",
+    "system": "System"
+  }
+}

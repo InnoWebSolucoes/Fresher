@@ -128,9 +128,9 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
     const card = data.giftCards.find((g) => g.id === p.giftCardId)
     if (!card || card.status !== 'active' || card.balance + 0.001 < p.amount) throw new ApiError('gift_card', 'Gift card balance is too low')
   }
-  const declined = input.payments.find((p) => (window as unknown as { __ibDeclineNext?: boolean }).__ibDeclineNext && ['card_terminal', 'manual_card', 'qr_code', 'self_checkout'].includes(p.method))
+  const declined = input.payments.find((p) => (globalThis as unknown as { __ibDeclineNext?: boolean }).__ibDeclineNext && ['card_terminal', 'manual_card', 'qr_code', 'self_checkout'].includes(p.method))
   if (declined) {
-    ;(window as unknown as { __ibDeclineNext?: boolean }).__ibDeclineNext = false
+    ;(globalThis as unknown as { __ibDeclineNext?: boolean }).__ibDeclineNext = false
     throw new ApiError('card_declined', 'Card declined. Ask the client for another payment method.')
   }
 

@@ -1,1 +1,81 @@
-{}
+{
+  "title": "Innoweb add-ons",
+  "subtitle": "Take your business to the next level with Innoweb add-ons.",
+  "integrations": "Integrations",
+  "onTrial": "On free trial",
+  "active": "Active",
+  "view": "View",
+  "enable": "Enable",
+  "enabled": "{{name}} enabled",
+  "alreadyActive": "{{name}} is already active",
+  "items": {
+    "payments": {
+      "name": "Payments",
+      "description": "Get paid by clients online and in-store with low cost, safe and simple payments integrated directly to your workspace."
+    },
+    "premium-support": {
+      "name": "Premium Support",
+      "description": "Get the most out of the Innoweb platform and it's features with help from our experienced business support specialists."
+    },
+    "insights": {
+      "name": "Insights",
+      "description": "Unlock additional reports and create your own unique reports which you can share with your team"
+    },
+    "google-rating-boost": {
+      "name": "Google Rating Boost",
+      "description": "Prompt your clients to leave a Google review after they've had a positive experience and increase your footfall."
+    },
+    "loyalty": {
+      "name": "Client Loyalty",
+      "description": "Encourage repeat visits and larger purchases by rewarding clients with exclusive offers that celebrate their loyalty"
+    },
+    "data-connector": {
+      "name": "Data Connector",
+      "description": "Connect the power of Innoweb data to your external spreadsheets, systems and other software"
+    },
+    "client-connect": {
+      "name": "Client Connect",
+      "description": "Keep clients close with two-way messaging and a shared inbox across web and app, all in one place"
+    },
+    "smart-website": {
+      "name": "Smart Website",
+      "description": "Your own professional website that updates itself as your business evolves"
+    },
+    "team-chat": {
+      "name": "Team Connect",
+      "description": "Give your team a dedicated space to collaborate, create group chats, and share files without leaving Innoweb"
+    },
+    "bookable-resources": {
+      "name": "Bookable Resources",
+      "description": "Manage resources like rooms and equipment. Assign them to services and track usage with detailed reports."
+    },
+    "xero": {
+      "name": "Xero Accounting",
+      "description": "Streamline your sales and accounting with Innoweb by connecting Xero"
+    },
+    "quickbooks": {
+      "name": "QuickBooks Accounting",
+      "description": "Streamline your sales and accounting with Innoweb by connecting QuickBooks"
+    },
+    "google-reserve": {
+      "name": "Google Reserve",
+      "description": "Capture online bookings directly from Google Search, Google Maps and more with our Google integration."
+    },
+    "fb-and-ig-bookings": {
+      "name": "Facebook and Instagram bookings",
+      "description": "Add online booking to your social media pages."
+    },
+    "meta-pixel-ads": {
+      "name": "Meta Pixel Ads",
+      "description": "Use your Facebook Ads Pixel to track events, and create audiences based on their activities."
+    },
+    "google-analytics": {
+      "name": "Google Analytics",
+      "description": "Send events about certain actions to Google Analytics, and create goals based on events to track conversions"
+    },
+    "google-ads": {
+      "name": "Google Ads",
+      "description": "Track booking conversions from your Google Ads campaigns, optimize bidding, and retarget potential clients based on their activity."
+    }
+  }
+}

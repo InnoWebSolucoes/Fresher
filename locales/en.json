@@ -171,7 +171,8 @@
       "invalidCredentials": "That email and password don't match an account",
       "noAccess": "This account has no access to the workspace",
       "invalidToken": "This reset link has expired or was already used"
-    }
+    },
+    "openOutbox": "Open the demo outbox"
   },
   "stub": {
     "phase": "Phase {{phase}}",

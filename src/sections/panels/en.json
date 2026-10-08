@@ -1,1 +1,845 @@
-{}
+{
+  "common": {
+    "justNow": "Just now",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "unread": "Unread",
+    "copy": "Copy",
+    "error": "Something went wrong. Please try again."
+  },
+  "resources": {
+    "news": "News",
+    "help": "Help",
+    "guides": "Guides"
+  },
+  "news": {
+    "title": "News",
+    "postedAgo": "8 hours ago",
+    "welcome": {
+      "title": "Welcome to Innoweb Bookings 👋",
+      "body": "You're now part of a growing network of beauty and wellness professionals, with everything you need to attract, convert and retain your clients."
+    },
+    "instagram": {
+      "title": "Follow @innoweb on Instagram 📱",
+      "body": "Discover the latest trends and tag us for a chance to get featured on our Instagram feed.",
+      "cta": "Follow Innoweb",
+      "doneLabel": "Following",
+      "doneToast": "You're now following Innoweb on Instagram",
+      "undoneToast": "You unfollowed Innoweb on Instagram"
+    },
+    "youtube": {
+      "title": "Watch real business stories on YouTube 📽️",
+      "body": "See how businesses like yours own the spotlight in our 'Meet the Partners' series.",
+      "cta": "Watch and subscribe",
+      "doneLabel": "Subscribed",
+      "doneToast": "You're subscribed to Innoweb on YouTube",
+      "undoneToast": "You unsubscribed from Innoweb on YouTube"
+    }
+  },
+  "help": {
+    "greeting": "Hey {{name}}, how can we help?",
+    "options": {
+      "email": {
+        "title": "Email",
+        "sub": "Typical response time 2 days"
+      },
+      "chat": {
+        "title": "Live chat",
+        "sub": "Typical response time 2 minutes"
+      },
+      "phone": {
+        "title": "Phone support",
+        "sub": "Instant over the phone help"
+      }
+    },
+    "premium": {
+      "label": "Premium support",
+      "trialTitle": "Welcome to your new account",
+      "trialBody_one": "You have {{count}} day left of premium support to help you get set up.",
+      "trialBody_other": "You have {{count}} days left of premium support to help you get set up.",
+      "activeTitle": "Premium support is active",
+      "activeBody": "Priority phone and chat help from our experts.",
+      "inactiveTitle": "Get priority help from our experts",
+      "inactiveBody": "Add Premium support for phone and chat help."
+    },
+    "requests": {
+      "title": "Your requests",
+      "open": "Open"
+    },
+    "needMore": "Need more help?",
+    "visitCenter": "Visit our Help Center",
+    "reasons": {
+      "account": "Accessing my Account",
+      "billing": "Billing, Fees and Subscriptions",
+      "calendar": "Calendar and appointments",
+      "privacy": "Data, Privacy and Security",
+      "payments": "Payment Processing and Card Terminals",
+      "technical": "Technical Support with Features and Functionality",
+      "wallets": "Wallets, Transfers and Payouts",
+      "other": "Other inquiries"
+    },
+    "center": {
+      "title": "What can we help you with",
+      "subtitle": "Tell us a little more about you and what you need help with",
+      "placeholder": "Type in a query or topic",
+      "top": "Top articles",
+      "all": "All articles",
+      "results_one": "{{count}} article found",
+      "results_other": "{{count}} articles found",
+      "noResults": "No articles match \"{{query}}\". Try other words or send us an email.",
+      "cantFind": "Can't find what you're looking for?"
+    },
+    "article": {
+      "missing": "Article not found",
+      "openPage": "Open this page",
+      "helpful": "Was this article helpful?",
+      "yes": "Yes",
+      "no": "No",
+      "thanks": "Thanks for your feedback!",
+      "feedbackToast": "Thanks for your feedback",
+      "related": "Related articles"
+    },
+    "email": {
+      "title": "Email support",
+      "subtitle": "Send us an email request",
+      "email": "Email",
+      "emailHint": "This will be the email we respond to",
+      "reason": "Reason for contacting support",
+      "pleaseSelect": "Please select",
+      "description": "Please provide us with a description of your query and include any relevant screenshots or videos to support this",
+      "addFiles": "Add your files",
+      "maxSize": "Max size 100mb",
+      "chooseFile": "Choose a file",
+      "removeFile": "Remove {{name}}",
+      "tooBig": "{{name}} is larger than 100mb",
+      "send": "Send Email",
+      "sentToast": "Your email has been sent",
+      "sentTitle": "Request sent",
+      "sentRef": "Request {{ref}}",
+      "sentBody": "We've emailed a confirmation to {{email}}. We typically reply within 2 days.",
+      "backToHelp": "Back to Help",
+      "errors": {
+        "email": "Enter a valid email address",
+        "reason": "Select a reason",
+        "description": "Describe your query in at least 10 characters"
+      }
+    },
+    "phone": {
+      "title": "Phone support",
+      "subtitle": "Speak with our experts now",
+      "number": "Contact number",
+      "numberValue": "800 000 000",
+      "accessCode": "Access code",
+      "generate": "Generate",
+      "regenerate": "Generate new code",
+      "generatedToast": "Access code generated",
+      "copied": "Access code copied",
+      "validUntil": "Valid until {{time}}. Share it when our expert asks.",
+      "hours": "Lines are open Monday to Friday, 9:00 to 19:00 (Lisbon time)."
+    }
+  },
+  "articles": {
+    "manage-shifts": {
+      "title": "Manage scheduled shifts for team members",
+      "summary": "Learn how to use advanced scheduling to create manageable team shifts.",
+      "body": "Open Team > Scheduled shifts to see every team member's week. Click a day to edit just that day, or choose Set repeating shifts to build a weekly pattern.\n\nOnline bookings only land inside scheduled shifts, so keep them up to date when someone changes their hours."
+    },
+    "patch-tests": {
+      "title": "Record client patch tests",
+      "summary": "Incorporating patch tests for certain services to detect potential allergies.",
+      "body": "Mark a service as needing a patch test in the service settings. When you book it, the calendar warns you if the client has no valid test.\n\nRecord results from the client profile so the whole team can see them."
+    },
+    "blast-campaigns": {
+      "title": "Create email Blast campaigns",
+      "summary": "Craft and launch effective email campaigns that drive client engagement and boost sales.",
+      "body": "Go to Marketing > Blast campaigns and create a campaign. Pick an audience or segment, write your message and send it now or schedule it.\n\nTrack opens, clicks and bookings from the campaign once it is sent."
+    },
+    "smart-pricing": {
+      "title": "Enable Smart pricing",
+      "summary": "Set up Smart pricing to automatically increase and decrease during busy or quiet periods.",
+      "body": "Smart pricing adjusts online prices by time of day. Choose the services and team members it applies to, then add increases for busy hours and discounts for quiet ones."
+    },
+    "add-team-members": {
+      "title": "Add team members to your workspace",
+      "summary": "Onboard new team members by setting them up with a profile in your workspace.",
+      "body": "Go to Team > Team members and click Add. Enter their details, services, locations and permission level, then send an invite so they can log in."
+    },
+    "create-appointment": {
+      "title": "Create and edit appointments in the calendar",
+      "summary": "Book, move and repeat appointments from the calendar.",
+      "body": "Click an empty slot or use Add > Appointment. Choose the client, services and time. Drag a booking to reschedule it or drag its bottom edge to change the duration."
+    },
+    "checkout-sale": {
+      "title": "Check out an appointment and take payment",
+      "summary": "Take payment, add tips and send receipts.",
+      "body": "Open the appointment and click Checkout. Add products or discounts, choose a tip, then pick a payment method. The receipt can be emailed or texted to the client."
+    },
+    "refunds": {
+      "title": "Refund or void a sale",
+      "summary": "Return money to a client or cancel a sale that was made by mistake.",
+      "body": "Open the sale and choose Refund to return items or an amount. Void cancels an unpaid sale. Refunds show in Sales and Reports straight away."
+    },
+    "online-booking": {
+      "title": "Turn on online bookings and the Book now link",
+      "summary": "Let clients book from your website and social pages.",
+      "body": "Use Online presence > Link builder to create a Book now link or button. Add it to your website, Instagram or Facebook and bookings appear in your calendar."
+    },
+    "marketplace-profile": {
+      "title": "Set up your marketplace profile",
+      "summary": "Get discovered by new clients on the marketplace.",
+      "body": "Complete your profile with photos, a description, amenities and opening hours. Listed locations can receive bookings from the marketplace."
+    },
+    "deposits-policy": {
+      "title": "Take deposits and set cancellation fees",
+      "summary": "Protect your time with deposits, late cancellation and no-show fees.",
+      "body": "In Settings > Payments > Payment policy, turn on deposits and choose your cancellation window. Fees are charged automatically when a client cancels late or does not show up."
+    },
+    "gift-cards": {
+      "title": "Sell and redeem gift cards",
+      "summary": "Sell gift cards in person or online and redeem them at checkout.",
+      "body": "Sell a gift card from checkout or let clients buy one online. At checkout choose Redeem gift card and enter the code to pay with its balance."
+    },
+    "packages-memberships": {
+      "title": "Sell packages and memberships",
+      "summary": "Bundle sessions or bill clients every month.",
+      "body": "Create packages and memberships in the Catalog. Sell them at checkout; sessions are deducted automatically when the client books covered services."
+    },
+    "import-clients": {
+      "title": "Import your client list from a CSV file",
+      "summary": "Move your clients from another system in minutes.",
+      "body": "Go to Clients list > Options > Import clients. Download the template, fill it in and upload it. Duplicates are detected before the import finishes."
+    },
+    "client-segments": {
+      "title": "Group clients with segments",
+      "summary": "Find loyal, lapsed or new clients automatically.",
+      "body": "Segments update themselves from client activity. Use them to filter your client list or as the audience of a campaign."
+    },
+    "automations-reminders": {
+      "title": "Set up automated reminders and confirmations",
+      "summary": "Send confirmations and reminders without lifting a finger.",
+      "body": "Marketing > Automations lists every automatic message. Turn each one on or off and choose email, SMS or WhatsApp. Sent messages appear in Messages history."
+    },
+    "products-stock": {
+      "title": "Track product stock, stocktakes and stock orders",
+      "summary": "Keep shelves full and know what you sell.",
+      "body": "Turn on stock tracking for each product and set a low stock level. Order from suppliers with stock orders and count your shelves with stocktakes."
+    },
+    "register-cash": {
+      "title": "Open and close the cash register",
+      "summary": "Count your float and close the day with confidence.",
+      "body": "Open the register with a float at the start of the day. Record cash in and out, then count and close it at the end of the day."
+    },
+    "daily-sales": {
+      "title": "Reconcile your day with Daily sales",
+      "summary": "See every transaction and cash movement for a day.",
+      "body": "Sales > Daily sales shows the transaction summary and cash movement summary for the selected day. Export it to share with your accountant."
+    },
+    "reports": {
+      "title": "Find and export reports",
+      "summary": "Understand sales, appointments, team and clients.",
+      "body": "Open Reports to browse every report by category. Filter by date, location or team member and export to CSV, Excel or PDF."
+    },
+    "pay-runs": {
+      "title": "Pay your team with pay runs, wages and commissions",
+      "summary": "Calculate wages, commissions and tips in one place.",
+      "body": "Team > Pay runs adds up wages from timesheets, commissions and tips for each period. Review it, make adjustments and mark it as paid."
+    },
+    "permissions": {
+      "title": "Control what team members can see with permissions",
+      "summary": "Choose who can see reports, settings and client details.",
+      "body": "Settings > Team > Permissions sets what each permission level can access. Assign a level to each team member from their profile."
+    },
+    "wallet-payouts": {
+      "title": "Understand your wallet, payouts and fees",
+      "summary": "How card payments reach your bank account.",
+      "body": "Card payments go to your business wallet. Payouts send the available balance to your bank account automatically, or instantly with Pay out now for a small fee.\n\nCredits are used before fees are taken from your balance."
+    },
+    "client-connect": {
+      "title": "Message clients with Client Connect",
+      "summary": "Two-way messaging with clients in one inbox.",
+      "body": "Open the inbox from the speech bubble in the top bar. Reply to client messages, use quick replies, close conversations when they are done and open the client profile from any chat."
+    },
+    "waitlist": {
+      "title": "Fill gaps with the waitlist",
+      "summary": "Offer cancelled slots to clients who are waiting.",
+      "body": "Add clients to the waitlist with their preferred days and times. When a slot frees up, book them straight from the waitlist."
+    },
+    "billing-plan": {
+      "title": "Change your plan and manage billing",
+      "summary": "Plans, invoices and message credits.",
+      "body": "Settings > Billing shows your plan, payment method and invoices. Change plan any time; prices exclude IVA."
+    },
+    "account-security": {
+      "title": "Keep your account secure",
+      "summary": "Passwords, connected logins and active sessions.",
+      "body": "In Personal settings > Login & security you can change your password, connect or disconnect social logins and sign out of devices you do not recognise."
+    },
+    "online-profile": {
+      "title": "Build your professional profile and portfolio",
+      "summary": "Show clients who you are and the work you do.",
+      "body": "Add an avatar, headline, languages, interests and social links from My profile. Upload your best work to your portfolio.\n\nPhoto tips: use a bright, friendly photo of your face with a plain background."
+    },
+    "referrals": {
+      "title": "Refer a business and earn credit",
+      "summary": "You both get up to €130.",
+      "body": "Share your referral link from the user menu. When the business starts a paid plan after its free trial, you both get €130, applied as €13 a month off your subscription."
+    }
+  },
+  "chat": {
+    "title": "Live chat with our experts",
+    "finding": "Finding you an expert",
+    "wait": "Please wait a moment",
+    "joined": "{{agent}} joined the chat",
+    "ended": "Chat ended",
+    "agentLabel": "{{agent}} · Innoweb support",
+    "typing": "{{agent}} is typing",
+    "placeholder": "Type a message",
+    "send": "Send message",
+    "end": "End chat",
+    "endConfirm": "End this chat?",
+    "endBody": "We'll email you a transcript of the conversation.",
+    "endedToast": "Chat ended. We've emailed you a transcript.",
+    "newChat": "Start a new chat",
+    "answers": {
+      "greeting": "Hi {{name}}! Thanks for reaching out. What can I help you with today?",
+      "payouts": "Payouts send your available wallet balance to your bank account automatically. If you need the money sooner, open Wallet in the top bar and use Pay out now (a 1% fee applies).",
+      "payments": "You can take payments at checkout by card terminal, cash, gift card and more. Deposits and cancellation fees are set in Settings > Payments > Payment policy.",
+      "calendar": "From the calendar you can click any empty slot to book, drag appointments to move them and use the three-dots menu for actions like no-show or cancel. Anything specific I can walk you through?",
+      "team": "Team members, shifts and permissions live under Team and Settings > Team. Online bookings only fall inside scheduled shifts, so check those first.",
+      "clients": "You can import clients from a CSV file in Clients list > Options. Segments group clients automatically by activity.",
+      "marketing": "Automations send confirmations and reminders for you, and Blast campaigns reach a whole segment at once. You'll find both under Marketing.",
+      "billing": "Your plan, invoices and message credits are in Settings > Billing. Prices exclude IVA at 23%.",
+      "online": "Use Online presence to manage your marketplace profile and create Book now links for your website and social pages.",
+      "thanks": "You're welcome! Is there anything else I can help with?",
+      "default": "Thanks, I'm looking into that now. In the meantime, our help center has step-by-step guides; search it from the Help tab. Can you tell me a bit more?"
+    }
+  },
+  "guides": {
+    "overviewTitle": "Innoweb's Guides to Greatness",
+    "progress": "{{done}} of {{total}} completed",
+    "complete": "Complete this guide",
+    "guideCompleted": "Guide completed",
+    "completedToast": "{{name}} completed",
+    "finishFirst": "Finish the remaining tasks to complete this guide",
+    "done": "Done",
+    "start": "Start",
+    "helpCenter": {
+      "title": "Help center",
+      "body": "Learn and grow with our help center and knowledge base",
+      "cta": "Go to help center"
+    },
+    "legendary-learner": {
+      "name": "Legendary Learner",
+      "subtitle": "Learn how to use your new Innoweb account"
+    },
+    "setup-superstar": {
+      "name": "Setup Superstar",
+      "subtitle": "Get ready to take client bookings"
+    },
+    "bookings-boss": {
+      "name": "Bookings Boss",
+      "subtitle": "Fill your calendar with online bookings"
+    },
+    "payments-pro": {
+      "name": "Payments Pro",
+      "subtitle": "Get paid faster with Innoweb Payments"
+    },
+    "tasks": {
+      "createAccount": {
+        "title": "Create your Innoweb account",
+        "hint": "Your account is ready."
+      },
+      "firstAppointment": {
+        "title": "Create your first appointment",
+        "hint": "Book a client into the calendar."
+      },
+      "checkoutAppointment": {
+        "title": "Check out an appointment",
+        "hint": "Take payment for a completed appointment."
+      },
+      "serviceMenu": {
+        "title": "Set up your service menu",
+        "hint": "Add the services clients can book."
+      },
+      "teamMembers": {
+        "title": "Set up your team members",
+        "hint": "Add the people who work with you."
+      },
+      "workingHours": {
+        "title": "Set your working hours",
+        "hint": "Add scheduled shifts for your team."
+      },
+      "clientList": {
+        "title": "Set up your client list",
+        "hint": "Add or import your clients."
+      },
+      "productList": {
+        "title": "Set up your product list",
+        "hint": "Add the products you sell."
+      },
+      "onlineBookings": {
+        "title": "Turn on online bookings",
+        "hint": "Let clients book online 24/7."
+      },
+      "marketplace": {
+        "title": "List your business on the marketplace",
+        "hint": "Publish your marketplace profile."
+      },
+      "bookToday": {
+        "title": "Create an appointment today",
+        "hint": "Add a booking to today's calendar."
+      },
+      "reminders": {
+        "title": "Turn on appointment reminders",
+        "hint": "Reduce no-shows with automatic reminders."
+      },
+      "firstReview": {
+        "title": "Get your first review",
+        "hint": "Ask happy clients for a review."
+      },
+      "activatePayments": {
+        "title": "Activate Payments",
+        "hint": "Take card payments in-store and online."
+      },
+      "paymentPolicy": {
+        "title": "Set up deposits",
+        "hint": "Protect your time with a payment policy."
+      },
+      "saleToday": {
+        "title": "Check out a sale today",
+        "hint": "Complete a sale at checkout."
+      },
+      "giftCard": {
+        "title": "Sell a gift card",
+        "hint": "Sell a gift card at checkout."
+      },
+      "payout": {
+        "title": "Get your first payout",
+        "hint": "Send your balance to your bank account."
+      }
+    }
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search",
+    "empty": "Search anything in {{name}}",
+    "emptyHint": "Clients, appointments, sales, team, catalog, pages and settings. Type / to filter by category.",
+    "filterByCategory": "Filter by category",
+    "filterBy": "Filter by",
+    "searchFilter": "Search a filter...",
+    "clear": "Clear search",
+    "clearCategory": "Remove filter",
+    "noResults": "No results",
+    "noResultsBody": "Nothing matches \"{{query}}\". Try another word or search the help center.",
+    "refine": "Showing the first results. Keep typing to narrow them down.",
+    "searchHelp": "Search “{{query}}” in help center",
+    "chatSupport": "Chat with support",
+    "walkIn": "Walk-In",
+    "with": "with",
+    "order": "Order",
+    "balance": "Balance",
+    "inStock_one": "{{count}} in stock",
+    "inStock_other": "{{count}} in stock",
+    "categories": {
+      "clients": "Clients",
+      "appointments": "Appointments",
+      "sales": "Sales",
+      "team": "Team",
+      "services": "Service menu",
+      "products": "Products",
+      "stockOrders": "Stock orders",
+      "giftCards": "Gift cards",
+      "packages": "Packages",
+      "clientPackages": "Client packages",
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "settings": "Settings"
+    },
+    "saleStatus": {
+      "completed": "Fully paid",
+      "part_paid": "Part paid",
+      "unpaid": "Unpaid",
+      "refunded": "Refunded",
+      "voided": "Voided",
+      "draft": "Draft"
+    },
+    "orderStatus": {
+      "draft": "Draft",
+      "ordered": "Ordered",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    },
+    "packageStatus": {
+      "active": "Active",
+      "expired": "Expired",
+      "canceled": "Canceled",
+      "pending": "Pending",
+      "used": "Used"
+    },
+    "actionLabels": {
+      "newAppointment": "New appointment",
+      "newGroupAppointment": "New group appointment",
+      "blockTime": "Add blocked time",
+      "quickSale": "Quick sale",
+      "sellGiftCard": "Sell gift card",
+      "addClient": "Add client",
+      "addService": "Add service",
+      "addProduct": "Add product",
+      "newStockOrder": "New stock order",
+      "newStocktake": "New stocktake",
+      "addSupplier": "Add supplier",
+      "addTeamMember": "Add team member",
+      "runPayRun": "Run pay run",
+      "newCampaign": "New blast campaign",
+      "messageClient": "Message a client",
+      "performanceInsights": "Open performance insights",
+      "contactSupport": "Contact support"
+    }
+  },
+  "insights": {
+    "title": "Performance insights",
+    "updated": "Updated {{ago}}",
+    "periods": {
+      "yesterday": "Yesterday",
+      "today": "Today",
+      "week": "Week",
+      "month": "Month"
+    },
+    "summary": {
+      "yesterday": "Yesterday's summary",
+      "today": "Today's summary",
+      "week": "This week's summary",
+      "month": "This month's summary"
+    },
+    "comparedWeek": "Compared with this time last week",
+    "comparedMonth": "Compared with this time last month",
+    "totalSales": "Total sales",
+    "salesByChannel": "Sales by channel",
+    "view": "View",
+    "appointments": "Appointments",
+    "avgSale": "Avg. sale",
+    "newClients": "New clients",
+    "returningClients": "Returning clients",
+    "team": "Team",
+    "occupancy": "Occupancy",
+    "clients": "Clients",
+    "clientsServed": "Clients served",
+    "clientsByType": "Clients by type",
+    "newBySource": "New clients by source",
+    "marketplace": "Marketplace",
+    "marketplaceBody": "Cumulative lifetime clients acquired from the marketplace and other online channels and their associated appointment value",
+    "lifetimeValue": "Lifetime appointment value from marketplace clients over time",
+    "marketplaceClients_one": "{{count}} marketplace client",
+    "marketplaceClients_other": "{{count}} marketplace clients",
+    "channels": {
+      "offline": "Offline",
+      "bookNowLink": "Book now link",
+      "marketplace": "Marketplace",
+      "social": "Social",
+      "marketing": "Marketing"
+    },
+    "type": {
+      "new": "New clients",
+      "returning": "Returning clients"
+    },
+    "info": {
+      "totalSales": "Completed sales including tips, tax inclusive",
+      "appointments": "Appointments booked for the period, excluding cancellations",
+      "avgSale": "Total sales divided by the number of sales",
+      "newClients": "Clients with their first appointment in the period",
+      "returningClients": "Clients who had visited before the period",
+      "occupancy": "Booked time as a share of scheduled working time for bookable team members",
+      "clientsServed": "Clients whose appointment was arrived, started or completed",
+      "newBySource": "Channel of each new client's first booking"
+    }
+  },
+  "notifications": {
+    "tabs": {
+      "appointments": "Appointments",
+      "reviews": "Reviews",
+      "tips": "Tips",
+      "online-sales": "Online sales",
+      "actions": "Actions"
+    },
+    "settings": "Notification settings",
+    "seeAllReviews": "See all reviews",
+    "groups": {
+      "new": "New",
+      "read": "Read"
+    },
+    "emptyTitle": "No notifications yet",
+    "emptyBody": "You do not have any notifications yet.",
+    "emptyActions": {
+      "openCalendar": "Open calendar",
+      "seeAllReviews": "See all reviews",
+      "viewSales": "View sales",
+      "viewOrders": "View product orders",
+      "openHome": "Go to Home"
+    },
+    "filters": {
+      "all": "All actions",
+      "messages": "Messages",
+      "inventory": "Inventory",
+      "payouts": "Payouts",
+      "other": "Other"
+    }
+  },
+  "wallet": {
+    "businessWallet": "Business wallet",
+    "tabs": {
+      "accounts": "Innoweb accounts",
+      "credits": "Innoweb credits"
+    },
+    "availableToTransfer": "{{amount}} available to transfer.",
+    "info": "Info",
+    "infoTitle": "Available to transfer",
+    "infoBody": "Card payments become available to transfer once they have settled, usually within 2 business days. Payouts go to your bank account automatically every day, or instantly with Pay out now.",
+    "payOutNow": "Pay out now",
+    "setUpNow": "Set up now",
+    "actions": "Actions",
+    "accountSummary": "Account summary",
+    "settings": "Settings",
+    "promo": "Get paid by clients online and in-store with Innoweb Payments",
+    "payouts": "Payouts",
+    "viewAll": "View all",
+    "showLess": "Show less",
+    "noPayouts": "No payouts yet. Payouts to your bank account will show up here.",
+    "payoutTo": "Payout to account ending {{last4}}",
+    "payoutStatus": {
+      "paid": "Paid",
+      "in_transit": "In transit"
+    },
+    "activity": "Activity",
+    "filters": "Filters",
+    "filterType": "Type",
+    "filterPeriod": "Period",
+    "txTypes": {
+      "all": "All types",
+      "payment": "Payment",
+      "payout": "Payout",
+      "fee": "Fee",
+      "refund": "Refund",
+      "deposit": "Deposit"
+    },
+    "ranges": {
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "all": "All time"
+    },
+    "noActivity": "No recent activity",
+    "noActivityBody": "Account transactions will show up here",
+    "clearFilters": "Clear filters",
+    "payoutTitle": "Pay out now",
+    "payoutSubtitle": "Send your available balance to the bank account ending {{last4}}.",
+    "payOut": "Pay out {{amount}}",
+    "available": "Available to transfer",
+    "instantFee": "Instant payout fee (1%)",
+    "youReceive": "You receive",
+    "arrives": "Arrives",
+    "arrivesValue": "Within minutes",
+    "payoutToast": "Payout of {{amount}} is on its way",
+    "balance": "Balance",
+    "pending": "Pending",
+    "payments30": "Payments (last 30 days)",
+    "paidOut30": "Paid out (last 30 days)",
+    "fees30": "Fees (last 30 days)",
+    "bankAccount": "Bank account",
+    "endingIn": "Ending in {{last4}}",
+    "schedule": "Payout schedule",
+    "scheduleValue": "Daily, automatic",
+    "creditsTitle": "Innoweb credits",
+    "availableCredits": "Available credits",
+    "noCredits": "You have no credits available. All fees will be deducted from your balance.",
+    "creditsUsed": "Credits are used before fees are deducted from your balance.",
+    "earned": "Earned",
+    "pendingTab": "Pending",
+    "noEarned": "No earned credits",
+    "noEarnedBody": "Earned credits will show up here.",
+    "noPending": "No pending credits",
+    "noPendingBody": "Credits from businesses you refer show up here while they're pending.",
+    "referBusiness": "Refer a business",
+    "invitedOn": "Invited {{date}}",
+    "pendingChip": "Pending"
+  },
+  "referral": {
+    "menu": "Referrals",
+    "menuReferrals": "Referrals",
+    "menuLearn": "Learn more",
+    "menuSupport": "Support",
+    "title": "Refer a business, and you both get up to €130",
+    "howItWorks": "How it works",
+    "steps": {
+      "signUp": {
+        "title": "They sign up with your link",
+        "body": "Includes a 7-day free trial"
+      },
+      "paidPlan": {
+        "title": "They start a paid plan",
+        "body": "When the free trial ends"
+      },
+      "bothGet": {
+        "title": "You both get €130",
+        "body": "Applied automatically as €13 a month off your subscription"
+      }
+    },
+    "viewInvites_one": "View {{count}} invite",
+    "viewInvites_other": "View {{count}} invites",
+    "yourReferrals": "Your referrals",
+    "noReferrals": "You haven't invited anyone yet. Share your link to get started.",
+    "invited": "Invited",
+    "invitedOn": "Invited {{date}}",
+    "share": "Share your link",
+    "shareTitle": "Share your link",
+    "shareSubtitle": "Anyone who signs up with this link gets a 7-day free trial.",
+    "copyLink": "Copy link",
+    "copiedShort": "Copied",
+    "copied": "Link copied",
+    "shareEmail": "Share via email",
+    "emailTitle": "Invite a business",
+    "emailSubtitle": "We'll email them your referral link.",
+    "businessEmail": "Business email",
+    "emailPlaceholder": "name@business.com",
+    "message": "Personal message",
+    "messagePlaceholder": "I use Innoweb Bookings for my salon and love it…",
+    "sendInvite": "Send invite",
+    "sentToast": "Invite sent to {{email}}",
+    "errors": {
+      "email": "Enter a valid email address"
+    }
+  },
+  "inbox": {
+    "connect": "Connect",
+    "search": "Search",
+    "settings": "Settings",
+    "contactPage": "Contact page",
+    "messagingSettings": "Client messaging settings",
+    "notificationSettings": "Notification settings",
+    "clientConnect": "Client Connect",
+    "teamConnect": "Team Connect",
+    "new": "New",
+    "clientMessages": "Client messages",
+    "newMessage": "New message",
+    "filters": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "empty": {
+      "open": {
+        "title": "No open conversations",
+        "body": "New client messages will show up here."
+      },
+      "closed": {
+        "title": "No closed conversations",
+        "body": "Conversations you close will show up here."
+      }
+    },
+    "noMatches": "No conversations found",
+    "noMatchesBody": "Nothing matches \"{{query}}\".",
+    "clearSearch": "Clear search",
+    "unknownClient": "Unknown client",
+    "you": "You",
+    "noneSelected": "No conversation selected",
+    "noneSelectedBody": "Pick a conversation or start a new one.",
+    "viewProfile": "View client profile",
+    "noContact": "No contact details",
+    "closedChip": "Closed",
+    "options": "Conversation options",
+    "bookAppointment": "Book appointment",
+    "markUnread": "Mark as unread",
+    "markedUnread": "Marked as unread",
+    "reopen": "Reopen conversation",
+    "closeConversation": "Close conversation",
+    "closedToast": "Conversation closed",
+    "reopenedToast": "Conversation reopened",
+    "deleteTitle": "Delete message?",
+    "deleteBody": "The message is removed from this conversation. The client may already have read it.",
+    "delete": "Delete",
+    "deletedToast": "Message deleted",
+    "copyText": "Copy text",
+    "copied": "Message copied",
+    "messageOptions": "Message options",
+    "contactRequired": "Client contact information required",
+    "addDetails": "Add details",
+    "closedHint": "This conversation is closed. Sending a message reopens it.",
+    "uploading": "Uploading…",
+    "removeAttachment": "Remove {{name}}",
+    "typeMessage": "Type a message",
+    "attach": "Attach",
+    "emoji": "Insert emoji",
+    "quickReplies": "Quick replies",
+    "enterHint": "Enter to send, Shift+Enter for a new line",
+    "send": "Send message",
+    "attachmentsOff": "Attachments are turned off in Client messaging settings",
+    "sentToast": "Message sent to {{name}}",
+    "quick": {
+      "thanks": {
+        "title": "Thank you",
+        "text": "Thanks for your message, {{name}}! We'll get back to you shortly."
+      },
+      "booking": {
+        "title": "Book online",
+        "text": "Hi {{name}}, you can book your next visit online any time, or tell us a day and time and we'll find a slot for you."
+      },
+      "parking": {
+        "title": "Parking",
+        "text": "There is paid street parking nearby and a public car park two minutes away."
+      },
+      "running": {
+        "title": "Running late",
+        "text": "No problem, {{name}}! We'll hold your appointment for 15 minutes."
+      },
+      "hours": {
+        "title": "Opening hours",
+        "text": "{{business}} is open Monday to Saturday. You can see our hours and book online on our profile."
+      },
+      "review": {
+        "title": "Ask for a review",
+        "text": "Thanks for visiting {{business}}, {{name}}! We'd love to hear how it went, leaving a review helps us a lot."
+      }
+    },
+    "intro": {
+      "badge": "New feature",
+      "title": "Connect to clients with two-way messaging",
+      "body": "Introducing a whole new inbox that makes connecting with clients a breeze. Let your clients reach out to you, and let you and your team easily respond. Plus, it's all included in your plan.",
+      "bullets": {
+        "one": "Let clients message you directly in Innoweb",
+        "two": "See every unread message at a glance so you can easily see what needs a response",
+        "three": "Seamlessly access client profiles and past conversations from every chat"
+      },
+      "go": "Go to inbox"
+    },
+    "tour": {
+      "label": "Inbox tour",
+      "step": "Step {{current}} of {{total}}",
+      "contactPage": "Just added: accept general inquiry messages via your own public Contact Page with a dedicated link",
+      "settings": "Explore the new feature under your Client Connect settings, found here",
+      "quickReplies": "Answer common questions in one click with quick replies",
+      "next": "Next",
+      "done": "Done"
+    },
+    "team": {
+      "title": "Team Connect",
+      "body": "Give your team a dedicated space to collaborate, create group chats, and share files without leaving Innoweb.",
+      "bullets": {
+        "one": "Direct messages and group channels for your team",
+        "two": "Share files, photos and updates in one place",
+        "three": "Mentions and thread replies keep everyone in the loop"
+      },
+      "cta": "Try Team Connect"
+    },
+    "contactModal": {
+      "subtitle": "Clients can send you general questions from your public contact page.",
+      "on": "Contact page is on",
+      "off": "Contact page is off",
+      "copied": "Contact page link copied",
+      "body": "Share this link on your website or social profiles. New messages arrive in this inbox."
+    },
+    "newModal": {
+      "subtitle": "Pick a client, then write your message.",
+      "search": "Search by name, email or phone",
+      "noClients": "No clients match your search.",
+      "pickClient": "Pick a client first",
+      "typeFirst": "Type a message first"
+    }
+  }
+}

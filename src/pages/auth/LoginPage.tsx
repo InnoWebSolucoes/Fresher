@@ -125,7 +125,9 @@ export function LoginPage() {
 
       <section className="mt-10 rounded-lg border border-dashed border-line-strong p-4">
         <h2 className="text-body-strong text-ink">{t('auth.demoAccounts')}</h2>
-        <p className="mb-3 text-small text-muted">{t('auth.demoAccountsHint')}</p>
+        <p className="mb-3 text-small text-muted">
+          {t('auth.demoAccountsHint')} {t('demo.loginHint')}.
+        </p>
         <div className="grid grid-cols-2 gap-2">
           {DEMO_ACCOUNTS.map((account) => (
             <button

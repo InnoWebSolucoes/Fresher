@@ -1,0 +1,249 @@
+{
+  "tm": {
+    "steps": "Steps",
+    "roles": {
+      "describeFull": "Full access to {{areas}}.",
+      "describePartial": "Partial access to {{areas}}.",
+      "describeNone": "No access to workspace features."
+    },
+    "edit": {
+      "title": "Edit {{name}} permission role",
+      "subtitle": "Select the areas of your workspace that team members in this role can access and manage",
+      "toast": "Permission role updated",
+      "notFound": "Permission role not found",
+      "backToRoles": "Back to permission roles",
+      "discardTitle": "Discard changes?",
+      "discardBody": "You have unsaved changes. If you leave now they will be lost.",
+      "discard": "Discard",
+      "ownerNote": "The Workspace owner has full access to all areas. These permissions can't be changed.",
+      "noneNote": "Team members with No access can't access any workspace features. These permissions can't be changed."
+    },
+    "matrix": {
+      "search": "Search permissions...",
+      "areas": "Permission area",
+      "active": "Active",
+      "off": "Off",
+      "activeSwitch": "{{area}} active",
+      "learnTopic": "{{area}} permissions",
+      "noResults": "No permissions found",
+      "noResultsBody": "No permissions match \"{{query}}\".",
+      "clearSearch": "Clear search",
+      "goToInsights": "Go to Insights",
+      "insightsNote": "Permissions for individual reports can be managed in Insights"
+    },
+    "perm": {
+      "calendar": {
+        "title": "Calendar",
+        "description": "Allow access to the calendar and decide what actions they can perform.",
+        "groups": { "access": "Calendar access and actions", "blocked": "Blocked times", "restrictions": "Booking restrictions", "settings": "Calendar settings", "sync": "Calendar sync" },
+        "items": {
+          "view_own": "Can view their own calendar",
+          "view_others": "Can view other team members' calendars",
+          "create_appointments": "Can create appointments",
+          "edit_preferred_member": "Can edit preferred team member for an appointment",
+          "apply_discounts": "Can apply discounts to appointments",
+          "reschedule": "Can reschedule appointments",
+          "reassign": "Can reassign appointments to another team member",
+          "cancel": "Can cancel appointments",
+          "no_show": "Can mark appointments as a no-show",
+          "blocked_own": "Can create a blocked time in their own calendar",
+          "blocked_all": "Can create a blocked time for all team members",
+          "blocked_types": "Can set up and change blocked time types for the workspace",
+          "book_unassigned_members": "Can book a service with team members not assigned to deliver that service",
+          "book_unassigned_resources": "Can book a service with resources not set up to deliver that service",
+          "closed_dates": "Can manage business closed dates",
+          "link_own": "Can link their own calendar to external calendars",
+          "link_own_export": "Can export calendar items to an external calendar",
+          "link_own_import": "Can import calendar items from an external calendar",
+          "link_any": "Can link any calendar to external calendars",
+          "link_any_export": "Can export calendar items to an external calendar",
+          "link_any_import": "Can import calendar items from an external calendar"
+        },
+        "hints": {}
+      },
+      "sales": {
+        "title": "Sales",
+        "description": "Allow access to sales and decide what actions the team member can perform.",
+        "groups": { "checkout": "Checkout actions", "registers": "Cash registers", "reports": "Sales reports", "gift_cards": "Gift cards" },
+        "items": {
+          "checkout": "Can check out sales",
+          "add_tip": "Can add a tip during checkout",
+          "edit_prices": "Can edit prices at checkout",
+          "discount_orders": "Can apply discounts to orders",
+          "discount_items": "Can apply discounts to individual items",
+          "view_all_sales": "Can view all sales",
+          "view_own_sales": "Can view own sales",
+          "void_sale": "Can void a sale",
+          "edit_sale": "Can edit a sale",
+          "refund_sale": "Can refund a sale",
+          "collect_cash": "Can collect cash payments",
+          "tap_to_pay": "Can use tap to pay",
+          "sell_memberships": "Can sell memberships",
+          "sell_packages": "Can sell packages",
+          "take_cash": "Can take cash payments",
+          "view_registers": "Can view cash registers",
+          "manage_registers": "Can manage cash registers",
+          "view_closed_registers": "Can view previously closed cash registers",
+          "open_register": "Can open the cash register",
+          "close_register": "Can close the cash register",
+          "cash_in_out": "Can manually cash in or out",
+          "mid_day_count": "Can do a count of the cash register mid-day",
+          "daily_summary": "Can view the daily sales summary",
+          "appointments_list": "Can view the list of appointments",
+          "gift_card_templates": "Can view gift card templates in the catalog",
+          "packages_sold": "Can view the list of packages sold",
+          "memberships_sold": "Can view the list of memberships sold",
+          "export_reports": "Can export sales reports",
+          "sold_gift_cards": "Can view the list of sold gift cards"
+        },
+        "hints": {
+          "manage_registers": "Team member can create, edit and archive cash registers",
+          "mid_day_count": "Requires mid-day count setting to be enabled for register"
+        }
+      },
+      "clients": {
+        "title": "Clients",
+        "description": "Allow access to client profiles, the client list and decide what actions the team member can perform.",
+        "groups": { "profile": "Client profile details", "notes": "Client notes", "list": "Clients list", "reputation": "Online reputation", "loyalty": "Client loyalty", "messaging": "Client messaging", "settings": "Client settings" },
+        "items": {
+          "view_profile": "Can view client profile",
+          "view_details": "Can view client's details",
+          "full_name": "Can view client's full name",
+          "contact_details": "Can view client's email and phone number",
+          "tags": "Can add and remove tags from clients",
+          "view_form_responses": "Can view client responses in consultation forms",
+          "complete_forms": "Can complete consultation forms on behalf of clients",
+          "edit_forms": "Can create and edit consultation forms",
+          "add_rewards": "Can manually add client rewards to a client",
+          "notes_assigned": "Can view client notes at assigned locations",
+          "notes_all_locations": "Can view client notes at all locations",
+          "notes_edit": "Can create and edit client notes",
+          "notes_edit_others": "Can edit other team members' notes",
+          "download": "Can download client details",
+          "segments": "Can create and manage client segments",
+          "reputation_view": "Can view Online reputation section",
+          "reputation_settings": "Can manage Online reputation settings for the workspace",
+          "reply_reviews": "Can reply to reviews",
+          "loyalty_view": "Can view loyalty settings for the workspace",
+          "loyalty_settings": "Can manage loyalty settings for the workspace",
+          "loyalty_rewards": "Can manage client loyalty rewards",
+          "messages_view": "Can view client messages",
+          "messages_send": "Can send messages to clients",
+          "client_sources": "Can manage client sources",
+          "client_tags": "Can manage client tags"
+        },
+        "hints": {
+          "client_sources": "Client sources are labels that track how clients found your business (e.g. Walk-in, Instagram etc.)",
+          "client_tags": "Client tags are custom labels you can create and assign to clients to organize and filter them (e.g. VIP, Regular etc.)"
+        }
+      },
+      "catalog": {
+        "title": "Catalog",
+        "description": "Allow access to the catalog and decide what actions the team members can perform.",
+        "groups": { "management": "Catalog management" },
+        "items": {
+          "services": "Can create or change the services in the catalog",
+          "bulk_edit_services": "Can bulk edit services",
+          "products": "Can create or change the products in the catalog",
+          "import_products": "Can import products to the catalog in bulk",
+          "bulk_products": "Can perform bulk operations on the product catalog",
+          "gift_cards": "Can create or change gift cards",
+          "memberships": "Can create or change memberships",
+          "packages": "Can create or change packages"
+        },
+        "hints": {}
+      },
+      "online_profile": {
+        "title": "Online profile",
+        "description": "Allow access to the online profile and decide what actions the team members can perform.",
+        "groups": {},
+        "items": {
+          "online_booking": "Can set up and manage online booking",
+          "product_store": "Can set up and manage the online product store",
+          "shopkeeper_orders": "Can manage shopkeeper orders"
+        },
+        "hints": {}
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "Allow access to marketing tools and decide what actions the team members can perform.",
+        "groups": { "actions": "Blast and automation actions" },
+        "items": {
+          "blast": "Can manage blast marketing campaigns",
+          "automations": "Can manage automations",
+          "deals_view": "Can view deals offered to clients",
+          "deals_edit": "Can create or edit the deals offered to clients",
+          "smart_pricing": "Can manage smart pricing settings"
+        },
+        "hints": {
+          "blast": "Team member can create email and text blast marketing campaigns",
+          "automations": "Team member can view and manage automated messages sent to your clients"
+        }
+      },
+      "team": {
+        "title": "Team",
+        "description": "Allow access to team management and decide what actions they can perform.",
+        "groups": { "list": "Team member list", "time": "Time management", "compensation": "Compensation", "settings": "Team settings", "connect": "Team Connect" },
+        "items": {
+          "view_list": "Can view the team member list",
+          "own_shifts": "Can view their own scheduled shifts",
+          "manage_others_shifts": "Can manage other team members' scheduled shifts",
+          "manage_own_shifts": "Can manage their scheduled shifts",
+          "own_timesheets": "Can manage their own timesheets",
+          "manage_others_timesheets": "Can manage other team members' timesheets",
+          "pay_runs": "Can run pay runs",
+          "compensation_settings": "Can manage team member compensation settings",
+          "merchant_accounts": "Can manage merchant accounts",
+          "permission_levels": "Can manage permission levels",
+          "pin_switching": "Can manage PIN switching",
+          "timesheet_settings": "Can manage timesheet settings for the workspace",
+          "provider_onboarding": "Can manage provider onboarding",
+          "team_connect": "Can access Team Connect",
+          "public_channels": "Can manage public channels",
+          "private_channels": "Can manage private channels"
+        },
+        "hints": {
+          "pay_runs": "Can pay out wages, commissions, and tips to team members",
+          "compensation_settings": "Required to view and edit team members' wages, commissions, and pay run details",
+          "merchant_accounts": "Merchant accounts enable payments directly from clients to team members"
+        }
+      },
+      "reports": {
+        "title": "Reports",
+        "description": "Allow access to reports and decide what actions they can perform.",
+        "groups": {},
+        "items": {
+          "access": "Can access reports",
+          "view_all_data": "Can view all team members' data",
+          "insights_drawer": "Can view performance Insights drawer",
+          "data_connections": "Can manage data connections"
+        },
+        "hints": {}
+      },
+      "payments_wallet": {
+        "title": "Payments and wallet",
+        "description": "Allow access to the business wallet and payment settings.",
+        "groups": {},
+        "items": {
+          "wallet_billing": "Can access the business wallet and edit billing information",
+          "pos_settings": "Can manage point of sale settings"
+        },
+        "hints": {}
+      },
+      "workspace": {
+        "title": "Workspace",
+        "description": "Allow access to business setup and other workspace settings.",
+        "groups": { "other": "Other" },
+        "items": {
+          "business_setup": "Can access business setup settings",
+          "home_page": "Can access the home page",
+          "all_locations": "Can view and access all locations",
+          "tips_notifications": "Can receive tips notifications"
+        },
+        "hints": {
+          "all_locations": "Team member can perform actions for all locations, even those they are not assigned to"
+        }
+      }
+    }
+  }
+}

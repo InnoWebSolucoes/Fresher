@@ -1,1 +1,1088 @@
-{}
+{
+  "automations": {
+    "title": "Automations",
+    "subtitle": "View and manage all automated messages sent to your clients.",
+    "balance": "Communication balance",
+    "balanceActions": "Communication balance actions",
+    "autoOnShort": "Auto top-ups on",
+    "menu": {
+      "manage": "Manage balance",
+      "enableAuto": "Enable auto top-ups",
+      "manageAuto": "Manage auto top-ups",
+      "topUp": "Top up",
+      "advanced": "Advanced automations options"
+    },
+    "banner": {
+      "title": "Make sure your messages always send with automatic top-ups",
+      "body": "Prevent your balance from reaching zero, and your messages will always reach your clients.",
+      "setUp": "Set up now",
+      "onTitle": "Automatic top-ups are on",
+      "onBody": "We add {{amount}} to your balance whenever it drops below {{threshold}}.",
+      "manage": "Manage"
+    },
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "sections": {
+      "reminders": "Reminders",
+      "appointment_updates": "Appointment updates",
+      "waitlist_updates": "Waitlist updates",
+      "increase_bookings": "Increase bookings",
+      "celebrate_milestones": "Celebrate milestones",
+      "client_messages": "Client messages",
+      "client_loyalty": "Client loyalty"
+    },
+    "channel": {
+      "email": "Email",
+      "sms": "Text message",
+      "whatsapp": "WhatsApp"
+    },
+    "channelCost": {
+      "email": "Free of charge",
+      "sms": "€0.08 per text",
+      "whatsapp": "€0.12 per message"
+    },
+    "createNew": "Create new",
+    "createNewHint": "Build your own automated message",
+    "create": {
+      "title": "Create automation",
+      "subtitle": "Send your own message automatically when the moment is right.",
+      "name": "Name",
+      "namePlaceholder": "e.g. Thank you for 10 visits",
+      "description": "Description",
+      "defaultDescription": "A custom automated message for your clients.",
+      "section": "Section",
+      "trigger": "When to send",
+      "channels": "Channels",
+      "submit": "Create",
+      "created": "Automation created"
+    },
+    "loyaltyGate": {
+      "title": "Set up Client Loyalty first",
+      "body": "Loyalty messages are sent when clients earn points, tiers and rewards. Turn on the Client Loyalty add-on to use them.",
+      "action": "Set up Client Loyalty"
+    },
+    "toast": {
+      "enabled": "{{name}} enabled",
+      "disabled": "{{name}} disabled"
+    }
+  },
+  "balance": {
+    "topUpTitle": "Top up your balance",
+    "topUpHint": "Your balance pays for text messages and WhatsApp messages sent by automations.",
+    "custom": "Other",
+    "customAmount": "Amount",
+    "minAmount": "The minimum top-up is €5",
+    "credit": "Balance credit",
+    "iva": "IVA 23%",
+    "total": "Total charged",
+    "cardOnFile": "Charged to {{brand}} ending {{last4}}",
+    "pay": "Pay {{value}}",
+    "toppedUp": "Balance topped up by {{value}}",
+    "autoTitle": "Automatic top-ups",
+    "autoHint": "Prevent your balance from reaching zero, and your messages will always reach your clients.",
+    "autoToggle": "Enable auto top-ups",
+    "autoToggleHint": "We charge your card on file automatically",
+    "threshold": "When my balance falls below",
+    "amount": "Top up by",
+    "autoOn": "Auto top-ups enabled",
+    "autoOff": "Auto top-ups disabled",
+    "advancedTitle": "Advanced automations options",
+    "sender": "Text message sender name",
+    "senderHint": "Shown instead of a phone number. Letters and numbers only.",
+    "quiet": "Quiet hours",
+    "quietHint": "Hold marketing messages overnight and send them in the morning",
+    "quietFrom": "From",
+    "quietTo": "To",
+    "advancedSaved": "Automation options saved"
+  },
+  "automationDetail": {
+    "notFound": "Automation not found",
+    "backToList": "Back to automations",
+    "disable": "Disable",
+    "channelOff": "This channel is turned off for this automation. Enable it in Edit to send it.",
+    "short": {
+      "reminders": "Appointment reminder",
+      "appointment_updates": "Appointment update",
+      "waitlist_updates": "Waitlist update",
+      "increase_bookings": "Increase bookings",
+      "celebrate_milestones": "Milestone",
+      "client_messages": "Client message",
+      "client_loyalty": "Client loyalty"
+    },
+    "tabs": {
+      "performance": "Performance",
+      "preview": "Preview",
+      "details": "Details"
+    },
+    "period": "Period",
+    "periods": {
+      "ytd": "Year to date",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "12m": "Last 12 months"
+    },
+    "chartTitle": "Sent messages over time",
+    "metric": "Metric",
+    "metrics": {
+      "sent": "Sent messages",
+      "delivered": "Delivered messages",
+      "opened": "Opened messages"
+    },
+    "channelShort": {
+      "email": "Email",
+      "sms": "Text",
+      "whatsapp": "WhatsApp"
+    },
+    "funnel": {
+      "sent": "Sent",
+      "sentInfo": "Messages sent to clients",
+      "delivered": "Delivered",
+      "deliveredInfo": "Messages that reached the client's inbox or phone",
+      "opened": "Opened",
+      "openedInfo": "Emails and WhatsApp messages opened by clients",
+      "clicked": "Clicked",
+      "clickedInfo": "Messages where the client clicked a link"
+    },
+    "details": {
+      "sendTo": "Send to clients",
+      "created": "Created",
+      "channels": "Channels",
+      "noChannels": "No channels enabled",
+      "updated": "Updated",
+      "type": "Type",
+      "marketing": "Marketing (only clients who agreed to marketing)",
+      "transactional": "Service message (all clients with notifications on)"
+    },
+    "reset": {
+      "action": "Reset",
+      "title": "Reset this automation?",
+      "body": "Channels, timing and email content go back to their default settings.",
+      "confirm": "Reset",
+      "done": "Automation reset to default settings"
+    },
+    "remove": {
+      "action": "Remove",
+      "title": "Remove automation?",
+      "body": "\"{{name}}\" will stop sending and be removed.",
+      "confirm": "Remove",
+      "done": "Automation removed"
+    }
+  },
+  "triggers": {
+    "reminder": "{{value}} before a client's appointment",
+    "rebook": "{{value}} after a client's last appointment",
+    "birthday": "{{value}} before a client's birthday",
+    "birthdayOnDay": "On a client's birthday",
+    "win-back": "{{value}} since a client's last visit",
+    "reward-loyal": "When a client spends more than {{value}} in 12 months",
+    "welcome": "{{value}} after a new client's first visit",
+    "new-appointment": "When an appointment is booked for a client",
+    "rescheduled": "When an appointment's start time is changed",
+    "cancelled": "When an appointment is canceled",
+    "no-show": "When an appointment is marked as a no-show",
+    "thank-you": "When an appointment is checked out",
+    "thank-tip": "When a client adds a tip after their appointment",
+    "waitlist-joined": "When a client joins the waitlist",
+    "waitlist-slot": "When a matching time slot becomes available",
+    "chat-message": "When you send a client a message",
+    "message-received": "When a client sends a message from your contact page",
+    "points-summary": "When a client earns loyalty points",
+    "tier": "When a client reaches a new loyalty tier",
+    "rewards-summary": "When a client earns a reward",
+    "referrer": "When a referred friend completes their first appointment"
+  },
+  "configure": {
+    "trigger": "Trigger",
+    "triggerModal": "Edit notification trigger",
+    "advanceNotice": "Reminder advance notice",
+    "whenToSend": "When to send",
+    "sendEmail": "Send an email",
+    "sendMessage": "Send a message",
+    "free": "Free of charge",
+    "rate": {
+      "sms": "{{value}} per text",
+      "whatsapp": "{{value}} per message"
+    },
+    "actions": "Actions",
+    "editContent": "Edit content",
+    "preview": "Preview",
+    "previewTitle": "Preview",
+    "operator": {
+      "and": "And",
+      "or": "Or"
+    },
+    "operatorHint": {
+      "and": "Clients will be sent a WhatsApp and text message.",
+      "or": "Clients will be sent a WhatsApp message, or a text message if they don't use WhatsApp."
+    },
+    "oneChannel": "Enable at least one channel",
+    "saved": "Automation saved",
+    "discard": {
+      "title": "Discard changes?",
+      "body": "Your changes haven't been saved.",
+      "confirm": "Discard"
+    }
+  },
+  "emailEditor": {
+    "title": "Edit email content",
+    "reset": "Reset changes",
+    "resetDone": "Email content reset",
+    "details": "Email details",
+    "displayPrice": "Display service price",
+    "importantInfo": "Important info",
+    "importantInfoPlaceholder": "e.g. Parking is available on the street",
+    "importantInfoHint": "Include extra details for clients about their visit, this info is only displayed in emails.",
+    "saved": "Email content saved"
+  },
+  "content": {
+    "getDirections": "Get directions",
+    "manage": "Manage appointment",
+    "details": "Appointment details",
+    "with": "{{duration}} with {{member}}",
+    "total": "Total",
+    "ref": "Booking ref: {{ref}}",
+    "importantInfo": "Important info",
+    "policy": "Cancellation policy",
+    "policyText": "Cancel for free up to 24 hours before your appointment.",
+    "footer": "We sent you this email because you have booked with {{business}}, which partners with Innoweb Bookings for appointments and payments.",
+    "cta": {
+      "book": "Book now",
+      "reply": "Reply"
+    },
+    "reminder": {
+      "subject": "Reminder about your appointment on {{whenShort}}",
+      "heading": "Hi {{firstName}}, just a quick reminder about your upcoming appointment",
+      "intro": "This is a friendly reminder about your appointment on {{whenLong}} with {{business}}.",
+      "sms": "{{business}}: Hi {{firstName}}, a reminder of your {{service}} on {{whenShort}}. Need to change it? Reply or manage your booking online."
+    },
+    "confirmation": {
+      "subject": "Your appointment is confirmed for {{whenShort}}",
+      "heading": "Hi {{firstName}}, your appointment is confirmed",
+      "intro": "We're looking forward to seeing you on {{whenLong}} at {{business}}.",
+      "sms": "{{business}}: Hi {{firstName}}, your {{service}} is confirmed for {{whenShort}}."
+    },
+    "reschedule": {
+      "subject": "Your appointment has been moved to {{whenShort}}",
+      "heading": "Hi {{firstName}}, your appointment has a new time",
+      "intro": "Your appointment with {{business}} is now on {{whenLong}}.",
+      "sms": "{{business}}: Hi {{firstName}}, your {{service}} has moved to {{whenShort}}."
+    },
+    "cancellation": {
+      "subject": "Your appointment on {{whenShort}} was canceled",
+      "heading": "Hi {{firstName}}, your appointment was canceled",
+      "intro": "Your appointment on {{whenLong}} with {{business}} has been canceled. We hope to see you again soon.",
+      "sms": "{{business}}: Hi {{firstName}}, your {{service}} on {{whenShort}} was canceled. Book again any time."
+    },
+    "no_show": {
+      "subject": "We missed you today",
+      "heading": "Hi {{firstName}}, we missed you",
+      "intro": "You didn't make it to your appointment on {{whenLong}}. Book again whenever suits you.",
+      "sms": "{{business}}: Hi {{firstName}}, we missed you at your {{service}} today. Book again any time."
+    },
+    "thank_you": {
+      "subject": "Thanks for visiting {{business}}",
+      "heading": "Thanks for visiting, {{firstName}}!",
+      "intro": "We hope you loved your visit. Tell us how it went: leaving a review only takes a minute.",
+      "sms": "{{business}}: Thanks for visiting, {{firstName}}! How was your {{service}}? Leave a review: ★★★★★"
+    },
+    "tip": {
+      "subject": "Thank you for your tip",
+      "heading": "Thank you, {{firstName}}!",
+      "intro": "Your tip means a lot to {{member}} and the whole team at {{business}}.",
+      "sms": "{{business}}: Thank you for your tip, {{firstName}}! {{member}} says thanks."
+    },
+    "waitlist_joined": {
+      "subject": "You're on the waitlist at {{business}}",
+      "heading": "Hi {{firstName}}, you're on the waitlist",
+      "intro": "We'll let you know as soon as a time that suits you becomes available.",
+      "sms": "{{business}}: Hi {{firstName}}, you're on our waitlist. We'll text you when a slot opens."
+    },
+    "waitlist_slot": {
+      "subject": "A time slot is available on {{whenShort}}",
+      "heading": "Good news, {{firstName}}! A slot just opened up",
+      "intro": "A time that matches your waitlist request is available on {{whenLong}}. Book it before someone else does.",
+      "sms": "{{business}}: Hi {{firstName}}, a slot opened on {{whenShort}} for {{service}}. Book now before it's gone."
+    },
+    "rebook": {
+      "subject": "Time for your next visit?",
+      "heading": "Hi {{firstName}}, ready for your next appointment?",
+      "intro": "It's been a few weeks since your last {{service}}. Book your next visit with {{member}} in seconds.",
+      "sms": "{{business}}: Hi {{firstName}}, time for your next {{service}}? Book online in seconds."
+    },
+    "birthday": {
+      "subject": "Happy birthday, {{firstName}}!",
+      "heading": "Happy birthday, {{firstName}}!",
+      "intro": "To celebrate, enjoy a little treat from all of us at {{business}} on your next visit.",
+      "sms": "{{business}}: Happy birthday, {{firstName}}! Enjoy a treat on your next visit."
+    },
+    "win_back": {
+      "subject": "We miss you, {{firstName}}",
+      "heading": "It's been a while, {{firstName}}",
+      "intro": "We'd love to see you again at {{business}}. Book your next visit and treat yourself.",
+      "sms": "{{business}}: We miss you, {{firstName}}! Book your next visit online."
+    },
+    "reward": {
+      "subject": "A thank-you for being a loyal client",
+      "heading": "Thank you for your loyalty, {{firstName}}",
+      "intro": "You're one of our favourite clients. Here's a special offer for your next visit to {{business}}.",
+      "sms": "{{business}}: Thank you for your loyalty, {{firstName}}! A special offer is waiting for you."
+    },
+    "welcome": {
+      "subject": "Welcome to {{business}}",
+      "heading": "Welcome, {{firstName}}!",
+      "intro": "Thanks for choosing {{business}}. Enjoy a welcome discount on your next visit.",
+      "sms": "{{business}}: Welcome, {{firstName}}! Enjoy a discount on your next visit."
+    },
+    "chat": {
+      "subject": "You have a new message from {{business}}",
+      "heading": "Hi {{firstName}}, you have a new message",
+      "intro": "{{business}} sent you a message. Open it to read and reply.",
+      "sms": "{{business}}: Hi {{firstName}}, you have a new message. Open it to reply."
+    },
+    "message_received": {
+      "subject": "We got your message",
+      "heading": "Thanks for your message, {{firstName}}",
+      "intro": "{{business}} has received your message and will reply as soon as possible.",
+      "sms": "{{business}}: Thanks, {{firstName}}! We got your message and will reply soon."
+    },
+    "loyalty": {
+      "subject": "Your loyalty update from {{business}}",
+      "heading": "Hi {{firstName}}, here's your loyalty update",
+      "intro": "See the points and rewards you've earned at {{business}}.",
+      "sms": "{{business}}: Hi {{firstName}}, you've earned new loyalty rewards. Check them online."
+    },
+    "custom": {
+      "heading": "Hi {{firstName}}",
+      "sms": "{{business}}: Hi {{firstName}}, {{name}}."
+    }
+  },
+  "common": {
+    "learnMore": "Learn more",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "options": "Options",
+    "continue": "Continue",
+    "done": "Done",
+    "edit": "Edit",
+    "back": "Back",
+    "add": "Add",
+    "apply": "Apply",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "all": "All",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "active": "Active",
+    "inactive": "Inactive",
+    "archived": "Archived",
+    "paused": "Paused",
+    "ongoing": "Ongoing",
+    "filters": "Filters",
+    "clear": "Clear",
+    "selectAll": "Select all",
+    "nextStep": "Next step"
+  },
+  "campaigns": {
+    "title": "Blast campaigns",
+    "subtitle": "Share special offers and important updates with your clients over email and text message.",
+    "create": "Create campaign",
+    "search": "Search by campaign name",
+    "allChannels": "All channels",
+    "pendingNote": "Pending campaigns are being reviewed to make sure they follow our messaging guidelines. Approved campaigns are sent straight away or at their scheduled time.",
+    "openedRate": "{{value}}% opened",
+    "bookingsValue_one": "{{count}} booking · {{value}}",
+    "bookingsValue_other": "{{count}} bookings · {{value}}",
+    "intro": {
+      "badge": "Included in your plan",
+      "title": "Promote your business with blast campaigns",
+      "body": "Increase bookings and engage with your clients by sharing special offers and important updates over email and text message.",
+      "b1": "Customize the message content to suit your style",
+      "b2": "Target all clients, specific client groups or individuals",
+      "b3": "Access powerful real-time campaign reporting",
+      "start": "Start now"
+    },
+    "summary": {
+      "sent": "Campaigns sent",
+      "messages_one": "{{count}} message delivered to clients",
+      "messages_other": "{{count}} messages delivered to clients",
+      "openRate": "Average open rate",
+      "openRateHint": "Across all sent campaigns",
+      "bookings": "Bookings from campaigns",
+      "bookingsHint": "Appointments booked after a campaign",
+      "revenue": "Campaign revenue",
+      "revenueHint": "Value of bookings from campaigns"
+    },
+    "tabs": {
+      "all": "All",
+      "draft": "Draft",
+      "pending": "Pending",
+      "scheduled": "Scheduled",
+      "sent": "Sent"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "scheduled": "Scheduled",
+      "sent": "Sent"
+    },
+    "channel": {
+      "email": "Email",
+      "sms": "Text message"
+    },
+    "audience": {
+      "all": "All clients",
+      "clientsCount_one": "{{count}} client",
+      "clientsCount_other": "{{count}} clients"
+    },
+    "col": {
+      "campaign": "Campaign",
+      "status": "Status",
+      "channel": "Channel",
+      "audience": "Audience",
+      "recipients": "Recipients",
+      "date": "Date",
+      "performance": "Performance"
+    },
+    "dateKind": {
+      "sent": "Sent",
+      "scheduled": "Scheduled for",
+      "created": "Created"
+    },
+    "actions": {
+      "view": "View campaign",
+      "edit": "Edit",
+      "sendNow": "Send now",
+      "cancelSchedule": "Cancel schedule",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    },
+    "delete": {
+      "title": "Delete campaign?",
+      "body": "\"{{name}}\" will be permanently deleted. Messages already sent stay in your Messages history.",
+      "confirm": "Delete"
+    },
+    "toast": {
+      "deleted": "Campaign deleted",
+      "duplicated": "Campaign duplicated",
+      "sent": "Campaign sent",
+      "unscheduled": "Schedule canceled. The campaign is back in drafts",
+      "dueSent_one": "{{count}} scheduled campaign was sent",
+      "dueSent_other": "{{count}} scheduled campaigns were sent"
+    },
+    "empty": {
+      "all": "No campaigns yet",
+      "draft": "No draft campaigns",
+      "pending": "No campaigns in review",
+      "scheduled": "No scheduled campaigns",
+      "sent": "No sent campaigns",
+      "body": "Create a campaign to share an offer or an update with your clients."
+    }
+  },
+  "builder": {
+    "title": "Create campaign",
+    "editTitle": "Edit campaign",
+    "saveDraft": "Save draft",
+    "send": "Send",
+    "schedule": "Schedule",
+    "untitled": "Untitled campaign",
+    "notFound": "Campaign not found",
+    "backToCampaigns": "Back to blast campaigns",
+    "locked": "This campaign can't be edited",
+    "lockedBody": "Only draft campaigns can be edited. Duplicate it to send a new version.",
+    "viewCampaign": "View campaign",
+    "defaultButton": "Book now",
+    "dealSubject": "{{name}}: an offer just for you",
+    "dealHeading": "Enjoy {{value}} off your next visit",
+    "details": "Campaign details",
+    "detailsHint": "Give your campaign a name. Clients won't see it.",
+    "name": "Campaign name",
+    "namePlaceholder": "e.g. Autumn colour refresh",
+    "channel": "Channel",
+    "channelHint": "Choose how clients receive this campaign.",
+    "rate": {
+      "email": "{{value}} per email",
+      "sms": "{{value}} per message"
+    },
+    "audience": "Audience",
+    "audienceHint": "Only clients who agreed to receive marketing messages are included.",
+    "audienceAll": "All clients",
+    "audienceAllHint": "Everyone in your client list",
+    "audienceSegments": "Client segments",
+    "audienceSegmentsHint": "One or more groups from Client segments",
+    "audienceClients": "Specific clients",
+    "audienceClientsHint": "Pick individual clients",
+    "searchClients": "Search by name, email or phone",
+    "noConsent": "No marketing consent",
+    "removeClient": "Remove {{name}}",
+    "recipients_one": "{{count}} client will receive this campaign",
+    "recipients_other": "{{count}} clients will receive this campaign",
+    "excluded_one": "{{count}} client is excluded: no marketing consent or contact details",
+    "excluded_other": "{{count}} clients are excluded: no marketing consent or contact details",
+    "message": "Message",
+    "messageEmailHint": "Write your email. The preview updates as you type.",
+    "messageSmsHint": "Keep it short. Your business name and an opt-out are added automatically.",
+    "subject": "Subject line",
+    "subjectPlaceholder": "e.g. Fall for a new colour",
+    "heading": "Heading",
+    "headingPlaceholder": "e.g. Autumn colour refresh",
+    "body": "Message",
+    "bodyPlaceholder": "Tell clients what's new or what you're offering",
+    "smsParts_one": "{{count}} text message per client",
+    "smsParts_other": "{{count}} text messages per client",
+    "button": "Button label",
+    "buttonHint": "The button links to your online booking page",
+    "deal": "Attach a deal",
+    "dealHint": "Clients see the deal and its discount code in the message",
+    "noDeals": "You have no active deals. Create one in Deals.",
+    "noDeal": "No deal",
+    "scheduleTitle": "Schedule",
+    "scheduleHint": "Send as soon as the campaign is approved, or pick a date and time.",
+    "sendNow": "Send now",
+    "sendNowHint": "Sent as soon as the campaign passes review (usually a few minutes)",
+    "sendLater": "Schedule for later",
+    "sendLaterHint": "Choose when clients receive it",
+    "date": "Date",
+    "time": "Time",
+    "cost": "Cost estimate",
+    "costRecipients": "Recipients",
+    "costRate": "Price per message",
+    "costTotal": "Estimated cost",
+    "costNote": "Rates are exclusive of 23% IVA. You're only charged for messages sent.",
+    "preview": "Preview",
+    "previewSubject": "Your subject line",
+    "previewHeading": "Your heading",
+    "previewBody": "Your message appears here.",
+    "off": "{{value}} off",
+    "useCode": "Use code {{code}} when you book",
+    "footer": "You're receiving this email because you agreed to receive marketing from {{name}}. Unsubscribe",
+    "stop": "Reply STOP to opt out.",
+    "errors": {
+      "segments": "Choose at least one segment",
+      "clients": "Choose at least one client",
+      "noRecipients": "No clients in this audience can receive marketing messages",
+      "schedule": "Choose a date and time in the future"
+    },
+    "confirm": {
+      "title": "Send campaign?",
+      "titleSchedule": "Schedule campaign?",
+      "send": "Send campaign",
+      "channel": "Channel",
+      "recipients": "Recipients",
+      "when": "Sending",
+      "afterReview": "As soon as it's approved",
+      "review": "Every campaign is reviewed before it goes out to make sure it follows our messaging guidelines. Its status is Pending until then, which usually takes a few minutes."
+    },
+    "toast": {
+      "draftSaved": "Campaign saved as draft",
+      "fixErrors": "Check the highlighted fields",
+      "billingFirst": "Add your payment method to start sending campaigns",
+      "submitted": "Campaign sent for review",
+      "failed": "Something went wrong. Try again"
+    }
+  },
+  "detail": {
+    "notFound": "Campaign not found",
+    "editAndSend": "Edit and send",
+    "banner": {
+      "draft": "This campaign is a draft. Edit it and send it when you're ready.",
+      "pending": "In review. We check every campaign before it's sent to make sure it follows our messaging guidelines. This usually takes a few minutes, and you'll get a notification when it's approved.",
+      "scheduled": "Approved and scheduled for {{date}}.",
+      "sent_one": "Sent on {{date}} to {{count}} client.",
+      "sent_other": "Sent on {{date}} to {{count}} clients."
+    },
+    "stats": {
+      "sent": "Sent",
+      "deliveredHint": "{{count}} delivered ({{value}}%)",
+      "opened": "Open rate",
+      "openedHint": "{{count}} opened",
+      "clicked": "Click rate",
+      "clickedHint": "{{count}} clicked",
+      "bookings": "Bookings",
+      "bookingsHint": "Booked within 7 days of opening",
+      "revenue": "Revenue",
+      "revenueHint": "Value of those bookings",
+      "cost": "Cost",
+      "roi": "Return {{value}}× the cost"
+    },
+    "funnelTitle": "Campaign funnel",
+    "funnelHint": "From messages sent to appointments booked",
+    "funnel": {
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "opened": "Opened",
+      "clicked": "Clicked",
+      "booked": "Booked"
+    },
+    "details": "Details",
+    "rows": {
+      "channel": "Channel",
+      "audience": "Audience",
+      "recipients": "Recipients",
+      "cost": "Cost",
+      "estimatedCost": "Estimated cost",
+      "created": "Created",
+      "sent": "Sent",
+      "scheduled": "Sending",
+      "afterReview": "After review",
+      "deal": "Deal",
+      "noDeal": "No deal attached"
+    },
+    "recipientsTitle": "Recipients",
+    "recipientsHint": "Showing {{count}} of {{total}} recipients",
+    "noRecipients": "No messages yet",
+    "col": {
+      "client": "Client",
+      "to": "Sent to",
+      "at": "Time sent",
+      "status": "Status"
+    }
+  },
+  "billing": {
+    "eyebrow": "You have full control of how many messages you send to your clients.",
+    "feesTitle": "Overview of fees",
+    "smsTitle": "Client text messages",
+    "smsBody": "Send promotional text messages to your clients",
+    "smsRate": "{{value}} per message",
+    "emailTitle": "Client email messages",
+    "emailBody": "Send promotional emails to your clients",
+    "emailRate": "{{value}} per email",
+    "taxNote": "Rates are exclusive of 23% sales tax.",
+    "feesLink": "Learn more about fees and commissions.",
+    "nextStep": "Next step",
+    "goBack": "Go back",
+    "paymentTitle": "Add your payment method and billing details",
+    "fix": "Check the highlighted fields",
+    "saved": "Payment method and billing details saved"
+  },
+  "kit": {
+    "progress": "Done {{value}}% of the process",
+    "back": "Back",
+    "toInbox": "to inbox",
+    "whatsappBusiness": "WhatsApp Business",
+    "textMessage": "Text message",
+    "today": "Today",
+    "required": "This field is required",
+    "invalidCard": "Enter a valid card number",
+    "invalidExpiry": "Enter a valid expiry date (MM/YY)",
+    "invalidCvv": "Enter the 3 digits on the back of your card",
+    "cardHolder": "Card holder full name",
+    "cardHolderPlaceholder": "Add card holder full name",
+    "cardNumber": "Card number",
+    "cardNumberPlaceholder": "Credit or debit card number",
+    "expiry": "Expiry date",
+    "cvv": "CVV",
+    "cvvPlaceholder": "3 digits",
+    "billingDetails": "Billing details",
+    "billingDetailsHint": "Provide the details that you would like to appear on your invoice",
+    "accountType": "Account type",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "businessName": "Business name",
+    "businessNameHint": "Please provide exact legal name, including full suffix e.g. Limited",
+    "vatNumber": "Número de IVA",
+    "vatHint": "e.g. PT123456789",
+    "address": "Address",
+    "addressPlaceholder": "Street, postcode and city"
+  },
+  "history": {
+    "title": "Messages history",
+    "subtitle": "View all the automated messages sent to your clients. Manage your",
+    "settings": "settings",
+    "or": "or",
+    "learnMore": "learn more",
+    "search": "Search by name, email or booking reference",
+    "allChannels": "All channels",
+    "allTypes": "All types",
+    "campaign": "Blast campaign",
+    "view": "View message",
+    "sentTo": "Sent to",
+    "empty": "No messages found",
+    "emptyBody": "Try a different search or filter.",
+    "errorNote": "This message couldn't be delivered. Check the client's contact details.",
+    "col": {
+      "time": "Time sent",
+      "client": "Client",
+      "appointment": "Appointment",
+      "channel": "Channel",
+      "type": "Type",
+      "status": "Status"
+    },
+    "channel": {
+      "email": "Email",
+      "sms": "Text message",
+      "whatsapp": "WhatsApp"
+    },
+    "status": {
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "opened": "Opened",
+      "error": "Error"
+    },
+    "type": {
+      "confirmation": "Confirmation",
+      "reminder": "Reminder",
+      "reschedule": "Rescheduled",
+      "cancellation": "Cancellation",
+      "no_show": "No-show",
+      "thank_you": "Thank you",
+      "receipt": "Receipt",
+      "campaign": "Blast campaign",
+      "invite": "Team invite",
+      "password_reset": "Password reset",
+      "gift_card": "Gift card",
+      "waitlist": "Waitlist",
+      "review_request": "Review request",
+      "chat": "Chat message",
+      "stock_order": "Stock order",
+      "pay_run": "Pay run",
+      "form": "Form",
+      "other": "Other"
+    }
+  },
+  "deals": {
+    "title": "Deals",
+    "subtitle": "Set up and manage the deals you offer to your clients.",
+    "search": "Search by deal name",
+    "sortLabel": "Sort",
+    "sort": {
+      "newest": "Created (newest first)",
+      "oldest": "Created (oldest first)",
+      "name": "Name (A-Z)",
+      "sales": "Total sales (highest first)"
+    },
+    "create": "Create deal",
+    "empty": "No deals yet",
+    "emptyFiltered": "No deals match your filters",
+    "emptyBody": "Create a promotion, flash sale or last-minute offer.",
+    "totalSales": "Total sales",
+    "summary": "{{type}}: {{value}} off {{scope}}",
+    "withinHours_one": "booked within {{count}} hour",
+    "withinHours_other": "booked within {{count}} hours",
+    "showing": "{{count}} of {{total}}",
+    "filterType": "Deal type",
+    "filterStatus": "Status",
+    "types": {
+      "promotion": "Promotion",
+      "flash_sale": "Flash sale",
+      "last_minute": "Last-minute offer"
+    },
+    "scope": {
+      "all_services": "all services",
+      "all_products": "all products",
+      "all_packages": "all packages",
+      "all_memberships": "all memberships",
+      "all_giftCards": "all gift cards",
+      "count_services_one": "{{count}} service",
+      "count_services_other": "{{count}} services",
+      "count_products_one": "{{count}} product",
+      "count_products_other": "{{count}} products",
+      "count_packages_one": "{{count}} package",
+      "count_packages_other": "{{count}} packages",
+      "count_memberships_one": "{{count}} membership",
+      "count_memberships_other": "{{count}} memberships",
+      "nothing": "nothing selected"
+    },
+    "intro": {
+      "badge": "Included in your plan",
+      "title": "Reward and retain clients with deals",
+      "body": "Whether you create discount codes for holidays, off-peak prices or offers to attract new clients, deals are a great way to increase sales.",
+      "b1": "Create and share a promotion with a discount code",
+      "b2": "Introduce a flash sale to get more bookings",
+      "b3": "Quickly fill your calendar with last-minute offers",
+      "b4": "Control and track the performance of all deals from one place",
+      "start": "Start now"
+    },
+    "actions": {
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "duplicate": "Duplicate",
+      "archive": "Archive",
+      "restore": "Restore",
+      "campaign": "Create a campaign",
+      "campaignHint": "Activate the deal first"
+    },
+    "archive": {
+      "title": "Archive deal?",
+      "body": "\"{{name}}\" can no longer be used by clients.",
+      "confirm": "Archive"
+    },
+    "toast": {
+      "archived": "Deal archived",
+      "restored": "Deal restored",
+      "deactivated": "Deal deactivated",
+      "activated": "Deal activated",
+      "duplicated": "Deal duplicated"
+    }
+  },
+  "dealWizard": {
+    "notFound": "Deal not found",
+    "backToDeals": "Back to deals",
+    "create": "Create",
+    "created": "Deal created",
+    "updated": "Deal updated",
+    "none": "None",
+    "noItems": "Nothing to select",
+    "percentage": "Percentage",
+    "amount": "Amount",
+    "codeCopied": "Discount code {{code}} copied",
+    "scopeTitle": {
+      "services": "Select services",
+      "products": "Select products",
+      "packages": "Select packages",
+      "memberships": "Select memberships"
+    },
+    "selected": {
+      "services": "Selected services",
+      "products": "Selected products",
+      "packages": "Selected packages",
+      "memberships": "Selected memberships"
+    },
+    "errors": {
+      "value": "Enter a discount value",
+      "percent": "A percentage discount can't be more than 100%",
+      "code": "Use 3 to 20 letters or numbers",
+      "codeTaken": "This discount code is already used by another deal",
+      "endsAt": "The end date must be after the start date",
+      "positive": "Enter a number greater than 0",
+      "team": "Select at least one team member"
+    },
+    "type": {
+      "title": "Select deal type",
+      "subtitle": "Choose the type of deal you want to create.",
+      "promotion": "Create a discount redeemed by clients entering the code when booking online or during checkout at Point of Sale",
+      "flash_sale": "Immediately apply a discount online and let your team members manually add it to appointments and sales",
+      "last_minute": "Apply a discount for bookings made just before an appointment starts"
+    },
+    "details": {
+      "title": {
+        "promotion": "Customize promotion details",
+        "flash_sale": "Customize flash sale details",
+        "last_minute": "Customize last-minute offer details"
+      },
+      "subtitle": {
+        "promotion": "Choose how and when to apply the promotion.",
+        "flash_sale": "Choose how and when to apply the flash sale.",
+        "last_minute": "Choose how and when to apply the offer."
+      },
+      "name": "Name",
+      "namePlaceholder": {
+        "promotion": "Enter promotion name here",
+        "flash_sale": "Enter flash sale name here",
+        "last_minute": "Enter offer name here"
+      },
+      "description": "Description",
+      "descriptionPlaceholder": {
+        "promotion": "Enter promotion description here",
+        "flash_sale": "Enter flash sale description here",
+        "last_minute": "Enter offer description here"
+      },
+      "value": "Discount value",
+      "code": "Discount code",
+      "codePlaceholder": "Enter discount code, e.g. SALE10",
+      "codeHint": "Create a catchy code for clients to use when they book an appointment or buy products online",
+      "codeNoteTitle": "Discount codes only available for services and products.",
+      "codeNoteBody": "Clients cannot apply discount codes when buying memberships or gift cards online.",
+      "hours": "Apply to bookings made",
+      "hoursHint": "The discount shows online for appointments starting within this time",
+      "hoursOption_one": "Up to {{count}} hour before the appointment",
+      "hoursOption_other": "Up to {{count}} hours before the appointment",
+      "starts": {
+        "promotion": "Promotion starts",
+        "flash_sale": "Flash sale starts",
+        "last_minute": "Offer starts"
+      },
+      "ends": {
+        "promotion": "Promotion ends",
+        "flash_sale": "Flash sale ends",
+        "last_minute": "Offer ends"
+      },
+      "never": "Never",
+      "onDate": "On a date",
+      "pos": {
+        "promotion": "Enable promotion at Point of Sale",
+        "flash_sale": "Enable flash sale at Point of Sale",
+        "last_minute": "Enable offer at Point of Sale"
+      },
+      "posHint": "Allow team members to apply this promotion manually through the calendar or during checkout",
+      "applyTo": {
+        "promotion": "Apply promotion to",
+        "flash_sale": "Apply flash sale to",
+        "last_minute": "Apply offer to"
+      },
+      "giftCards": "Enable for gift cards purchased in-store"
+    },
+    "limits": {
+      "title": {
+        "promotion": "Set up promotion limits",
+        "flash_sale": "Set up flash sale limits",
+        "last_minute": "Set up offer limits"
+      },
+      "subtitle": {
+        "promotion": "Limit the number of times this promotion can be used",
+        "flash_sale": "Limit the number of times this flash sale can be used",
+        "last_minute": "Limit the number of times this offer can be used"
+      },
+      "onePerClient": "Limit to one use per client",
+      "onePerClientHint": "Each client can use the deal once",
+      "totalUses": "Limit total number of uses",
+      "totalUsesHint": "The deal stops working after this many uses",
+      "maxUses": "Maximum uses",
+      "minPurchase": "Set minimum purchase amount",
+      "minPurchaseHint": "Clients must spend at least this amount",
+      "minAmount": "Minimum amount"
+    },
+    "team": {
+      "title": "Select team members",
+      "subtitle": {
+        "promotion": "Choose which team members can be booked with this deal.",
+        "flash_sale": "Choose which team members can be booked with this deal.",
+        "last_minute": "Choose which team members can be booked with this deal."
+      }
+    },
+    "done": {
+      "title": {
+        "promotion": "Your promotion is set!",
+        "flash_sale": "Your flash sale is set!",
+        "last_minute": "Your last-minute offer is set!"
+      },
+      "details": {
+        "promotion": "Promotion details",
+        "flash_sale": "Flash sale details",
+        "last_minute": "Offer details"
+      },
+      "discount": "{{value}} discount on {{scope}}",
+      "pos": {
+        "promotion": "Promotion can be redeemed at Point of Sale",
+        "flash_sale": "Flash sale applies online and at Point of Sale",
+        "last_minute": "Offer applies at Point of Sale"
+      },
+      "online": {
+        "promotion": "Promotion can be redeemed online",
+        "flash_sale": "Flash sale applies online",
+        "last_minute": "Offer applies to online bookings"
+      },
+      "lastMinute_one": "Applies to bookings made up to {{count}} hour before the appointment starts",
+      "lastMinute_other": "Applies to bookings made up to {{count}} hours before the appointment starts",
+      "datesOngoing": "Applies to appointments and sales from {{from}} and is ongoing",
+      "datesUntil": "Applies to appointments and sales from {{from}} until {{to}}",
+      "code": "Discount code",
+      "share": "Share it in a blast campaign"
+    }
+  },
+  "smartPricing": {
+    "title": "Smart pricing",
+    "subtitle": "Get more sales with surge and off-peak pricing.",
+    "intro": {
+      "badge": "Included in your plan",
+      "title": "Get more sales with surge and off-peak pricing",
+      "body": "Automatically adjust your service prices, charging different amount during more or less busy hours.",
+      "b1": "Introduce off-peak intervals to offer a discount and get more bookings",
+      "b2": "Increase prices on busy hours to maximise sales value",
+      "b3": "Track performance to get insights and make informed pricing decisions",
+      "start": "Set up smart pricing"
+    },
+    "apptValue": "Smart pricing appointments value",
+    "apptCount_one": "{{count}} appointment",
+    "apptCount_other": "{{count}} appointments",
+    "salesValue": "Smart pricing sales value",
+    "salesCount_one": "{{count}} sale",
+    "salesCount_other": "{{count}} sales",
+    "dayOfWeek": "Day of week",
+    "metric": "Metric",
+    "metrics": {
+      "appointments": "Appointments",
+      "sales": "Sales"
+    },
+    "increased": "Increased price",
+    "decreased": "Decreased price",
+    "for": "for",
+    "allServices": "all services",
+    "nServices_one": "{{count}} service",
+    "nServices_other": "{{count}} services",
+    "servicesTitle": "Services with smart pricing",
+    "actions": "Actions",
+    "pause": "Pause",
+    "resume": "Resume",
+    "standard": "Standard pricing",
+    "and": "and",
+    "finish": "Finish setup",
+    "setupEyebrow": "Set up smart pricing",
+    "unknownStep": "Page not found",
+    "change": {
+      "increase": "{{value}} increase",
+      "decrease": "{{value}} decrease"
+    },
+    "days": {
+      "0": "Monday",
+      "1": "Tuesday",
+      "2": "Wednesday",
+      "3": "Thursday",
+      "4": "Friday",
+      "5": "Saturday",
+      "6": "Sunday"
+    },
+    "daysShort": {
+      "0": "Mon",
+      "1": "Tue",
+      "2": "Wed",
+      "3": "Thu",
+      "4": "Fri",
+      "5": "Sat",
+      "6": "Sun"
+    },
+    "clear": {
+      "title": "Clear smart pricing?",
+      "body": "All smart pricing rules are removed and standard prices apply again.",
+      "confirm": "Clear",
+      "done": "Smart pricing cleared"
+    },
+    "toast": {
+      "paused": "Smart pricing paused",
+      "resumed": "Smart pricing resumed",
+      "saved": "Smart pricing saved"
+    },
+    "team": {
+      "title": "Select team members",
+      "subtitle": "Choose which team members can be booked with smart pricing."
+    },
+    "services": {
+      "title": "Select services",
+      "subtitle": "Choose the services smart pricing applies to.",
+      "applyTo": "Apply to: Selected services",
+      "note": "Prices for selected services adjust automatically for online appointments, while team members can manually apply smart pricing when booking from the calendar."
+    },
+    "rules": {
+      "title": "Set up smart pricing rules",
+      "subtitle": "Choose how and when to apply smart pricing.",
+      "day": "Day",
+      "interval": "Time interval",
+      "change": "Price change",
+      "by": "Change by",
+      "none": "No smart pricing rules",
+      "start": "Start time",
+      "end": "End time",
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "delete": "Delete Range",
+      "addHours": "Add hours"
+    },
+    "errors": {
+      "team": "Select at least one team member",
+      "services": "Select at least one service",
+      "noRules": "Add rules for at least one day",
+      "endAfterStart": "{{day}}: the end time must be after the start time",
+      "value": "{{day}}: enter a price change greater than 0 (up to 100%)",
+      "overlap": "{{day}}: time intervals can't overlap"
+    },
+    "done": {
+      "title": "Smart pricing is set",
+      "allServices": "Applies to all services",
+      "someServices_one": "Applies to {{count}} service",
+      "someServices_other": "Applies to {{count}} services",
+      "increase": "Prices increase for selected hours on {{days}}",
+      "decrease": "Prices decrease for selected hours on {{days}}"
+    }
+  }
+}

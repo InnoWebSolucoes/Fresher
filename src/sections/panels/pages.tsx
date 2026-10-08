@@ -1,4 +1,8 @@
 import type { ComponentType } from 'react'
+import { InboxPage } from './inbox/InboxPage'
 
-/** Page components for this section, keyed by page id from src/app/routeRegistry.ts or ./routes.ts. */
-export const pages: Record<string, ComponentType> = {}
+/** Client Connect inbox (top-bar.md §5). */
+export const pages: Record<string, ComponentType> = {
+  connect: InboxPage,
+  connectConversation: InboxPage,
+}

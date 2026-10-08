@@ -1,4 +1,6 @@
-import { Navigate, createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { DemoPanel } from '@/sections/demo/DemoPanel'
+import { ErrorPage } from '@/pages/ErrorPage'
 import { AppShell } from '@/components/shell/AppShell'
 import { FullscreenLayout } from '@/components/shell/FullscreenLayout'
 import { AccountLayout } from '@/components/shell/AccountLayout'
@@ -34,7 +36,16 @@ const byLayout = (layout: PageLayout) => ALL_PAGES.filter((page) => page.layout 
 
 const redirects: RouteObject[] = REDIRECTS.map((r) => ({ path: r.from, element: <Navigate to={r.to} replace /> }))
 
-export const routes: RouteObject[] = [
+function RootLayout() {
+  return (
+    <>
+      <Outlet />
+      <DemoPanel />
+    </>
+  )
+}
+
+const appRoutes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
@@ -60,6 +71,8 @@ export const routes: RouteObject[] = [
     ],
   },
 ]
+
+export const routes: RouteObject[] = [{ element: <RootLayout />, errorElement: <ErrorPage />, children: appRoutes }]
 
 export const router = createBrowserRouter(routes, {
   future: {

@@ -38,11 +38,9 @@ export function ForgotPasswordPage() {
           </span>
           <h1 className="font-display text-title-1">{t('auth.checkInbox')}</h1>
           <p className="mt-2 text-body-lg text-muted">{t('auth.checkInboxBody', { email: sent.email })}</p>
-          {sent.token && (
-            <Link to={`/reset-password?token=${sent.token}`} className="btn-secondary mt-6">
-              {t('auth.openResetLink')}
-            </Link>
-          )}
+          <button type="button" className="btn-secondary mt-6" onClick={() => window.dispatchEvent(new CustomEvent('ib-open-demo', { detail: 'outbox' }))}>
+            {t('auth.openOutbox')}
+          </button>
         </div>
       ) : (
         <>
