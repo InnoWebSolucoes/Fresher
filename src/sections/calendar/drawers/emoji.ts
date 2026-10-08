@@ -1,3 +1,5 @@
+import i18n from 'i18next'
+
 /** Emoji for the "Add a blocked time type" picker, grouped like the reference's category tabs. */
 export type EmojiCategory = 'people' | 'nature' | 'food' | 'activity' | 'travel' | 'objects' | 'symbols' | 'flags'
 
@@ -463,10 +465,25 @@ export const EMOJI_CATEGORIES = Object.keys(EMOJI) as EmojiCategory[]
 /** Shown first when nothing has been picked yet. */
 export const DEFAULT_FREQUENT = ['👍', '😀', '☕', '🥪', '📚', '📆', '💇', '🧘', '🏋️']
 
+/** Locale key of an emoji name: calendar.emojiNames.<english_name> ("grinning face" → grinning_face). */
+const nameKey = (name: string) => `calendar.emojiNames.${name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')}`
+
+/** Emoji name in the current language ("grinning face" / "cara com sorriso rasgado"). */
+export const emojiLabel = (entry: EmojiEntry): string => i18n.t(nameKey(entry.name), { defaultValue: entry.name })
+
+/** Lower case without accents, for searching ("maçã" matches "maca"). */
+const fold = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+
+/** Search match on the English name or the name in the current language. */
+export const emojiMatches = (entry: EmojiEntry, query: string): boolean => {
+  const q = fold(query.trim())
+  return entry.name.includes(q) || fold(emojiLabel(entry)).includes(q)
+}
+
 export const emojiName = (char: string): string => {
   for (const cat of EMOJI_CATEGORIES) {
     const hit = EMOJI[cat].find((e) => e.char === char)
-    if (hit) return hit.name
+    if (hit) return emojiLabel(hit)
   }
   return ''
 }

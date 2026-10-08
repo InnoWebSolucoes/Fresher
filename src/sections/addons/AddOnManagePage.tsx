@@ -38,7 +38,7 @@ import { now } from '@/lib/time'
 import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
 import type { AddOnState } from '@/types'
-import { eur, META } from './catalog'
+import { eur, ledgerLabel, META } from './catalog'
 import { AddOnIcon } from './components/shared'
 
 interface Feature {
@@ -374,7 +374,11 @@ function FeatureExtra({ slug, index, record, disabled }: { slug: string; index: 
     )
   }
   if ((slug === 'xero' || slug === 'quickbooks') && index === 1) {
-    const rows = (['salesAccount', 'paymentsAccount', 'tipsAccount'] as const).map((k) => [t(`addons.accounting.${k}`), configString(record, k) ?? '-'])
+    const rows = (['salesAccount', 'paymentsAccount', 'tipsAccount'] as const).map((k) => {
+      const value = configString(record, k)
+      return [t(`addons.accounting.${k}`), value ? ledgerLabel(t, value) : '-']
+    })
+
     return (
       <dl className="mt-5 flex flex-col divide-y divide-line text-body-lg">
         {rows.map(([k, v]) => (

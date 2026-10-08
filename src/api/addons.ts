@@ -1,4 +1,5 @@
-import { addDays, format, getDaysInMonth, parseISO } from 'date-fns'
+import { addDays, getDaysInMonth, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { commit, db } from '@/store/db'
 import type { AddOnState, BillingDetails, DbData, ISODate } from '@/types'
 import { round2 } from '@/lib/format'
@@ -6,6 +7,7 @@ import { uid } from '@/lib/ids'
 import { now, nowISO, toISODate, todayISO } from '@/lib/time'
 import { ApiError, latency } from './client'
 import { pushNotification, queueMessage } from './messaging'
+import { t } from './i18n'
 
 /**
  * Add-ons and integrations (reference/add-ons.md). Records live in
@@ -90,7 +92,7 @@ const DISCOUNT_CODES: Record<string, number> = { WELCOME10: 10, INNOWEB10: 10 }
 export async function checkDiscountCode(code: string): Promise<number> {
   await latency(300, 600)
   const pct = DISCOUNT_CODES[code.trim().toUpperCase()]
-  if (!pct) throw new ApiError('invalid_code', 'This discount code is invalid or has expired')
+  if (!pct) throw new ApiError('invalid_code', t('api.addons.invalidCode'))
   return pct
 }
 
@@ -143,7 +145,7 @@ export async function enableAddOn(slug: string, options: EnableOptions): Promise
         id: uid('inv'),
         number: nextInvoiceNumber(d, date),
         date,
-        lines: [{ description: trial ? line.description : `${line.description} (pro-rata, ${quote.prorata.days} days)`, quantity: line.quantity, unitPrice }],
+        lines: [{ description: trial ? line.description : t('api.addons.proRataLine', { description: line.description, count: quote.prorata.days }), quantity: line.quantity, unitPrice }],
         subtotal,
         tax,
         total: round2(subtotal + tax),
@@ -153,8 +155,8 @@ export async function enableAddOn(slug: string, options: EnableOptions): Promise
     if (options.billing) d.workspace.plan.billingDetails = options.billing
     if (options.card) d.workspace.plan.card = options.card
   })
-  const trialNote = trialEnd ? `Your free trial ends on ${format(parseISO(trialEnd), 'MMM d, yyyy')}.` : undefined
-  pushNotification({ tab: 'actions', title: `${options.name} enabled`, body: trialNote ?? `${options.name} is now active in your workspace.`, link: `/add-ons/manage/${slug}` })
+  const trialNote = trialEnd ? t('api.addons.trialEnds', { date: format(parseISO(trialEnd), 'MMM d, yyyy') }) : undefined
+  pushNotification({ tab: 'actions', title: t('api.addons.enabled.title', { name: options.name }), body: trialNote ?? t('api.addons.enabled.body', { name: options.name }), link: `/add-ons/manage/${slug}` })
   const owner = db().users.find((u) => u.role === 'owner')
   if (owner && options.order) {
     queueMessage({
@@ -163,20 +165,20 @@ export async function enableAddOn(slug: string, options: EnableOptions): Promise
       toName: `${owner.firstName} ${owner.lastName}`,
       channel: 'email',
       type: 'other',
-      subject: `${options.name} add-on order confirmation`,
-      body: `Hi ${owner.firstName}, thanks for enabling ${options.name}. ${trialNote ?? 'Your invoice is available in Billing.'}`,
-      link: { label: 'View billing', href: '/setup/billing/invoices-and-fees' },
+      subject: t('api.addons.orderEmail.subject', { name: options.name }),
+      body: t('api.addons.orderEmail.body', { firstName: owner.firstName, name: options.name, note: trialNote ?? t('api.addons.orderEmail.invoiceReady') }),
+      link: { label: t('api.addons.orderEmail.link'), href: '/setup/billing/invoices-and-fees' },
     })
   }
 }
 
 /** Turn an add-on off (manage page › Options › Disable, integrations › Disconnect). */
 export async function disableAddOn(slug: string, reason: string): Promise<void> {
-  if (!reason) throw new ApiError('reason_required', 'Select a reason')
+  if (!reason) throw new ApiError('reason_required', t('api.addons.selectReason'))
   await latency(500, 900)
   commit((d) => {
     const record = d.addOns.find((a) => a.slug === slug)
-    if (!record) throw new ApiError('not_found', 'Add-on not found')
+    if (!record) throw new ApiError('not_found', t('api.addons.notFound'))
     record.status = 'inactive'
     record.trialEndsAt = undefined
     record.disabledAt = nowISO()
@@ -190,7 +192,7 @@ export async function updateAddOnConfig(slug: string, patch: Record<string, unkn
   await latency()
   commit((d) => {
     const record = d.addOns.find((a) => a.slug === slug)
-    if (!record) throw new ApiError('not_found', 'Add-on not found')
+    if (!record) throw new ApiError('not_found', t('api.addons.notFound'))
     record.config = { ...(record.config ?? {}), ...patch }
   })
 }
@@ -247,7 +249,7 @@ export async function addPaymentsAccount(account: Omit<PaymentsAccount, 'id' | '
     r.status = 'active'
     r.config = { ...(r.config ?? {}), accounts: [...paymentsAccounts(r), record] }
   })
-  pushNotification({ tab: 'actions', title: 'Payments account submitted', body: `${account.businessName} is being verified. We'll let you know when payouts are ready.`, link: '/add-ons/manage/payments' })
+  pushNotification({ tab: 'actions', title: t('api.addons.payments.submitted.title'), body: t('api.addons.payments.submitted.body', { business: account.businessName }), link: '/add-ons/manage/payments' })
   return record
 }
 
@@ -258,7 +260,7 @@ export async function verifyPaymentsAccount(id: string): Promise<void> {
     const r = d.addOns.find((a) => a.slug === 'payments')
     if (r) r.config = { ...(r.config ?? {}), accounts: paymentsAccounts(r).map((a) => (a.id === id ? { ...a, status: 'verified' as const } : a)) }
   })
-  pushNotification({ tab: 'actions', title: 'Payments account verified', body: 'Your business details were verified. Payouts are enabled.', link: '/add-ons/manage/payments' })
+  pushNotification({ tab: 'actions', title: t('addons.payments.finished.verifiedToast'), body: t('api.addons.payments.verifiedBody'), link: '/add-ons/manage/payments' })
 }
 
 /** Remove a payout account (manage page › Payout accounts). */

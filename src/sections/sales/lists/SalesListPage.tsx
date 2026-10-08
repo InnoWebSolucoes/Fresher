@@ -156,7 +156,7 @@ export function SalesListPage() {
         title={t('sales.salesList.title')}
         subtitle={
           <>
-            {t('sales.salesList.subtitle')} <LearnMore topic="sales" />
+            {t('sales.salesList.subtitle')} <LearnMore topic={t('sales.helpTopics.sales')}>{t('common.learnMore')}</LearnMore>
           </>
         }
         actions={

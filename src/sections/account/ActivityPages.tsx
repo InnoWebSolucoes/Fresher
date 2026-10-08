@@ -5,7 +5,7 @@ import { MessageSquareReply, SlidersHorizontal, Star, Wallet } from 'lucide-reac
 import { Avatar, Button, Chip, DataTable, DateRangeButton, DetailList, EmptyState, LearnMore, Menu, MenuButton, Modal, PageHeader, PageSkeleton, RadioGroup, SearchInput, SideDrawer, TextArea, Toolbar, resolvePreset, toast, usePageLoading, type Column, type DateRangeValue } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { replyToReview } from '@/api/panels'
-import { fmtDate, fullName, money2 } from '@/lib/format'
+import { fmtDate, fullName, money2, num } from '@/lib/format'
 import type { PayRun, PayRunLine, Review } from '@/types'
 import { errorText, Stars, useMyTeamMember } from './shared'
 
@@ -82,7 +82,7 @@ export function AccountReviewsPage() {
         title={t('account.reviews.title')}
         subtitle={
           <>
-            {t('account.reviews.subtitle')} <LearnMore topic="reviews">{t('account.common.learnMore')}</LearnMore>
+            {t('account.reviews.subtitle')} <LearnMore topic={t('account.common.topics.reviews')}>{t('account.common.learnMore')}</LearnMore>
           </>
         }
       />
@@ -114,7 +114,7 @@ export function AccountReviewsPage() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[280px_1fr]">
         <aside className="card p-6">
-          <p className="font-display text-display text-ink">{summary.avg.toFixed(1)}</p>
+          <p className="font-display text-display text-ink">{num(summary.avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</p>
           <Stars value={summary.avg} size={18} className="mt-1" />
           <p className="mt-1 text-small text-muted">{t('account.reviews.outOf')}</p>
           <p className="mt-1 text-body-strong text-ink">{t('account.reviews.count', { count: summary.total })}</p>
@@ -339,7 +339,7 @@ export function AccountPayRunsPage() {
         title={t('account.payRuns.title')}
         subtitle={
           <>
-            {t('account.payRuns.subtitle')} <LearnMore topic="pay runs">{t('account.common.learnMore')}</LearnMore>
+            {t('account.payRuns.subtitle')} <LearnMore topic={t('account.common.topics.payRuns')}>{t('account.common.learnMore')}</LearnMore>
           </>
         }
       />

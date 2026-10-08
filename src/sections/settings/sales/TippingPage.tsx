@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, LearnMore, Select } from '@/components/ui'
 import { updateSettings, updateSettingsExtra, useSettingsExtra } from '@/api/settings'
+import { num } from '@/lib/format'
 import type { Settings } from '@/types'
 import { Banner, CardButton, FormCard, PromoCard, Rule, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
@@ -84,8 +85,8 @@ export function TippingPage() {
       <section className="card p-6 sm:p-8" data-testid="tipping-options">
         <h2 className="font-display text-title-2 text-ink">{t('settings.sale.tipping.optionsTitle')}</h2>
         <div className="mt-3 divide-y divide-line">
-          <SwitchRow label={t('settings.sale.tipping.pos')} hint={<LearnMore topic={t('settings.sale.tipping.pos')} />} checked={shown('pos', tipping.pos)} onChange={(v) => toggle('pos', v)} testId="tip-pos" />
-          <SwitchRow label={t('settings.sale.tipping.terminal')} hint={<LearnMore topic={t('settings.sale.tipping.terminal')} />} checked={payments && shown('terminal', tipping.terminal)} disabled={!payments} onChange={(v) => toggle('terminal', v)} testId="tip-terminal" />
+          <SwitchRow label={t('settings.sale.tipping.pos')} hint={<LearnMore topic={t('settings.sale.tipping.pos')}>{t('common.learnMore')}</LearnMore>} checked={shown('pos', tipping.pos)} onChange={(v) => toggle('pos', v)} testId="tip-pos" />
+          <SwitchRow label={t('settings.sale.tipping.terminal')} hint={<LearnMore topic={t('settings.sale.tipping.terminal')}>{t('common.learnMore')}</LearnMore>} checked={payments && shown('terminal', tipping.terminal)} disabled={!payments} onChange={(v) => toggle('terminal', v)} testId="tip-terminal" />
           <SwitchRow label={t('settings.sale.tipping.online')} hint={t('settings.sale.tipping.onlineHint')} checked={payments && shown('online', tipping.online)} disabled={!payments} onChange={(v) => toggle('online', v)} testId="tip-online" />
         </div>
         <Rule className="my-5" />
@@ -94,7 +95,7 @@ export function TippingPage() {
             <div>
               <p className="text-body-strong text-ink">{t('settings.sale.tipping.defaultValues')}</p>
               <p className="text-small text-muted" data-testid="tip-values-summary">
-                {tipping.values.map((v) => `${v}%`).join(' • ')}
+                {tipping.values.map((v) => `${num(v)}%`).join(' • ')}
               </p>
             </div>
             <CardButton onClick={() => setValuesOpen(true)} testId="edit-tip-values">

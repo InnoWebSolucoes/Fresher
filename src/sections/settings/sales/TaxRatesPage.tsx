@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, EmptyState, Field, Select, TextInput, confirm, toast } from '@/components/ui'
 import { applyTaxDefaultsToCatalog, deleteTaxRate, updateSettings } from '@/api/settings'
+import { num } from '@/lib/format'
 import { uid } from '@/lib/ids'
 import type { ID, Settings, TaxRate } from '@/types'
 import { ActionsPill, FormCard, ListCard, ListRow, ModalForm, PillMenu, SettingsPage } from '../components/ui'
@@ -12,7 +13,7 @@ import { useSettings } from '../hooks'
 
 type TaxDefaults = Settings['taxDefaults']
 
-const rateLabel = (rate: number) => `${Number(rate.toFixed(2))}%`
+const rateLabel = (rate: number) => `${num(rate, { maximumFractionDigits: 2 })}%`
 
 /** Settings › Sales › Tax rates (settings-sales.md §2). */
 export function TaxRatesPage() {

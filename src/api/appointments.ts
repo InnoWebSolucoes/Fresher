@@ -1,4 +1,5 @@
-import { addDays, addMonths, addWeeks, differenceInHours, format, parseISO } from 'date-fns'
+import { addDays, addMonths, addWeeks, differenceInHours, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { commit, db } from '@/store/db'
 import type { Appointment, AppointmentItem, AppointmentStatus, BlockedTime, BookingChannel, ID, ISODate, RepeatRule, WaitlistEntry } from '@/types'
 import { bookingRef, uid } from '@/lib/ids'
@@ -7,6 +8,7 @@ import { round2 } from '@/lib/format'
 import { activity, actorName, ApiError, latency } from './client'
 import { notifyAppointment, pushNotification, queueMessage } from './messaging'
 import { taxRateFor } from './sales'
+import { dateAt, t } from './i18n'
 
 export interface NewAppointmentItem {
   serviceId: ID
@@ -40,21 +42,13 @@ export interface CreateAppointmentInput {
   createdBy?: string
 }
 
-const STATUS_LABEL: Record<AppointmentStatus, string> = {
-  booked: 'Booked',
-  confirmed: 'Confirmed',
-  arrived: 'Arrived',
-  started: 'Started',
-  completed: 'Completed',
-  no_show: 'No-show',
-  cancelled: 'Canceled',
-}
+const statusLabel = (status: AppointmentStatus) => t(`sales.appointmentStatus.${status}`)
 
 function buildItems(input: NewAppointmentItem[]): AppointmentItem[] {
   const { services } = db()
   return input.map((item) => {
     const service = services.find((s) => s.id === item.serviceId)
-    if (!service) throw new ApiError('not_found', 'Service not found')
+    if (!service) throw new ApiError('not_found', t('api.errors.serviceNotFound'))
     const variant = service.variants.find((v) => v.id === item.variantId)
     return {
       id: uid('ai'),
@@ -97,7 +91,7 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
   await latency()
   const data = db()
   const client = data.clients.find((c) => c.id === input.clientId)
-  if (client?.blocked && input.channel && input.channel !== 'offline') throw new ApiError('blocked', 'This client is blocked from booking online')
+  if (client?.blocked && input.channel && input.channel !== 'offline') throw new ApiError('blocked', t('api.appointments.blockedOnline'))
   const by = input.createdBy ?? actorName()
   const online = (input.channel ?? 'offline') !== 'offline'
   const dates = repeatDates(input.date, input.repeat ?? { frequency: 'none', interval: 1, unit: 'week', ends: 'never' })
@@ -123,7 +117,7 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
       activity: [],
       formResponseIds: [],
     }
-    appt.activity.push({ ...activity('Appointment created', `Booked by ${by.split(' ')[0]}, reference ${appt.ref}`), by })
+    appt.activity.push({ ...activity(t('calendar.toasts.created'), t('api.appointments.activity.bookedByRef', { name: by.split(' ')[0], ref: appt.ref })), by })
     if (input.deposit && index === 0) appt.deposit = { amount: round2(input.deposit), paidAt: nowISO() }
     return appt
   })
@@ -133,9 +127,9 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
       if (appt.deposit) {
         const paymentId = uid('pay')
         appt.deposit.paymentId = paymentId
-        d.payments.push({ id: paymentId, saleId: '', kind: 'deposit', method: 'online_card', methodLabel: 'Deposit (card)', amount: appt.deposit.amount, at: nowISO(), by, status: 'succeeded', clientId: appt.clientId, locationId: appt.locationId })
+        d.payments.push({ id: paymentId, saleId: '', kind: 'deposit', method: 'online_card', methodLabel: t('api.payments.depositCard'), amount: appt.deposit.amount, at: nowISO(), by, status: 'succeeded', clientId: appt.clientId, locationId: appt.locationId })
         d.wallet.balance = round2(d.wallet.balance + appt.deposit.amount)
-        d.wallet.transactions.unshift({ id: uid('wt'), at: nowISO(), type: 'deposit', description: `Deposit for appointment ${appt.ref}`, amount: appt.deposit.amount })
+        d.wallet.transactions.unshift({ id: uid('wt'), at: nowISO(), type: 'deposit', description: t('api.appointments.depositFor', { ref: appt.ref }), amount: appt.deposit.amount })
       }
       d.appointments.push(appt)
     }
@@ -161,8 +155,14 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
     const member = data.teamMembers.find((m) => m.id === first.items[0].teamMemberId)
     pushNotification({
       tab: 'appointments',
-      title: 'New online booking',
-      body: `${format(parseISO(first.date), 'EEE d MMM')} ${first.items[0].start} ${first.items[0].name} for ${client?.firstName ?? 'Walk-In'} booked with ${member?.firstName ?? 'the team'}`,
+      title: t('api.notifications.newOnlineBooking.title'),
+      body: t('api.notifications.newOnlineBooking.body', {
+        date: format(parseISO(first.date), 'EEE d MMM'),
+        time: first.items[0].start,
+        service: first.items[0].name,
+        client: client?.firstName ?? t('common.walkIn'),
+        member: member?.firstName ?? t('api.notifications.theTeam'),
+      }),
       link: `/calendar?date=${first.date}&drawer=appointment&id=${first.id}`,
       initials: client ? `${client.firstName[0]}${client.lastName[0]}` : 'W',
     })
@@ -170,14 +170,14 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
   return first
 }
 
-export async function updateAppointment(id: ID, patch: Partial<Pick<Appointment, 'clientId' | 'date' | 'locationId' | 'repeat' | 'paymentPolicy'>> & { items?: AppointmentItem[] }, logTitle = 'Appointment updated'): Promise<void> {
+export async function updateAppointment(id: ID, patch: Partial<Pick<Appointment, 'clientId' | 'date' | 'locationId' | 'repeat' | 'paymentPolicy'>> & { items?: AppointmentItem[] }, logTitle?: string): Promise<void> {
   await latency()
   commit((d) => {
     const appt = d.appointments.find((a) => a.id === id)
-    if (!appt) throw new ApiError('not_found', 'Appointment not found')
+    if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
     Object.assign(appt, patch)
     appt.requested = appt.items.some((i) => i.preferred)
-    appt.activity.unshift(activity(logTitle))
+    appt.activity.unshift(activity(logTitle ?? t('calendar.toasts.updated')))
   })
 }
 
@@ -185,8 +185,8 @@ export async function setStatus(id: ID, status: AppointmentStatus): Promise<void
   await latency(200, 450)
   commit((d) => {
     const appt = d.appointments.find((a) => a.id === id)
-    if (!appt) throw new ApiError('not_found', 'Appointment not found')
-    appt.activity.unshift(activity(`Status changed to ${STATUS_LABEL[status]}`, `From ${STATUS_LABEL[appt.status]}`))
+    if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
+    appt.activity.unshift(activity(t('api.appointments.activity.statusChanged', { status: statusLabel(status) }), t('api.appointments.activity.statusFrom', { status: statusLabel(appt.status) })))
     appt.status = status
   })
 }
@@ -217,22 +217,22 @@ function chargeFee(appointment: Appointment, type: 'late_cancellation_fee' | 'no
       createdAt: at,
       completedAt: at,
       createdBy: actorName(),
-      items: [{ id: uid('si'), type, name: type === 'no_show_fee' ? 'No-show fee' : 'Late cancellation fee', detail: appointment.items[0]?.name, quantity: 1, unitPrice: amount, teamMemberId: appointment.items[0]?.teamMemberId ?? null, appointmentId: appointment.id, taxRate: taxRateFor(type) }],
+      items: [{ id: uid('si'), type, name: type === 'no_show_fee' ? t('settings.more1.policy.noShowFee') : t('settings.more1.policy.lateFee'), detail: appointment.items[0]?.name, quantity: 1, unitPrice: amount, teamMemberId: appointment.items[0]?.teamMemberId ?? null, appointmentId: appointment.id, taxRate: taxRateFor(type) }],
       serviceCharges: [],
       tips: [],
       paymentIds: [paymentId],
       channel: 'offline',
       notes: [],
-      activity: [activity(`Sale ${number} created`, 'Fee charged to card on file')],
+      activity: [activity(t('api.sales.activity.created', { number }), t('api.appointments.activity.feeCharged'))],
     })
-    d.payments.push({ id: paymentId, saleId, kind: 'sale', method: 'online_card', methodLabel: 'Card on file', amount, at, by: actorName(), status: 'succeeded', clientId: appointment.clientId, locationId: appointment.locationId })
+    d.payments.push({ id: paymentId, saleId, kind: 'sale', method: 'online_card', methodLabel: t('api.payments.cardOnFile'), amount, at, by: actorName(), status: 'succeeded', clientId: appointment.clientId, locationId: appointment.locationId })
   })
 }
 
 export async function cancelAppointment(id: ID, options: { reasonId: string; notify: boolean; chargeFee?: boolean; by?: string }): Promise<void> {
   await latency()
   const appt = db().appointments.find((a) => a.id === id)
-  if (!appt) throw new ApiError('not_found', 'Appointment not found')
+  if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
   const late = isLateCancellation(appt)
   const policy = db().settings.paymentPolicy
   const fee = late && options.chargeFee ? round2((appointmentTotal(appt) * policy.lateCancelFeePct) / 100) : 0
@@ -240,7 +240,7 @@ export async function cancelAppointment(id: ID, options: { reasonId: string; not
     const a = d.appointments.find((x) => x.id === id)!
     a.status = 'cancelled'
     a.cancellation = { reasonId: options.reasonId, at: nowISO(), late, fee, by: options.by ?? actorName() }
-    a.activity.unshift(activity('Appointment canceled', late ? 'Late cancellation' : undefined))
+    a.activity.unshift(activity(t('api.appointments.activity.canceled'), late ? t('api.appointments.activity.lateCancellation') : undefined))
   })
   if (fee > 0) chargeFee(appt, 'late_cancellation_fee', fee)
   if (options.notify) notifyAppointment(db().appointments.find((a) => a.id === id)!, 'cancellation')
@@ -249,13 +249,13 @@ export async function cancelAppointment(id: ID, options: { reasonId: string; not
 export async function markNoShow(id: ID, options: { notify: boolean; chargeFee?: boolean }): Promise<void> {
   await latency()
   const appt = db().appointments.find((a) => a.id === id)
-  if (!appt) throw new ApiError('not_found', 'Appointment not found')
+  if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
   const fee = options.chargeFee ? round2((appointmentTotal(appt) * db().settings.paymentPolicy.noShowFeePct) / 100) : 0
   commit((d) => {
     const a = d.appointments.find((x) => x.id === id)!
     a.status = 'no_show'
     a.noShowFee = fee || undefined
-    a.activity.unshift(activity('Marked as no-show'))
+    a.activity.unshift(activity(t('api.appointments.activity.markedNoShow')))
   })
   if (fee > 0) chargeFee(appt, 'no_show_fee', fee)
   if (options.notify) notifyAppointment(db().appointments.find((a) => a.id === id)!, 'no_show')
@@ -268,7 +268,7 @@ export async function undoNoShow(id: ID): Promise<void> {
     if (!a) return
     a.status = 'booked'
     a.noShowFee = undefined
-    a.activity.unshift(activity('No-show undone'))
+    a.activity.unshift(activity(t('calendar.toasts.noShowUndone')))
   })
 }
 
@@ -279,9 +279,9 @@ export async function undoNoShow(id: ID): Promise<void> {
 export async function rescheduleAppointment(id: ID, target: { date: ISODate; start: string; teamMemberId?: ID; durationMin?: number }, options: { notify: boolean; by?: string } = { notify: true }): Promise<void> {
   await latency()
   const before = db().appointments.find((a) => a.id === id)
-  if (!before) throw new ApiError('not_found', 'Appointment not found')
+  if (!before) throw new ApiError('not_found', t('calendar.drawer.notFound'))
   const delta = toMinutes(target.start) - toMinutes(before.items[0].start)
-  const from = `${format(parseISO(before.date), 'dd MMM yyyy')} at ${before.items[0].start}`
+  const from = dateAt(before.date, before.items[0].start, 'dd MMM yyyy')
   commit((d) => {
     const a = d.appointments.find((x) => x.id === id)!
     a.date = target.date
@@ -292,7 +292,10 @@ export async function rescheduleAppointment(id: ID, target: { date: ISODate; sta
       durationMin: index === 0 && target.durationMin ? target.durationMin : item.durationMin,
     }))
     const member = d.teamMembers.find((m) => m.id === a.items[0].teamMemberId)
-    a.activity.unshift({ ...activity('Appointment rescheduled', `Rescheduled by ${(options.by ?? actorName()).split(' ')[0]} from ${from} to ${format(parseISO(a.date), 'dd MMM yyyy')} at ${a.items[0].start} with ${member?.firstName}`), by: options.by ?? actorName() })
+    a.activity.unshift({
+      ...activity(t('calendar.toasts.rescheduled'), t('api.appointments.activity.rescheduledDetail', { name: (options.by ?? actorName()).split(' ')[0], from, to: dateAt(a.date, a.items[0].start, 'dd MMM yyyy'), member: member?.firstName ?? '' })),
+      by: options.by ?? actorName(),
+    })
   })
   if (options.notify) notifyAppointment(db().appointments.find((a) => a.id === id)!, 'reschedule')
 }
@@ -302,7 +305,7 @@ export async function addAppointmentNote(appointmentId: ID, html: string): Promi
   const appt = db().appointments.find((a) => a.id === appointmentId)
   commit((d) => {
     d.clientNotes.unshift({ id: uid('cn'), clientId: appt?.clientId ?? '', html, kind: 'appointment', appointmentId, createdAt: nowISO(), by: actorName() })
-    d.appointments.find((a) => a.id === appointmentId)?.activity.unshift(activity('Note added'))
+    d.appointments.find((a) => a.id === appointmentId)?.activity.unshift(activity(t('calendar.toasts.noteAdded')))
   })
 }
 
@@ -382,7 +385,7 @@ export async function saveWaitlistEntry(input: Omit<WaitlistEntry, 'id' | 'creat
   if (!existing && record.clientId) {
     const client = db().clients.find((c) => c.id === record.clientId)
     if (client && db().automations.find((a) => a.key === 'waitlist-joined')?.enabled) {
-      queueMessage({ clientId: client.id, to: client.email, toName: `${client.firstName} ${client.lastName}`, channel: 'email', type: 'waitlist', subject: "You're on the waitlist", body: `Hi ${client.firstName}, you're on the waitlist. We'll let you know as soon as a time slot becomes available.` })
+      queueMessage({ clientId: client.id, to: client.email, toName: `${client.firstName} ${client.lastName}`, channel: 'email', type: 'waitlist', subject: t('api.appointments.waitlist.subject'), body: t('api.appointments.waitlist.body', { firstName: client.firstName }) })
     }
   }
   return record

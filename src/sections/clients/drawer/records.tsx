@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowDownUp, CalendarDays, ChevronDown, ClipboardList, FileText, FlaskConical, LayoutGrid, List, Loader2, NotebookPen, Plus, Sun, Upload } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,9 +12,10 @@ import { Button, confirm, Menu, PillTabs, SearchInput, toast } from '@/component
 import { addClientFiles, deleteClientNote, removeAllergy, removeClientFile, removePatchTest } from '@/api/clients'
 import { useClientDrawer } from './context'
 import { PanelEmpty, TabHeader } from './tabs'
-import { PatchIcon, SeverityIcon } from './dialogs'
+import { allergyName, PatchIcon, SeverityIcon } from './dialogs'
 import { NoteHtml } from '../components/NoteEditorModal'
 import { fileSize, fmtLongDate, htmlToText } from '../lib/helpers'
+import { reactionLabel } from '../lib/constants'
 
 const initialsOf = (name: string) =>
   name
@@ -188,9 +190,9 @@ export function AllergiesTab() {
             <div key={a.id} className="flex items-start gap-4 rounded-lg border border-line bg-surface p-4">
               <SeverityIcon severity={a.severity} size={44} />
               <div className="min-w-0 flex-1">
-                <p className="text-body-lg font-semibold text-ink">{a.name}</p>
+                <p className="text-body-lg font-semibold text-ink">{allergyName(a)}</p>
                 <p className="text-body text-muted">
-                  {[t(`clients.allergy.kinds.${a.kind}`), a.severity ? t(`clients.allergy.severityLabel.${a.severity}`) : null, a.reaction].filter(Boolean).join(' • ')}
+                  {[t(`clients.allergy.kinds.${a.kind}`), a.severity ? t(`clients.allergy.severityLabel.${a.severity}`) : null, reactionLabel(a.reaction)].filter(Boolean).join(' • ')}
                 </p>
                 {a.note && <p className="mt-2 text-body text-ink">{a.note}</p>}
                 <p className="mt-2 text-caption text-muted">{t('clients.notes.added', { date: fmtDateTimeUS(a.createdAt) })}</p>

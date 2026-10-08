@@ -6,10 +6,11 @@ import { useSessionStore } from '@/store/session'
 import type { ID, Review } from '@/types'
 import { uid } from '@/lib/ids'
 import { now, nowISO } from '@/lib/time'
-import { money2, round2 } from '@/lib/format'
+import { money, money2, round2 } from '@/lib/format'
 import { ApiError, actorName, latency } from './client'
 import { pushNotification, queueMessage } from './messaging'
 import { logout } from './auth'
+import { t } from './i18n'
 
 /**
  * Top-bar panels, Help, Client Connect inbox and the account area.
@@ -374,10 +375,10 @@ const profileOf = (s: PanelsData, userId: ID) => s.profiles[userId] ?? defaultPr
 
 export async function saveOnlineProfile(userId: ID, changes: Partial<OnlineProfile>): Promise<void> {
   await latency()
-  if (changes.displayName !== undefined && !changes.displayName.trim()) throw new ApiError('invalid', 'Display name is required')
-  if (changes.headline && changes.headline.length > 64) throw new ApiError('invalid', 'Headline is too long')
-  if (changes.about && changes.about.length > 400) throw new ApiError('invalid', 'About you is too long')
-  if (changes.interests && changes.interests.length > 10) throw new ApiError('invalid', 'Pick up to 10 interests')
+  if (changes.displayName !== undefined && !changes.displayName.trim()) throw new ApiError('invalid', t('account.edit.details.displayNameRequired'))
+  if (changes.headline && changes.headline.length > 64) throw new ApiError('invalid', t('api.panels.profile.headlineTooLong'))
+  if (changes.about && changes.about.length > 400) throw new ApiError('invalid', t('api.panels.profile.aboutTooLong'))
+  if (changes.interests && changes.interests.length > 10) throw new ApiError('invalid', t('api.panels.profile.tooManyInterests'))
   patch((s) => ({ profiles: { ...s.profiles, [userId]: { ...profileOf(s, userId), ...changes } } }))
 }
 
@@ -393,13 +394,13 @@ export async function startPortfolio(userId: ID): Promise<void> {
 
 /** Downscale an image file to a JPEG data URL so it fits in browser storage. */
 export async function imageToDataUrl(file: File, max = 900, quality = 0.8): Promise<string> {
-  if (!file.type.startsWith('image/')) throw new ApiError('bad_image', `${file.name} is not an image`)
+  if (!file.type.startsWith('image/')) throw new ApiError('bad_image', t('api.panels.profile.notAnImage', { name: file.name }))
   const url = URL.createObjectURL(file)
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const el = new Image()
       el.onload = () => resolve(el)
-      el.onerror = () => reject(new ApiError('bad_image', `${file.name} could not be read`))
+      el.onerror = () => reject(new ApiError('bad_image', t('api.panels.profile.unreadable', { name: file.name })))
       el.src = url
     })
     const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight))
@@ -417,7 +418,7 @@ export const PORTFOLIO_LIMIT = 24
 
 export async function addPortfolioImages(userId: ID, files: File[]): Promise<number> {
   const existing = profileOf(panelsState(), userId).portfolio.length
-  if (existing + files.length > PORTFOLIO_LIMIT) throw new ApiError('limit', `You can add up to ${PORTFOLIO_LIMIT} images`)
+  if (existing + files.length > PORTFOLIO_LIMIT) throw new ApiError('limit', t('api.panels.profile.imageLimit', { limit: PORTFOLIO_LIMIT }))
   const images: PortfolioImage[] = []
   for (const file of files) images.push({ id: uid('pf'), src: await imageToDataUrl(file), name: file.name, at: nowISO() })
   await latency()
@@ -450,9 +451,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export async function updatePersonalInfo(userId: ID, info: { firstName: string; lastName: string; phone: string; email: string }): Promise<void> {
   await latency()
   const email = info.email.trim().toLowerCase()
-  if (!info.firstName.trim() || !info.lastName.trim()) throw new ApiError('invalid', 'First and last name are required')
-  if (!EMAIL_RE.test(email)) throw new ApiError('invalid_email', 'Enter a valid email address')
-  if (db().users.some((u) => u.id !== userId && u.email === email)) throw new ApiError('email_taken', 'This email address is already used by another login')
+  if (!info.firstName.trim() || !info.lastName.trim()) throw new ApiError('invalid', t('api.panels.personal.nameRequired'))
+  if (!EMAIL_RE.test(email)) throw new ApiError('invalid_email', t('auth.errors.emailInvalid'))
+  if (db().users.some((u) => u.id !== userId && u.email === email)) throw new ApiError('email_taken', t('api.panels.personal.emailTaken'))
   const before = userById(userId)
   commit((d) => {
     const u = d.users.find((x) => x.id === userId)
@@ -475,24 +476,24 @@ function omit<T>(record: Record<string, T>, key: string): Record<string, T> {
 export async function sendPhoneVerification(userId: ID): Promise<void> {
   await latency()
   const user = userById(userId)
-  if (!user?.phone) throw new ApiError('no_phone', 'Add a mobile number first')
+  if (!user?.phone) throw new ApiError('no_phone', t('api.panels.personal.noPhone'))
   const code = String(100000 + Math.floor(Math.random() * 900000))
   patch((s) => ({ pendingPhoneCode: { ...s.pendingPhoneCode, [userId]: code } }))
-  queueMessage({ clientId: null, to: user.phone, toName: `${user.firstName} ${user.lastName}`, channel: 'sms', type: 'other', subject: 'Verification code', body: `Innoweb Bookings: your verification code is ${code}. It expires in 10 minutes.` })
+  queueMessage({ clientId: null, to: user.phone, toName: `${user.firstName} ${user.lastName}`, channel: 'sms', type: 'other', subject: t('account.info.code'), body: t('api.panels.personal.codeSms', { code }) })
 }
 
 export async function verifyPhone(userId: ID, code: string): Promise<void> {
   await latency()
   const expected = panelsState().pendingPhoneCode[userId]
-  if (!expected || expected !== code.trim()) throw new ApiError('invalid_code', 'That code is not right. Check the latest text message and try again.')
+  if (!expected || expected !== code.trim()) throw new ApiError('invalid_code', t('api.panels.personal.wrongCode'))
   const phone = userById(userId)?.phone ?? ''
   patch((s) => ({ verifiedPhones: { ...s.verifiedPhones, [userId]: phone }, pendingPhoneCode: omit(s.pendingPhoneCode, userId) }))
 }
 
 export function thisDeviceLabel(): string {
   const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent
-  const browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser'
-  const os = /Windows/.test(ua) ? 'Windows' : /iPhone|iPad/.test(ua) ? 'iOS' : /Mac OS X/.test(ua) ? 'macOS' : /Android/.test(ua) ? 'Android' : /Linux/.test(ua) ? 'Linux' : 'Unknown OS'
+  const browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : t('api.panels.device.browser')
+  const os = /Windows/.test(ua) ? 'Windows' : /iPhone|iPad/.test(ua) ? 'iOS' : /Mac OS X/.test(ua) ? 'macOS' : /Android/.test(ua) ? 'Android' : /Linux/.test(ua) ? 'Linux' : t('api.panels.device.unknownOs')
   return `${browser} • ${os}`
 }
 
@@ -524,47 +525,28 @@ export async function setSocialLogin(userId: ID, provider: 'google' | 'apple', c
 
 // ─── Requests confirmed by email (delete, transfer, new workspace) ──────────
 
-const REQUEST_EMAILS: Record<PendingRequest['kind'], { subject: (d: string) => string; body: (name: string, d: string, ws: string) => string; link: string }> = {
-  delete_account: {
-    subject: () => 'Confirm you want to delete your Innoweb account',
-    body: (name) => `Hi ${name},\n\nWe received a request to delete your Innoweb Bookings account and all your personal info. This can't be undone.\n\nIf this was you, confirm with the button below. If not, you can ignore this email and nothing will change.`,
-    link: 'Confirm account deletion',
-  },
-  delete_workspace: {
-    subject: (d) => `Confirm deleting the ${d} workspace`,
-    body: (name, d) => `Hi ${name},\n\nWe received a request to delete the ${d} workspace, including its clients, appointments, sales and team. This can't be undone.\n\nConfirm with the button below within 7 days, or ignore this email to keep the workspace.`,
-    link: 'Confirm workspace deletion',
-  },
-  transfer_ownership: {
-    subject: (d) => `You've been asked to take over ${d}`,
-    body: (name, _d, ws) => `Hi ${name},\n\nYou've been asked to become the owner of ${ws}. As the owner you'll manage billing, permissions and the workspace settings.\n\nAccept below to complete the transfer.`,
-    link: 'Accept ownership',
-  },
-  create_workspace: {
-    subject: (d) => `Finish setting up ${d}`,
-    body: (name, d) => `Hi ${name},\n\nYour new workspace ${d} is almost ready. Finish setting it up to add your services, team and opening hours.`,
-    link: 'Finish setup',
-  },
-  join_workspace: {
-    subject: () => 'Your request to join a workspace',
-    body: (name, d) => `Hi ${name},\n\nWe've sent your request to join the workspace with invite ${d} to its owner. You'll get an email as soon as they accept.`,
-    link: 'View request',
-  },
+/** Confirmation emails per request (api.panels.requests.<key>.subject/body/link). */
+const REQUEST_EMAIL_KEYS: Record<PendingRequest['kind'], string> = {
+  delete_account: 'deleteAccount',
+  delete_workspace: 'deleteWorkspace',
+  transfer_ownership: 'transferOwnership',
+  create_workspace: 'createWorkspace',
+  join_workspace: 'joinWorkspace',
 }
 
 /** Starts a change that only completes once it's confirmed from the emailed link. */
 export async function createRequest(userId: ID, kind: PendingRequest['kind'], options: { detail?: string; targetUserId?: ID } = {}): Promise<PendingRequest> {
   await latency(500, 900)
   const user = userById(userId)
-  if (!user) throw new ApiError('not_found', 'User not found')
-  if (panelsState().requests.some((r) => r.userId === userId && r.kind === kind && r.kind !== 'create_workspace' && r.kind !== 'join_workspace')) throw new ApiError('duplicate', 'This request is already waiting for confirmation')
+  if (!user) throw new ApiError('not_found', t('api.panels.requests.userNotFound'))
+  if (panelsState().requests.some((r) => r.userId === userId && r.kind === kind && r.kind !== 'create_workspace' && r.kind !== 'join_workspace')) throw new ApiError('duplicate', t('api.panels.requests.duplicate'))
   const detail = options.detail?.trim()
-  if ((kind === 'create_workspace' || kind === 'join_workspace') && !detail) throw new ApiError('invalid', kind === 'create_workspace' ? 'Enter a business name' : 'Enter an invite link or code')
+  if ((kind === 'create_workspace' || kind === 'join_workspace') && !detail) throw new ApiError('invalid', kind === 'create_workspace' ? t('api.panels.requests.businessNameRequired') : t('api.panels.requests.inviteRequired'))
   const target = options.targetUserId ? userById(options.targetUserId) : undefined
-  if (kind === 'transfer_ownership' && !target) throw new ApiError('invalid', 'Choose the new owner')
+  if (kind === 'transfer_ownership' && !target) throw new ApiError('invalid', t('api.panels.requests.chooseOwner'))
   const ws = db().workspace.name
   const request: PendingRequest = { id: uid('req'), kind, userId, at: nowISO(), detail: kind === 'transfer_ownership' ? `${target!.firstName} ${target!.lastName}` : kind === 'delete_workspace' ? ws : detail, targetUserId: target?.id }
-  const mail = REQUEST_EMAILS[kind]
+  const mail = `api.panels.requests.${REQUEST_EMAIL_KEYS[kind]}`
   const to = target ?? user
   queueMessage({
     clientId: null,
@@ -572,9 +554,9 @@ export async function createRequest(userId: ID, kind: PendingRequest['kind'], op
     toName: `${to.firstName} ${to.lastName}`,
     channel: 'email',
     type: 'other',
-    subject: mail.subject(kind === 'transfer_ownership' ? ws : (request.detail ?? ws)),
-    body: mail.body(to.firstName, request.detail ?? ws, ws),
-    link: { label: mail.link, href: `https://innoweb.app/confirm/${request.id}` },
+    subject: t(`${mail}.subject`, { detail: kind === 'transfer_ownership' ? ws : (request.detail ?? ws) }),
+    body: t(`${mail}.body`, { name: to.firstName, detail: request.detail ?? ws, workspace: ws }),
+    link: { label: t(`${mail}.link`), href: `https://innoweb.app/confirm/${request.id}` },
   })
   patch((s) => ({ requests: [request, ...s.requests] }))
   return request
@@ -591,7 +573,7 @@ export async function linkCalendar(teamMemberId: ID, name: string, url: string):
   await latency(800, 1400)
   commit((d) => {
     const m = d.teamMembers.find((x) => x.id === teamMemberId)
-    if (!m) throw new ApiError('not_found', 'Team member not found')
+    if (!m) throw new ApiError('not_found', t('api.panels.memberNotFound'))
     m.linkedCalendars.push({ id: uid('cal'), name, url, createdAt: nowISO() })
   })
 }
@@ -606,7 +588,7 @@ export async function unlinkCalendar(teamMemberId: ID, calendarId: ID): Promise<
 
 export async function replyToReview(reviewId: ID, text: string): Promise<void> {
   await latency()
-  if (!text.trim()) throw new ApiError('invalid', 'Write a reply first')
+  if (!text.trim()) throw new ApiError('invalid', t('api.panels.writeReplyFirst'))
   commit((d) => {
     const r = d.reviews.find((x) => x.id === reviewId) as Review | undefined
     if (r) r.reply = { text: text.trim(), at: nowISO() }
@@ -627,20 +609,20 @@ function deliverToClient(clientId: ID, text: string) {
   const data = db()
   const client = data.clients.find((c) => c.id === clientId)
   if (!client) return
-  const base = { clientId, toName: `${client.firstName} ${client.lastName}`, type: 'chat' as const, subject: `New message from ${data.workspace.name}`, body: text }
+  const base = { clientId, toName: `${client.firstName} ${client.lastName}`, type: 'chat' as const, subject: t('api.panels.newMessageFrom', { business: data.workspace.name }), body: text }
   if (client.phone) queueMessage({ ...base, channel: 'sms', to: client.phone })
   else if (client.email) queueMessage({ ...base, channel: 'email', to: client.email })
 }
 
 export async function sendConversationMessage(conversationId: ID, text: string): Promise<void> {
   const body = text.trim()
-  if (!body) throw new ApiError('empty', 'Type a message first')
+  if (!body) throw new ApiError('empty', t('panels.inbox.newModal.typeFirst'))
   await latency(200, 450)
   const at = nowISO()
   let clientId: ID | undefined
   commit((d) => {
     const c = d.conversations.find((x) => x.id === conversationId)
-    if (!c) throw new ApiError('not_found', 'Conversation not found')
+    if (!c) throw new ApiError('not_found', t('api.panels.conversationNotFound'))
     c.messages.push({ id: uid('cm'), from: 'business', text: body, at, by: actorName() })
     c.unread = false
     c.status = 'open'
@@ -658,7 +640,7 @@ export async function startConversation(clientId: ID, text: string): Promise<ID>
     return existing.id
   }
   const body = text.trim()
-  if (!body) throw new ApiError('empty', 'Type a message first')
+  if (!body) throw new ApiError('empty', t('panels.inbox.newModal.typeFirst'))
   await latency()
   const at = nowISO()
   const id = uid('cv')
@@ -716,7 +698,7 @@ export async function instantPayout(): Promise<{ amount: number; fee: number }> 
   await latency(700, 1100)
   const wallet = db().wallet
   const available = round2(wallet.available)
-  if (available <= 0.5) throw new ApiError('empty', 'There is nothing available to pay out')
+  if (available <= 0.5) throw new ApiError('empty', t('api.payouts.nothingAvailable'))
   const fee = instantPayoutFee(available)
   const amount = round2(available - fee)
   const id = uid('po')
@@ -726,8 +708,8 @@ export async function instantPayout(): Promise<{ amount: number; fee: number }> 
     d.wallet.balance = round2(d.wallet.balance - available)
     d.wallet.available = 0
     d.wallet.transactions.unshift(
-      { id: uid('wt'), at: nowISO(), type: 'fee', description: 'Instant payout fee', amount: -fee },
-      { id: uid('wt'), at: nowISO(), type: 'payout', description: `Instant payout to bank account ending ${bankLast4}`, amount: -amount },
+      { id: uid('wt'), at: nowISO(), type: 'fee', description: t('api.payouts.instantFee'), amount: -fee },
+      { id: uid('wt'), at: nowISO(), type: 'payout', description: t('api.payouts.instantToBank', { last4: bankLast4 }), amount: -amount },
     )
   })
   window.setTimeout(() => {
@@ -735,7 +717,7 @@ export async function instantPayout(): Promise<{ amount: number; fee: number }> 
       const p = d.payouts.find((x) => x.id === id)
       if (p) p.status = 'paid'
     })
-    pushNotification({ tab: 'actions', title: 'Payout completed', body: `${money2(amount)} was sent to your bank account ending ${bankLast4}.`, link: '/dashboard?drawer=wallet&tab=accounts' })
+    pushNotification({ tab: 'actions', title: t('api.notifications.payoutCompleted.title'), body: t('api.notifications.payoutCompleted.body', { amount: money2(amount), last4: bankLast4 }), link: '/dashboard?drawer=wallet&tab=accounts' })
   }, 6000)
   return { amount, fee }
 }
@@ -748,20 +730,20 @@ export const referralLink = (userId: ID) => `https://innoweb.app/r/${referralCod
 export async function sendReferralInvite(email: string, message: string): Promise<void> {
   await latency()
   const to = email.trim().toLowerCase()
-  if (!EMAIL_RE.test(to)) throw new ApiError('invalid_email', 'Enter a valid email address')
-  if (panelsState().referrals.some((r) => r.email === to)) throw new ApiError('duplicate', 'You already invited this business')
+  if (!EMAIL_RE.test(to)) throw new ApiError('invalid_email', t('auth.errors.emailInvalid'))
+  if (panelsState().referrals.some((r) => r.email === to)) throw new ApiError('duplicate', t('api.panels.referral.duplicate'))
   const userId = currentUserId() ?? ''
   const user = userById(userId)
-  const sender = user ? `${user.firstName} ${user.lastName}` : 'A friend'
+  const sender = user ? `${user.firstName} ${user.lastName}` : t('api.panels.referral.someone')
   queueMessage({
     clientId: null,
     to,
     toName: to,
     channel: 'email',
     type: 'invite',
-    subject: `${sender} invited you to try Innoweb Bookings`,
-    body: `${message.trim() ? `${message.trim()}\n\n` : ''}${sender} from ${db().workspace.name} thinks you'll love Innoweb Bookings. Sign up with this link to get a 7-day free trial, and you'll both get up to €130 off when you start a paid plan.`,
-    link: { label: 'Start your free trial', href: referralLink(userId) },
+    subject: t('api.panels.referral.subject', { sender }),
+    body: t('api.panels.referral.body', { message: message.trim() ? `${message.trim()}\n\n` : '', sender, business: db().workspace.name, amount: money(130) }),
+    link: { label: t('api.panels.referral.link'), href: referralLink(userId) },
   })
   patch((s) => ({ referrals: [{ id: uid('ref'), email: to, message: message.trim(), at: nowISO(), status: 'invited' }, ...s.referrals] }))
 }
@@ -771,7 +753,7 @@ export async function sendReferralInvite(email: string, message: string): Promis
 export async function createSupportTicket(input: { email: string; reason: string; description: string; files: { name: string; size: number }[] }): Promise<SupportTicket> {
   await latency(600, 1000)
   const email = input.email.trim().toLowerCase()
-  if (!EMAIL_RE.test(email)) throw new ApiError('invalid_email', 'Enter a valid email address')
+  if (!EMAIL_RE.test(email)) throw new ApiError('invalid_email', t('auth.errors.emailInvalid'))
   const ticket: SupportTicket = {
     id: uid('tk'),
     ref: `IB-${String(Math.floor(100000 + Math.random() * 900000))}`,
@@ -791,8 +773,14 @@ export async function createSupportTicket(input: { email: string; reason: string
     toName: user ? `${user.firstName} ${user.lastName}` : email,
     channel: 'email',
     type: 'other',
-    subject: `We've received your request [${ticket.ref}]`,
-    body: `Hi ${user?.firstName ?? 'there'},\n\nThanks for contacting Innoweb Bookings support. Your request ${ticket.ref} (${input.reason}) is with our team and we typically reply within 2 days.\n\n"${ticket.description.slice(0, 280)}${ticket.description.length > 280 ? '…' : ''}"${ticket.files.length ? `\n\nAttachments: ${ticket.files.map((f) => f.name).join(', ')}` : ''}\n\nThe Innoweb Bookings support team`,
+    subject: t('api.panels.support.subject', { ref: ticket.ref }),
+    body: t('api.panels.support.body', {
+      greeting: user?.firstName ? t('api.panels.support.greeting', { name: user.firstName }) : t('api.panels.support.greetingAnonymous'),
+      ref: ticket.ref,
+      reason: input.reason,
+      description: `${ticket.description.slice(0, 280)}${ticket.description.length > 280 ? '…' : ''}`,
+      attachments: ticket.files.length ? `\n\n${t('api.panels.support.attachments', { files: ticket.files.map((f) => f.name).join(', ') })}` : '',
+    }),
   })
   return ticket
 }
@@ -869,7 +857,7 @@ export async function endLiveChat(transcript: string): Promise<void> {
   const user = userById(currentUserId() ?? '')
   patch((s) => ({ chatTyping: false, chat: { ...s.chat, status: 'ended', messages: [...s.chat.messages, chatMsg({ from: 'system', key: 'panels.chat.ended' })] } }))
   if (user) {
-    queueMessage({ clientId: null, to: user.email, toName: `${user.firstName} ${user.lastName}`, channel: 'email', type: 'other', subject: 'Your chat with Innoweb Bookings support', body: transcript })
+    queueMessage({ clientId: null, to: user.email, toName: `${user.firstName} ${user.lastName}`, channel: 'email', type: 'other', subject: t('api.panels.chatTranscriptSubject'), body: transcript })
   }
 }
 

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button, Modal, Select, confirm, toast } from '@/components/ui'
 import { deleteLocation, locationUsage } from '@/api/settings'
 import { useDb } from '@/store/db'
+import { num } from '@/lib/format'
 import type { Location } from '@/types'
 import { ActionsPill, PillMenu, SettingsPage } from '../components/ui'
 import { useAction } from '../components/useAction'
@@ -64,7 +65,7 @@ export function LocationsPage() {
     <SettingsPage
       title={t('settings.biz.locations.title')}
       description={t('settings.biz.locations.description')}
-      learnMore="Locations"
+      learnMore={t('settings.biz.locations.title')}
       actions={
         <>
           <PillMenu label={t('settings.common.options')} groups={[{ items: [{ label: t('settings.biz.locations.shareLink'), onSelect: () => setShare(true) }] }]} />
@@ -89,7 +90,8 @@ export function LocationsPage() {
                   {rating ? (
                     <>
                       <Star size={14} className="fill-accent text-accent" aria-hidden />
-                      <span className="text-ink">{(rating.sum / rating.count).toFixed(1)}</span> {t('settings.biz.locations.reviews', { count: rating.count })}
+                      <span className="text-ink">{num(rating.sum / rating.count, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+</span> {t('settings.biz.locations.reviews', { count: rating.count })}
                     </>
                   ) : (
                     t('settings.biz.locations.noReviews')

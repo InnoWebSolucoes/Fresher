@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { FileClock, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -114,7 +115,7 @@ export function PayRunsPage({ tab = 'periods' }: { tab?: 'periods' | 'settlement
         title={t('team.pay.title')}
         subtitle={
           <>
-            {t('team.pay.subtitle')} <LearnMore topic="pay runs" />
+            {t('team.pay.subtitle')} <LearnMore topic={t('team.topics.payRuns')} />
           </>
         }
         actions={

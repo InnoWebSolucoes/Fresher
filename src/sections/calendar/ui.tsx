@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addMonths, format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
+import { addMonths, isSameMonth, parseISO, startOfMonth } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ChevronLeft, ChevronRight, PersonStanding, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
@@ -127,8 +128,6 @@ export function Pill({ children, active, className, ...rest }: ButtonHTMLAttribu
 
 // ─── Calendars ─────────────────────────────────────────────────────────
 
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
 /** One Monday-first month. */
 export function MonthGrid({ month, selected, onSelect, isDisabled, wide }: { month: Date; selected?: ISODate; onSelect: (date: ISODate) => void; isDisabled?: (date: ISODate) => boolean; wide?: boolean }) {
   const today = todayISO()
@@ -136,9 +135,10 @@ export function MonthGrid({ month, selected, onSelect, isDisabled, wide }: { mon
   return (
     <div className={wide ? 'w-[300px]' : 'w-[252px]'}>
       <div className="grid grid-cols-7 gap-y-1 text-center">
-        {WEEKDAYS.map((d) => (
+        {/* Weekday initials of the first (Monday-first) week: "Mon" / "Seg". */}
+        {days.slice(0, 7).map((d) => (
           <span key={d} className="pb-2 text-caption text-muted">
-            {d}
+            {format(parseISO(d), 'EEE')}
           </span>
         ))}
         {days.map((day) => {

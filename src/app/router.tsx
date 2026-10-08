@@ -66,7 +66,11 @@ const appRoutes: RouteObject[] = [
 
 export const routes: RouteObject[] = [{ element: <RootLayout />, errorElement: <ErrorPage />, children: appRoutes }]
 
+/** "/" in development; "/bookings" when built for innoweb.agency/bookings (vite build --base). */
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+
 export const router = createBrowserRouter(routes, {
+  basename,
   future: {
     v7_relativeSplatPath: true,
     v7_fetcherPersist: true,

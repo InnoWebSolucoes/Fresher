@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useEffect, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AppointmentStatus, PaletteColor } from '@/types'
 import { PALETTE, STATUS_STYLES } from '@/styles/palette'
 
@@ -21,8 +22,9 @@ export function Skeleton({ className }: { className?: string }) {
 
 /** A page-shaped skeleton: header, toolbar and rows. */
 export function PageSkeleton({ rows = 6 }: { rows?: number }) {
+  const { t } = useTranslation()
   return (
-    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading">
+    <div className="flex flex-col gap-4" aria-busy="true" aria-label={t('common.loadingLabel')}>
       <Skeleton className="h-9 w-64" />
       <Skeleton className="h-5 w-96" />
       <Skeleton className="mt-4 h-12 w-full" />

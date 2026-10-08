@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { format } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Camera, Check, ChevronDown, ChevronUp, MapPin, Plus, User as UserIcon } from 'lucide-react'
 import { useMemo, useRef, useState, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -15,7 +15,7 @@ import { Button, Checkbox, Field, LearnMore, Modal, MoneyInput, RadioGroup, Sear
 import { inviteWouldSend, removeLinkedCalendar, renameLinkedCalendar, type MemberAddress, type MemberEmergencyContact, type TriState } from '@/api/team'
 import { PortalMenu, ActionsPill } from '../../components/common'
 import { RoleSelect } from '../../components/RoleSelect'
-import { COUNTRIES, MEMBER_COLORS, PHONE_CODES } from '../../lib/members'
+import { colorLabel, countryLabel, countryOptions, MEMBER_COLORS, PHONE_CODES } from '../../lib/members'
 import type { FormState, SetField } from './state'
 
 interface SectionProps {
@@ -95,7 +95,7 @@ export function ProfileSection({ form, set, mode, errors }: SectionProps & { mod
         </Field>
         <PhoneField label={t('team.form.profile.phone')} code={form.phoneCode} number={form.phone} onCode={(v) => set('phoneCode', v)} onNumber={(v) => set('phone', v)} />
         <PhoneField label={t('team.form.profile.additionalPhone')} code={form.additionalPhoneCode} number={form.additionalPhone} onCode={(v) => set('additionalPhoneCode', v)} onNumber={(v) => set('additionalPhone', v)} />
-        <Field label={t('team.form.profile.country')}>{(id) => <Select id={id} value={form.country} onChange={(e) => set('country', e.target.value)} placeholder={t('team.form.profile.selectCountry')} options={COUNTRIES} />}</Field>
+        <Field label={t('team.form.profile.country')}>{(id) => <Select id={id} value={form.country} onChange={(e) => set('country', e.target.value)} placeholder={t('team.form.profile.selectCountry')} options={countryOptions()} />}</Field>
         <Field label={t('team.form.profile.birthday')} error={errors.birthday}>
           {(id) => (
             <div className="grid grid-cols-3 gap-2">
@@ -121,9 +121,9 @@ export function ProfileSection({ form, set, mode, errors }: SectionProps & { mod
             <button
               key={c}
               type="button"
-              aria-label={PALETTE[c].label}
+              aria-label={colorLabel(c)}
               aria-pressed={form.color === c}
-              title={PALETTE[c].label}
+              title={colorLabel(c)}
               onClick={() => set('color', c)}
               className={clsx('flex h-9 w-9 items-center justify-center rounded-full ring-offset-2 ring-offset-canvas transition-shadow', form.color === c ? 'ring-2 ring-primary' : 'hover:ring-2 hover:ring-line-strong')}
               style={{ background: PALETTE[c].edge }}
@@ -200,7 +200,7 @@ export function AddressesSection({ form, set }: SectionProps) {
               <MapPin size={20} className="mt-0.5 text-muted" aria-hidden />
               <div>
                 <p className="text-body-strong text-ink">{t(`team.form.addresses.types.${a.type}`)}</p>
-                <p className="text-body text-muted">{[a.line1, a.line2, `${a.postcode} ${a.city}`, a.country].filter(Boolean).join(', ')}</p>
+                <p className="text-body text-muted">{[a.line1, a.line2, `${a.postcode} ${a.city}`, countryLabel(a.country)].filter(Boolean).join(', ')}</p>
               </div>
             </div>
             <PortalMenu
@@ -262,7 +262,7 @@ function AddressModal({ address, onClose, onSave }: { address: MemberAddress | n
           {(id) => <TextInput id={id} value={a.city} onChange={(e) => setA({ ...a, city: e.target.value })} />}
         </Field>
         <Field label={t('team.form.addresses.postcode')}>{(id) => <TextInput id={id} value={a.postcode} onChange={(e) => setA({ ...a, postcode: e.target.value })} />}</Field>
-        <Field label={t('team.form.profile.country')} className="sm:col-span-2">{(id) => <Select id={id} value={a.country} onChange={(e) => setA({ ...a, country: e.target.value })} options={COUNTRIES} />}</Field>
+        <Field label={t('team.form.profile.country')} className="sm:col-span-2">{(id) => <Select id={id} value={a.country} onChange={(e) => setA({ ...a, country: e.target.value })} options={countryOptions()} />}</Field>
       </div>
     </Modal>
   )
@@ -445,7 +445,7 @@ export function SettingsSection({ form, set, member, roleRef }: SectionProps & {
           <div>
             <h3 className="font-display text-title-3 text-ink">{t('team.form.settings.bookingsTitle')}</h3>
             <p className="mt-1 text-body text-muted">
-              {t('team.form.settings.bookingsBody')} <LearnMore topic="calendar bookings" />
+              {t('team.form.settings.bookingsBody')} <LearnMore topic={t('team.topics.calendarBookings')} />
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -482,7 +482,7 @@ export function SettingsSection({ form, set, member, roleRef }: SectionProps & {
         <div className="card mt-5 p-6">
           <h3 className="font-display text-title-3 text-ink">{t('team.form.settings.linkedTitle')}</h3>
           <p className="mb-4 mt-1 text-body text-muted">
-            {t('team.form.settings.linkedBody', { name: member.firstName })} <LearnMore topic="linked calendars" />
+            {t('team.form.settings.linkedBody', { name: member.firstName })} <LearnMore topic={t('team.topics.linkedCalendars')} />
           </p>
           <LinkedCalendars member={member} />
           <Button className="mt-4" icon={<Plus size={16} />} onClick={() => navigate(`/team/team-members/calendar-sync/calendar-type?memberId=${member.id}`)}>
@@ -602,7 +602,7 @@ export function WagesSection({ form, set }: SectionProps) {
           label={t('team.form.wages.enable')}
           hint={
             <>
-              {t('team.form.wages.enableHint')} <LearnMore topic="wages" />
+              {t('team.form.wages.enableHint')} <LearnMore topic={t('team.topics.wages')} />
             </>
           }
           checked={form.wagesEnabled}
@@ -631,7 +631,7 @@ export function WagesSection({ form, set }: SectionProps) {
                 <div>
                   <h3 className="text-body-strong text-ink">{t('team.form.wages.overtimeTitle')}</h3>
                   <p className="mb-3 text-small text-muted">
-                    {t('team.form.wages.overtimeBody')} <LearnMore topic="overtime" />
+                    {t('team.form.wages.overtimeBody')} <LearnMore topic={t('team.topics.overtime')} />
                   </p>
                   <Checkbox label={t('team.form.wages.overtime')} hint={t('team.form.wages.overtimeHint')} checked={form.overtime} onChange={(v) => set('overtime', v)} />
                 </div>
@@ -642,7 +642,7 @@ export function WagesSection({ form, set }: SectionProps) {
             <div>
               <h3 className="font-display text-title-3 text-ink">{t('team.form.wages.tsTitle')}</h3>
               <p className="mt-1 text-body text-muted">
-                {t('team.form.wages.tsBody')} <LearnMore topic="timesheets" />
+                {t('team.form.wages.tsBody')} <LearnMore topic={t('team.topics.timesheets')} />
               </p>
             </div>
             <p className="text-body-strong text-ink">{t('team.form.wages.proximity')}</p>
@@ -730,7 +730,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
           label={t('team.form.payruns.enable')}
           hint={
             <>
-              {t('team.form.payruns.enableHint')} <LearnMore topic="pay runs" />
+              {t('team.form.payruns.enableHint')} <LearnMore topic={t('team.topics.payRuns')} />
             </>
           }
           checked={form.payRunsEnabled}
@@ -742,7 +742,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
           <div className="card mt-5 p-6">
             <h3 className="font-display text-title-3 text-ink">{t('team.form.payruns.methodTitle')}</h3>
             <p className="mt-1 text-body text-muted">
-              {t('team.form.payruns.methodBody')} <LearnMore topic="pay run payment methods" />
+              {t('team.form.payruns.methodBody')} <LearnMore topic={t('team.topics.payRunPaymentMethods')} />
             </p>
             <div className="mt-4 flex items-center justify-between rounded-lg border border-line p-4">
               <div>
@@ -776,7 +776,7 @@ export function PayRunsSection({ form, set }: SectionProps) {
             <div>
               <h3 className="font-display text-title-3 text-ink">{t('team.form.payruns.deductTitle')}</h3>
               <p className="mt-1 text-body text-muted">
-                {t('team.form.payruns.deductBody')} <LearnMore topic="pay run deductions" />
+                {t('team.form.payruns.deductBody')} <LearnMore topic={t('team.topics.payRunDeductions')} />
               </p>
             </div>
             <Checkbox label={t('team.form.payruns.deductProcessing')} hint={t('team.form.payruns.deductProcessingHint')} checked={prs.deductProcessingFees} onChange={(v) => setPrs({ deductProcessingFees: v })} />

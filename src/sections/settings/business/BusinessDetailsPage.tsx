@@ -13,7 +13,7 @@ export function BusinessDetailsPage() {
   const link = (value: string) => (value ? <span className="text-ink">{value}</span> : <AddLink onClick={edit} />)
 
   return (
-    <SettingsPage title={t('settings.biz.details.title')} description={t('settings.biz.details.description')} learnMore="Business details">
+    <SettingsPage title={t('settings.biz.details.title')} description={t('settings.biz.details.description')} learnMore={t('settings.biz.details.title')}>
       <EditCard title={t('settings.biz.details.businessInfo')} onEdit={edit} testId="business-info-card">
         <InfoGrid
           rows={[

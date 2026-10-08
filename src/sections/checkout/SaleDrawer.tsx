@@ -1,5 +1,7 @@
 import clsx from 'clsx'
-import { differenceInCalendarDays, format, parseISO } from 'date-fns'
+import { differenceInCalendarDays, parseISO } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
 import { Activity, ArrowLeft, Check, Download, FileText, Footprints, Gift, Layers, List, Mail, NotebookPen, Pencil, Printer, RotateCcw, StickyNote } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,7 +13,7 @@ import { PAYMENT_LABELS, computeTotals, lineTotal, saleBalance, salePaid, voidSa
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { durationLabel, now } from '@/lib/time'
-import { fmtDate, fmtDateEU, fmtDayHeader, fullName, money } from '@/lib/format'
+import { fmtDate, fmtDateEU, fullName, money } from '@/lib/format'
 import type { ActivityEntry, PaymentMethod, Sale, SaleStatus } from '@/types'
 import { downloadReceipt, printReceipt } from './receipt'
 import { AddSaleNoteModal, EditSaleDetailsModal, ShareGiftCardModal, ShareInvoiceModal } from './SaleModals'
@@ -27,9 +29,9 @@ export function relativeAt(iso: string): string {
   const d = parseISO(iso)
   const diff = differenceInCalendarDays(now(), d)
   const time = format(d, 'HH:mm')
-  if (diff === 0) return `Today at ${time}`
-  if (diff === 1) return `Yesterday at ${time}`
-  return `${format(d, 'EEE, d MMM yyyy')} at ${time}`
+  if (diff === 0) return i18n.t('checkout.sale.todayAt', { time })
+  if (diff === 1) return i18n.t('checkout.sale.yesterdayAt', { time })
+  return i18n.t('calendar.update.when', { date: format(d, 'EEE, d MMM yyyy'), time })
 }
 
 export function SaleStatusPill({ sale }: { sale: Sale }) {
@@ -153,7 +155,7 @@ export function SaleDrawer({ id, params }: DrawerProps) {
         </div>
         <h1 className="mt-5 font-display text-title-1 text-ink">{isRefund ? t('checkout.sale.refundTitle') : t('checkout.sale.title')}</h1>
         <p className="mt-1 text-body-lg text-muted">
-          {fmtDayHeader(sale.createdAt)}, {format(parseISO(sale.createdAt), 'yyyy')} • {location?.name}
+          {format(parseISO(sale.createdAt), 'EEE, MMM d, yyyy')} • {location?.name}
         </p>
         <div className="mt-6">
           {tab === 'summary' && <SummaryTab sale={sale} onShareGift={(cardId) => setModal({ kind: 'shareGift', cardId })} />}
@@ -301,7 +303,7 @@ function SaleCard({ sale, linkToSale }: { sale: Sale; linkToSale?: boolean }) {
             <h2 className="font-display text-title-2 text-ink">{isRefund ? t('checkout.sale.refundNumber', { number: sale.number }) : t('checkout.sale.saleNumber', { number: sale.number })}</h2>
           )}
           <p className="text-body text-muted">
-            {fmtDayHeader(sale.createdAt)}, {format(parseISO(sale.createdAt), 'yyyy')}
+            {format(parseISO(sale.createdAt), 'EEE, MMM d, yyyy')}
           </p>
         </div>
         {sale.status === 'voided' && <Chip tone="danger">{t('checkout.sale.status.voided')}</Chip>}
@@ -397,7 +399,7 @@ function SaleCard({ sale, linkToSale }: { sale: Sale; linkToSale?: boolean }) {
                       {p.kind === 'refund' ? t('checkout.sale.refundPayment') : p.kind === 'deposit' ? t('checkout.sale.depositPayment') : t('checkout.sale.payment')} <MethodIcon method={p.method} /> {p.methodLabel}
                     </p>
                     <p className="text-body text-muted">
-                      {format(parseISO(p.at), 'EEE d MMM yyyy')} at {format(parseISO(p.at), 'HH:mm')}
+                      {t('calendar.update.when', { date: format(parseISO(p.at), 'EEE d MMM yyyy'), time: format(parseISO(p.at), 'HH:mm') })}
                       {p.collectedById && member(p.collectedById) ? ` • ${fullName(member(p.collectedById)!)}` : ''}
                     </p>
                   </div>
@@ -465,8 +467,9 @@ function NotesTab({ sale, onAdd }: { sale: Sale; onAdd: () => void }) {
   )
 }
 
-/** Icon for an activity entry like "€28.75 paid by Cash". */
-function paymentMethodOf(title: string): PaymentMethod {
+/** Icon for an activity entry like "€28.75 paid by Cash" (or the same entry written in another language). */
+function paymentMethodOf(title: string, payments: { method: PaymentMethod; methodLabel: string }[]): PaymentMethod {
+  if (!/paid by/i.test(title)) return payments.find((p) => p.methodLabel && title.includes(p.methodLabel))?.method ?? 'other'
   const label = title.replace(/^.*paid by /i, '').toLowerCase()
   const match = (Object.entries(PAYMENT_LABELS) as [PaymentMethod, string][]).find(([, l]) => label.startsWith(l.toLowerCase()))
   return match?.[0] ?? 'other'
@@ -475,6 +478,8 @@ function paymentMethodOf(title: string): PaymentMethod {
 function ActivityTab({ sale, onEmail }: { sale: Sale; onEmail: () => void }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const allPayments = useDb((s) => s.payments)
+  const salePayments = allPayments.filter((p) => sale.paymentIds.includes(p.id))
   const entries = [...sale.activity].sort((a, b) => b.at.localeCompare(a.at))
   const groups: { month: string; items: ActivityEntry[] }[] = []
   for (const e of entries) {
@@ -491,7 +496,8 @@ function ActivityTab({ sale, onEmail }: { sale: Sale; onEmail: () => void }) {
           <h2 className="mb-3 text-body-strong text-muted">{g.month}</h2>
           <ol className="relative flex flex-col gap-4 border-l border-line pl-6">
             {g.items.map((e) => {
-              const payment = /paid by/i.test(e.title)
+              // Payment entries: "… paid by <method>", or a title naming one of this sale's payment methods (entries written in Portuguese).
+              const payment = /paid by|pago com/i.test(e.title) || salePayments.some((p) => p.methodLabel && e.title.includes(p.methodLabel))
               return (
                 <li key={e.id} className="relative rounded-lg border border-line bg-surface p-5">
                   <span className="absolute -left-[29px] top-6 h-2.5 w-2.5 rounded-full bg-line-strong" aria-hidden />
@@ -504,7 +510,7 @@ function ActivityTab({ sale, onEmail }: { sale: Sale; onEmail: () => void }) {
                     <span className="relative shrink-0" aria-hidden>
                       {payment ? (
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-sunken">
-                          <MethodIcon method={paymentMethodOf(e.title)} size={22} />
+                          <MethodIcon method={paymentMethodOf(e.title, salePayments)} size={22} />
                         </span>
                       ) : (
                         <Avatar name={e.by || '?'} size={48} />

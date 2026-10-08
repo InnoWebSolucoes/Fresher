@@ -7,7 +7,7 @@ import type { Client, ID } from '@/types'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { exportCsv, exportedFileName, exportXlsx } from '@/lib/export'
-import { fmtDate, money } from '@/lib/format'
+import { fmtDate, money, num } from '@/lib/format'
 import { Button, confirm, EmptyState, LearnMore, Menu, MenuButton, Page, PageHeader, PageSkeleton, SearchInput, SideDrawer, toast, Toolbar, usePageLoading } from '@/components/ui'
 import { deleteClients, findDuplicateGroups } from '@/api/clients'
 import { useExt, writeExt } from '@/api/ext'
@@ -111,7 +111,7 @@ export function ClientsListPage() {
       sources.find((s) => s.id === c.sourceId)?.name ?? '',
       c.tagIds.map((id) => tags.find((x) => x.id === id)?.name).filter(Boolean).join('|'),
       c.blocked ? t('clients.common.yes') : t('clients.common.no'),
-      (metrics.salesTotal.get(c.id) ?? 0).toFixed(2),
+      num(metrics.salesTotal.get(c.id) ?? 0, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }),
       metrics.reviewStats.get(c.id)?.count ?? 0,
       fmtDate(c.createdAt),
     ])
@@ -160,7 +160,7 @@ export function ClientsListPage() {
         count={live.length}
         subtitle={
           <>
-            {t('clients.list.subtitle')} <LearnMore topic="Clients list">{t('clients.common.learnMore')}</LearnMore>
+            {t('clients.list.subtitle')} <LearnMore topic={t('clients.list.title')}>{t('clients.common.learnMore')}</LearnMore>
           </>
         }
         actions={
@@ -204,7 +204,7 @@ export function ClientsListPage() {
               <button type="button" onClick={() => navigate('/clients/client-import/upload')} className="h-10 rounded-full bg-white px-5 text-body-strong text-ink hover:bg-white/90">
                 {t('clients.banner.start')}
               </button>
-              <LearnMore topic="Import clients">
+              <LearnMore topic={t('clients.list.importClients')}>
                 <span className="text-body-strong text-white">{t('clients.common.learnMore')}</span>
               </LearnMore>
             </div>
@@ -399,7 +399,7 @@ export function ClientsListPage() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-4 text-ink">{c.phone || '-'}</td>
-                      <td className="whitespace-nowrap px-4 text-ink">{r ? `${(r.sum / r.count).toFixed(1)} ★ (${r.count})` : '-'}</td>
+                      <td className="whitespace-nowrap px-4 text-ink">{r ? `${num(r.sum / r.count, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★ (${r.count})` : '-'}</td>
                       <td className="whitespace-nowrap px-4 tabular text-ink">{money(metrics.salesTotal.get(c.id) ?? 0)}</td>
                       <td className="whitespace-nowrap px-4 text-ink">{fmtDate(c.createdAt)}</td>
                     </tr>

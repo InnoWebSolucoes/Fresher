@@ -1,4 +1,5 @@
-import { endOfMonth, format, parseISO, startOfMonth, startOfWeek, startOfYear, subDays, subMonths } from 'date-fns'
+import { endOfMonth, parseISO, startOfMonth, startOfWeek, startOfYear, subDays, subMonths } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Info } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -9,7 +10,7 @@ import type { Automation, MessageLog } from '@/types'
 import { Button, Chip, DetailList, EmptyState, Menu, MenuButton, Page, PageSkeleton, PillTabs, Segmented, Select, confirm, toast, usePageLoading } from '@/components/ui'
 import { removeAutomation, resetAutomation, setAutomationEnabled, useMarketingSettings } from '@/api/marketing'
 import { now } from '@/lib/time'
-import { fmtDateTimeUS } from '@/lib/format'
+import { fmtDateTimeUS, num } from '@/lib/format'
 import { BackCrumbs, EmailMock, MessageBubblePreview } from '../components/kit'
 import { AutomationEmailBody, useAutomationCopy, useAutomationSample } from '../automationContent'
 import { automationMessageTypes, pct } from '../helpers'
@@ -163,7 +164,7 @@ export function AutomationDetailPage() {
           const base = k === 'sent' ? 0 : perf.totals[ch].sent
           return (
             <li key={ch}>
-              {t(`marketing.automationDetail.channelShort.${ch}`)}: {k === 'sent' ? v : base ? `${v} (${pct(v, base)}%)` : ch === 'email' || k !== 'opened' ? `${v} (0%)` : '-'}
+              {t(`marketing.automationDetail.channelShort.${ch}`)}: {k === 'sent' ? v : base ? `${v} (${num(pct(v, base))}%)` : ch === 'email' || k !== 'opened' ? `${v} (0%)` : '-'}
             </li>
           )
         })}

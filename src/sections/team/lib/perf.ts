@@ -1,4 +1,5 @@
-import { addDays, differenceInCalendarDays, format, parseISO, startOfMonth, startOfWeek, subDays } from 'date-fns'
+import { addDays, differenceInCalendarDays, parseISO, startOfMonth, startOfWeek, subDays } from 'date-fns'
+import { format } from '@/lib/dates'
 import type { DbData, ID, ISODate } from '@/types'
 import { lineTotal } from '@/api/sales'
 import { workingWindows } from '@/lib/schedule'

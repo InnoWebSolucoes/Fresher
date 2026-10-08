@@ -7,7 +7,7 @@ import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { Button, Card, DataTable, DetailList, EmptyState, Menu, MenuButton, Page, PageSkeleton, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { cancelSchedule, deleteCampaign, duplicateCampaign, processDueCampaigns, sendScheduledNow, useMarketingSettings } from '@/api/marketing'
-import { fmtDateTimeUS, money, money2 } from '@/lib/format'
+import { fmtDateTimeUS, money, money2, num } from '@/lib/format'
 import type { MessageLog } from '@/types'
 import { BackCrumbs, EmailMock, MessageBubblePreview, StatCard } from '../components/kit'
 import { CampaignStatusChip, ChannelLabel, discountLabel, pct } from '../helpers'
@@ -171,9 +171,9 @@ export function BlastDetailPage() {
       {campaign.status === 'sent' && (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
-            <StatCard label={t('marketing.detail.stats.sent')} value={s.sent} hint={t('marketing.detail.stats.deliveredHint', { count: s.delivered, value: pct(s.delivered, s.sent) })} />
-            <StatCard label={t('marketing.detail.stats.opened')} value={`${pct(s.opened, s.delivered)}%`} hint={t('marketing.detail.stats.openedHint', { count: s.opened })} />
-            <StatCard label={t('marketing.detail.stats.clicked')} value={`${pct(s.clicked, s.delivered)}%`} hint={t('marketing.detail.stats.clickedHint', { count: s.clicked })} />
+            <StatCard label={t('marketing.detail.stats.sent')} value={s.sent} hint={t('marketing.detail.stats.deliveredHint', { count: s.delivered, value: num(pct(s.delivered, s.sent)) })} />
+            <StatCard label={t('marketing.detail.stats.opened')} value={`${num(pct(s.opened, s.delivered))}%`} hint={t('marketing.detail.stats.openedHint', { count: s.opened })} />
+            <StatCard label={t('marketing.detail.stats.clicked')} value={`${num(pct(s.clicked, s.delivered))}%`} hint={t('marketing.detail.stats.clickedHint', { count: s.clicked })} />
             <StatCard label={t('marketing.detail.stats.bookings')} value={s.bookings} hint={t('marketing.detail.stats.bookingsHint')} />
             <StatCard label={t('marketing.detail.stats.revenue')} value={money(s.revenue)} hint={t('marketing.detail.stats.revenueHint')} />
             <StatCard label={t('marketing.detail.stats.cost')} value={money2(campaign.cost)} hint={t('marketing.detail.stats.roi', { value: campaign.cost ? Math.round(s.revenue / campaign.cost) : 0 })} />
@@ -253,7 +253,7 @@ export function BlastDetailPage() {
               <p className="mt-8 border-t border-line pt-4 text-caption text-muted">{t('marketing.builder.footer', { name: workspace.name })}</p>
             </EmailMock>
           ) : (
-            <MessageBubblePreview kind="sms" sender={settings.advanced.senderName || workspace.name} text={`${campaign.body}${deal?.code ? ` Code ${deal.code}.` : ''} ${t('marketing.builder.stop')}`} />
+            <MessageBubblePreview kind="sms" sender={settings.advanced.senderName || workspace.name} text={`${campaign.body}${deal?.code ? ` ${t('marketing.builder.smsCode', { code: deal.code })}` : ''} ${t('marketing.builder.stop')}`} />
           )}
         </div>
       </div>

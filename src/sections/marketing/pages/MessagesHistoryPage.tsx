@@ -105,7 +105,7 @@ export function MessagesHistoryPage() {
             <Link to="/marketing/automated-messages" className="text-primary hover:underline">
               {t('marketing.history.settings')}
             </Link>{' '}
-            {t('marketing.history.or')} <LearnMore topic="messages history">{t('marketing.history.learnMore')}</LearnMore>
+            {t('marketing.history.or')} <LearnMore topic={t('marketing.common.topics.messagesHistory')}>{t('marketing.history.learnMore')}</LearnMore>
           </>
         }
       />

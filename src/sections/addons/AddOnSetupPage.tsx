@@ -1,10 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { format, parseISO, startOfMonth } from 'date-fns'
+import { parseISO, startOfMonth } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowRight, CheckCircle2, Loader2, MapPin } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import i18n from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { Button, Field, LearnMore, RadioGroup, Select, TextInput, toast } from '@/components/ui'
@@ -15,10 +17,12 @@ import { now, nowISO, toISODate } from '@/lib/time'
 import { useDb } from '@/store/db'
 import type { BillingDetails } from '@/types'
 import { useReturnTo } from './AddOnIntroPage'
-import { eur, META, unitQuantity } from './catalog'
+import { eur, ledgerLabel, META, unitQuantity } from './catalog'
 import { AddOnIcon, WizardFrame } from './components/shared'
 
 const ACCOUNT_TYPES = ['sole_trader', 'company', 'partnership', 'association', 'non_profit'] as const
+/** Billing details keep the English account type (other forms compare it), whatever the UI language. */
+const storedAccountType = (k: (typeof ACCOUNT_TYPES)[number]) => i18n.getFixedT('en')(`addons.setup.accountTypes.${k}`)
 
 /** /add-ons/add-on/:slug/setup: paid enable screen, plan activation, or the accounting connect wizard. */
 export function AddOnSetupPage() {
@@ -70,7 +74,7 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
   const saved = workspacePlan.card
   const bd = workspacePlan.billingDetails
   const accountLabel = (k: (typeof ACCOUNT_TYPES)[number]) => t(`addons.setup.accountTypes.${k}`)
-  const initialType = ACCOUNT_TYPES.find((k) => k === bd?.accountType || accountLabel(k).toLowerCase() === bd?.accountType?.toLowerCase()) ?? 'sole_trader'
+  const initialType = ACCOUNT_TYPES.find((k) => k === bd?.accountType || [accountLabel(k), storedAccountType(k)].some((label) => label.toLowerCase() === bd?.accountType?.toLowerCase())) ?? 'sole_trader'
   const [vatOpen, setVatOpen] = useState(Boolean(bd?.vatNumber))
 
   const schema = useMemo(() => {
@@ -134,11 +138,12 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
 
   const submit = async (v: Form) => {
     const digits = v.cardNumber.replace(/\s/g, '')
-    const billing: BillingDetails = { accountType: accountLabel(v.accountType), firstName: v.firstName.trim(), lastName: v.lastName.trim(), businessName: v.businessName.trim(), address: v.address.trim(), vatNumber: v.vatNumber.replace(/\s/g, '').toUpperCase() || undefined }
+    const billing: BillingDetails = { accountType: storedAccountType(v.accountType),
+ firstName: v.firstName.trim(), lastName: v.lastName.trim(), businessName: v.businessName.trim(), address: v.address.trim(), vatNumber: v.vatNumber.replace(/\s/g, '').toUpperCase() || undefined }
     const payload: Payload = {
       trialDays: runningTrial ? undefined : meta.trialDays,
       keepTrial: Boolean(runningTrial),
-      order: { line: { description: plan ? t('addons.setup.planLine') : `${name} add-on`, quantity, unitPrice: meta.price ?? 0 }, quote },
+      order: { line: { description: plan ? t('addons.setup.planLine') : t('addons.setup.addonLine', { name }), quantity, unitPrice: meta.price ?? 0 }, quote },
       billing,
       card: v.cardChoice === 'saved' && saved ? saved : { brand: digits.startsWith('4') ? 'Visa' : 'Mastercard', last4: digits.slice(-4), expiry: v.expiry.trim() },
     }
@@ -193,7 +198,7 @@ function PaidSetup({ slug, onConfirm, onBack, onClose, progress = { steps: 2, st
                   {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-number" placeholder={t('addons.setup.cardNumberPlaceholder')} suffix={<span className="text-caption font-bold text-info">VISA <span className="text-danger">●</span><span className="text-accent">●</span></span>} invalid={Boolean(err.cardNumber)} {...register('cardNumber')} />}
                 </Field>
                 <Field label={t('addons.setup.expiry')} error={fieldError('expiry')}>
-                  {(id) => <TextInput id={id} autoComplete="cc-exp" placeholder="MM/YY" invalid={Boolean(err.expiry)} {...register('expiry')} />}
+                  {(id) => <TextInput id={id} autoComplete="cc-exp" placeholder={t('settings.common.expiryPlaceholder')} invalid={Boolean(err.expiry)} {...register('expiry')} />}
                 </Field>
                 <Field label={t('addons.setup.cvv')} error={fieldError('cvv')}>
                   {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-csc" placeholder={t('addons.setup.cvvPlaceholder')} invalid={Boolean(err.cvv)} {...register('cvv')} />}
@@ -430,9 +435,10 @@ function AccountingSetup({ slug }: { slug: string }) {
           <h1 className="mt-1 font-display text-[40px] font-bold leading-[48px] text-ink">{t('addons.accounting.mapTitle')}</h1>
           <p className="mt-3 text-body-lg text-muted">{t('addons.accounting.mapBody', { name: provider, org })}</p>
           <div className="card mt-8 flex flex-col gap-5 p-8">
-            <Field label={t('addons.accounting.salesAccount')}>{(id) => <Select id={id} value={mapping.salesAccount} onChange={(e) => setMapping((m) => ({ ...m, salesAccount: e.target.value }))} options={SALES_ACCOUNTS} />}</Field>
-            <Field label={t('addons.accounting.paymentsAccount')}>{(id) => <Select id={id} value={mapping.paymentsAccount} onChange={(e) => setMapping((m) => ({ ...m, paymentsAccount: e.target.value }))} options={PAYMENT_ACCOUNTS} />}</Field>
-            <Field label={t('addons.accounting.tipsAccount')}>{(id) => <Select id={id} value={mapping.tipsAccount} onChange={(e) => setMapping((m) => ({ ...m, tipsAccount: e.target.value }))} options={TIPS_ACCOUNTS} />}</Field>
+            <Field label={t('addons.accounting.salesAccount')}>{(id) => <Select id={id} value={mapping.salesAccount} onChange={(e) => setMapping((m) => ({ ...m, salesAccount: e.target.value }))} options={SALES_ACCOUNTS.map((a) => ({ value: a, label: ledgerLabel(t, a) }))} />}</Field>
+            <Field label={t('addons.accounting.paymentsAccount')}>{(id) => <Select id={id} value={mapping.paymentsAccount} onChange={(e) => setMapping((m) => ({ ...m, paymentsAccount: e.target.value }))} options={PAYMENT_ACCOUNTS.map((a) => ({ value: a, label: ledgerLabel(t, a) }))} />}</Field>
+            <Field label={t('addons.accounting.tipsAccount')}>{(id) => <Select id={id} value={mapping.tipsAccount} onChange={(e) => setMapping((m) => ({ ...m, tipsAccount: e.target.value }))} options={TIPS_ACCOUNTS.map((a) => ({ value: a, label: ledgerLabel(t, a) }))} />
+}</Field>
           </div>
         </>
       )}

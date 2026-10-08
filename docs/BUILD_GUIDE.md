@@ -8,10 +8,11 @@ Innoweb Bookings is a front-end-only demo of a salon workspace. Read `SPEC.md` (
 
 You own **only** the files your task lists, normally:
 
-- `src/sections/<yours>/**` (pages, drawers, components, hooks, `en.json`)
+- `src/sections/<yours>/**` (pages, drawers, components, hooks)
+- your own strings files `locales/parts/<yours>.en.json` and `<yours>.pt.json`
 - `src/api/<yours>.ts` (new file(s) for your domain operations)
 
-Do **not** edit anything else: not `src/app/*`, `src/components/**`, `src/store/*`, `src/types/*`, `src/lib/*`, `src/api/{client,appointments,sales,messaging,auth}.ts`, `locales/en.json`, other sections, configs or package.json. If a shared piece is missing, build a local version inside your section. If the shared type lacks a field you need, store it in an existing flexible field or keep it in section-local state; mention it in your final report.
+Do **not** edit anything else: not `src/app/*`, `src/components/**`, `src/store/*`, `src/types/*`, `src/lib/*`, `src/api/{client,appointments,sales,messaging,auth}.ts`, `locales/en.json`, `locales/pt.json`, other sections, configs or package.json. If a shared piece is missing, build a local version inside your section. If the shared type lacks a field you need, store it in an existing flexible field or keep it in section-local state; mention it in your final report.
 
 ## How sections plug in
 
@@ -22,7 +23,7 @@ Each `src/sections/<name>/` has four registries, collected automatically:
 | `pages.tsx` | `pages: Record<pageId, ComponentType>` | Replaces the stub for a page id from `src/app/routeRegistry.ts` (or your `routes.ts`). |
 | `drawers.tsx` | `drawers: Record<name, DrawerDef>` | Right-hand drawers opened anywhere with `useDrawer().open(name, params)`. `DrawerDef = { component, width?, bare? }`; component gets `{ id, params, close }`. |
 | `routes.ts` | `routes: PageDef[]` | Extra routes you need. Layout `'shell' | 'settings' | 'full' | 'account'`. |
-| `en*.json` (temporary) | strings | Section strings during parallel work, merged into `locales/en.json` with `scripts/merge-locales.mjs`. Available as `t('<name>.…')`. |
+| `locales/parts/<name>.{en,pt}.json` (temporary) | strings | Strings added during parallel work (same keys in both files), merged into `locales/en.json` and `locales/pt.json` with `scripts/merge-locales.mjs`. |
 
 Page ids, paths and layouts are in `src/app/routeRegistry.ts`. Layouts: `public` (no login needed), `shell` (top bar + rail + docked left menu), `settings` (settings category card on the left; render only the right-hand content), `full` (full-screen; render your own header with `FullscreenFrame`), `account` (account area).
 
@@ -48,7 +49,7 @@ Page ids, paths and layouts are in `src/app/routeRegistry.ts`. Layouts: `public`
   - `@/api/messaging`: `queueMessage` (outbox/Messages history), `pushNotification`, `markNotificationsRead`, `notifyAppointment`, `sendReceipt`.
   - `@/api/auth`: `login`, `logout`, `switchUser`, `requestPasswordReset`, `resetPassword`, `changePassword`.
   - `@/api/register`: `createRegister`, `updateRegister`, `currentSession`, `expectedCash`, `openRegister`, `cashMovement`, `countRegister`, `closeRegister`.
-- Helpers: `@/lib/time` (`now()`, `useNow()`, `todayISO()`, `toMinutes`, `toClock`, `weekdayOf`, `durationLabel` "1h 30min", `durationLong` "1 hr, 30 min"), `@/lib/format` (`money` "€25"/"€28.75", `money2` "€25.00", `fmtDayLong` "Wed, 7 Oct 2026", `fmtDate` "Oct 7, 2026", `fmtDateTime`, `fullName`, `round2`), `@/lib/schedule` (`rawShifts`, `workingWindows`, `closedPeriodOn`, `timeOffOn`), `@/lib/availability` (`getAvailableSlots`, `nextAvailableDates`, `findConflicts`, `serviceTiming`, `itemSegments`, `eligibleMembers`), `@/lib/export` (`exportCsv`, `exportXlsx`, `exportPdf`, `buildPdf`, `downloadBlob`, `exportedFileName`, `reportFileName`), `@/lib/ids` (`uid`, `bookingRef`, `giftCode`), `@/lib/segments` (`clientsInSegment`, `segmentsForClient`, `clientStats`), `@/styles/palette` (`PALETTE`, `STATUS_STYLES`).
+- Helpers: `@/lib/time` (`now()`, `useNow()`, `todayISO()`, `toMinutes`, `toClock`, `weekdayOf`, `durationLabel` "1h 30min", `durationLong` "1 hr, 30 min" / "1 h 30 min"), `@/lib/format` (`money` "€25"/"€28.75" or "25 €"/"28,75 €", `money2` "€25.00" / "25,00 €", `num` for any other number, `fmtDayLong` "Wed, 7 Oct 2026", `fmtDate` "Oct 7, 2026", `fmtDateTime`, `fullName`, `round2`), `@/lib/dates` (`format` — use it instead of date-fns `format`; English patterns are rewritten for Portuguese, e.g. "MMM d, yyyy" → "7 out 2026"; `formatRange`), `@/i18n/language` (`getLang`, `useLang`, `setLang`, `localeTag`), `@/lib/schedule` (`rawShifts`, `workingWindows`, `closedPeriodOn`, `timeOffOn`), `@/lib/availability` (`getAvailableSlots`, `nextAvailableDates`, `findConflicts`, `serviceTiming`, `itemSegments`, `eligibleMembers`), `@/lib/export` (`exportCsv`, `exportXlsx`, `exportPdf`, `buildPdf`, `downloadBlob`, `exportedFileName`, `reportFileName`), `@/lib/ids` (`uid`, `bookingRef`, `giftCode`), `@/lib/segments` (`clientsInSegment`, `segmentsForClient`, `clientStats`), `@/styles/palette` (`PALETTE`, `STATUS_STYLES`).
 - "Now" is `now()` from `@/lib/time` (supports time travel). Never use `new Date()` for business logic.
 - The current user: `useCurrentUser()` from `@/store/session`; permission checks via `canAccess(role, section)` from `@/lib/permissions`.
 
@@ -64,7 +65,7 @@ Tailwind token classes: `bg-canvas|surface|raised|sunken`, `text-ink|muted|subtl
 - Where the reference stopped at a paid or external step (billing, payments setup, publishing, invites, Google sign-in), **continue the flow in simulation**: show the form, accept input, show success, and update state (e.g. add-on becomes Active).
 - Page header pattern: `PageHeader` with title, subtitle, actions (Options ▾ / Export ▾ / Add). List rows have an Actions (⋮) menu.
 - Loading skeleton on first render (`usePageLoading`), empty states with a next action, a toast for every completed action (use the reference's exact toast text), `confirm()` for destructive actions, inline validation (react-hook-form + zod or simple state), visible focus.
-- Every UI string in your `en.json` via `useTranslation()` → `t('<section>.…')`. Data values (names, services) are not strings to translate.
+- Every UI string through `useTranslation()` → `t('<section>.…')`, in English **and** European Portuguese (see i18n below). Data values (names, services) are not strings to translate.
 - Desktop-first (1280px+), usable on tablet.
 - Use the exact reference wording for titles, columns, buttons, menu items, options and toasts.
 
@@ -77,7 +78,13 @@ Tailwind token classes: `bg-canvas|surface|raised|sunken`, `text-ink|muted|subtl
 - **Modal** keeps `onClose` in a ref, so inline arrow functions no longer steal focus; workarounds like a custom SettingsModal are unnecessary.
 - **Checkout API:** `CartItem.redeem = { clientPackageId, benefitId }` uses a package session; `CartItem.rewardId` marks a client reward redeemed; `availablePackageBenefits(clientId, serviceId)` and `availableRewards(clientId)` list what a client can apply. Paying an existing sale can change its client.
 - **Exports:** `exportCsv(name, tables, { trailingBlank: false })` for report CSVs (no trailing `""` line, as captured); `exportXlsx(name, tables, { sheetName })` names the sheet.
-- **i18n:** every UI string lives in `locales/en.json`, grouped under the section key (`t('clients.list.title')` → `clients.list.title`). During parallel work a section may temporarily add `src/sections/<name>/en*.json` (deep-merged under the section key at runtime); run `node scripts/merge-locales.mjs` afterwards to fold them into `locales/en.json`. `src/i18n/locale.test.ts` fails if a literal `t('…')` key is missing.
+- **i18n:** the app is **European Portuguese first** (pt-PT, default) with English as the second language, switched by the PT | EN toggle (top bar, user menu, login screen) and remembered per browser (`localStorage` `ib-lang`). Every UI string lives in `locales/en.json` and `locales/pt.json` with identical keys, grouped under the section key (`t('clients.list.title')`). During parallel work add strings to `locales/parts/<name>.en.json` + `.pt.json` and run `node scripts/merge-locales.mjs` afterwards. Rules:
+  - Never call `i18n.t()` at module load (constant tables): translate at render, or use a getter (`get label() { return i18n.t('…') }`). Switching language re-mounts the router so everything redraws.
+  - Dates through `format()` from `@/lib/dates`, amounts through `money()`/`money2()`/`num()`; never `€${x}`, `toFixed(2)` or `toLocaleString('en-…')` for display.
+  - Values stored in data and compared in code (stock movement reasons, gift-card expiry codes, automation triggers, client source ids) stay English; translate only their display labels. Text written into data at runtime (notifications, activity, outbox messages, sale line names) is created in the active language.
+  - The demo seed is built in the language active at first load (Portuguese by default); **Reset demo** rebuilds it in the current language.
+  - Portuguese runs ~20–30% longer: keep button, tab, chip and column labels short, and let containers wrap rather than truncate.
+  - `src/i18n/locale.test.ts` fails if a literal `t('…')` key is missing, or if Portuguese lacks a key or has different placeholders. Unit tests and the main Playwright suites run in English; `e2e/pt.spec.ts` covers the Portuguese default and the toggle.
 
 ## Checks before you finish
 

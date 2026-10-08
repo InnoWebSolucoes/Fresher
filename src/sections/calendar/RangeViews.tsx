@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, isSameMonth, parseISO } from 'date-fns'
+import { isSameMonth, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/ui'

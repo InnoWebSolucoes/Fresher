@@ -6,6 +6,7 @@ import { money } from '@/lib/format'
 import { activity, ApiError, latency } from './client'
 import { queueMessage } from './messaging'
 import { readExt, writeExt } from './ext'
+import { isoDay, t } from './i18n'
 
 /**
  * Checkout helpers that sit next to `checkout()` in ./sales: quick sale
@@ -77,7 +78,7 @@ export function rememberLineOffers(offers: Record<ID, LineOffer>): void {
 /** Save the "Quick sale items" layout (calendar.md §10, max 12 items). */
 export async function saveQuickSaleItems(items: Settings['quickSaleItems']): Promise<void> {
   await latency()
-  if (items.length > 12) throw new ApiError('too_many', 'Max 12 items')
+  if (items.length > 12) throw new ApiError('too_many', t('api.checkout.maxQuickSaleItems'))
   commit((d) => {
     d.settings.quickSaleItems = items.map((i) => ({ type: i.type, id: i.id }))
   })
@@ -88,7 +89,7 @@ export async function shareGiftCard(cardId: ID, to: string, toName?: string): Pr
   await latency()
   const data = db()
   const card = data.giftCards.find((g) => g.id === cardId)
-  if (!card) throw new ApiError('not_found', 'Gift card not found')
+  if (!card) throw new ApiError('not_found', t('checkout.giftCard.notFound'))
   const owner = data.clients.find((c) => c.id === (card.ownerClientId ?? card.purchaserClientId))
   queueMessage({
     clientId: owner?.id ?? null,
@@ -96,12 +97,19 @@ export async function shareGiftCard(cardId: ID, to: string, toName?: string): Pr
     toName: toName || to,
     channel: 'email',
     type: 'gift_card',
-    subject: `Your ${money(card.value)} gift card for ${data.workspace.name}`,
-    body: `You have a ${money(card.value)} gift card for ${data.workspace.name}.\n\nCode: ${card.code}${card.customCode ? `\nCustom code: ${card.customCode}` : ''}\nBalance: ${money(card.balance)}${card.expiresAt ? `\nValid until ${card.expiresAt}` : ''}\n\nShow this code at checkout or use it when booking online.`,
+    subject: t('api.sales.giftCardEmail.subject', { value: money(card.value), business: data.workspace.name }),
+    body: t('api.checkout.shareGiftCard.body', {
+      value: money(card.value),
+      business: data.workspace.name,
+      code: card.code,
+      customCode: card.customCode ? `\n${t('api.checkout.shareGiftCard.customCode', { code: card.customCode })}` : '',
+      balance: money(card.balance),
+      validUntil: card.expiresAt ? `\n${t('api.checkout.shareGiftCard.validUntil', { date: isoDay(card.expiresAt) })}` : '',
+    }),
     saleId: card.saleId,
   })
   commit((d) => {
-    d.giftCards.find((g) => g.id === cardId)?.activity.unshift(activity('Gift card shared', `Sent to ${to}`))
+    d.giftCards.find((g) => g.id === cardId)?.activity.unshift(activity(t('api.checkout.activity.giftCardShared'), t('api.checkout.activity.sentTo', { to })))
   })
 }
 
@@ -113,10 +121,10 @@ export async function extendGiftCard(cardId: ID, expiresAt: string | undefined):
     if (!card) return
     card.expiresAt = expiresAt
     if (card.status === 'expired' && card.balance > 0) card.status = 'active'
-    card.activity.unshift(activity('Gift card extended', expiresAt ? `New expiry date ${expiresAt}` : 'Never expires'))
+    card.activity.unshift(activity(t('checkout.toasts.giftCardExtended'), expiresAt ? t('api.checkout.activity.newExpiry', { date: isoDay(expiresAt) }) : t('checkout.giftCard.neverExpires')))
   })
   const card = db().giftCards.find((g) => g.id === cardId)
-  if (!card) throw new ApiError('not_found', 'Gift card not found')
+  if (!card) throw new ApiError('not_found', t('checkout.giftCard.notFound'))
   return card
 }
 
@@ -131,9 +139,9 @@ export async function sendPaymentLink(input: { clientId: ID | null; phone: strin
     toName: input.name,
     channel: 'sms',
     type: 'other',
-    subject: 'Payment link',
-    body: `${db().workspace.name}: your bill of ${money(input.amount)} is ready. Pay securely here: ${link}`,
-    link: { label: 'Pay now', href: link },
+    subject: t('api.checkout.paymentLink.subject'),
+    body: t('api.checkout.paymentLink.body', { business: db().workspace.name, amount: money(input.amount), link }),
+    link: { label: t('api.checkout.paymentLink.payNow'), href: link },
   })
   return link
 }
@@ -143,7 +151,7 @@ export async function discardDraftSale(saleId: ID): Promise<void> {
   await latency()
   const sale = db().sales.find((s) => s.id === saleId)
   if (!sale) return
-  if (sale.paymentIds.length) throw new ApiError('has_payments', 'This sale has payments and cannot be discarded')
+  if (sale.paymentIds.length) throw new ApiError('has_payments', t('api.checkout.hasPayments'))
   commit((d) => {
     const s = d.sales.find((x) => x.id === saleId)
     if (!s) return
@@ -151,7 +159,7 @@ export async function discardDraftSale(saleId: ID): Promise<void> {
       d.sales = d.sales.filter((x) => x.id !== saleId)
     } else {
       s.status = 'voided'
-      s.activity.unshift(activity('Sale canceled'))
+      s.activity.unshift(activity(t('checkout.toasts.saleCanceled')))
     }
     const appt = d.appointments.find((a) => a.saleId === saleId)
     if (appt) appt.saleId = undefined
@@ -162,7 +170,7 @@ export async function discardDraftSale(saleId: ID): Promise<void> {
 export async function quickCreateClient(input: { firstName: string; lastName: string; email: string; phone: string }): Promise<Client> {
   await latency()
   const email = input.email.trim().toLowerCase()
-  if (email && db().clients.some((c) => !c.deletedAt && c.email.toLowerCase() === email)) throw new ApiError('duplicate', 'A client with this email already exists')
+  if (email && db().clients.some((c) => !c.deletedAt && c.email.toLowerCase() === email)) throw new ApiError('duplicate', t('clients.form.errors.duplicateEmail'))
   const client: Client = {
     id: uid('cl'),
     firstName: input.firstName.trim(),

@@ -1,4 +1,6 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
+import { num } from '@/lib/format'
 import type { Appointment, Client, Sale } from '@/types'
 import { COUNTRY_CODES } from './constants'
 
@@ -63,4 +65,4 @@ export const htmlToText = (html: string) => {
   return new DOMParser().parseFromString(html, 'text/html').body.textContent ?? ''
 }
 
-export const fileSize = (bytes: number) => (bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`)
+export const fileSize = (bytes: number) => (bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${num(bytes / 1024 / 1024, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`)

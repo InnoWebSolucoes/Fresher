@@ -134,7 +134,7 @@ export function PackagesSoldPage() {
         title={t('sales.packages.title')}
         subtitle={
           <>
-            {t('sales.packages.subtitle')} <LearnMore topic="packages" />
+            {t('sales.packages.subtitle')} <LearnMore topic={t('sales.helpTopics.packages')}>{t('common.learnMore')}</LearnMore>
           </>
         }
         actions={

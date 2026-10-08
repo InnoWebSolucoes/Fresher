@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface FieldProps {
   label?: ReactNode
@@ -13,6 +14,7 @@ interface FieldProps {
 
 /** Label + control + hint/error, with ids wired for accessibility. */
 export function Field({ label, hint, error, optional, counter, children, className }: FieldProps) {
+  const { t } = useTranslation()
   const id = useId()
   return (
     <div className={className}>
@@ -21,7 +23,7 @@ export function Field({ label, hint, error, optional, counter, children, classNa
           {label && (
             <label htmlFor={id} className="text-body-strong text-ink">
               {label}
-              {optional && <span className="font-normal text-muted"> (Optional)</span>}
+              {optional && <span className="font-normal text-muted"> {t('settings.common.optional')}</span>}
             </label>
           )}
           {counter && (

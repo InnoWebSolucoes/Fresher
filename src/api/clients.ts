@@ -18,6 +18,7 @@ import { now, nowISO, todayISO, toISODate } from '@/lib/time'
 import { PALETTE_ORDER } from '@/styles/palette'
 import { queueMessage, pushNotification } from './messaging'
 import { actorName, ApiError, latency } from './client'
+import { t } from './i18n'
 
 /**
  * Clients domain (reference/clients.md): profiles, tags, notes, clinical
@@ -26,6 +27,8 @@ import { actorName, ApiError, latency } from './client'
  */
 
 export const IMPORTED_SOURCE_ID = 'src_imported'
+/** The seeded "Imported" tag; CSV imports reuse it whatever its name is in the current language. */
+const IMPORTED_TAG_ID = 'tag_imported'
 export const GOOGLE_REVIEWS_SLUG = 'google-reviews'
 
 export type ClientInput = Partial<Omit<Client, 'id' | 'createdAt'>> & Pick<Client, 'firstName'>
@@ -54,7 +57,7 @@ export function blankClient(): Omit<Client, 'id' | 'createdAt'> {
 
 const findClient = (id: ID) => {
   const client = db().clients.find((c) => c.id === id)
-  if (!client) throw new ApiError('not_found', `Client ${id} not found`)
+  if (!client) throw new ApiError('not_found', t('api.clients.notFound', { id }))
   return client
 }
 
@@ -64,7 +67,7 @@ export async function createClient(input: ClientInput): Promise<Client> {
   await latency()
   const email = (input.email ?? '').trim().toLowerCase()
   if (email && db().clients.some((c) => !c.deletedAt && c.email.toLowerCase() === email)) {
-    throw new ApiError('duplicate_email', 'A client with this email already exists')
+    throw new ApiError('duplicate_email', t('clients.form.errors.duplicateEmail'))
   }
   const record: Client = { ...blankClient(), ...input, id: uid('cl'), createdAt: nowISO() }
   commit((d) => {
@@ -78,7 +81,7 @@ export async function updateClient(id: ID, patch: Partial<Omit<Client, 'id' | 'c
   findClient(id)
   const email = patch.email?.trim().toLowerCase()
   if (email && db().clients.some((c) => c.id !== id && !c.deletedAt && c.email.toLowerCase() === email)) {
-    throw new ApiError('duplicate_email', 'A client with this email already exists')
+    throw new ApiError('duplicate_email', t('clients.form.errors.duplicateEmail'))
   }
   commit((d) => {
     const c = d.clients.find((x) => x.id === id)
@@ -128,7 +131,7 @@ export async function unblockClient(id: ID): Promise<void> {
 export async function createTag(name: string): Promise<ClientTag> {
   await latency(150, 300)
   const clean = name.trim()
-  const existing = db().clientTags.find((t) => t.name.toLowerCase() === clean.toLowerCase())
+  const existing = db().clientTags.find((tag) => tag.name.toLowerCase() === clean.toLowerCase())
   if (existing) return existing
   const tags = db().clientTags
   const tag: ClientTag = { id: uid('tag'), name: clean, color: PALETTE_ORDER[(tags.length * 5) % PALETTE_ORDER.length], order: tags.length }
@@ -144,8 +147,8 @@ export async function assignTags(clientIds: ID[], tagIds: ID[]): Promise<void> {
   commit((d) => {
     d.clients.forEach((c) => {
       if (!clientIds.includes(c.id)) return
-      tagIds.forEach((t) => {
-        if (!c.tagIds.includes(t)) c.tagIds.push(t)
+      tagIds.forEach((tagId) => {
+        if (!c.tagIds.includes(tagId)) c.tagIds.push(tagId)
       })
     })
   })
@@ -300,7 +303,7 @@ export async function sendClientForm(clientId: ID, templateId: ID): Promise<Form
   await latency()
   const client = findClient(clientId)
   const template = db().formTemplates.find((f) => f.id === templateId)
-  if (!template) throw new ApiError('not_found', 'Form not found')
+  if (!template) throw new ApiError('not_found', t('api.clients.formNotFound'))
   const response: FormResponse = { id: uid('fr'), templateId, clientId, status: 'sent', answers: {}, sentAt: nowISO() }
   commit((d) => {
     d.formResponses.push(response)
@@ -311,8 +314,8 @@ export async function sendClientForm(clientId: ID, templateId: ID): Promise<Form
     toName: `${client.firstName} ${client.lastName}`.trim(),
     channel: client.email ? 'email' : 'sms',
     type: 'form',
-    subject: `Please complete: ${template.name}`,
-    body: `Hi ${client.firstName}, please fill in the "${template.name}" form before your next visit.`,
+    subject: t('api.clients.form.subject', { form: template.name }),
+    body: t('api.clients.form.body', { firstName: client.firstName, form: template.name }),
   })
   return response
 }
@@ -452,15 +455,15 @@ export async function importClients(rows: ImportRow[]): Promise<number> {
   const created = nowISO()
   commit((d) => {
     const tagId = (name: string): ID => {
-      let tag = d.clientTags.find((t) => t.name.toLowerCase() === name.trim().toLowerCase())
+      let tag = d.clientTags.find((x) => x.name.toLowerCase() === name.trim().toLowerCase())
       if (!tag) {
         tag = { id: uid('tag'), name: name.trim(), color: PALETTE_ORDER[(d.clientTags.length * 5) % PALETTE_ORDER.length] as PaletteColor, order: d.clientTags.length }
         d.clientTags.push(tag)
       }
       return tag.id
     }
-    if (!d.clientSources.some((s) => s.id === IMPORTED_SOURCE_ID)) d.clientSources.push({ id: IMPORTED_SOURCE_ID, name: 'Imported', active: true, system: true, order: d.clientSources.length })
-    const imported = tagId('Imported')
+    if (!d.clientSources.some((s) => s.id === IMPORTED_SOURCE_ID)) d.clientSources.push({ id: IMPORTED_SOURCE_ID, name: t('api.clients.imported'), active: true, system: true, order: d.clientSources.length })
+    const imported = d.clientTags.some((x) => x.id === IMPORTED_TAG_ID) ? IMPORTED_TAG_ID : tagId(t('api.clients.imported'))
     for (const row of rows) {
       d.clients.push({
         ...blankClient(),
@@ -499,8 +502,8 @@ export async function saveSegment(segment: Omit<ClientSegment, 'id'> & { id?: ID
 export async function duplicateSegment(id: ID): Promise<ClientSegment> {
   await latency()
   const source = db().segments.find((s) => s.id === id)
-  if (!source) throw new ApiError('not_found', 'Segment not found')
-  const copy: ClientSegment = { ...structuredClone(source), id: uid('seg'), key: undefined, standard: false, name: `${source.name} (copy)`, badge: undefined }
+  if (!source) throw new ApiError('not_found', t('api.clients.segmentNotFound'))
+  const copy: ClientSegment = { ...structuredClone(source), id: uid('seg'), key: undefined, standard: false, name: t('catalog.common.copySuffix', { name: source.name }), badge: undefined }
   commit((d) => {
     d.segments.push(copy)
   })
@@ -519,7 +522,7 @@ export async function deleteSegment(id: ID): Promise<void> {
 export async function replyToReview(reviewId: ID, text: string): Promise<void> {
   await latency()
   const review = db().reviews.find((r) => r.id === reviewId)
-  if (!review) throw new ApiError('not_found', 'Review not found')
+  if (!review) throw new ApiError('not_found', t('api.clients.reviewNotFound'))
   commit((d) => {
     const r = d.reviews.find((x) => x.id === reviewId)
     if (!r) return
@@ -534,7 +537,7 @@ export async function replyToReview(reviewId: ID, text: string): Promise<void> {
       toName: `${client.firstName} ${client.lastName}`.trim(),
       channel: 'email',
       type: 'review_request',
-      subject: 'The business replied to your review',
+      subject: t('api.clients.reviewReplySubject'),
       body: text.trim(),
     })
   }
@@ -553,7 +556,7 @@ export async function connectGoogle(locationIds: ID[]): Promise<void> {
     } else d.addOns.push({ slug: GOOGLE_REVIEWS_SLUG, status: 'active', enabledAt: nowISO() })
   })
   const count = db().reviews.filter((r: Review) => r.platform === 'google').length
-  pushNotification({ tab: 'reviews', title: 'Google Business Profile connected', body: `${count} Google reviews synced for ${locationIds.length} location${locationIds.length === 1 ? '' : 's'}.`, link: '/clients/online-reputation?tab=all' })
+  pushNotification({ tab: 'reviews', title: t('clients.more.reputation.connectModal.toast'), body: t('api.clients.googleSynced', { reviews: count, count: locationIds.length }), link: '/clients/online-reputation?tab=all' })
 }
 
 export async function disconnectGoogle(): Promise<void> {

@@ -198,7 +198,7 @@ export function BookingSequencePage() {
     >
       <h1 className="font-display text-display text-ink">{t('catalog.sequence.title')}</h1>
       <p className="mt-2 text-body-lg text-muted">
-        {t('catalog.sequence.subtitle')} <LearnMore topic="Booking sequence">{t('catalog.common.learnMore')}</LearnMore>
+        {t('catalog.sequence.subtitle')} <LearnMore topic={t('catalog.topics.bookingSequence')}>{t('catalog.common.learnMore')}</LearnMore>
       </p>
       {loading ? (
         <Skeleton className="mt-6 h-64 w-full" />

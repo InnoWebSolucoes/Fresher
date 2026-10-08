@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarPlus, CreditCard, Gift, Inbox, MessageSquare, Package, RefreshCw, RotateCcw, Send, ShoppingBag, Star, TimerReset, UserCog, Wallet, X, XCircle, type LucideIcon } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -28,6 +29,7 @@ import {
   upcomingAppointments,
 } from '@/api/demo'
 import { eligibleMembers, type Slot } from '@/lib/availability'
+import { money, money2 } from '@/lib/format'
 import { now, toISODate } from '@/lib/time'
 import { landingPath } from '@/lib/permissions'
 import type { BookingChannel, MessageLog, Review } from '@/types'
@@ -166,12 +168,13 @@ function SimulateTab({ onDone }: { onDone: () => void }) {
   )
 }
 
-const CHANNELS: { value: BookingChannel; label: string }[] = [
-  { value: 'marketplace', label: 'Marketplace' },
-  { value: 'book_now_link', label: 'Book now link' },
-  { value: 'instagram', label: 'Instagram' },
-  { value: 'facebook', label: 'Facebook' },
-  { value: 'google', label: 'Reserve with Google' },
+/** Online booking channels; labels are translated when the form renders. */
+const CHANNELS: { value: BookingChannel; labelKey: string }[] = [
+  { value: 'marketplace', labelKey: 'sales.appointments.channels.marketplace' },
+  { value: 'book_now_link', labelKey: 'sales.appointments.channels.book_now_link' },
+  { value: 'instagram', labelKey: 'sales.appointments.channels.instagram' },
+  { value: 'facebook', labelKey: 'sales.appointments.channels.facebook' },
+  { value: 'google', labelKey: 'nav.reserveWithGoogle' },
 ]
 
 function SlotPicker({ slots, value, onChange }: { slots: Slot[]; value: Slot | null; onChange: (s: Slot) => void }) {
@@ -249,12 +252,12 @@ function OnlineBookingForm({ onDone }: { onDone: () => void }) {
         </div>
         <div>
           <label className="label">{t('demo.channel')}</label>
-          <Select value={channel} onChange={(e) => setChannel(e.target.value as BookingChannel)} options={CHANNELS} />
+          <Select value={channel} onChange={(e) => setChannel(e.target.value as BookingChannel)} options={CHANNELS.map((c) => ({ value: c.value, label: t(c.labelKey) }))} />
         </div>
       </div>
       <div>
         <label className="label">{t('demo.service')}</label>
-        <Select value={serviceId} onChange={(e) => { setServiceId(e.target.value); setFound(null) }} options={bookable.map((s) => ({ value: s.id, label: `${s.name} · €${s.price}` }))} />
+        <Select value={serviceId} onChange={(e) => { setServiceId(e.target.value); setFound(null) }} options={bookable.map((s) => ({ value: s.id, label: `${s.name} · ${money(s.price)}` }))} />
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
@@ -377,7 +380,7 @@ function CancelForm() {
           setBusy(true)
           try {
             const result = await simulateClientCancel(id)
-            toast(result.fee ? t('demo.cancel.doneFee', { fee: result.fee.toFixed(2) }) : t('demo.cancel.done'))
+            toast(result.fee ? t('demo.cancel.doneFeeAmount', { fee: money2(result.fee) }) : t('demo.cancel.done'))
           } finally {
             setBusy(false)
           }
@@ -403,7 +406,7 @@ function GiftCardForm() {
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="label">{t('demo.giftCard.value')}</label>
-          <Select value={value} onChange={(e) => setValue(e.target.value)} options={values.map((v) => ({ value: String(v), label: `€${v}` }))} />
+          <Select value={value} onChange={(e) => setValue(e.target.value)} options={values.map((v) => ({ value: String(v), label: money(v) }))} />
         </div>
         <div>
           <label className="label">{t('demo.giftCard.recipient')}</label>
@@ -445,14 +448,14 @@ function StoreOrderForm() {
       <div className="grid grid-cols-[1fr_80px] gap-2">
         <div>
           <label className="label">{t('demo.store.product')}</label>
-          <Select value={productId} onChange={(e) => setProductId(e.target.value)} options={sellable.map((p) => ({ value: p.id, label: `${p.name} · €${p.retailPrice}` }))} />
+          <Select value={productId} onChange={(e) => setProductId(e.target.value)} options={sellable.map((p) => ({ value: p.id, label: `${p.name} · ${money(p.retailPrice)}` }))} />
         </div>
         <div>
           <label className="label">{t('demo.store.qty')}</label>
           <TextInput type="number" min={1} value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value)))} />
         </div>
       </div>
-      <Select value={fulfilment} onChange={(e) => setFulfilment(e.target.value as 'pickup' | 'shipping')} options={[{ value: 'shipping', label: t('demo.store.shipping') }, { value: 'pickup', label: t('demo.store.pickup') }]} />
+      <Select value={fulfilment} onChange={(e) => setFulfilment(e.target.value as 'pickup' | 'shipping')} options={[{ value: 'shipping', label: t('demo.store.shippingAmount', { amount: money2(4.5) }) }, { value: 'pickup', label: t('demo.store.pickup') }]} />
       <Button
         variant="primary"
         loading={busy}
@@ -478,7 +481,7 @@ function ReviewForm() {
   const appointments = useDb((s) => s.appointments)
   const [clientId, setClientId] = useState(clients[3]?.value ?? '')
   const [rating, setRating] = useState<Review['rating']>(5)
-  const [text, setText] = useState('Lovely visit, thank you!')
+  const [text, setText] = useState(() => t('demo.review.defaultText'))
   const [busy, setBusy] = useState(false)
   const lastVisit = useMemo(() => appointments.filter((a) => a.clientId === clientId && a.status === 'completed').sort((a, b) => b.date.localeCompare(a.date))[0], [appointments, clientId])
   return (
@@ -516,7 +519,7 @@ function MessageForm() {
   const { t } = useTranslation()
   const clients = useClientOptions()
   const [clientId, setClientId] = useState(clients[4]?.value ?? '')
-  const [text, setText] = useState('Hi! Do you have anything free on Saturday morning?')
+  const [text, setText] = useState(() => t('demo.message.defaultText'))
   const [busy, setBusy] = useState(false)
   return (
     <>
@@ -570,7 +573,7 @@ function BusinessEvents() {
         </Button>
       </Section>
       <EventRow icon={CreditCard} title={t('demo.events.cardDeclined')} hint={t('demo.events.cardDeclinedHint')} loading={busy === 'card'} onClick={() => run('card', async () => { armCardDecline(); return t('demo.events.cardDeclinedDone') })} />
-      <EventRow icon={Wallet} title={t('demo.events.payout')} hint={t('demo.events.payoutHint')} loading={busy === 'payout'} onClick={() => run('payout', async () => t('demo.events.payoutDone', { amount: (await simulatePayout()).toFixed(2) }))} />
+      <EventRow icon={Wallet} title={t('demo.events.payout')} hint={t('demo.events.payoutHint')} loading={busy === 'payout'} onClick={() => run('payout', async () => t('demo.events.payoutDoneAmount', { amount: money2(await simulatePayout()) }))} />
       <EventRow icon={Send} title={t('demo.events.campaign')} hint={t('demo.events.campaignHint', { count: pending })} loading={busy === 'campaign'} onClick={() => run('campaign', async () => t('demo.events.campaignDone', { name: await simulateCampaignApproval() }))} />
     </div>
   )

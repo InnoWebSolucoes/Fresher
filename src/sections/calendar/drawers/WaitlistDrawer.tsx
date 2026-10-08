@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowDownUp, ArrowLeft, CalendarCheck, CalendarDays, ChevronRight, Pencil, PersonStanding, Plus, RefreshCw, Search, SmilePlus, Trash2 } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'

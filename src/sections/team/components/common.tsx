@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addDays, addMonths, endOfMonth, endOfWeek, format, isSameMonth, parseISO, startOfMonth, startOfWeek } from 'date-fns'
+import { addDays, addMonths, endOfMonth, endOfWeek, isSameMonth, parseISO, startOfMonth, startOfWeek } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowDownUp, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { createPortal } from 'react-dom'
@@ -169,7 +170,7 @@ export function Row({ label, value, strong, className }: { label: ReactNode; val
 /** Big stat card (Earnings / Other / Total / Paid / To pay). */
 export function StatCard({ label, value, strong, sub, children }: { label: ReactNode; value: ReactNode; strong?: boolean; sub?: ReactNode; children?: ReactNode }) {
   return (
-    <div className={clsx('card flex justify-between gap-4 p-5', children ? 'items-center' : 'items-start')}>
+    <div className={clsx('card flex flex-wrap justify-between gap-4 p-5', children ? 'items-center' : 'items-start')}>
       <div className="min-w-0">
         <p className={clsx('text-body', strong ? 'font-semibold text-ink' : 'text-muted')}>{label}</p>
         <p className="mt-1 font-display text-title-2 tabular text-ink">{value}</p>

@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { differenceInCalendarDays, format, parseISO } from 'date-fns'
+import { differenceInCalendarDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowRight, ArrowUpRight, CheckCircle2, Copy, FileUp, Headphones, LifeBuoy, Mail, MessageCircle, Paperclip, Phone, Search, Send, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -10,6 +11,7 @@ import { useCurrentUser } from '@/store/session'
 import { Button, Field, Select, TextArea, TextInput, confirm, toast } from '@/components/ui'
 import { createSupportTicket, endLiveChat, generateAccessCode, resetLiveChat, sendChatMessage, startLiveChat, panelsState, useChatTyping, usePanels, type ChatMessage, type SupportTicket } from '@/api/panels'
 import { ApiError } from '@/api/client'
+import { num } from '@/lib/format'
 import { now } from '@/lib/time'
 import { AgentAvatars, PanelHeader, Spinner, useTimeAgo } from '../shared'
 import { ARTICLES, TOP_ARTICLES, searchArticles } from './articles'
@@ -413,8 +415,8 @@ function EmailSupport() {
 
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  if (bytes < 1024 * 1024) return `${num(Math.round(bytes / 1024), { useGrouping: false })} KB`
+  return `${num(bytes / 1024 / 1024, { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false })} MB`
 }
 
 // ─── Phone support ────────────────────────────────────────────────────────

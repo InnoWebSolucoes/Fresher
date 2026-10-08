@@ -38,7 +38,7 @@ export function WorkspacesPage() {
         title={t('account.workspaces.title')}
         subtitle={
           <>
-            {t('account.workspaces.subtitle')} <LearnMore topic="workspaces">{t('account.common.learnMore')}</LearnMore>
+            {t('account.workspaces.subtitle')} <LearnMore topic={t('account.common.topics.workspaces')}>{t('account.common.learnMore')}</LearnMore>
           </>
         }
         actions={
@@ -238,7 +238,7 @@ export function WorkspaceSettingsPage() {
     <div className="mx-auto max-w-[1120px]">
       <div className="mb-6 flex items-center gap-4">
         {back}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-body">
+        <nav aria-label={t('account.common.breadcrumb')} className="flex items-center gap-2 text-body">
           <button type="button" className="text-muted hover:text-ink hover:underline" onClick={() => navigate('/user-account/workspaces')}>
             {t('account.settings.breadcrumb')}
           </button>
@@ -252,7 +252,7 @@ export function WorkspaceSettingsPage() {
         title={workspace.name}
         subtitle={
           <>
-            {t('account.settings.subtitle')} <LearnMore topic="workspace settings">{t('account.common.learnMore')}</LearnMore>
+            {t('account.settings.subtitle')} <LearnMore topic={t('account.common.topics.workspaceSettings')}>{t('account.common.learnMore')}</LearnMore>
           </>
         }
         actions={
@@ -280,7 +280,7 @@ export function WorkspaceSettingsPage() {
           title={t('account.settings.linked.title')}
           body={
             <>
-              {t('account.settings.linked.body')} <LearnMore topic="linked calendars">{t('account.common.learnMore')}</LearnMore>
+              {t('account.settings.linked.body')} <LearnMore topic={t('account.common.topics.linkedCalendars')}>{t('account.common.learnMore')}</LearnMore>
             </>
           }
         >
@@ -587,7 +587,7 @@ function PrefsModal({ user, prefs, onClose }: { user: User; prefs: NotificationP
       title={t('account.prefs.title')}
       subtitle={
         <>
-          {t('account.prefs.subtitle')} <LearnMore topic="notification preferences">{t('account.common.learnMore')}</LearnMore>
+          {t('account.prefs.subtitle')} <LearnMore topic={t('account.common.topics.notificationPrefs')}>{t('account.common.learnMore')}</LearnMore>
         </>
       }
       footer={

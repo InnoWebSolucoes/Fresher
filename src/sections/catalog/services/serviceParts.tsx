@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Button, Checkbox, Field, Menu, Modal, MoneyInput, SearchInput, Select, Switch, TextArea, TextInput, type MenuGroup } from '@/components/ui'
 import { durationLong } from '@/lib/time'
-import { money } from '@/lib/format'
+import { money, num } from '@/lib/format'
 import { uid } from '@/lib/ids'
 import type { ExtraTime, ExtraTimeType, FormTemplate, ID, Location, Service, ServiceAddOnGroup, ServiceVariant, TeamMember } from '@/types'
 import { DurationSelect } from '../ui'
@@ -197,7 +197,7 @@ export function AdvancedPricingModal({
             </option>
           ))}
         </select>
-        <MoneyInput value={o?.price ?? ''} placeholder={basePrice.toFixed(2)} disabled={effectiveType === 'free'} aria-label={t('catalog.service.price')} onChange={(v) => set(locationId, teamMemberId, { price: v === '' ? undefined : v })} />
+        <MoneyInput value={o?.price ?? ''} placeholder={num(basePrice, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false })} disabled={effectiveType === 'free'} aria-label={t('catalog.service.price')} onChange={(v) => set(locationId, teamMemberId, { price: v === '' ? undefined : v })} />
       </div>
     )
   }

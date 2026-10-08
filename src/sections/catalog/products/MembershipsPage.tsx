@@ -34,7 +34,7 @@ export function MembershipsPage() {
   const navigate = useNavigate()
   const drawer = useDrawer()
   const loading = usePageLoading()
-  const intro = useIntroProps('Memberships')
+  const intro = useIntroProps(t('nav.memberships'))
   const memberships = useDb((s) => s.memberships)
   const services = useDb((s) => s.services)
   const clientMemberships = useDb((s) => s.clientMemberships)
@@ -121,7 +121,7 @@ export function MembershipsPage() {
         count={memberships.filter((m) => !m.archived).length}
         subtitle={
           <>
-            {t(`${P}.subtitle`)} <LearnMore topic="Memberships">{t('catalog.common.learnMore')}</LearnMore>
+            {t(`${P}.subtitle`)} <LearnMore topic={t('nav.memberships')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={

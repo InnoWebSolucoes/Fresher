@@ -8,6 +8,7 @@ import { useDb } from '@/store/db'
 import { useCurrentUser } from '@/store/session'
 import { useDrawer } from '@/lib/drawer'
 import { addPortfolioImages, imageToDataUrl, PORTFOLIO_LIMIT, removePortfolioImage, saveOnlineProfile, startPortfolio, type OnlineProfile, type SocialPlatform } from '@/api/panels'
+import { num } from '@/lib/format'
 import type { User } from '@/types'
 import { DEFAULT_PLATFORMS, EXTRA_PLATFORMS, INTEREST_EMOJI, INTEREST_GROUPS, LANGUAGE_CODES, profileSlug, socialUrl } from './catalog'
 import { CollageArt, errorText, Stars, useMyTeamMember, useOnlineProfile, usePanelsHydrated } from './shared'
@@ -39,7 +40,7 @@ function RatingLine({ count, avg }: { count: number; avg: number }) {
   return (
     <p className="flex items-center justify-center gap-2 text-body text-muted">
       <Stars value={avg} size={14} />
-      {t('account.profile.rating', { rating: avg.toFixed(1), count })}
+      {t('account.profile.rating', { rating: num(avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count })}
     </p>
   )
 }
@@ -436,7 +437,7 @@ function ProfileEditor({ user, profile }: { user: User; profile: OnlineProfile }
           <section className="card p-6">
             <h2 className="font-display text-title-2 text-ink">{t('account.edit.avatar.title')}</h2>
             <p className="mt-1 text-body text-muted">
-              {t('account.edit.avatar.body')} <LearnMore topic="profile photo tips">{t('account.edit.avatar.tips')}</LearnMore>
+              {t('account.edit.avatar.body')} <LearnMore topic={t('account.common.topics.photoTips')}>{t('account.edit.avatar.tips')}</LearnMore>
             </p>
             <div className="mt-5 flex items-center gap-5">
               <ProfileAvatar profile={{ ...profile, displayName: displayName || profile.displayName, avatar }} size={96} />

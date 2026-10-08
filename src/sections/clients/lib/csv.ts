@@ -1,4 +1,7 @@
-import { format, isValid, parse } from 'date-fns'
+import { isValid, parse } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
+import { getLang } from '@/i18n/language'
 import { now } from '@/lib/time'
 import type { Client } from '@/types'
 import type { ImportRow } from '@/api/clients'
@@ -16,6 +19,37 @@ export const IMPORT_TEMPLATE = [
 ].join('\r\n') + '\r\n'
 
 export const TEMPLATE_FILE_NAME = 'client_import_template.csv'
+
+/** Portuguese text, whatever the current language: the importer reads Portuguese and English files alike. */
+const ptT = (key: string) => i18n.getFixedT('pt-PT')(key)
+
+/** Lower case, trimmed, without accents ("Género" → "genero"), for matching headers and values. */
+const norm = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+/** One CSV cell, quoted only when it holds a comma, quote or line break (as in the English template). */
+const csvCell = (value: string) => (/[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value)
+
+/** The import template in the current language: the English file byte for byte, or the Portuguese version (same columns, Portuguese headers and values). */
+export function importTemplate(): string {
+  if (getLang() === 'en') return IMPORT_TEMPLATE
+  const t = (key: string) => i18n.t(key)
+  const yes = t('clients.more.import.preview.yes')
+  const no = t('clients.more.import.preview.no')
+  const rows = [
+    IMPORT_FIELDS.map((field) => t(`clients.more.import.fields.${field}`)),
+    ['João', 'Silva', 'joaosilva@example.com', '+351 912 345 678', t('clients.more.import.genders.undisclosed'), '31/01/2000', yes, yes, yes, yes, yes, yes, t('clients.more.import.template.sampleAlert'), t('clients.more.import.template.sampleTags')],
+    ['Joana', 'Silva', 'joanasilva@example.com', '+351 913 456 789', t('clients.more.import.genders.female'), '12/05/1989', no, no, no, no, no, no, '', ''],
+    IMPORT_FIELDS.map((field) => t(`clients.more.import.fieldHelp.${field}`)),
+  ]
+  return rows.map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n'
+}
+
+export const templateFileName = () => (getLang() === 'en' ? TEMPLATE_FILE_NAME : i18n.t('clients.more.import.template.fileName'))
 
 /** RFC 4180-ish parser: quoted cells, escaped quotes, CRLF/LF, BOM. */
 export function parseCsv(text: string): string[][] {
@@ -93,21 +127,44 @@ export const FIELD_HEADERS: Record<ImportField, string[]> = {
   tags: ['tags', 'tag'],
 }
 
+/** Portuguese headers accepted too (compared without accents), besides the Portuguese template's own headers. */
+const PT_FIELD_HEADERS: Record<ImportField, string[]> = {
+  firstName: ['nome proprio', 'primeiro nome', 'nome'],
+  lastName: ['apelido', 'apelidos', 'sobrenome', 'ultimo nome'],
+  email: ['email', 'e-mail', 'endereco de email', 'endereco de e-mail'],
+  phone: ['telemovel', 'numero de telemovel', 'telefone', 'numero de telefone', 'contacto'],
+  gender: ['genero', 'sexo'],
+  birthday: ['data de nascimento', 'aniversario', 'nascimento'],
+  emailMarketing: ['consentimento de marketing por email', 'marketing por email'],
+  smsMarketing: ['consentimento de marketing por sms', 'marketing por sms'],
+  whatsappMarketing: ['consentimento de marketing por whatsapp', 'marketing por whatsapp'],
+  emailNotifications: ['notificacoes por email'],
+  smsNotifications: ['notificacoes por sms'],
+  whatsappNotifications: ['notificacoes por whatsapp'],
+  staffAlert: ['alerta da equipa', 'alerta para a equipa', 'alerta', 'notas'],
+  tags: ['etiquetas', 'etiqueta'],
+}
+
 export type Mapping = Record<ImportField, number | null>
 
 export function autoMap(headers: string[]): Mapping {
-  const norm = headers.map((h) => h.trim().toLowerCase())
+  const normalized = headers.map(norm)
   const used = new Set<number>()
   const mapping = {} as Mapping
   for (const field of IMPORT_FIELDS) {
-    const index = norm.findIndex((h, i) => !used.has(i) && FIELD_HEADERS[field].includes(h))
+    const accepted = [...FIELD_HEADERS[field], ...PT_FIELD_HEADERS[field], norm(ptT(`clients.more.import.fields.${field}`))]
+    const index = normalized.findIndex((h, i) => !used.has(i) && accepted.includes(h))
     mapping[field] = index >= 0 ? index : null
     if (index >= 0) used.add(index)
   }
   return mapping
 }
 
-const DESCRIPTION_ROW = 'first name of the client (required)'
+/** First cell of the templates' description row (English and Portuguese), skipped on import. */
+const isDescriptionRow = (first: string) => {
+  const v = norm(first)
+  return v === 'first name of the client (required)' || v === norm(ptT('clients.more.import.fieldHelp.firstName'))
+}
 
 export interface PreviewRow {
   line: number
@@ -127,20 +184,28 @@ function parseBirthday(value: string): string | undefined | null {
   return null
 }
 
+/** Gender values accepted in English and Portuguese, case- and accent-insensitive. */
+const GENDER_VALUES: Record<NonNullable<Client['gender']>, string[]> = {
+  female: ['f', 'female', 'feminino', 'feminina'],
+  male: ['m', 'male', 'masculino'],
+  non_binary: ['non binary', 'non-binary', 'nonbinary', 'nao binario', 'nao-binario', 'nao binaria'],
+  undisclosed: ['prefer not to say', 'prefiro nao dizer'],
+}
+
 function parseGender(value: string): Client['gender'] | null | undefined {
-  const v = value.trim().toLowerCase()
+  const v = norm(value)
   if (!v) return undefined
-  if (v === 'f' || v === 'female') return 'female'
-  if (v === 'm' || v === 'male') return 'male'
-  if (v === 'non binary' || v === 'non-binary' || v === 'nonbinary') return 'non_binary'
-  if (v === 'prefer not to say') return 'undisclosed'
+  for (const gender of Object.keys(GENDER_VALUES) as NonNullable<Client['gender']>[]) {
+    if (GENDER_VALUES[gender].includes(v) || v === norm(ptT(`clients.more.import.genders.${gender}`)) || v === norm(ptT(`clients.gender.${gender}`))) return gender
+  }
   return null
 }
 
+/** Yes/No columns: Yes, Y, true, 1, Sim, S (anything else is "no"); an empty cell means yes. */
 const yes = (value: string | undefined) => {
-  const v = (value ?? '').trim().toLowerCase()
+  const v = norm(value ?? '')
   if (!v) return true
-  return v === 'yes' || v === 'y' || v === 'true' || v === '1'
+  return v === 'yes' || v === 'y' || v === 'true' || v === '1' || v === 'sim' || v === 's' || v === norm(ptT('clients.more.import.preview.yes'))
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -154,7 +219,7 @@ export function buildPreview(rows: string[][], mapping: Mapping, existingEmails:
   const seen = new Set<string>()
   return rows
     .map((r, i) => ({ r, line: i + 2 }))
-    .filter(({ r }) => (r[0] ?? '').trim().toLowerCase() !== DESCRIPTION_ROW)
+    .filter(({ r }) => !isDescriptionRow(r[0] ?? ''))
     .map(({ r, line }) => {
       const errors: string[] = []
       const firstName = get(r, 'firstName')

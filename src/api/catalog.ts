@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import type { Draft } from 'immer'
 import { commit, db } from '@/store/db'
 import type {
@@ -24,6 +25,7 @@ import { nowISO } from '@/lib/time'
 import { money, round2 } from '@/lib/format'
 import { ApiError, activity, actorName, latency } from './client'
 import { queueMessage } from './messaging'
+import { inline, t } from './i18n'
 
 /**
  * Catalog domain operations (catalog.md): service menu, bundles, packages,
@@ -31,9 +33,11 @@ import { queueMessage } from './messaging'
  * stocktakes and stock movements. Every write goes through `commit`.
  */
 
-const find = <T extends { id: ID }>(list: T[], id: ID, what: string): T => {
+type CatalogRecord = 'category' | 'service' | 'bundle' | 'package' | 'membership' | 'brand' | 'product' | 'stockOrder' | 'stocktake'
+
+const find = <T extends { id: ID }>(list: T[], id: ID, what: CatalogRecord): T => {
   const item = list.find((x) => x.id === id)
-  if (!item) throw new ApiError('not_found', `${what} ${id} not found`)
+  if (!item) throw new ApiError('not_found', t(`api.catalog.notFound.${what}`, { id }))
   return item
 }
 
@@ -162,7 +166,7 @@ export async function saveService(id: ID | null, input: ServiceInput, upselling?
   commit((d) => {
     if (id) {
       const index = d.services.findIndex((s) => s.id === id)
-      if (index === -1) throw new ApiError('not_found', 'service not found')
+      if (index === -1) throw new ApiError('not_found', t('api.catalog.missing.service'))
       const previous = d.services[index]
       saved = { ...previous, ...input, id, order: previous.categoryId === input.categoryId ? previous.order : nextServiceOrder(d.services, input.categoryId) }
       d.services[index] = saved
@@ -248,7 +252,7 @@ export async function saveBundle(id: ID | null, input: BundleInput, extras?: Bun
   commit((d) => {
     if (id) {
       const index = d.bundles.findIndex((b) => b.id === id)
-      if (index === -1) throw new ApiError('not_found', 'bundle not found')
+      if (index === -1) throw new ApiError('not_found', t('api.catalog.missing.bundle'))
       saved = { ...d.bundles[index], ...input, id }
       d.bundles[index] = saved
     } else {
@@ -288,7 +292,7 @@ export async function savePackage(id: ID | null, input: PackageInput): Promise<P
   commit((d) => {
     if (id) {
       const index = d.packages.findIndex((p) => p.id === id)
-      if (index === -1) throw new ApiError('not_found', 'package not found')
+      if (index === -1) throw new ApiError('not_found', t('api.catalog.missing.package'))
       saved = { ...d.packages[index], ...input, id }
       d.packages[index] = saved
     } else {
@@ -333,7 +337,7 @@ export async function saveMembership(id: ID | null, input: MembershipInput): Pro
   commit((d) => {
     if (id) {
       const index = d.memberships.findIndex((m) => m.id === id)
-      if (index === -1) throw new ApiError('not_found', 'membership not found')
+      if (index === -1) throw new ApiError('not_found', t('api.catalog.missing.membership'))
       saved = { ...d.memberships[index], ...input, id }
       d.memberships[index] = saved
     } else {
@@ -422,7 +426,7 @@ export async function saveSupplier(id: ID | null, input: SupplierInput): Promise
   commit((d) => {
     if (id) {
       const index = d.suppliers.findIndex((s) => s.id === id)
-      if (index === -1) throw new ApiError('not_found', 'supplier not found')
+      if (index === -1) throw new ApiError('not_found', t('api.catalog.missing.supplier'))
       saved = { ...d.suppliers[index], ...input, id, updatedAt: nowISO() }
       d.suppliers[index] = saved
     } else {
@@ -457,7 +461,7 @@ export async function saveProduct(id: ID | null, input: ProductInput): Promise<P
     const at = nowISO()
     if (id) {
       const index = d.products.findIndex((p) => p.id === id)
-      if (index === -1) throw new ApiError('not_found', 'product not found')
+      if (index === -1) throw new ApiError('not_found', t('api.catalog.missing.product'))
       const previous = d.products[index]
       saved = { ...previous, ...input, id, updatedAt: at }
       if (saved.stock !== previous.stock) {
@@ -506,7 +510,7 @@ export async function adjustStock(productId: ID, adj: StockAdjustment): Promise<
     if (adj.savePrice && adj.supplyPrice !== undefined) product.supplyPrice = adj.supplyPrice
     d.stockMovements.push({ id: uid('sm'), productId, locationId: adj.locationId ?? d.locations[0]?.id ?? '', qty: adj.qty, reason: adj.reason, by, at, supplyPrice: adj.supplyPrice ?? product.supplyPrice, ref: adj.ref })
     if (adj.qty < 0 && product.lowStockNotify && product.stock <= product.lowStockLevel) {
-      d.notifications.unshift({ id: uid('nt'), tab: 'actions', title: 'Low stock', body: `${product.name} has ${product.stock} left (low stock level ${product.lowStockLevel}).`, at, read: false, link: `/catalogue/products?drawer=product&id=${product.id}` })
+      d.notifications.unshift({ id: uid('nt'), tab: 'actions', title: t('api.notifications.lowStock.title'), body: t('api.notifications.lowStock.body', { product: product.name, stock: product.stock, level: product.lowStockLevel }), at, read: false, link: `/catalogue/products?drawer=product&id=${product.id}` })
     }
     saved = { ...product }
   })
@@ -598,14 +602,14 @@ export async function saveStockOrder(id: ID | null, input: StockOrderInput, opti
   commit((d) => {
     const at = nowISO()
     if (id) {
-      const order = find(d.stockOrders, id, 'stock order')
+      const order = find(d.stockOrders, id, 'stockOrder')
       Object.assign(order, input)
       if (options.place && order.status === 'draft') {
         order.status = 'ordered'
         order.createdAt = at
-        order.activity.push(activity('Stock order created', `${orderQuantity(order.items)} products · ${money(orderTotal(order))}`))
+        order.activity.push(activity(t('catalog.inventory.orderNew.created'), t('api.catalog.activity.orderSummary', { count: orderQuantity(order.items), total: money(orderTotal(order)) })))
       } else if (!options.quiet && order.status !== 'draft') {
-        order.activity.push(activity('Stock order edited'))
+        order.activity.push(activity(t('api.catalog.activity.orderEdited')))
       }
       saved = JSON.parse(JSON.stringify(order)) as StockOrder
     } else {
@@ -615,7 +619,7 @@ export async function saveStockOrder(id: ID | null, input: StockOrderInput, opti
         ...input,
         status: options.place ? 'ordered' : 'draft',
         createdAt: at,
-        activity: options.place ? [activity('Stock order created')] : [],
+        activity: options.place ? [activity(t('catalog.inventory.orderNew.created'))] : [],
       }
       d.stockOrders.push(saved)
     }
@@ -626,9 +630,9 @@ export async function saveStockOrder(id: ID | null, input: StockOrderInput, opti
 export async function cancelStockOrder(id: ID): Promise<void> {
   await latency()
   commit((d) => {
-    const order = find(d.stockOrders, id, 'stock order')
+    const order = find(d.stockOrders, id, 'stockOrder')
     order.status = 'cancelled'
-    order.activity.push(activity('Stock order cancelled'))
+    order.activity.push(activity(t('catalog.inventory.orderDrawer.cancelled')))
   })
 }
 
@@ -645,7 +649,7 @@ export async function receiveStockOrder(id: ID, items: StockOrderItem[], fees: S
   const by = actorName()
   let saved!: StockOrder
   commit((d) => {
-    const order = find(d.stockOrders, id, 'stock order')
+    const order = find(d.stockOrders, id, 'stockOrder')
     const at = nowISO()
     order.items = items
     order.fees = fees
@@ -660,7 +664,7 @@ export async function receiveStockOrder(id: ID, items: StockOrderItem[], fees: S
     })
     order.status = 'received'
     order.receivedAt = at
-    order.activity.push(activity('Stock received', `${items.reduce((s, i) => s + (i.receivedQty ?? 0), 0)} products received`))
+    order.activity.push(activity(t('api.catalog.activity.stockReceived'), t('api.catalog.activity.productsReceived', { count: items.reduce((s, i) => s + (i.receivedQty ?? 0), 0) })))
     saved = JSON.parse(JSON.stringify(order)) as StockOrder
   })
   return saved
@@ -670,13 +674,13 @@ export async function receiveStockOrder(id: ID, items: StockOrderItem[], fees: S
 export async function emailStockOrder(id: ID): Promise<string> {
   await latency()
   const data = db()
-  const order = find(data.stockOrders, id, 'stock order')
+  const order = find(data.stockOrders, id, 'stockOrder')
   const supplier = data.suppliers.find((s) => s.id === order.supplierId)
-  if (!supplier?.email) throw new ApiError('no_email', 'This supplier has no email address')
+  if (!supplier?.email) throw new ApiError('no_email', t('api.catalog.supplierNoEmail'))
   const location = data.locations.find((l) => l.id === order.locationId)
   const lines = order.items.map((i) => {
     const p = data.products.find((x) => x.id === i.productId)
-    return `${i.qty} × ${p?.name ?? 'Product'}${p?.skus[0] ? ` (SKU ${p.skus[0]})` : ''} @ ${money(i.unitCost)} = ${money(i.qty * i.unitCost)}`
+    return `${i.qty} × ${p?.name ?? t('api.catalog.product')}${p?.skus[0] ? ` (SKU ${p.skus[0]})` : ''} @ ${money(i.unitCost)} = ${money(i.qty * i.unitCost)}`
   })
   queueMessage({
     clientId: null,
@@ -684,26 +688,26 @@ export async function emailStockOrder(id: ID): Promise<string> {
     toName: supplier.name,
     channel: 'email',
     type: 'stock_order',
-    subject: `Stock order ${order.number} from ${data.workspace.name}`,
+    subject: t('api.catalog.orderEmail.subject', { number: order.number, business: data.workspace.name }),
     body: [
-      `Hello ${supplier.firstName || supplier.name},`,
+      t('api.catalog.orderEmail.greeting', { name: supplier.firstName || supplier.name }),
       '',
-      `Please find our stock order ${order.number} below.`,
+      t('api.catalog.orderEmail.intro', { number: order.number }),
       '',
       ...lines,
       '',
-      `Total: ${money(orderTotal(order))}`,
-      order.expectedAt ? `Expected by: ${format(parseISO(order.expectedAt), 'MMM d, yyyy')}` : '',
-      `Deliver to: ${location?.name ?? ''}, ${location?.address.line1 ?? ''}, ${location?.address.postcode ?? ''} ${location?.address.city ?? ''}`,
+      `${t('settings.bill.invoices.total')}: ${money(orderTotal(order))}`,
+      order.expectedAt ? t('api.catalog.orderEmail.expectedBy', { date: format(parseISO(order.expectedAt), 'MMM d, yyyy') }) : '',
+      t('api.catalog.orderEmail.deliverTo', { address: `${location?.name ?? ''}, ${location?.address.line1 ?? ''}, ${location?.address.postcode ?? ''} ${location?.address.city ?? ''}` }),
       '',
-      `Thank you,`,
+      t('api.catalog.orderEmail.signOff'),
       actorName(),
     ]
       .filter((l) => l !== undefined)
       .join('\n'),
   })
   commit((d) => {
-    find(d.stockOrders, id, 'stock order').activity.push(activity('Stock order emailed', supplier.email))
+    find(d.stockOrders, id, 'stockOrder').activity.push(activity(t('api.catalog.activity.orderEmailed'), supplier.email))
   })
   return supplier.email
 }
@@ -718,7 +722,7 @@ export async function createStocktake(input: { name: string; description: string
     const at = nowISO()
     saved = {
       id: uid('st'),
-      name: input.name.trim() || `${format(parseISO(at), 'MMMM')} count`,
+      name: input.name.trim() || t('api.catalog.stocktakeName', { month: inline(format(parseISO(at), 'MMMM')) }),
       description: input.description,
       locationId: input.locationId,
       status: 'in_progress',

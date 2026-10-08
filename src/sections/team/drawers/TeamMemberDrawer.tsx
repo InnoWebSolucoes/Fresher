@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowDownUp, ArrowRight, Info } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,13 +12,13 @@ import type { TeamMember } from '@/types'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { PALETTE } from '@/styles/palette'
-import { money, money2 } from '@/lib/format'
+import { money, money2, num } from '@/lib/format'
 import { todayISO } from '@/lib/time'
 import { Button, EmptyState, Select, Skeleton, toast } from '@/components/ui'
 import { asRecord, linkedUser, sendInvite, useMemberExtras, type TriState } from '@/api/team'
 import { ActionsPill, MemberAvatar, PortalMenu } from '../components/common'
 import { useMemberActions } from '../components/useMemberActions'
-import { memberName, roleName } from '../lib/members'
+import { colorLabel, countryLabel, memberName, roleName } from '../lib/members'
 import { change, memberPerformance, PERF_PERIODS, type PerfPeriod } from '../lib/perf'
 
 type Tab = 'overview' | 'personal' | 'workspace' | 'pay'
@@ -252,7 +253,7 @@ function PersonalTab({ member, onEdit }: { member: TeamMember; onEdit: () => voi
           { label: t('team.form.profile.phone'), value: member.phone },
           { label: t('team.form.profile.additionalPhone'), value: rec.additionalPhone },
           { label: t('team.drawer.dob'), value: birthday },
-          { label: t('team.form.profile.country'), value: member.country },
+          { label: t('team.form.profile.country'), value: countryLabel(member.country) },
           { label: t('team.form.profile.gender'), value: member.gender ? t(`team.gender.${member.gender}`, { defaultValue: member.gender }) : '' },
           { label: t('team.form.profile.pronouns'), value: member.pronouns ? t(`team.pronouns.${member.pronouns}`, { defaultValue: member.pronouns }) : '' },
           {
@@ -260,7 +261,7 @@ function PersonalTab({ member, onEdit }: { member: TeamMember; onEdit: () => voi
             value: (
               <span className="inline-flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full" style={{ background: PALETTE[member.color].edge }} aria-hidden />
-                {PALETTE[member.color].label}
+                {colorLabel(member.color)}
               </span>
             ),
           },
@@ -344,8 +345,8 @@ function PayTab({ member, onEdit }: { member: TeamMember; onEdit: () => void }) 
         rows={
           member.commission.enabled
             ? [
-                { label: t('team.form.commissions.serviceRate'), value: `${Math.round(member.commission.serviceRate * 1000) / 10}%` },
-                { label: t('team.form.commissions.productRate'), value: `${Math.round(member.commission.productRate * 1000) / 10}%` },
+                { label: t('team.form.commissions.serviceRate'), value: `${num(Math.round(member.commission.serviceRate * 1000) / 10)}%` },
+                { label: t('team.form.commissions.productRate'), value: `${num(Math.round(member.commission.productRate * 1000) / 10)}%` },
               ]
             : [{ label: t('team.form.nav.commissions'), value: t('team.common.off') }]
         }

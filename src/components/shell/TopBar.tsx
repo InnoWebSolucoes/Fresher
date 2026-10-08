@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Wordmark } from './Wordmark'
 import { UserMenu } from './UserMenu'
+import { LanguageToggle } from './LanguageToggle'
 import { useDrawer } from '@/lib/drawer'
 import { canAccess, usePermissionRoles } from '@/lib/permissions'
 import { initials, useCurrentUser } from '@/store/session'
@@ -82,6 +83,7 @@ export function TopBar({ minimal = false }: { minimal?: boolean }) {
             )}
           </>
         )}
+        <LanguageToggle className="ml-2" />
         <div className="relative ml-2">
           <button
             ref={avatarRef}

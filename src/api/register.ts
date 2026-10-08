@@ -4,6 +4,7 @@ import { uid } from '@/lib/ids'
 import { nowISO } from '@/lib/time'
 import { round2 } from '@/lib/format'
 import { actorName, ApiError, latency } from './client'
+import { t } from './i18n'
 
 /** Cash registers (sales.md §2): setup, open, cash in/out, counts and close. */
 
@@ -39,7 +40,7 @@ export function expectedCash(session: RegisterSession): number {
 
 export async function openRegister(registerId: ID, openingFloat: number, note?: string): Promise<RegisterSession> {
   await latency()
-  if (currentSession(registerId)) throw new ApiError('already_open', 'This register is already open')
+  if (currentSession(registerId)) throw new ApiError('already_open', t('api.register.alreadyOpen'))
   const by = actorName()
   const at = nowISO()
   const session: RegisterSession = {
@@ -49,7 +50,7 @@ export async function openRegister(registerId: ID, openingFloat: number, note?: 
     openedBy: by,
     openingFloat: round2(openingFloat),
     movements: [
-      { id: uid('mv'), type: 'opening_float', reason: 'Opening float', amount: round2(openingFloat), note, at, by },
+      { id: uid('mv'), type: 'opening_float', reason: t('sales.register.activity.openingFloat'), amount: round2(openingFloat), note, at, by },
     ],
   }
   commit((d) => {
@@ -62,7 +63,7 @@ export async function cashMovement(sessionId: ID, type: 'cash_in' | 'cash_out', 
   await latency()
   commit((d) => {
     const s = d.registerSessions.find((x) => x.id === sessionId)
-    if (!s || s.closedAt) throw new ApiError('closed', 'Register is closed')
+    if (!s || s.closedAt) throw new ApiError('closed', t('api.register.closed'))
     s.movements.push({ id: uid('mv'), type, reason, amount: round2(amount), note, at: nowISO(), by: actorName() })
   })
 }
@@ -74,7 +75,7 @@ export async function countRegister(sessionId: ID, counted: Record<string, numbe
     const s = d.registerSessions.find((x) => x.id === sessionId)
     if (!s) return
     s.counted = counted
-    s.movements.push({ id: uid('mv'), type: 'count', reason: 'Register counted', amount: round2(counted.cash ?? 0), note, at: nowISO(), by: actorName() })
+    s.movements.push({ id: uid('mv'), type: 'count', reason: t('sales.register.activity.counted'), amount: round2(counted.cash ?? 0), note, at: nowISO(), by: actorName() })
   })
 }
 
@@ -90,6 +91,6 @@ export async function closeRegister(sessionId: ID, input: { counted: Record<stri
     s.note = input.note
     s.closedAt = at
     s.closedBy = actorName()
-    s.movements.push({ id: uid('mv'), type: 'closed', reason: 'Register closed', amount: round2(input.counted.cash ?? 0), note: input.note, at, by: actorName() })
+    s.movements.push({ id: uid('mv'), type: 'closed', reason: t('sales.register.activity.closed'), amount: round2(input.counted.cash ?? 0), note: input.note, at, by: actorName() })
   })
 }

@@ -85,7 +85,7 @@ export function BlastBillingWizardPage() {
               </div>
             ))}
             <p className="pt-4 text-body text-muted">
-              {t('marketing.billing.taxNote')} <LearnMore topic="fees and commissions">{t('marketing.billing.feesLink')}</LearnMore>
+              {t('marketing.billing.taxNote')} <LearnMore topic={t('marketing.common.topics.fees')}>{t('marketing.billing.feesLink')}</LearnMore>
             </p>
           </div>
         </>

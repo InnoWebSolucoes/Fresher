@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { format } from '@/lib/dates'
 import { useMemo } from 'react'
 import { commit, db, useDb } from '@/store/db'
 import type { AddOnState, Automation, Campaign, Client, DbData, Deal, ID, MessageLog, SmartPricing } from '@/types'
@@ -8,6 +8,7 @@ import { round2 } from '@/lib/format'
 import { clientStats, clientsInSegment } from '@/lib/segments'
 import { ApiError, actorName, latency } from './client'
 import { readExt, useExt, writeExt } from './ext'
+import { t } from './i18n'
 
 /**
  * Marketing domain operations: blast campaigns (with review + delivery),
@@ -179,8 +180,8 @@ export async function saveCampaign(draft: CampaignDraft, id?: ID): Promise<Campa
   const cost = campaignCost(recipients, draft.channel)
   if (id) {
     const existing = data.campaigns.find((c) => c.id === id)
-    if (!existing) throw new ApiError('not_found', 'Campaign not found')
-    if (existing.status !== 'draft') throw new ApiError('locked', 'Only draft campaigns can be edited')
+    if (!existing) throw new ApiError('not_found', t('api.marketing.campaignNotFound'))
+    if (existing.status !== 'draft') throw new ApiError('locked', t('api.marketing.onlyDrafts'))
     commit((d) => {
       const c = d.campaigns.find((x) => x.id === id)!
       Object.assign(c, draft, { recipients, cost })
@@ -212,11 +213,11 @@ export async function deleteCampaign(id: ID): Promise<void> {
 export async function duplicateCampaign(id: ID): Promise<Campaign> {
   await latency()
   const source = db().campaigns.find((c) => c.id === id)
-  if (!source) throw new ApiError('not_found', 'Campaign not found')
+  if (!source) throw new ApiError('not_found', t('api.marketing.campaignNotFound'))
   const copy: Campaign = {
     ...source,
     id: uid('cmp'),
-    name: `${source.name} (copy)`,
+    name: t('catalog.common.copySuffix', { name: source.name }),
     status: 'draft',
     scheduledAt: undefined,
     sentAt: undefined,
@@ -235,11 +236,11 @@ export const blastBillingReady = () => addOnActive(db().addOns, 'blast-marketing
 export async function submitCampaign(id: ID): Promise<Campaign> {
   await latency(500, 900)
   const data = db()
-  if (!addOnActive(data.addOns, 'blast-marketing')) throw new ApiError('billing_required', 'Add your payment method and billing details first')
+  if (!addOnActive(data.addOns, 'blast-marketing')) throw new ApiError('billing_required', t('api.marketing.billingRequired'))
   const campaign = data.campaigns.find((c) => c.id === id)
-  if (!campaign) throw new ApiError('not_found', 'Campaign not found')
+  if (!campaign) throw new ApiError('not_found', t('api.marketing.campaignNotFound'))
   const { eligible } = campaignAudience(data, campaign.audience, campaign.channel)
-  if (!eligible.length) throw new ApiError('no_recipients', 'This audience has no clients who agreed to receive marketing')
+  if (!eligible.length) throw new ApiError('no_recipients', t('api.marketing.noRecipients'))
   commit((d) => {
     const c = d.campaigns.find((x) => x.id === id)!
     c.status = 'pending'
@@ -252,9 +253,9 @@ export async function submitCampaign(id: ID): Promise<Campaign> {
 
 function campaignMessageBody(c: Campaign, data: DbData, firstName: string): string {
   const deal = c.dealId ? data.deals.find((x) => x.id === c.dealId) : undefined
-  const dealLine = deal ? `\n\n${deal.name}${deal.code ? ` · use code ${deal.code}` : ''}` : ''
-  if (c.channel === 'sms') return `${c.body}${deal?.code ? ` Code ${deal.code}.` : ''} Reply STOP to opt out.`
-  return `Hi ${firstName},\n\n${c.heading ? `${c.heading}\n\n` : ''}${c.body}${dealLine}${c.buttonLabel ? `\n\n[${c.buttonLabel}]` : ''}\n\n${data.workspace.name}`
+  const dealLine = deal ? `\n\n${deal.name}${deal.code ? ` · ${t('api.marketing.useCode', { code: deal.code })}` : ''}` : ''
+  if (c.channel === 'sms') return `${c.body}${deal?.code ? ` ${t('api.marketing.smsCode', { code: deal.code })}` : ''} ${t('marketing.builder.stop')}`
+  return `${t('api.marketing.greeting', { firstName })}\n\n${c.heading ? `${c.heading}\n\n` : ''}${c.body}${dealLine}${c.buttonLabel ? `\n\n[${c.buttonLabel}]` : ''}\n\n${data.workspace.name}`
 }
 
 /** Deliver now: sample outbox messages + performance stats. */
@@ -302,7 +303,7 @@ function deliverCampaign(id: ID) {
 export async function approvePendingCampaign(campaignId: ID): Promise<Campaign['status']> {
   await latency()
   const campaign = db().campaigns.find((c) => c.id === campaignId)
-  if (!campaign) throw new ApiError('not_found', 'Campaign not found')
+  if (!campaign) throw new ApiError('not_found', t('api.marketing.campaignNotFound'))
   if (campaign.status !== 'pending') return campaign.status
   if (campaign.scheduledAt && campaign.scheduledAt > nowISO()) {
     commit((d) => {
@@ -386,7 +387,7 @@ export async function setAutomationEnabled(id: ID, enabled: boolean): Promise<vo
   await latency()
   commit((d) => {
     const a = d.automations.find((x) => x.id === id)
-    if (!a) throw new ApiError('not_found', 'Automation not found')
+    if (!a) throw new ApiError('not_found', t('api.marketing.automationNotFound'))
     a.enabled = enabled
     if (enabled && !a.channels.email && !a.channels.sms && !a.channels.whatsapp) a.channels.email = true
     a.updatedAt = nowISO()
@@ -399,7 +400,7 @@ export async function updateAutomation(id: ID, patch: AutomationPatch): Promise<
   await latency()
   commit((d) => {
     const a = d.automations.find((x) => x.id === id)
-    if (!a) throw new ApiError('not_found', 'Automation not found')
+    if (!a) throw new ApiError('not_found', t('api.marketing.automationNotFound'))
     Object.assign(a, patch, { updatedAt: nowISO() })
   })
 }
@@ -462,10 +463,10 @@ export async function createAutomation(input: NewAutomationInput): Promise<Autom
 /** Communication balance top-up, charged to the card on file. */
 export async function topUpBalance(amount: number): Promise<number> {
   await latency(700, 1100)
-  if (!(amount > 0)) throw new ApiError('invalid', 'Choose an amount')
+  if (!(amount > 0)) throw new ApiError('invalid', t('api.billing.errors.chooseAmount'))
   commit((d) => {
     d.workspace.messageCredits = round2(d.workspace.messageCredits + amount)
-    addInvoice(d, 'Communication balance top-up', amount)
+    addInvoice(d, t('api.billing.lines.topUp'), amount)
   })
   return db().workspace.messageCredits
 }
@@ -494,12 +495,12 @@ export async function saveDeal(draft: DealDraft, id?: ID): Promise<Deal> {
   const data = db()
   const code = draft.code?.trim().toUpperCase() || undefined
   if (code && data.deals.some((x) => x.id !== id && x.status !== 'archived' && x.code?.toUpperCase() === code)) {
-    throw new ApiError('code_taken', 'This discount code is already used by another deal')
+    throw new ApiError('code_taken', t('marketing.dealWizard.errors.codeTaken'))
   }
   if (id) {
     commit((d) => {
       const deal = d.deals.find((x) => x.id === id)
-      if (!deal) throw new ApiError('not_found', 'Deal not found')
+      if (!deal) throw new ApiError('not_found', t('api.marketing.dealNotFound'))
       Object.assign(deal, draft, { code })
     })
     return db().deals.find((x) => x.id === id)!
@@ -522,11 +523,11 @@ export async function setDealStatus(id: ID, status: Deal['status']): Promise<voi
 export async function duplicateDeal(id: ID): Promise<Deal> {
   await latency()
   const source = db().deals.find((x) => x.id === id)
-  if (!source) throw new ApiError('not_found', 'Deal not found')
+  if (!source) throw new ApiError('not_found', t('api.marketing.dealNotFound'))
   const copy: Deal = {
     ...source,
     id: uid('deal'),
-    name: `${source.name} (copy)`,
+    name: t('catalog.common.copySuffix', { name: source.name }),
     code: source.code ? `${source.code}COPY` : undefined,
     status: 'inactive',
     createdAt: nowISO(),

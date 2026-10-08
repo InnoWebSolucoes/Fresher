@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 
 export interface ModalProps {
   open: boolean
@@ -20,6 +21,7 @@ const SIZES = { sm: 'max-w-[420px]', md: 'max-w-[560px]', lg: 'max-w-[720px]', x
 
 /** Centred modal dialog with Escape-to-close and initial focus. */
 export function Modal({ open, onClose, title, subtitle, children, footer, size = 'md', hideClose, className }: ModalProps) {
+  const { t } = useTranslation()
   const panel = useRef<HTMLDivElement>(null)
   // Keep the latest onClose without re-running the focus effect on every render.
   const onCloseRef = useRef(onClose)
@@ -60,7 +62,7 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
               {subtitle && <p className="mt-1 text-body text-muted">{subtitle}</p>}
             </div>
             {!hideClose && (
-              <button type="button" data-close onClick={onClose} aria-label="Close" className="icon-btn -mr-2 -mt-1 shrink-0">
+              <button type="button" data-close onClick={onClose} aria-label={t('common.close')} className="icon-btn -mr-2 -mt-1 shrink-0">
                 <X size={20} aria-hidden />
               </button>
             )}

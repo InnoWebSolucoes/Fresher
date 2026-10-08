@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { differenceInYears, format } from 'date-fns'
+import { differenceInYears } from 'date-fns'
+import { format } from '@/lib/dates'
 import { BadgeCheck, Building2, CheckCircle2, ChevronRight, Globe2, Loader2, ShieldCheck, Smartphone, Store, User, Users } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
@@ -16,7 +17,7 @@ import { WizardFrame } from './components/shared'
 const STEPS = ['overview', 'rates', 'what-to-expect', 'select', 'ready', 'details'] as const
 const TYPES = ['sole_trader', 'company', 'partnership'] as const
 const TYPE_ICONS = { sole_trader: User, company: Building2, partnership: Users }
-const BRANDS = ['VISA', 'Mastercard', 'Maestro', 'AMEX', 'Diners', 'Discover', 'Apple Pay', 'G Pay', 'Contactless']
+const BRANDS = ['VISA', 'Mastercard', 'Maestro', 'AMEX', 'Diners', 'Discover', 'Apple Pay', 'G Pay']
 
 interface Row {
   title: string
@@ -86,12 +87,12 @@ export function PaymentsOnboardingPage() {
               ))}
             </ul>
             <p className="mt-6 text-small text-muted">
-              {t('addons.payments.rates.footer')} {t('addons.payments.rates.see')} <LearnMore topic="Payments pricing">{t('addons.payments.rates.pricingPage')}</LearnMore> {t('addons.payments.rates.details')}
+              {t('addons.payments.rates.footer')} {t('addons.payments.rates.see')} <LearnMore topic={t('addons.payments.topics.pricing')}>{t('addons.payments.rates.pricingPage')}</LearnMore> {t('addons.payments.rates.details')}
             </p>
           </div>
           <p className="mt-8 text-center text-body text-muted">{t('addons.payments.rates.accepts')}</p>
           <ul className="mt-3 flex flex-wrap justify-center gap-2">
-            {BRANDS.map((m) => (
+            {[...BRANDS, t('addons.payments.rates.contactless')].map((m) => (
               <li key={m} className="rounded-sm border border-line px-2 py-1 text-caption font-bold text-muted">
                 {m}
               </li>
@@ -114,7 +115,7 @@ export function PaymentsOnboardingPage() {
         <>
           <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('addons.payments.select.title')}</h1>
           <p className="mt-2 text-body-lg text-muted">
-            {t('addons.payments.select.body')} <LearnMore topic="Payments account type">{t('addons.learnMore')}</LearnMore>
+            {t('addons.payments.select.body')} <LearnMore topic={t('addons.payments.topics.accountType')}>{t('addons.learnMore')}</LearnMore>
           </p>
           <ul className="mt-6 flex flex-col gap-3" aria-label={t('addons.payments.select.title')}>
             {TYPES.map((k) => {
@@ -157,8 +158,8 @@ export function PaymentsOnboardingPage() {
   )
 }
 
-/** Month names from the date library (not UI copy). */
-const MONTHS = Array.from({ length: 12 }, (_, i) => format(new Date(2000, i, 1), 'MMMM'))
+/** Month names from the date library, in the current language (built per render, not at import). */
+const monthNames = () => Array.from({ length: 12 }, (_, i) => format(new Date(2000, i, 1), 'MMMM'))
 
 function DetailsForm({ accountType }: { accountType: string }) {
   const { t } = useTranslation()
@@ -213,7 +214,8 @@ function DetailsForm({ accountType }: { accountType: string }) {
         <fieldset>
           <legend className="mb-1.5 text-body-strong text-ink">{t('addons.payments.details.dob')}</legend>
           <div className="grid grid-cols-3 gap-3">
-            <Select aria-label={t('addons.payments.details.month')} placeholder={t('addons.payments.details.month')} options={MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))} {...register('month')} />
+            <Select aria-label={t('addons.payments.details.month')} placeholder={t('addons.payments.details.month')} options={monthNames().map((m, i) => ({ value: String(i + 1), label: m }))}
+ {...register('month')} />
             <TextInput aria-label={t('addons.payments.details.day')} placeholder={t('addons.payments.details.day')} inputMode="numeric" {...register('day')} />
             <TextInput aria-label={t('addons.payments.details.year')} placeholder={t('addons.payments.details.year')} inputMode="numeric" {...register('year')} />
           </div>

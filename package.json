@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port 5196",
     "build": "tsc -b && vite build",
+    "build:vercel": "vite build --base=/bookings/ && node scripts/nest-dist.mjs bookings",
     "preview": "vite preview --port 5196",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",

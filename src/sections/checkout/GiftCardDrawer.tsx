@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarPlus, Check, Gift, Info, PanelTop, Printer, Share } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -57,7 +58,7 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
     toast(t('checkout.toasts.codeCopied', { code: card.code }))
   }
   const print = () => {
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Gift card ${esc(card.code)}</title><style>body{font-family:Helvetica,Arial,sans-serif;display:flex;justify-content:center;padding:48px}.card{width:420px;border-radius:18px;padding:28px;color:#fff;background:linear-gradient(135deg,#0E6E6A,#1F8C84 45%,#2A9CC2);-webkit-print-color-adjust:exact;print-color-adjust:exact}.v{font-size:34px;font-weight:700}.l{font-size:12px;opacity:.8;margin-top:18px}.c{font-size:18px;font-weight:600;letter-spacing:1px}</style></head><body><div class="card"><div class="v">${esc(money(card.value))}</div><div>${esc(data.workspace.name)}</div>${card.customCode ? `<div class="l">Custom code</div><div class="c">${esc(card.customCode)}</div>` : ''}<div class="l">Code</div><div class="c">${esc(card.code)}</div><div class="l">Balance</div><div class="c">${esc(money(card.balance))}</div><div class="l">Expires</div><div class="c">${esc(card.expiresAt ? fmtDateEU(card.expiresAt) : 'Never')}</div></div><script>window.onload=function(){window.print()}</script></body></html>`
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(t('checkout.giftCard.printTitle', { code: card.code }))}</title><style>body{font-family:Helvetica,Arial,sans-serif;display:flex;justify-content:center;padding:48px}.card{width:420px;border-radius:18px;padding:28px;color:#fff;background:linear-gradient(135deg,#0E6E6A,#1F8C84 45%,#2A9CC2);-webkit-print-color-adjust:exact;print-color-adjust:exact}.v{font-size:34px;font-weight:700}.l{font-size:12px;opacity:.8;margin-top:18px}.c{font-size:18px;font-weight:600;letter-spacing:1px}</style></head><body><div class="card"><div class="v">${esc(money(card.value))}</div><div>${esc(data.workspace.name)}</div>${card.customCode ? `<div class="l">${esc(t('checkout.giftCard.customCode'))}</div><div class="c">${esc(card.customCode)}</div>` : ''}<div class="l">${esc(t('checkout.giftCard.code'))}</div><div class="c">${esc(card.code)}</div><div class="l">${esc(t('checkout.giftCard.balance'))}</div><div class="c">${esc(money(card.balance))}</div><div class="l">${esc(t('checkout.giftCard.expires'))}</div><div class="c">${esc(card.expiresAt ? fmtDateEU(card.expiresAt) : t('checkout.giftCard.never'))}</div></div><script>window.onload=function(){window.print()}</script></body></html>`
     if (!printHtml(html)) toast(t('checkout.sale.popupBlocked'), 'error')
   }
 
@@ -76,8 +77,13 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
     if (g) g.items.push(e)
     else groups.push({ month, items: [e] })
   }
+  // The purchase is the card's first activity entry (seeded ones have gca_ ids): it links to the
+  // card's sale whatever language the entry was written in.
+  const purchaseId = entries[entries.length - 1]?.id
+  const isPurchase = (e: (typeof entries)[number]) => e.id === purchaseId || e.id.startsWith('gca_')
   const saleLink = (detail?: string) => {
-    const match = detail ? /sale (\d+)/i.exec(detail) : null
+    // Activity details are data in the language they were written in: "View sale 12" / "Ver venda 12".
+    const match = detail ? /(?:sale|venda) (\d+)/i.exec(detail) : null
     const target = match ? data.sales.find((s) => s.number === Number(match[1])) : undefined
     return target ? { number: target.number, id: target.id } : undefined
   }
@@ -134,7 +140,7 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
                 <h2 className="mb-3 text-body-strong text-muted">{format(parseISO(g.items[0].at), 'MMMM')}</h2>
                 <ol className="flex flex-col gap-4 border-l border-line pl-6">
                   {g.items.map((e) => {
-                    const link = e.title === 'Gift card purchased' && sale ? { number: sale.number, id: sale.id } : saleLink(e.detail)
+                    const link = isPurchase(e) && sale ? { number: sale.number, id: sale.id } : saleLink(e.detail)
                     return (
                       <li key={e.id} className="rounded-lg border border-line bg-surface p-5">
                         <div className="flex items-start justify-between gap-4">
@@ -151,7 +157,7 @@ export function GiftCardDrawer({ id, params }: DrawerProps) {
                             </span>
                           </span>
                         </div>
-                        {e.detail && !/^(view )?sale \d+$/i.test(e.detail) && <p className="mt-2 text-body text-ink">{e.detail}</p>}
+                        {e.detail && !/^((view|ver) )?(sale|venda) \d+$/i.test(e.detail) && <p className="mt-2 text-body text-ink">{e.detail}</p>}
                         {link && (
                           <p className="mt-3 text-body text-ink">
                             {t('checkout.giftCard.viewSale')}{' '}

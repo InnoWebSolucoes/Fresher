@@ -1,7 +1,8 @@
 import { CreditCard, Download } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Button, Chip, Field, Modal, TextInput, toast } from '@/components/ui'
 import { ApiError } from '@/api/client'
 import { IVA_RATE, expiryValid, invoicePdf, luhnValid, updateCard } from '@/api/billing'
@@ -111,7 +112,8 @@ export function UpdateCardModal({ open, onClose, onSaved }: { open: boolean; onC
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label={t('settings.bill.card.expiry')} error={e.expiry}>
-            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-exp" placeholder="MM/YY" value={form.expiry} invalid={Boolean(e.expiry)} onChange={(ev) => setForm({ ...form, expiry: formatExpiry(ev.target.value) })} data-testid="card-expiry" />}
+            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-exp" placeholder={t('settings.common.expiryPlaceholder')}
+ value={form.expiry} invalid={Boolean(e.expiry)} onChange={(ev) => setForm({ ...form, expiry: formatExpiry(ev.target.value) })} data-testid="card-expiry" />}
           </Field>
           <Field label={t('settings.bill.card.cvc')} error={e.cvc}>
             {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-csc" placeholder="123" maxLength={4} value={form.cvc} invalid={Boolean(e.cvc)} onChange={(ev) => setForm({ ...form, cvc: ev.target.value.replace(/\D/g, '') })} data-testid="card-cvc" />}

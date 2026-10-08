@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarDays, MapPin, Store } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,6 +8,10 @@ import { useDb } from '@/store/db'
 import type { Automation } from '@/types'
 import { durationLabel, todayISO } from '@/lib/time'
 import { money } from '@/lib/format'
+import { getLang } from '@/i18n/language'
+
+/** Dates sit mid-sentence in the message copy: Portuguese keeps day and month names lowercase there. */
+const inSentence = (text: string) => (getLang() === 'pt' ? text.charAt(0).toLowerCase() + text.slice(1) : text)
 
 /** Which message template an automation uses. */
 export type ContentKind =
@@ -74,6 +79,7 @@ export interface AutomationSample {
 
 /** A real upcoming appointment to preview messages with (falls back to a sample). */
 export function useAutomationSample(): AutomationSample {
+  const { t } = useTranslation()
   const { appointments, clients, teamMembers, locations, workspace } = useDb(
     useShallow((s) => ({ appointments: s.appointments, clients: s.clients, teamMembers: s.teamMembers, locations: s.locations, workspace: s.workspace })),
   )
@@ -84,23 +90,26 @@ export function useAutomationSample(): AutomationSample {
     const item = appt?.items[0]
     const member = teamMembers.find((m) => m.id === item?.teamMemberId)
     const location = locations.find((l) => l.id === appt?.locationId) ?? locations[0]
-    const date = appt ? parseISO(appt.date) : null
+    // The sample falls back to Sunday 11 October.
+    const date = appt ? parseISO(appt.date) : new Date(2026, 9, 11)
     const start = item?.start ?? '11:00'
     return {
       firstName: client?.firstName ?? 'Ana',
       business: location?.name ?? workspace.name,
       businessEmail: location?.email ?? '',
       address: location ? `${location.address.line1}, ${location.address.postcode} ${location.address.city}` : '',
-      whenShort: date ? `${format(date, 'EEE, MMM d')} at ${start}` : `Sun, Oct 11 at ${start}`,
-      whenLong: date ? `${format(date, 'EEEE, MMMM d')} at ${start}` : `Sunday, October 11 at ${start}`,
-      day: date ? format(date, 'd') : '11',
-      service: item?.name ?? 'Blow Dry',
+      whenShort: t('marketing.content.when', { date: inSentence(format(date, 'EEE, MMM d')), time: start }),
+      whenLong: t('marketing.content.when', { date: inSentence(format(date, 'EEEE, MMMM d')), time: start }),
+
+      day: format(date, 'd'),
+      service: item?.name ?? t('marketing.content.sampleService'),
       member: member?.firstName ?? 'Inês',
       price: item?.price ?? 35,
       durationMin: item?.durationMin ?? 45,
       ref: appt?.ref ?? '0000FFFF',
     }
-  }, [appointments, clients, teamMembers, locations, workspace])
+  }, [appointments, clients, teamMembers, locations, workspace, t])
+
 }
 
 export function useAutomationCopy() {

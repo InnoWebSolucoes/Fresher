@@ -3,10 +3,10 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Chip, Modal, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
-import { money } from '@/lib/format'
+import { money, num } from '@/lib/format'
 import { durationLabel, now, weekdayOf } from '@/lib/time'
 import type { Location } from '@/types'
-import { addressLine, opensAt, sampleImage } from '../shared'
+import { addressLine, featureLabel, opensAt, sampleImage } from '../shared'
 
 /** How the listing looks to clients on the marketplace. */
 export function ProfilePreviewModal({ open, onClose, location }: { open: boolean; onClose: () => void; location: Location }) {
@@ -35,7 +35,7 @@ export function ProfilePreviewModal({ open, onClose, location }: { open: boolean
           <h3 className="font-display text-title-1 text-ink">{location.name}</h3>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-body text-muted">
             <Star size={16} className="text-warning" aria-hidden />
-            {rating ? t('online.preview.rating', { avg: rating.avg.toFixed(1), count: rating.count }) : t('online.dashboard.noReviews')}
+            {rating ? t('online.preview.rating', { avg: num(rating.avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count: rating.count }) : t('online.dashboard.noReviews')}
             <span aria-hidden>•</span>
             {open_ ? t('online.dashboard.opensAt', { time: open_ }) : t('online.dashboard.closedToday')}
           </p>
@@ -47,8 +47,9 @@ export function ProfilePreviewModal({ open, onClose, location }: { open: boolean
             <div className="mt-4 flex flex-wrap gap-2">
               {[...m.highlights, ...m.amenities, ...m.values].map((x) => (
                 <Chip key={x} tone="outline">
-                  {x}
+                  {featureLabel(t, x)}
                 </Chip>
+
               ))}
             </div>
           )}

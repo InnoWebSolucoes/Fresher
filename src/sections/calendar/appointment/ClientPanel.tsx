@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { AlertTriangle, Cake, ChevronDown, FlaskConical, Phone, PersonStanding, Plus, Search, UserPlus, UserRound, VenusAndMars, X } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +13,9 @@ import { uid } from '@/lib/ids'
 import { now, nowISO, toISODate } from '@/lib/time'
 import type { Client, ID, MessageLog } from '@/types'
 import { ClientAvatar, DropMenu } from '../ui'
+
+/** Pronoun values are stored in English (data); these keys show them translated. */
+const PRONOUN_KEYS: Record<string, string> = { 'She/Her': 'team.pronouns.she', 'He/Him': 'team.pronouns.he', 'They/Them': 'team.pronouns.they', 'Prefer not to say': 'team.pronouns.undisclosed' }
 
 interface ClientPanelProps {
   clientId: ID | null
@@ -153,7 +157,7 @@ export function AddClientModal({ open, onClose, onCreated, initialQuery = '' }: 
     if (!valid) return
     setBusy(true)
     try {
-      const source = sources.find((s) => s.name === 'Walk-In') ?? sources[0]
+      const source = sources.find((s) => s.id === 'src_walkin') ?? sources[0]
       const created = await crud('clients', 'cl').create({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -216,7 +220,7 @@ export function AddClientModal({ open, onClose, onCreated, initialQuery = '' }: 
           {(id) => <TextInput id={id} type="date" value={form.birthday} onChange={set('birthday')} />}
         </Field>
         <Field label={t('calendar.client.pronouns')} optional>
-          {(id) => <Select id={id} value={form.pronouns} onChange={set('pronouns')} placeholder={t('calendar.client.selectOption')} options={['She/Her', 'He/Him', 'They/Them']} />}
+          {(id) => <Select id={id} value={form.pronouns} onChange={set('pronouns')} placeholder={t('calendar.client.selectOption')} options={['She/Her', 'He/Him', 'They/Them'].map((value) => ({ value, label: t(PRONOUN_KEYS[value]) }))} />}
         </Field>
       </div>
     </Modal>
@@ -291,7 +295,7 @@ function ClientDetails({ client, readOnly, onRemove, onChangeClient, onViewProfi
         </div>
       </div>
       <div className="flex flex-col gap-3 px-5 pt-5 text-body">
-        <InfoRow icon={<VenusAndMars size={18} />} text={client.pronouns} placeholder={t('calendar.client.addPronouns')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=pronoun`)} />
+        <InfoRow icon={<VenusAndMars size={18} />} text={client.pronouns && PRONOUN_KEYS[client.pronouns] ? t(PRONOUN_KEYS[client.pronouns]) : client.pronouns} placeholder={t('calendar.client.addPronouns')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=pronoun`)} />
         <InfoRow icon={<Cake size={18} />} text={client.birthday ? format(parseISO(client.birthday), 'd MMMM yyyy') : undefined} placeholder={t('calendar.client.addBirthday')} onAdd={() => onLeaveTo(`/clients/list/${client.id}/edit?focus=birthday`)} />
         <InfoRow icon={<UserRound size={18} />} text={t('calendar.client.created', { date: format(parseISO(client.createdAt), 'MMM d, yyyy') })} />
         {client.phone && <InfoRow icon={<Phone size={18} />} text={client.phone} />}

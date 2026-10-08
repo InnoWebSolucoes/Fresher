@@ -54,7 +54,7 @@ export function ResourcesPage() {
     <SettingsPage
       title={t(`${K}.title`)}
       description={t(`${K}.description`)}
-      learnMore="Resources"
+      learnMore={t('settings.sched.resources.title')}
       actions={
         <PillMenu
           primary

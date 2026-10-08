@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { useMemo } from 'react'
 import { useDb, type DbState } from '@/store/db'
 import type { Appointment, AppointmentItem, Client, ID, Payment, Sale } from '@/types'

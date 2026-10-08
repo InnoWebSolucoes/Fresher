@@ -31,11 +31,11 @@ import { ClientAvatar, BadgeChip } from '../components/common'
 import { TagChip } from '../components/TagPicker'
 import { ManageTagsModal, BlockClientModal } from '../components/ClientDialogs'
 import { NoteEditorModal } from '../components/NoteEditorModal'
-import { badgeKey, DRAWER_TABS, RECORD_TABS, type DrawerTab } from '../lib/constants'
+import { badgeKey, blockReasonLabel, DRAWER_TABS, pronounLabel, RECORD_TABS, type DrawerTab } from '../lib/constants'
 import { clientName, fmtBirthday } from '../lib/helpers'
 import { useSegmentEvaluator } from '../lib/hooks'
 import { ClientDrawerContext, type ClientDrawerCtx, type DrawerAction } from './context'
-import { AllergyModal, FormResponseModal, MessagesIntroModal, PatchIcon, PatchTestModal, SendFormModal, SeverityIcon, StaffAlertModal } from './dialogs'
+import { AllergyModal, allergyName, FormResponseModal, MessagesIntroModal, PatchIcon, PatchTestModal, SendFormModal, SeverityIcon, StaffAlertModal } from './dialogs'
 import { RewardFlow } from './RewardFlow'
 import { AppointmentsTab, DetailsTab, ItemsTab, OverviewTab, SalesTab } from './tabs'
 import { AllergiesTab, FilesTab, FormsTab, NotesTab, PatchTestsTab } from './records'
@@ -225,7 +225,7 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
                   <Ban size={20} className="mt-0.5 shrink-0 text-danger" aria-hidden />
                   <span>
                     <span className="block text-body-strong text-ink">{t('clients.drawer.blockedAlert')}</span>
-                    <span className="block text-body text-muted">{client.blocked.reason}</span>
+                    <span className="block text-body text-muted">{blockReasonLabel(client.blocked.reason)}</span>
                   </span>
                 </li>
               )}
@@ -234,7 +234,7 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
                   <button type="button" onClick={() => setTab('allergies')} className="flex gap-3 text-left">
                     <SeverityIcon severity={a.severity} size={22} />
                     <span>
-                      <span className="block text-body-strong text-ink">{a.name}</span>
+                      <span className="block text-body-strong text-ink">{allergyName(a)}</span>
                       <span className="block text-body text-muted">{a.severity ? t(`clients.allergy.severityLabel.${a.severity}`) : t('clients.allergy.unknownSeverity')}</span>
                     </span>
                   </button>
@@ -270,7 +270,7 @@ function DrawerBody({ clientId, tab, close }: { clientId: string; tab: DrawerTab
             <li className="flex items-center gap-3">
               <UserRound size={18} className="shrink-0 text-muted" aria-hidden />
               {client.pronouns ? (
-                client.pronouns
+                pronounLabel(client.pronouns)
               ) : (
                 <button type="button" onClick={() => edit('profile', 'pronouns')} className="text-primary hover:underline">
                   {t('clients.drawer.addPronouns')}

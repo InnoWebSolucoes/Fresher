@@ -38,12 +38,19 @@ SPEC.md, REFERENCE_MAP.md, DESIGN_TOKENS.md; Vite + React 18 + strict TS + Tailw
 - **Billing:** plan change both ways (Independent €19.95 / Team €12.95 per bookable member, excl. IVA), invoices with PDF, top-ups, card, bank accounts.
 - **Top bar, account area, Help:** every drawer and page; live chat, email and phone support simulated.
 
+## Languages ☑
+European Portuguese (pt-PT) is the default language and English the second, switched with PT | EN in the top bar, user menu and login screen (remembered per browser).
+- All ~12,500 UI strings in `locales/pt.json` and `locales/en.json` (same keys, checked by `src/i18n/locale.test.ts`); about 1,000 strings that were hard-coded in the source moved into them.
+- Dates in Portuguese order and words ("qua, 7 out", "7 out 2026", "quarta-feira, 7 de outubro"), amounts as "28,75 €" (non-breaking space), Portuguese plural rules, `<html lang>` follows the language.
+- Generated text (notifications, activity, outbox emails and SMS, receipts, invoices, PDF/CSV/Excel exports, help search) is written in the active language; the English versions are unchanged, so the captured English export and receipt formats still match.
+- The demo seed is built in the current language (Portuguese by default: services, products, messages, notes, roles…); Reset demo rebuilds it in the current language. Client and product CSV imports accept Portuguese or English headers and values.
+- Layout checked page by page and in drawers, in English and Portuguese at 1440 and 1024 px, with an automated check for text that is cut off, overflows or wraps only in Portuguese.
+
 ## Phase 6 — polish ☑
 Loading skeletons, empty states, toasts and confirmations across sections; tablet (1024px) and dark-mode checks of the shell and main pages; Playwright suites; README walkthrough.
 
 ## Known differences from the reference
 - **Calendar › Add new client** opens an inline form in the drawer instead of the full-screen client form.
-- **Number format:** exports show "€190.00" (English); the captured PDF shows "190,00 €" because it was exported in Portuguese. This changes when pt-PT is added.
 - **Report favourites** are kept per browser (UI preference), not in the shared data.
 - **Simulated by design:** payments, payouts, publishing, Google/Facebook/Xero connections, live chat and every message are simulated and land in the demo outbox.
 

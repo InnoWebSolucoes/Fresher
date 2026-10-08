@@ -1,5 +1,6 @@
 import { Armchair, BarChart3, CreditCard, Gem, Globe, Headphones, Link2, MessagesSquare, Star, Users, type LucideIcon } from 'lucide-react'
 import type { DbState } from '@/store/db'
+import { money } from '@/lib/format'
 
 export type Unit = 'location' | 'bookableMember' | 'teamMember'
 
@@ -70,4 +71,23 @@ export function cardHref(slug: string, on: boolean, profilePublished: boolean): 
   return on ? `/add-ons/manage/${slug}` : `/add-ons/add-on/${slug}/intro`
 }
 
-export const eur = (n: number) => `€${n.toLocaleString('en-IE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })}`
+/** "€12.95" / "12,95 €" (whole euros without cents). */
+export const eur = (n: number) => money(n)
+
+
+/** Accounting ledger accounts offered in the mapping step (stored as "200 - Sales"). */
+const LEDGER_KEYS: Record<string, string> = {
+  '200 - Sales': 'sales',
+  '260 - Other revenue': 'otherRevenue',
+  '4000 - Services revenue': 'servicesRevenue',
+  '090 - Business bank account': 'bank',
+  '800 - Card payments clearing': 'cardClearing',
+  '610 - Accounts receivable': 'receivable',
+  '820 - Tips payable': 'tipsPayable',
+}
+
+/** "200 - Sales" → "200 - Vendas" in Portuguese; other values are shown as stored. */
+export function ledgerLabel(t: (key: string) => string, value: string): string {
+  const key = LEDGER_KEYS[value]
+  return key ? `${value.slice(0, value.indexOf(' - '))} - ${t(`addons.accounting.ledger.${key}`)}` : value
+}

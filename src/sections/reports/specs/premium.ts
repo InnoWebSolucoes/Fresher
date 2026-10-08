@@ -1,4 +1,5 @@
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { round2 } from '@/lib/format'
 import { workingWindows } from '@/lib/schedule'
 import type { Ctx } from '../engine/context'

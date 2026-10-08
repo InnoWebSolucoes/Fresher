@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, parseISO, startOfMonth, startOfWeek } from 'date-fns'
+import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, isSameMonth, parseISO, startOfMonth, startOfWeek } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -103,7 +104,7 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
             <label className="label" htmlFor="report-range-from">
               {single ? t('reports.range.date') : t('reports.range.from')}
             </label>
-            <input id="report-range-from" className={clsx('input', !isIsoDate(fromText) && 'border-danger')} value={fromText} placeholder="yyyy-mm-dd" onChange={(e) => typed('from', e.target.value)} onFocus={() => setPicking('from')} />
+            <input id="report-range-from" className={clsx('input', !isIsoDate(fromText) && 'border-danger')} value={fromText} placeholder={t('reports.range.isoPlaceholder')} onChange={(e) => typed('from', e.target.value)} onFocus={() => setPicking('from')} />
           </div>
           {!single && (
             <>
@@ -112,7 +113,7 @@ function RangePanel({ value, single, onCancel, onApply }: { value: DateRangeValu
                 <label className="label" htmlFor="report-range-to">
                   {t('reports.range.to')}
                 </label>
-                <input id="report-range-to" className={clsx('input', !isIsoDate(toText) && 'border-danger')} value={toText} placeholder="yyyy-mm-dd" onChange={(e) => typed('to', e.target.value)} onFocus={() => setPicking('to')} />
+                <input id="report-range-to" className={clsx('input', !isIsoDate(toText) && 'border-danger')} value={toText} placeholder={t('reports.range.isoPlaceholder')} onChange={(e) => typed('to', e.target.value)} onFocus={() => setPicking('to')} />
               </div>
             </>
           )}

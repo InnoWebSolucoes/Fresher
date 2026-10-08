@@ -1,12 +1,13 @@
 import clsx from 'clsx'
 import { Briefcase, CircleEllipsis, Home, MapPin } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
+import i18n from 'i18next'
 import { useTranslation } from 'react-i18next'
 import type { Client } from '@/types'
 import { uid } from '@/lib/ids'
 import { useDismiss } from '@/lib/useDismiss'
 import { Button, Field, Modal, Select, TextInput } from '@/components/ui'
-import { COUNTRIES } from '../lib/constants'
+import { countryLabel, countryOptions } from '../lib/constants'
 
 export type AddressDraft = Client['addresses'][number] & { county?: string; state?: string }
 
@@ -27,9 +28,13 @@ const KNOWN: Omit<AddressDraft, 'id' | 'type' | 'name'>[] = [
 ]
 
 export const addressLines = (a: Partial<AddressDraft>) =>
-  [[a.line1, a.line2].filter(Boolean).join(', '), [a.city, a.postcode].filter(Boolean).join(' '), a.country].filter((l): l is string => Boolean(l && l.trim()))
+  [[a.line1, a.line2].filter(Boolean).join(', '), [a.city, a.postcode].filter(Boolean).join(' '), countryLabel(a.country)].filter((l): l is string => Boolean(l && l.trim()))
 
-const blank = (): AddressDraft => ({ id: uid('addr'), type: 'home', name: 'Home', line1: '', city: '', postcode: '', country: 'Portugal' })
+/** Default names ('Home', 'Work', 'Other', or their Portuguese text) are shown in the current language. */
+const isDefaultName = (name: string, type: AddressType) => (['en', 'pt-PT'] as const).some((lng) => name === i18n.t(`clients.address.types.${type}`, { lng })) || name === i18n.t(`clients.address.types.${type}`)
+export const addressName = (a: Pick<AddressDraft, 'name' | 'type'>) => (isDefaultName(a.name, a.type) ? i18n.t(`clients.address.types.${a.type}`) : a.name)
+
+const blank = (): AddressDraft => ({ id: uid('addr'), type: 'home', name: i18n.t('clients.address.types.home'), line1: '', city: '', postcode: '', country: 'Portugal' })
 
 /** "New address" / "Edit address" with the "Edit address details" sub-form (clients.md §2 Addresses). */
 export function AddressModal({ open, value, onClose, onSave }: { open: boolean; value?: AddressDraft; onClose: () => void; onSave: (a: AddressDraft) => void }) {
@@ -39,7 +44,7 @@ export function AddressModal({ open, value, onClose, onSave }: { open: boolean; 
 
 function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () => void; onSave: (a: AddressDraft) => void }) {
   const { t } = useTranslation()
-  const [draft, setDraft] = useState<AddressDraft>(() => value ?? blank())
+  const [draft, setDraft] = useState<AddressDraft>(() => (value ? { ...value, name: addressName(value) } : blank()))
   const [query, setQuery] = useState('')
   const [suggest, setSuggest] = useState(false)
   const [details, setDetails] = useState(false)
@@ -49,7 +54,7 @@ function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () =>
   useDismiss(refs, suggest, () => setSuggest(false))
 
   const typeLabel = (type: AddressType) => t(`clients.address.types.${type}`)
-  const setType = (type: AddressType) => setDraft((d) => ({ ...d, type, name: !d.name || d.name === typeLabel(d.type) ? typeLabel(type) : d.name }))
+  const setType = (type: AddressType) => setDraft((d) => ({ ...d, type, name: !d.name || isDefaultName(d.name, d.type) ? typeLabel(type) : d.name }))
   const matches = query.trim().length >= 2 ? KNOWN.filter((k) => `${k.line1} ${k.city} ${k.postcode}`.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 5) : []
 
   const pick = (k: Omit<AddressDraft, 'id' | 'type' | 'name'>) => {
@@ -141,7 +146,7 @@ function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () =>
                       <span>
                         <span className="block text-body text-ink">{k.line1}</span>
                         <span className="block text-small text-muted">
-                          {k.city} {k.postcode}, {k.country}
+                          {k.city} {k.postcode}, {countryLabel(k.country)}
                         </span>
                       </span>
                     </button>
@@ -165,7 +170,7 @@ function Body({ value, onClose, onSave }: { value?: AddressDraft; onClose: () =>
                 <dt className="text-body-strong text-ink">{r.label}</dt>
                 <dd>
                   {draft[r.key] ? (
-                    <span className="text-body text-muted">{String(draft[r.key])}</span>
+                    <span className="text-body text-muted">{r.key === 'country' ? countryLabel(draft.country) : String(draft[r.key])}</span>
                   ) : (
                     <button type="button" onClick={() => setDetails(true)} className="text-body font-semibold text-primary hover:underline">
                       + {t('clients.common.add')}
@@ -213,7 +218,7 @@ function DetailsModal({ value, onCancel, onContinue }: { value: AddressDraft; on
         {field('state', t('clients.address.state'))}
         {field('postcode', t('clients.address.postcode'))}
         <div className="sm:col-span-2">
-          <Field label={t('clients.address.country')}>{(id) => <Select id={id} value={draft.country} onChange={(e) => setDraft({ ...draft, country: e.target.value })} options={COUNTRIES} />}</Field>
+          <Field label={t('clients.address.country')}>{(id) => <Select id={id} value={draft.country} onChange={(e) => setDraft({ ...draft, country: e.target.value })} options={countryOptions()} />}</Field>
         </div>
       </div>
     </Modal>

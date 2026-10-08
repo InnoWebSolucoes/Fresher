@@ -11,7 +11,7 @@ import { Button, Card, IconButton, LearnMore, Menu, Modal, Page, PageHeader, Pag
 import { StarBars, Stars } from '../components/common'
 import { GoogleConnectModal, GoogleMark } from './GoogleConnectModal'
 import { AllReviewsTab } from './ReviewsTab'
-import { average, ratingCounts } from './reviews'
+import { average, rating1, ratingCounts } from './reviews'
 
 export function OnlineReputationPage() {
   const { t } = useTranslation()
@@ -39,7 +39,7 @@ export function OnlineReputationPage() {
         title={t('clients.more.reputation.title')}
         subtitle={
           <>
-            {t('clients.more.reputation.subtitle')} <LearnMore topic="Online reputation">{t('clients.more.common.learnMore')}</LearnMore>
+            {t('clients.more.reputation.subtitle')} <LearnMore topic={t('clients.more.reputation.title')}>{t('clients.more.common.learnMore')}</LearnMore>
           </>
         }
       />
@@ -116,7 +116,7 @@ function Overview({ reviews, connected, onConnect, onView }: { reviews: Review[]
         <Card>
           <p className="text-body-strong text-ink">{t('clients.more.reputation.overall')}</p>
           <p className="mt-2 flex items-center gap-2 font-display text-title-1 text-ink tabular">
-            {avg.toFixed(1)} <Star size={24} className="fill-accent text-accent" aria-hidden />
+            {rating1(avg)} <Star size={24} className="fill-accent text-accent" aria-hidden />
           </p>
           <p className="mt-1 text-small text-muted">{t('clients.more.reputation.ratings', { count: reviews.length })}</p>
         </Card>
@@ -177,7 +177,7 @@ function PlatformCard({ name, list, action }: { name: ReactNode; list: { rating:
       </div>
       <div className="grid items-center gap-6 sm:grid-cols-[160px_minmax(0,1fr)]">
         <div>
-          <p className="font-display text-[48px] font-bold leading-none text-ink tabular">{avg.toFixed(1)}</p>
+          <p className="font-display text-[48px] font-bold leading-none text-ink tabular">{rating1(avg)}</p>
           <p className="mt-2 flex items-center gap-1.5 text-small text-ink">
             <Stars value={avg} size={14} /> ({list.length})
           </p>

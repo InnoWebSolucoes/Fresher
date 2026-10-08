@@ -83,7 +83,7 @@ export function DealsListPage() {
         count={deals.filter((d) => d.status !== 'archived').length}
         subtitle={
           <>
-            {t('marketing.deals.subtitle')} <LearnMore topic="deals">{t('marketing.common.learnMore')}</LearnMore>
+            {t('marketing.deals.subtitle')} <LearnMore topic={t('marketing.common.topics.deals')}>{t('marketing.common.learnMore')}</LearnMore>
           </>
         }
         actions={

@@ -23,7 +23,7 @@ export function WaitlistPage() {
   const online = waitlist.online ? `${t('settings.common.active')} • ${t(waitlist.anyTime ? `${K}.requestAny` : `${K}.requestOpen`)}` : t('settings.common.inactive')
 
   return (
-    <SettingsPage title={t(`${K}.title`)} description={t(`${K}.description`)} learnMore="Waitlist">
+    <SettingsPage title={t(`${K}.title`)} description={t(`${K}.description`)} learnMore={t('settings.sched.waitlist.title')}>
       <EditCard title={t(`${K}.settingsCard`)} onEdit={() => setEditing(true)} testId="waitlist-card">
         <InfoGrid
           rows={[
@@ -79,7 +79,7 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
       title={t(`${K}.modalTitle`)}
       subtitle={
         <>
-          {t(`${K}.description`)} <LearnMore topic="Waitlist">{t('settings.common.learnMore')}</LearnMore>
+          {t(`${K}.description`)} <LearnMore topic={t('settings.sched.waitlist.title')}>{t('settings.common.learnMore')}</LearnMore>
         </>
       }
       onSave={save}

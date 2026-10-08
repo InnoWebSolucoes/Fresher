@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { Check, Pencil, Trash2, Upload, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import i18n from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, Modal, MoneyInput, Select, TextArea, TextInput, confirm, toast } from '@/components/ui'
 import { useDb } from '@/store/db'
@@ -31,7 +32,7 @@ export const REMOVE_REASONS = [
   { value: 'Other', key: 'other' },
 ] as const
 
-const OTHER_REASONS: Record<string, string> = { Import: 'import', Sale: 'sale', Stocktake: 'stocktake', 'Stock order': 'stockOrder', Received: 'received' }
+const OTHER_REASONS: Record<string, string> = { Import: 'import', Sale: 'sale', Stocktake: 'stocktake', 'Stock order': 'stockOrder', Received: 'received', 'Order cancelled': 'orderCancelled' }
 
 /** Translated label for a stored movement reason (data value), falling back to the raw value. */
 export function useReasonLabel() {
@@ -39,6 +40,24 @@ export function useReasonLabel() {
   return (reason: string) => {
     const key = [...ADD_REASONS, ...REMOVE_REASONS].find((r) => r.value === reason)?.key ?? OTHER_REASONS[reason]
     return key ? t(`${P}.reasons.${key}`) : reason
+  }
+}
+
+/** Stored movement references ("Order #12", "Order 1004", "Sale 88", "Refund 90", kept in English) shown in the current language. */
+const REF_PATTERNS: [RegExp, string][] = [
+  [/^Order #(.+)$/, 'storeOrder'],
+  [/^Order (.+)$/, 'stockOrder'],
+  [/^Sale (.+)$/, 'sale'],
+  [/^Refund (.+)$/, 'refund'],
+]
+export function useRefLabel() {
+  const { t } = useTranslation()
+  return (ref: string) => {
+    for (const [pattern, key] of REF_PATTERNS) {
+      const match = pattern.exec(ref)
+      if (match) return t(`${P}.refs.${key}`, { number: match[1] })
+    }
+    return ref
   }
 }
 
@@ -389,19 +408,36 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim()))
 }
 
+/** Template columns, in order (headers come from `catalog.products2.import.columns.*`). */
+const TEMPLATE_COLUMNS: (keyof ProductImportRow)[] = ['name', 'barcode', 'brand', 'category', 'supplier', 'supplyPrice', 'retailPrice', 'stock', 'sku', 'measure', 'amount']
+
+/** Accepted headers, compared lower case and without accents: English and Portuguese. */
 const HEADER_ALIASES: Record<keyof ProductImportRow, string[]> = {
-  name: ['product name', 'name', 'product'],
-  barcode: ['barcode', 'product barcode', 'ean', 'upc'],
-  brand: ['brand', 'product brand'],
-  category: ['category', 'product category'],
-  supplier: ['supplier'],
-  supplyPrice: ['supply price', 'cost', 'cost price'],
-  retailPrice: ['retail price', 'price'],
-  stock: ['quantity', 'stock', 'stock quantity', 'current stock quantity'],
-  sku: ['sku', 'primary sku'],
-  measure: ['measure', 'unit'],
-  amount: ['amount', 'size'],
+  name: ['product name', 'name', 'product', 'nome do produto', 'nome', 'produto'],
+  barcode: ['barcode', 'product barcode', 'ean', 'upc', 'codigo de barras'],
+  brand: ['brand', 'product brand', 'marca', 'marca do produto'],
+  category: ['category', 'product category', 'categoria', 'categoria do produto'],
+  supplier: ['supplier', 'fornecedor'],
+  supplyPrice: ['supply price', 'cost', 'cost price', 'preco de custo', 'custo', 'preco de compra'],
+  retailPrice: ['retail price', 'price', 'preco de venda', 'preco', 'pvp'],
+  stock: ['quantity', 'stock', 'stock quantity', 'current stock quantity', 'quantidade', 'quantidade em stock'],
+  sku: ['sku', 'primary sku', 'sku principal'],
+  measure: ['measure', 'unit', 'medida', 'unidade', 'unidade de medida'],
+  amount: ['amount', 'size', 'conteudo', 'tamanho'],
 }
+
+/** Lower case, trimmed, without accents ("Preço" → "preco"). */
+const normHeader = (h: string) =>
+  h
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+/** Column header in the current language ("Product name" / "Nome do produto"). */
+const columnName = (key: keyof ProductImportRow) => i18n.t(`${P}.import.columns.${key}`)
+/** The Portuguese template headers are accepted whatever the current language. */
+const ptColumnName = (key: keyof ProductImportRow) => normHeader(i18n.getFixedT('pt-PT')(`${P}.import.columns.${key}`))
 
 const num = (v: string | undefined) => {
   const n = Number(String(v ?? '').replace(/[€\s]/g, '').replace(',', '.'))
@@ -410,8 +446,8 @@ const num = (v: string | undefined) => {
 
 export function rowsFromCsv(table: string[][]): { rows: ProductImportRow[]; skipped: number; missingName: boolean } {
   const [header = [], ...body] = table
-  const norm = header.map((h) => h.trim().toLowerCase())
-  const col = (key: keyof ProductImportRow) => norm.findIndex((h) => HEADER_ALIASES[key].includes(h))
+  const norm = header.map(normHeader)
+  const col = (key: keyof ProductImportRow) => norm.findIndex((h) => HEADER_ALIASES[key].includes(h) || h === ptColumnName(key))
   const idx = Object.fromEntries((Object.keys(HEADER_ALIASES) as (keyof ProductImportRow)[]).map((k) => [k, col(k)])) as Record<keyof ProductImportRow, number>
   if (idx.name < 0) return { rows: [], skipped: body.length, missingName: true }
   const get = (r: string[], k: keyof ProductImportRow) => (idx[k] >= 0 ? (r[idx[k]] ?? '').trim() : '')
@@ -440,8 +476,6 @@ export function rowsFromCsv(table: string[][]): { rows: ProductImportRow[]; skip
   return { rows, skipped, missingName: false }
 }
 
-const TEMPLATE_HEADERS = ['Product name', 'Barcode', 'Brand', 'Category', 'Supplier', 'Supply price', 'Retail price', 'Quantity', 'SKU', 'Measure', 'Amount']
-
 export function ImportProductsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation()
   const input = useRef<HTMLInputElement>(null)
@@ -469,14 +503,14 @@ export function ImportProductsModal({ open, onClose }: { open: boolean; onClose:
     setFileName(file.name)
     if (result.missingName) {
       setParsed(null)
-      setError(t(`${P}.import.missingName`))
+      setError(t(`${P}.import.missingColumn`, { column: columnName('name') }))
       return
     }
     setParsed(result)
   }
   const downloadTemplate = () => {
-    const csv = toCsv([{ headers: TEMPLATE_HEADERS, rows: [['Argan Hair Oil', '5601234567890', 'Argan Lab', 'Hair care', 'Beauty Supplies Lda', 10, 25, 20, 'ARG-98984', 'ml', 100]] }])
-    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'products_import_template.csv')
+    const csv = toCsv([{ headers: TEMPLATE_COLUMNS.map(columnName), rows: [[t(`${P}.import.sample.name`), '5601234567890', 'Argan Lab', t(`${P}.import.sample.category`), 'Beauty Supplies Lda', 10, 25, 20, 'ARG-98984', 'ml', 100]] }])
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), t(`${P}.import.templateFile`))
     toast(t('catalog.toasts.downloaded'))
   }
   const run = async () => {
@@ -528,7 +562,7 @@ export function ImportProductsModal({ open, onClose }: { open: boolean; onClose:
               {t(`${P}.import.template`)}
             </Button>
           </div>
-          <p className="text-small text-muted">{t(`${P}.import.hint`)}</p>
+          <p className="text-small text-muted">{t(`${P}.import.columnsHint`, { columns: TEMPLATE_COLUMNS.map(columnName).join(', ') })}</p>
           <input
             ref={input}
             type="file"

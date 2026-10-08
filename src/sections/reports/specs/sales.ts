@@ -1,4 +1,5 @@
-import { differenceInCalendarDays, format, parseISO } from 'date-fns'
+import { differenceInCalendarDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { computeTotals, salePaid } from '@/api/sales'
 import { round2 } from '@/lib/format'
 import type { Appointment, ClientMembership, ClientPackage, ID, Sale } from '@/types'

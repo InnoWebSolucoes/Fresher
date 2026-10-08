@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Chip, LearnMore, PageSkeleton, toast, usePageLoading } from '@/components/ui'
 import { findAddOn, isAddOnOn, updateAddOnConfig } from '@/api/addons'
-import { fmtDateTime } from '@/lib/format'
+import { fmtDateTime, num } from '@/lib/format'
 import { nowISO } from '@/lib/time'
 import { useDb } from '@/store/db'
 import { ReportsLayout } from './landing/ReportsLayout'
@@ -50,13 +50,13 @@ function ConnectorIntro() {
             <Button variant="primary" size="lg" onClick={() => navigate('/add-ons/add-on/data-connector/setup?return=/reports/data-connector')}>
               {t('reports.dc.startNow')}
             </Button>
-            <LearnMore topic="Data Connector">{t('reports.dc.learnMore')}</LearnMore>
+            <LearnMore topic={t('reports.topics.dataConnector')}>{t('reports.dc.learnMore')}</LearnMore>
           </div>
         </div>
         <div className="hidden lg:block" aria-hidden>
           <div className="relative mx-auto w-[260px] rounded-xl bg-surface p-5 shadow-md">
             <p className="text-small font-semibold text-ink">{t('reports.dc.artClients')}</p>
-            <p className="font-display text-title-2 text-ink">3,400</p>
+            <p className="font-display text-title-2 text-ink">{num(3400)}</p>
             <div className="mt-3 flex h-28 items-end gap-3">
               {[70, 55, 40, 62, 85].map((h, i) => (
                 <span key={i} className="flex flex-1 flex-col justify-end overflow-hidden rounded-t-sm bg-primary-subtle" style={{ height: `${h}%` }}>

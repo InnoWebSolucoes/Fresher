@@ -12,7 +12,7 @@ import { Button, Card, Chip, EmptyState, Menu, MenuButton, SearchInput, SideDraw
 import { CheckList, ClientAvatar, FilterGroup, StarBars, Stars } from '../components/common'
 import { clientName } from '../lib/helpers'
 import { GoogleMark } from './GoogleConnectModal'
-import { applyFilters, average, EMPTY_FILTERS, filterCount, ratingCounts, sortReviews, toggle, type ReviewFilters, type Sort } from './reviews'
+import { applyFilters, average, EMPTY_FILTERS, filterCount, rating1, ratingCounts, sortReviews, toggle, type ReviewFilters, type Sort } from './reviews'
 
 const PERIODS: PresetKey[] = ['all_time', 'last_7_days', 'last_30_days', 'last_90_days', 'week_to_date', 'month_to_date', 'quarter_to_date', 'year_to_date']
 const SORTS: Sort[] = ['recent', 'highest', 'lowest']
@@ -112,7 +112,7 @@ export function AllReviewsTab({ reviews, connected, onConnect }: { reviews: Revi
       <div className="grid items-start gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
         <Card className="lg:sticky lg:top-4">
           <p className="flex items-center gap-2 font-display text-[40px] font-bold leading-none text-ink tabular">
-            {average(filtered).toFixed(1)}
+            {rating1(average(filtered))}
             <Star size={28} className="fill-accent text-accent" aria-hidden />
           </p>
           <p className="mt-2 text-body text-muted">{t('clients.more.reputation.onAllPlatforms', { count: filtered.length })}</p>

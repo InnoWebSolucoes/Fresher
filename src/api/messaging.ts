@@ -1,10 +1,10 @@
-import { format, parseISO } from 'date-fns'
 import { commit, db } from '@/store/db'
 import type { AppNotification, Appointment, ID, MessageLog, MessageType } from '@/types'
 import { uid } from '@/lib/ids'
 import { nowISO } from '@/lib/time'
 import { money } from '@/lib/format'
 import { latency } from './client'
+import { dateAt, t } from './i18n'
 
 /**
  * Outbox: every email, SMS and WhatsApp the system "sends" lands in
@@ -46,24 +46,32 @@ export function notifyAppointment(appointment: Appointment, type: Extract<Messag
   const first = appointment.items[0]
   const member = data.teamMembers.find((m) => m.id === first?.teamMemberId)
   const location = data.locations.find((l) => l.id === appointment.locationId)
-  const when = `${format(parseISO(appointment.date), 'EEE, MMM d')} at ${first?.start}`
+  // `when` starts a line in the confirmation; `whenInline` sits mid-sentence.
+  const when = dateAt(appointment.date, first?.start, 'EEE, MMM d', false)
+  const whenInline = dateAt(appointment.date, first?.start)
+  const locationName = location?.name ?? ''
   const subjects: Record<typeof type, string> = {
-    confirmation: `Your appointment is confirmed for ${when}`,
-    reschedule: `Your appointment has been moved to ${when}`,
-    cancellation: `Your appointment on ${when} was canceled`,
-    no_show: `We missed you on ${when}`,
-    thank_you: `Thanks for visiting ${location?.name ?? data.workspace.name}`,
-    reminder: `Reminder about your appointment on ${when}`,
+    confirmation: t('marketing.content.confirmation.subject', { whenShort: whenInline }),
+    reschedule: t('marketing.content.reschedule.subject', { whenShort: whenInline }),
+    cancellation: t('marketing.content.cancellation.subject', { whenShort: whenInline }),
+    no_show: t('api.messaging.subject.noShow', { when: whenInline }),
+    thank_you: t('marketing.content.thank_you.subject', { business: location?.name ?? data.workspace.name }),
+    reminder: t('marketing.content.reminder.subject', { whenShort: whenInline }),
   }
   const services = appointment.items.map((i) => i.name).join(', ')
   const total = appointment.items.reduce((s, i) => s + i.price, 0)
+  const firstName = client.firstName
+  const memberName = member?.firstName ?? t('api.messaging.ourTeam')
+  const cancellationFee = appointment.cancellation?.fee ? ` ${t('api.messaging.lateCancellationFee', { amount: money(appointment.cancellation.fee) })}` : ''
+  const noShowFee = appointment.noShowFee ? ` ${t('api.messaging.noShowFee', { amount: money(appointment.noShowFee) })}` : ''
+  const address = `${location?.address.line1}, ${location?.address.postcode} ${location?.address.city}`
   const bodies: Record<typeof type, string> = {
-    confirmation: `Hi ${client.firstName}, your booking at ${location?.name} is confirmed.\n\n${services} with ${member?.firstName ?? 'our team'}\n${when}\nTotal ${money(total)}\n\nBooking ref: ${appointment.ref}\n${location?.address.line1}, ${location?.address.postcode} ${location?.address.city}`,
-    reschedule: `Hi ${client.firstName}, your ${services} with ${member?.firstName} is now on ${when}. Booking ref: ${appointment.ref}.`,
-    cancellation: `Hi ${client.firstName}, your ${services} on ${when} has been canceled.${appointment.cancellation?.fee ? ` A late cancellation fee of ${money(appointment.cancellation.fee)} was charged.` : ''} We hope to see you soon.`,
-    no_show: `Hi ${client.firstName}, we missed you at your ${services} appointment on ${when}.${appointment.noShowFee ? ` A no-show fee of ${money(appointment.noShowFee)} was charged.` : ''} Book again any time.`,
-    thank_you: `Hi ${client.firstName}, thank you for visiting ${location?.name} today. How was your ${services}? Leave a review: ★★★★★`,
-    reminder: `Hi ${client.firstName}, just a quick reminder about your ${services} on ${when} at ${location?.name}.`,
+    confirmation: t('api.messaging.body.confirmation', { firstName, location: locationName, services, member: memberName, when, total: money(total), ref: appointment.ref, address }),
+    reschedule: t('api.messaging.body.reschedule', { firstName, services, member: memberName, when: whenInline, ref: appointment.ref }),
+    cancellation: t('api.messaging.body.cancellation', { firstName, services, when: whenInline, fee: cancellationFee }),
+    no_show: t('api.messaging.body.noShow', { firstName, services, when: whenInline, fee: noShowFee }),
+    thank_you: t('api.messaging.body.thankYou', { firstName, location: locationName, services }),
+    reminder: t('api.messaging.body.reminder', { firstName, services, when: whenInline, location: locationName }),
   }
   const base = { clientId: client.id, toName: `${client.firstName} ${client.lastName}`, type, subject: subjects[type], body: bodies[type], appointmentId: appointment.id }
   if (client.notifications.email) queueMessage({ ...base, channel: 'email', to: client.email })
@@ -84,8 +92,8 @@ export async function sendReceipt(saleId: ID, to: string, channel: 'email' | 'sm
     toName: client ? `${client.firstName} ${client.lastName}` : to,
     channel,
     type: 'receipt',
-    subject: `Your receipt from ${data.workspace.name} (Sale #${sale?.number})`,
-    body: `Sale #${sale?.number}\n${lines}\n\nTotal ${money(total)}\nThank you for your visit!`,
+    subject: t('api.messaging.receipt.subject', { business: data.workspace.name, number: sale?.number }),
+    body: t('api.messaging.receipt.body', { number: sale?.number, lines, total: money(total) }),
     saleId,
   })
 }

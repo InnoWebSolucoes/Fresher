@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { differenceInCalendarDays, differenceInMinutes, format, parseISO, subDays, subMonths, subYears } from 'date-fns'
+import { differenceInCalendarDays, differenceInMinutes, parseISO, subDays, subMonths, subYears } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpDown, ChevronDown, Gem, Info, SlidersHorizontal, Star } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -8,7 +9,7 @@ import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Too
 import { REPORTS } from '@/app/reportCatalog'
 import { Button, Modal, PageSkeleton, Select, resolvePreset, usePageLoading, type DateRangeValue } from '@/components/ui'
 import { findAddOn, isAddOnOn } from '@/api/addons'
-import { money2, round2 } from '@/lib/format'
+import { money, money2, num, round2 } from '@/lib/format'
 import { now } from '@/lib/time'
 import { useDb } from '@/store/db'
 import { useUiStore } from '@/store/ui'
@@ -48,6 +49,10 @@ function compareRange(r: Range, mode: CompareMode): Range | null {
   return { from: format(subDays(from, days), 'yyyy-MM-dd'), to: format(subDays(from, 1), 'yyyy-MM-dd') }
 }
 
+/** Number in the current language without thousands separators ("12.5" / "12,5"). */
+const plain = (v: number, digits = 2) => num(v, { maximumFractionDigits: digits, useGrouping: false })
+const pctText = (v: number) => `${plain(v)}%`
+
 const change = (cur: number, prev: number | null | undefined) => (prev === null || prev === undefined ? null : prev === 0 ? (cur === 0 ? 0 : 100) : round2(((cur - prev) / Math.abs(prev)) * 100))
 
 /** Time unit that keeps a chart readable for the range. */
@@ -65,7 +70,7 @@ function DeltaChip({ value }: { value: number | null }) {
   return (
     <span className={clsx('inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-caption font-semibold', value === 0 ? 'bg-sunken text-muted' : value > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger')}>
       <Icon size={12} aria-hidden />
-      {Math.abs(value).toLocaleString('en-IE', { maximumFractionDigits: 1 })}%
+      {num(Math.abs(value), { maximumFractionDigits: 1 })}%
     </span>
   )
 }
@@ -133,8 +138,8 @@ interface Series {
 }
 
 type Fmt = 'money' | 'int' | 'pct' | 'rating'
-const fmtValue = (v: number, f: Fmt) => (f === 'money' ? money2(v) : f === 'pct' ? `${round2(v)}%` : f === 'rating' ? round2(v).toFixed(1) : String(Math.round(v * 100) / 100))
-const fmtAxis = (v: number, f: Fmt) => (f === 'money' ? `€${Math.round(v).toLocaleString('en-IE')}` : f === 'pct' ? `${v}%` : String(v))
+const fmtValue = (v: number, f: Fmt) => (f === 'money' ? money2(v) : f === 'pct' ? pctText(round2(v)) : f === 'rating' ? num(round2(v), { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false }) : plain(Math.round(v * 100) / 100))
+const fmtAxis = (v: number, f: Fmt) => (f === 'money' ? money(Math.round(v)) : f === 'pct' ? pctText(v) : plain(v, 20))
 
 function TimeChart({ data, series, kind = 'line', format: f = 'int', height = 240, stacked }: { data: Record<string, string | number>[]; series: Series[]; kind?: 'line' | 'bar'; format?: Fmt; height?: number; stacked?: boolean }) {
   const legend = (
@@ -365,8 +370,8 @@ function Performance({ ctx, range, cmp, filters }: { ctx: Ctx; range: Range; cmp
     { key: 'averageSaleValue', value: money2(cur.avgSale), delta: d(cur.avgSale, prev?.avgSale), report: 'sales-list' },
     { key: 'onlineSales', value: money2(cur.online), delta: d(cur.online, prev?.online), report: 'sales-summary?groupBy=channel' },
     { key: 'appointments', value: String(cur.apptCount), delta: d(cur.apptCount, prev?.apptCount), report: 'appointment-summary' },
-    { key: 'occupancyRate', value: `${cur.occupancy}%`, delta: d(cur.occupancy, prev?.occupancy), report: 'working-hours-summary' },
-    { key: 'returningClientRate', value: `${cur.rate}%`, delta: d(cur.rate, prev?.rate), report: 'client-summary' },
+    { key: 'occupancyRate', value: pctText(cur.occupancy), delta: d(cur.occupancy, prev?.occupancy), report: 'working-hours-summary' },
+    { key: 'returningClientRate', value: pctText(cur.rate), delta: d(cur.rate, prev?.rate), report: 'client-summary' },
   ]
 
   return (
@@ -411,7 +416,7 @@ function Performance({ ctx, range, cmp, filters }: { ctx: Ctx; range: Range; cmp
       <div className="grid gap-4 lg:grid-cols-2">
         <DashCard title={t('reports.dash.occupancyRate')} hint={t('reports.dash.hints.occupancyRate')} report="working-hours-summary">
           <div className="flex items-center gap-3">
-            <p className="font-display text-title-1 text-ink tabular">{cur.occupancy}%</p>
+            <p className="font-display text-title-1 text-ink tabular">{pctText(cur.occupancy)}</p>
             <DeltaChip value={d(cur.occupancy, prev?.occupancy)} />
             {prev && <span className="text-small text-muted">{t('reports.dash.vsComp')}</span>}
           </div>
@@ -424,7 +429,7 @@ function Performance({ ctx, range, cmp, filters }: { ctx: Ctx; range: Range; cmp
         </DashCard>
         <DashCard title={t('reports.dash.returningClientRate')} hint={t('reports.dash.hints.returningClientRate')} report="client-summary">
           <div className="flex items-center gap-3">
-            <p className="font-display text-title-1 text-ink tabular">{cur.rate}%</p>
+            <p className="font-display text-title-1 text-ink tabular">{pctText(cur.rate)}</p>
             <DeltaChip value={d(cur.rate, prev?.rate)} />
             {prev && <span className="text-small text-muted">{t('reports.dash.vsComp')}</span>}
           </div>
@@ -704,9 +709,9 @@ function Loyalty({ ctx }: { ctx: Ctx }) {
         </div>
       </DashCard>
       <div className="grid gap-4 sm:grid-cols-3">
-        <DashCard title={t('reports.dash.loyaltyShare')} hint={t('reports.dash.hints.loyalty')} value={`${m.share}%`} />
+        <DashCard title={t('reports.dash.loyaltyShare')} hint={t('reports.dash.hints.loyalty')} value={pctText(m.share)} />
         <DashCard title={t('reports.dash.engagedClients')} hint={t('reports.dash.hints.loyalty')} value={m.engaged} />
-        <DashCard title={t('reports.dash.avgLoyaltyDiscount')} hint={t('reports.dash.hints.loyalty')} value={`${m.avgDiscount}%`} />
+        <DashCard title={t('reports.dash.avgLoyaltyDiscount')} hint={t('reports.dash.hints.loyalty')} value={pctText(m.avgDiscount)} />
       </div>
       <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full border-collapse text-left text-body">

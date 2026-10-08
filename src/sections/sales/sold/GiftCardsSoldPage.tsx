@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Gift } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -121,7 +122,7 @@ export function GiftCardsSoldPage() {
         title={t('sales.giftCards.title')}
         subtitle={
           <>
-            {t('sales.giftCards.subtitle')} <LearnMore topic="gift cards" />
+            {t('sales.giftCards.subtitle')} <LearnMore topic={t('sales.helpTopics.giftCards')}>{t('common.learnMore')}</LearnMore>
           </>
         }
         actions={

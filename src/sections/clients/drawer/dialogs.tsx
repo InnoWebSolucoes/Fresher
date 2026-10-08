@@ -1,7 +1,9 @@
 import clsx from 'clsx'
 import { Check, MessagesSquare, X } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { useState } from 'react'
+import i18n from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
@@ -11,7 +13,7 @@ import { todayISO } from '@/lib/time'
 import { Button, Field, LearnMore, Modal, Segmented, Select, TextArea, TextInput, toast } from '@/components/ui'
 import { patchTestExpiry, saveAllergy, savePatchTest, sendClientForm, setStaffAlert } from '@/api/clients'
 import { startConversation } from '@/api/panels'
-import { ALLERGY_REACTIONS, SEVERITY_COLORS } from '../lib/constants'
+import { canonicalReaction, reactionOptions, SEVERITY_COLORS } from '../lib/constants'
 import { fmtLongDate } from '../lib/helpers'
 import { useClientDrawer, useEscape } from './context'
 
@@ -54,6 +56,9 @@ export function StaffAlertModal({ client, onClose }: { client: Client; onClose: 
 type Kind = ClientAllergy['kind']
 type Severity = NonNullable<ClientAllergy['severity']>
 
+/** "No known allergies" entries are shown in the current language (the stored name is the text saved at the time). */
+export const allergyName = (a: Pick<ClientAllergy, 'kind' | 'name'>) => (a.kind === 'none' ? i18n.t('clients.allergy.noKnown') : a.name)
+
 /** Severity dot cluster (our own artwork for the reference's halftone icons). */
 export function SeverityIcon({ severity, size = 36 }: { severity?: Severity; size?: number }) {
   const color = severity ? SEVERITY_COLORS[severity] : '#8C8C8C'
@@ -67,7 +72,7 @@ export function AllergyModal({ client, allergy, onClose }: { client: Client; all
   const { t } = useTranslation()
   const [kind, setKind] = useState<Kind>(allergy?.kind ?? 'non_drug')
   const [name, setName] = useState(allergy?.name ?? '')
-  const [reaction, setReaction] = useState(allergy?.reaction ?? '')
+  const [reaction, setReaction] = useState(canonicalReaction(allergy?.reaction) ?? '')
   const [severity, setSeverity] = useState<Severity | undefined>(allergy?.severity)
   const [note, setNote] = useState(allergy?.note ?? '')
   const [error, setError] = useState('')
@@ -125,7 +130,7 @@ export function AllergyModal({ client, allergy, onClose }: { client: Client; all
                 />
               )}
             </Field>
-            <Field label={t('clients.allergy.reaction')}>{(id) => <Select id={id} value={reaction} onChange={(e) => setReaction(e.target.value)} placeholder={t('clients.form.selectOption')} options={ALLERGY_REACTIONS} />}</Field>
+            <Field label={t('clients.allergy.reaction')}>{(id) => <Select id={id} value={reaction} onChange={(e) => setReaction(e.target.value)} placeholder={t('clients.form.selectOption')} options={reactionOptions()} />}</Field>
           </div>
           <div className="mt-6">
             <p className="text-body-strong text-ink">{t('clients.allergy.severity')}</p>
@@ -329,7 +334,7 @@ export function MessagesIntroModal({ client, onClose }: { client: Client; onClos
               <Button variant="primary" size="lg" onClick={() => (conversation ? openInbox(conversation.id) : setComposing(true))}>
                 {t('clients.messages.goToInbox')}
               </Button>
-              <LearnMore topic="Client messaging">
+              <LearnMore topic={t('settings.tm.perm.clients.groups.messaging')}>
                 <span className="text-body-strong">{t('clients.common.learnMore')}</span>
               </LearnMore>
             </div>

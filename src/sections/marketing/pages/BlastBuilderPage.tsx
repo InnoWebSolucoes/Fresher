@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addDays, format } from 'date-fns'
+import { addDays } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Mail, MessageSquare, Search, Tag, Users, X } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -492,7 +493,7 @@ export function BlastBuilderPage() {
                   <p className="mt-8 border-t border-line pt-4 text-caption text-muted">{t('marketing.builder.footer', { name: workspace.name })}</p>
                 </EmailMock>
               ) : (
-                <MessageBubblePreview kind="sms" sender={sender} text={`${form.body || t('marketing.builder.previewBody')}${deal?.code ? ` Code ${deal.code}.` : ''} ${t('marketing.builder.stop')}`} />
+                <MessageBubblePreview kind="sms" sender={sender} text={`${form.body || t('marketing.builder.previewBody')}${deal?.code ? ` ${t('marketing.builder.smsCode', { code: deal.code })}` : ''} ${t('marketing.builder.stop')}`} />
               )}
             </div>
           </aside>

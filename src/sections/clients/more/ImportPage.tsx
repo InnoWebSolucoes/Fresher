@@ -6,7 +6,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useDb } from '@/store/db'
 import { downloadBlob } from '@/lib/export'
 import { Button, EmptyState, IconButton, LearnMore, Select, UnderlineTabs, toast } from '@/components/ui'
-import { buildPreview, IMPORT_FIELDS, IMPORT_TEMPLATE, TEMPLATE_FILE_NAME, type ImportField, type Mapping, type PreviewRow } from '../lib/csv'
+import { buildPreview, IMPORT_FIELDS, importTemplate, templateFileName, type ImportField, type Mapping, type PreviewRow } from '../lib/csv'
 import { fileSize } from '../lib/helpers'
 import { useImportWizard } from './importStore'
 
@@ -158,7 +158,7 @@ function UploadStep() {
     navigate(`${base}/mapping`)
   }
   const download = () => {
-    downloadBlob(new Blob([IMPORT_TEMPLATE], { type: 'text/csv' }), TEMPLATE_FILE_NAME)
+    downloadBlob(new Blob([importTemplate()], { type: 'text/csv' }), templateFileName())
     toast(t('clients.more.import.upload.downloaded'))
   }
 
@@ -175,7 +175,7 @@ function UploadStep() {
         title={t('clients.more.import.upload.title')}
         subtitle={
           <>
-            {t('clients.more.import.upload.subtitle')} <LearnMore topic="Import clients">{t('clients.more.common.learnMore')}</LearnMore>
+            {t('clients.more.import.upload.subtitle')} <LearnMore topic={t('clients.list.importClients')}>{t('clients.more.common.learnMore')}</LearnMore>
           </>
         }
       />

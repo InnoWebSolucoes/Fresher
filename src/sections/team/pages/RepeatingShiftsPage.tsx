@@ -1,4 +1,5 @@
-import { addDays, format } from 'date-fns'
+import { addDays } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Info, MapPin, Plus, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -108,7 +109,7 @@ function RepeatingForm({ locationId, memberId, date }: { locationId: string; mem
     >
       <h1 className="font-display text-title-1 text-ink">{t('team.repeat.title', { name: member.firstName })}</h1>
       <p className="mb-8 mt-2 text-body-lg text-muted">
-        {t('team.repeat.intro')} <LearnMore topic="repeating shifts" />
+        {t('team.repeat.intro')} <LearnMore topic={t('team.topics.repeatingShifts')} />
       </p>
       <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
         <div className="flex flex-col gap-4">

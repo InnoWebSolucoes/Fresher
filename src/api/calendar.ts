@@ -5,6 +5,7 @@ import { nowISO } from '@/lib/time'
 import { activity, actorName, ApiError, latency } from './client'
 import { queueMessage } from './messaging'
 import { repeatDates } from './appointments'
+import { t } from './i18n'
 
 /**
  * Calendar-only operations (calendar.md): personal calendar settings, saved
@@ -35,7 +36,7 @@ export async function renameFilterPreset(id: ID, name: string): Promise<void> {
   await latency(250, 500)
   commit((d) => {
     const preset = d.settings.savedFilters.find((f) => f.id === id)
-    if (!preset) throw new ApiError('not_found', 'Saved filter not found')
+    if (!preset) throw new ApiError('not_found', t('api.calendar.filterNotFound'))
     preset.name = name.trim()
   })
 }
@@ -55,8 +56,8 @@ export async function sendAppointmentForm(appointmentId: ID, templateId: ID): Pr
   const data = db()
   const appt = data.appointments.find((a) => a.id === appointmentId)
   const template = data.formTemplates.find((f) => f.id === templateId)
-  if (!appt || !template) throw new ApiError('not_found', 'Appointment or form not found')
-  if (!appt.clientId) throw new ApiError('walk_in', 'Forms can only be sent to a client')
+  if (!appt || !template) throw new ApiError('not_found', t('api.calendar.appointmentOrFormNotFound'))
+  if (!appt.clientId) throw new ApiError('walk_in', t('api.calendar.formsClientOnly'))
   const client = data.clients.find((c) => c.id === appt.clientId)
   const response: FormResponse = { id: uid('fr'), templateId, clientId: appt.clientId, appointmentId, status: 'sent', answers: {}, sentAt: nowISO() }
   commit((d) => {
@@ -64,7 +65,7 @@ export async function sendAppointmentForm(appointmentId: ID, templateId: ID): Pr
     const a = d.appointments.find((x) => x.id === appointmentId)
     if (a) {
       a.formResponseIds.push(response.id)
-      a.activity.unshift(activity('Form sent', `${template.name} sent to ${client?.firstName ?? 'the client'}`))
+      a.activity.unshift(activity(t('api.calendar.activity.formSent'), t('api.calendar.activity.formSentTo', { form: template.name, name: client?.firstName ?? t('api.calendar.theClient') })))
     }
   })
   if (client) {
@@ -74,10 +75,10 @@ export async function sendAppointmentForm(appointmentId: ID, templateId: ID): Pr
       toName: `${client.firstName} ${client.lastName}`,
       channel: 'email',
       type: 'form',
-      subject: `Please complete "${template.name}" before your appointment`,
-      body: `Hi ${client.firstName}, please fill in the form "${template.name}" before your visit. It only takes a couple of minutes.`,
+      subject: t('api.calendar.form.subject', { form: template.name }),
+      body: t('api.calendar.form.body', { firstName: client.firstName, form: template.name }),
       appointmentId,
-      link: { label: 'Complete form', href: `/forms/${response.id}` },
+      link: { label: t('api.calendar.form.link'), href: `/forms/${response.id}` },
     })
   }
   return response
@@ -87,9 +88,9 @@ export async function setAppointmentPaymentPolicy(id: ID, on: boolean): Promise<
   await latency(250, 500)
   commit((d) => {
     const appt = d.appointments.find((a) => a.id === id)
-    if (!appt) throw new ApiError('not_found', 'Appointment not found')
+    if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
     appt.paymentPolicy = on
-    appt.activity.unshift(activity(on ? 'Payment policy added' : 'Payment policy removed'))
+    appt.activity.unshift(activity(on ? t('calendar.toasts.policyAdded') : t('calendar.toasts.policyRemoved')))
   })
 }
 
@@ -97,13 +98,13 @@ export async function setAppointmentPaymentPolicy(id: ID, on: boolean): Promise<
 export async function setAppointmentRepeat(id: ID, rule: RepeatRule): Promise<number> {
   await latency()
   const appt = db().appointments.find((a) => a.id === id)
-  if (!appt) throw new ApiError('not_found', 'Appointment not found')
+  if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
   if (rule.frequency === 'none') {
     commit((d) => {
       const a = d.appointments.find((x) => x.id === id)
       if (a) {
         a.repeat = undefined
-        a.activity.unshift(activity('Repeat removed'))
+        a.activity.unshift(activity(t('calendar.toasts.repeatRemoved')))
       }
     })
     return 0
@@ -128,13 +129,13 @@ export async function setAppointmentRepeat(id: ID, rule: RepeatRule): Promise<nu
     saleId: undefined,
     waitlistEntryId: undefined,
     formResponseIds: [],
-    activity: [{ ...activity('Appointment created', `Booked by ${by.split(' ')[0]}, repeating series`), by }],
+    activity: [{ ...activity(t('calendar.toasts.created'), t('api.calendar.activity.bookedBySeries', { name: by.split(' ')[0] })), by }],
   }))
   commit((d) => {
     const a = d.appointments.find((x) => x.id === id)
     if (a) {
       a.repeat = { ...rule, seriesId }
-      a.activity.unshift(activity('Set as repeating', `${copies.length + 1} appointments in the series`))
+      a.activity.unshift(activity(t('api.calendar.activity.setRepeating'), t('api.calendar.activity.seriesCount', { count: copies.length + 1 })))
     }
     d.appointments.push(...copies)
   })
@@ -146,7 +147,7 @@ export async function setAppointmentRepeat(id: ID, rule: RepeatRule): Promise<nu
 export async function createBlockedTimeType(input: Omit<BlockedTimeType, 'id'>): Promise<BlockedTimeType> {
   await latency()
   const name = input.name.trim()
-  if (!name) throw new ApiError('invalid', 'Enter a name for the type')
+  if (!name) throw new ApiError('invalid', t('calendar.blocked.typeModal.nameError'))
   const record: BlockedTimeType = { ...input, name, id: uid('btt') }
   commit((d) => {
     d.blockedTimeTypes.push(record)
@@ -162,7 +163,7 @@ export async function createBlockedTimeType(input: Omit<BlockedTimeType, 'id'>):
 export async function setBlockedTimeRepeat(id: ID, rule: RepeatRule): Promise<number> {
   await latency(200, 450)
   const block = db().blockedTimes.find((b) => b.id === id)
-  if (!block) throw new ApiError('not_found', 'Blocked time not found')
+  if (!block) throw new ApiError('not_found', t('api.calendar.blockedTimeNotFound'))
   const repeating = rule.frequency !== 'none'
   const dates = repeating && !block.repeat ? repeatDates(block.date, rule).slice(1) : []
   commit((d) => {
@@ -179,14 +180,14 @@ export async function setBlockedTimeRepeat(id: ID, rule: RepeatRule): Promise<nu
 export async function messageClient(clientId: ID, channel: MessageLog['channel'], text: string): Promise<MessageLog> {
   await latency()
   const client = db().clients.find((c) => c.id === clientId)
-  if (!client) throw new ApiError('not_found', 'Client not found')
+  if (!client) throw new ApiError('not_found', t('clients.drawer.notFound'))
   return queueMessage({
     clientId,
     to: channel === 'email' ? client.email : client.phone,
     toName: `${client.firstName} ${client.lastName}`,
     channel,
     type: 'chat',
-    subject: `Message from ${db().workspace.name}`,
+    subject: t('api.calendar.messageFrom', { business: db().workspace.name }),
     body: text,
   })
 }

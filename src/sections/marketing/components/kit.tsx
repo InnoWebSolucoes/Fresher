@@ -209,7 +209,7 @@ export function BackCrumbs({ onBack, crumbs }: { onBack: () => void; crumbs: { l
         <ArrowLeft size={16} aria-hidden />
         {t('marketing.kit.back')}
       </button>
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-body">
+      <nav aria-label={t('marketing.kit.breadcrumb')} className="flex items-center gap-2 text-body">
         {crumbs.map((c, i) => (
           <span key={i} className="flex items-center gap-2">
             {i > 0 && <span className="text-subtle">·</span>}
@@ -243,6 +243,14 @@ export interface BillingValues {
 }
 
 export const ACCOUNT_TYPES = ['Sole trader / Freelancer', 'Company', 'Incorporated partnership', 'Incorporated association', 'Non-profit organization']
+/** Stored account types (English) → label keys (shared with the add-on setup form). */
+const ACCOUNT_TYPE_KEYS: Record<string, string> = {
+  'Sole trader / Freelancer': 'sole_trader',
+  Company: 'company',
+  'Incorporated partnership': 'partnership',
+  'Incorporated association': 'association',
+  'Non-profit organization': 'non_profit',
+}
 
 export function initialBilling(details?: BillingDetails): BillingValues {
   return {
@@ -327,7 +335,8 @@ export function CardFields({ values, errors, onChange }: { values: BillingValues
       </Field>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label={t('marketing.kit.expiry')} error={errors.expiry}>
-          {(id) => <TextInput id={id} value={values.expiry} invalid={Boolean(errors.expiry)} inputMode="numeric" autoComplete="cc-exp" placeholder="MM/YY" onChange={(e) => onChange({ expiry: formatExpiry(e.target.value) })} />}
+          {(id) => <TextInput id={id} value={values.expiry} invalid={Boolean(errors.expiry)} inputMode="numeric" autoComplete="cc-exp" placeholder={t('settings.common.expiryPlaceholder')}
+ onChange={(e) => onChange({ expiry: formatExpiry(e.target.value) })} />}
         </Field>
         <Field label={t('marketing.kit.cvv')} error={errors.cvv}>
           {(id) => <TextInput id={id} value={values.cvv} invalid={Boolean(errors.cvv)} inputMode="numeric" autoComplete="cc-csc" placeholder={t('marketing.kit.cvvPlaceholder')} onChange={(e) => onChange({ cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })} />}
@@ -346,7 +355,7 @@ export function BillingDetailsFields({ values, errors, onChange }: { values: Bil
         <p className="mt-1 text-body text-muted">{t('marketing.kit.billingDetailsHint')}</p>
       </div>
       <Field label={t('marketing.kit.accountType')}>
-        {(id) => <Select id={id} value={values.accountType} options={ACCOUNT_TYPES} onChange={(e) => onChange({ accountType: e.target.value })} />}
+        {(id) => <Select id={id} value={values.accountType} options={ACCOUNT_TYPES.map((type) => ({ value: type, label: t(`addons.setup.accountTypes.${ACCOUNT_TYPE_KEYS[type]}`) }))} onChange={(e) => onChange({ accountType: e.target.value })} />}
       </Field>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label={t('marketing.kit.firstName')} error={errors.firstName}>

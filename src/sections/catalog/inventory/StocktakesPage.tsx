@@ -20,7 +20,7 @@ export function StocktakesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const loading = usePageLoading()
-  const intro = useIntroProps('Stocktakes')
+  const intro = useIntroProps(t('catalog.inventory.stocktakes.title'))
   const stocktakes = useDb((s) => s.stocktakes)
   const locations = useDb((s) => s.locations)
   const [query, setQuery] = useState('')

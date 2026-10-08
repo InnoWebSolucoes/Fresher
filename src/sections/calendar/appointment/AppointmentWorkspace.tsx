@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowLeft, ChevronDown, ChevronRight, ClipboardList, CreditCard, FileText, LocateFixed, Minimize2, MoreVertical, NotebookPen, Plus, ShieldCheck, UsersRound } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -193,7 +194,7 @@ export function AppointmentWorkspace({ appointment, initial, defaultMember = nul
       const timeChanged = draft.date !== baseline.date || draft.start !== baseline.start
       const otherChanged = !sameItems(draft.items, baseline.items) || draft.clientId !== baseline.clientId
       if (timeChanged) await rescheduleAppointment(appointment.id, { date: draft.date, start: draft.start ?? baseline.start ?? '09:00' }, { notify: sendNotification })
-      if (otherChanged) await updateAppointment(appointment.id, { clientId: draft.clientId, items: toAppointmentItems(draft, memberFor) })
+      if (otherChanged) await updateAppointment(appointment.id, { clientId: draft.clientId, items: toAppointmentItems(draft, memberFor) }, t('calendar.toasts.updated'))
       toast(t(timeChanged ? 'calendar.toasts.rescheduled' : 'calendar.toasts.updated'))
       const fresh = useDb.getState().appointments.find((a) => a.id === appointment.id)
       if (fresh) setDraft(draftFromAppointment(fresh))

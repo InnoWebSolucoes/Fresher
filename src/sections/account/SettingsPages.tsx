@@ -29,7 +29,7 @@ export function PersonalSettingsPage() {
         title={t('account.personal.title')}
         subtitle={
           <>
-            {t('account.personal.subtitle')} <LearnMore topic="personal settings">{t('account.common.learnMore')}</LearnMore>
+            {t('account.personal.subtitle')} <LearnMore topic={t('account.common.topics.personalSettings')}>{t('account.common.learnMore')}</LearnMore>
           </>
         }
       />
@@ -55,7 +55,7 @@ function SubPageHeader({ title, subtitle }: { title: string; subtitle: string })
   const { t } = useTranslation()
   return (
     <>
-      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-body">
+      <nav aria-label={t('account.common.breadcrumb')} className="mb-4 flex items-center gap-2 text-body">
         <Link to="/user-account/personal-settings" className="text-muted hover:text-ink hover:underline">
           {t('pages.personalSettings.title')}
         </Link>

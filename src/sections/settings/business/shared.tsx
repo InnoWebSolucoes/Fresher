@@ -31,24 +31,31 @@ import type { Address, OpeningHours, TimeRange, Weekday } from '@/types'
 
 // ─── Business types ────────────────────────────────────────────────────────
 
-export const BUSINESS_TYPES: { name: string; icon: LucideIcon }[] = [
-  { name: 'Hair Salon', icon: Scissors },
-  { name: 'Nails', icon: Hand },
-  { name: 'Eyebrows & Lashes', icon: Eye },
-  { name: 'Beauty Salon', icon: Sparkles },
-  { name: 'Medspa', icon: Syringe },
-  { name: 'Barber', icon: Armchair },
-  { name: 'Massage', icon: HandHeart },
-  { name: 'Spa & sauna', icon: Bath },
-  { name: 'Waxing Salon', icon: Droplet },
-  { name: 'Tattooing & piercing', icon: PenTool },
-  { name: 'Tanning Studio', icon: Sun },
-  { name: 'Fitness & recovery', icon: Dumbbell },
-  { name: 'Physical therapy', icon: Activity },
-  { name: 'Health practice', icon: Stethoscope },
-  { name: 'Pet grooming', icon: Dog },
-  { name: 'Other', icon: LayoutGrid },
+/** `name` is the stored value (English); `key` names its label under settings.biz.types.names. */
+export const BUSINESS_TYPES: { name: string; key: string; icon: LucideIcon }[] = [
+  { name: 'Hair Salon', key: 'hairSalon', icon: Scissors },
+  { name: 'Nails', key: 'nails', icon: Hand },
+  { name: 'Eyebrows & Lashes', key: 'browsLashes', icon: Eye },
+  { name: 'Beauty Salon', key: 'beautySalon', icon: Sparkles },
+  { name: 'Medspa', key: 'medspa', icon: Syringe },
+  { name: 'Barber', key: 'barber', icon: Armchair },
+  { name: 'Massage', key: 'massage', icon: HandHeart },
+  { name: 'Spa & sauna', key: 'spaSauna', icon: Bath },
+  { name: 'Waxing Salon', key: 'waxingSalon', icon: Droplet },
+  { name: 'Tattooing & piercing', key: 'tattooPiercing', icon: PenTool },
+  { name: 'Tanning Studio', key: 'tanningStudio', icon: Sun },
+  { name: 'Fitness & recovery', key: 'fitnessRecovery', icon: Dumbbell },
+  { name: 'Physical therapy', key: 'physicalTherapy', icon: Activity },
+  { name: 'Health practice', key: 'healthPractice', icon: Stethoscope },
+  { name: 'Pet grooming', key: 'petGrooming', icon: Dog },
+  { name: 'Other', key: 'other', icon: LayoutGrid },
 ]
+
+/** Display label of a stored business type (unknown values are shown as they are). */
+export function businessTypeLabel(t: (k: string) => string, name: string): string {
+  const type = BUSINESS_TYPES.find((b) => b.name === name)
+  return type ? t(`settings.biz.types.names.${type.key}`) : name
+}
 
 /** Checkbox tiles: the first selected is tagged Primary, later ones are numbered; max 4. */
 export function BusinessTypeTiles({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
@@ -59,7 +66,7 @@ export function BusinessTypeTiles({ value, onChange }: { value: string[]; onChan
   }
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" role="group" aria-label={t('settings.biz.types.title')}>
-      {BUSINESS_TYPES.map(({ name, icon: Icon }) => {
+      {BUSINESS_TYPES.map(({ name, key, icon: Icon }) => {
         const index = value.indexOf(name)
         const selected = index !== -1
         const full = !selected && value.length >= 4
@@ -77,7 +84,7 @@ export function BusinessTypeTiles({ value, onChange }: { value: string[]; onChan
             )}
           >
             <Icon size={26} className={selected ? 'text-primary' : 'text-ink'} aria-hidden />
-            <span className="text-body-strong text-ink">{name}</span>
+            <span className="text-body-strong text-ink">{t(`settings.biz.types.names.${key}`)}</span>
             {selected && (
               <span className="absolute right-3 top-3 rounded-full bg-primary px-2.5 py-0.5 text-caption text-on-primary">
                 {index === 0 ? t('settings.biz.types.primary') : index + 1}
@@ -206,7 +213,17 @@ export function addressErrors(a: AddressDraft, t: (k: string) => string): Partia
   return e
 }
 
-export function AddressFields({ value, onChange, errors = {}, showDirections = true }: { value: AddressDraft; onChange: (v: AddressDraft) => void; errors?: Partial<Record<keyof AddressDraft, string>>; showDirections?: boolean }) {
+/** Stored country names (English) and their label keys. */
+const COUNTRIES = [
+  { value: 'Portugal', key: 'portugal' },
+  { value: 'Spain', key: 'spain' },
+  { value: 'France', key: 'france' },
+  { value: 'United Kingdom', key: 'unitedKingdom' },
+  { value: 'Ireland', key: 'ireland' },
+]
+
+export function AddressFields({
+ value, onChange, errors = {}, showDirections = true }: { value: AddressDraft; onChange: (v: AddressDraft) => void; errors?: Partial<Record<keyof AddressDraft, string>>; showDirections?: boolean }) {
   const { t } = useTranslation()
   const [directionsOpen, setDirectionsOpen] = useState(Boolean(value.directions))
   const set = (patch: Partial<AddressDraft>) => onChange({ ...value, ...patch })
@@ -224,7 +241,7 @@ export function AddressFields({ value, onChange, errors = {}, showDirections = t
       {text('region', t('settings.biz.address.region'))}
       {text('postcode', t('settings.biz.address.postcode'), '4000-000')}
       <Field label={t('settings.biz.address.country')}>
-        {(id) => <Select id={id} value={value.country} options={['Portugal', 'Spain', 'France', 'United Kingdom', 'Ireland']} onChange={(e) => set({ country: e.target.value })} />}
+        {(id) => <Select id={id} value={value.country} options={COUNTRIES.map((c) => ({ value: c.value, label: t(`settings.biz.address.countries.${c.key}`) }))} onChange={(e) => set({ country: e.target.value })} />}
       </Field>
       {showDirections && (
         <div>

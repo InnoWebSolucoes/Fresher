@@ -54,7 +54,7 @@ export function CancellationReasonsPage() {
     <SettingsPage
       title={t(`${CR}.title`)}
       description={t(`${CR}.description`)}
-      learnMore="Cancellation reasons"
+      learnMore={t('settings.more1.reasons.title')}
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={200} groups={[{ items: [{ label: t('settings.common.changeOrder'), onSelect: () => setOrdering(true), disabled: reasons.length < 2 }] }]} />
@@ -186,7 +186,7 @@ export function AppointmentStatusesPage() {
     <SettingsPage
       title={t(`${ST}.title`)}
       description={t(`${ST}.description`)}
-      learnMore="Appointment statuses"
+      learnMore={t('settings.more1.statuses.title')}
       actions={
         <Button variant="primary" onClick={() => setEditing('new')} data-testid="status-add">
           {t('settings.common.add')}
@@ -314,7 +314,7 @@ export function ClosedPeriodsPage() {
     <SettingsPage
       title={t(`${CP}.title`)}
       description={t(`${CP}.description`)}
-      learnMore="Closed periods"
+      learnMore={t('settings.more1.closed.title')}
       actions={
         <Button variant="primary" onClick={() => setEditing('new')} data-testid="closed-add">
           {t('settings.common.add')}

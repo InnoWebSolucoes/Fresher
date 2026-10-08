@@ -1,4 +1,5 @@
 import type { Review } from '@/types'
+import { num } from '@/lib/format'
 
 export type Sort = 'recent' | 'highest' | 'lowest'
 
@@ -23,6 +24,9 @@ export function average(reviews: Pick<Review, 'rating'>[]): number {
   if (!reviews.length) return 0
   return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
 }
+
+/** Average rating with one decimal ("4.5" / "4,5"). */
+export const rating1 = (n: number) => num(n, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
 export function ratingCounts(reviews: Pick<Review, 'rating'>[]): Record<number, number> {
   const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }

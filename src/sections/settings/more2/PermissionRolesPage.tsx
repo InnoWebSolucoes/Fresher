@@ -154,7 +154,7 @@ export function PermissionRolesPage() {
     <SettingsPage
       title={t('settings.more2.roles.title')}
       description={t('settings.more2.roles.description')}
-      learnMore="Permission roles"
+      learnMore={t('settings.more2.roles.title')}
       actions={
         <>
           <PillMenu

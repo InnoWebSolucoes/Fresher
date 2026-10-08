@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarCheck, Coins, CreditCard, Gem, Percent, ShoppingBag, Star } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -49,7 +50,7 @@ export function WalletTab() {
       />
       <p className="font-display text-display text-ink tabular">{money(client.walletBalance)}</p>
       <p className="text-body text-muted">
-        {t('clients.wallet.available')} <LearnMore topic="Client wallet">{t('clients.common.learnMore')}</LearnMore>
+        {t('clients.wallet.available')} <LearnMore topic={t('clients.wallet.topic')}>{t('clients.common.learnMore')}</LearnMore>
       </p>
       <SectionTitle title={t('clients.wallet.paymentMethods')} />
       {cards.length === 0 ? (

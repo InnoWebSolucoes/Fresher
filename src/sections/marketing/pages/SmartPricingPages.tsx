@@ -10,7 +10,7 @@ import type { ID, SmartPricing, SmartPricingRule, Weekday } from '@/types'
 import { Avatar, Button, Checkbox, Chip, DateRangeButton, EmptyState, IntroPage, LearnMore, Menu, MenuButton, Modal, Page, PageHeader, PageSkeleton, Select, TextInput, confirm, resolvePreset, toast, usePageLoading, type DateRangeValue } from '@/components/ui'
 import { clearSmartPricing, saveSmartPricing, setSmartPricingStatus } from '@/api/marketing'
 import { toClock, toMinutes, weekdayOf } from '@/lib/time'
-import { money } from '@/lib/format'
+import { money, num } from '@/lib/format'
 import { StatCard, SuccessBadge, UnitToggle, WizardFrame, WizardTitle } from '../components/kit'
 import { ScopeModal } from './DealWizardPage'
 
@@ -25,7 +25,7 @@ function ruleFor(sp: SmartPricing, day: Weekday, start: string): SmartPricingRul
 }
 
 export function ruleLabel(r: SmartPricingRule, t: TFunction) {
-  return t(`marketing.smartPricing.change.${r.direction}`, { value: r.unit === 'percent' ? `${r.value}%` : money(r.value) })
+  return t(`marketing.smartPricing.change.${r.direction}`, { value: r.unit === 'percent' ? `${num(r.value)}%` : money(r.value) })
 }
 
 export function SmartPricingIntroPage() {
@@ -123,7 +123,7 @@ export function SmartPricingDetailsPage() {
         title={t('marketing.smartPricing.title')}
         subtitle={
           <>
-            {t('marketing.smartPricing.subtitle')} <LearnMore topic="smart pricing">{t('marketing.common.learnMore')}</LearnMore>
+            {t('marketing.smartPricing.subtitle')} <LearnMore topic={t('marketing.common.topics.smartPricing')}>{t('marketing.common.learnMore')}</LearnMore>
           </>
         }
       />
@@ -415,7 +415,7 @@ export function SmartPricingSetupPage() {
             title={t('marketing.smartPricing.rules.title')}
             subtitle={
               <>
-                {t('marketing.smartPricing.rules.subtitle')} <LearnMore topic="smart pricing rules">{t('marketing.common.learnMore')}</LearnMore>
+                {t('marketing.smartPricing.rules.subtitle')} <LearnMore topic={t('marketing.common.topics.smartPricingRules')}>{t('marketing.common.learnMore')}</LearnMore>
               </>
             }
           />

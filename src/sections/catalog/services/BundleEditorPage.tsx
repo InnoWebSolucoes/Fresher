@@ -186,7 +186,7 @@ export function BundleEditorPage() {
             label={t('catalog.bundle.schedule')}
             hint={
               <>
-                {t('catalog.bundle.scheduleHint')} <LearnMore topic="Bundles">{t('catalog.common.learnMore')}</LearnMore>
+                {t('catalog.bundle.scheduleHint')} <LearnMore topic={t('catalog.menuFilters.bundles')}>{t('catalog.common.learnMore')}</LearnMore>
               </>
             }
           >

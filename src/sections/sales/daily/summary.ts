@@ -1,7 +1,8 @@
+import i18n from 'i18next'
 import { computeTotals, lineTotal } from '@/api/sales'
 import { round2 } from '@/lib/format'
 import type { ISODate, Payment, PaymentMethod, Sale, SaleItemType } from '@/types'
-import { dayOf, methodName } from '../shared/data'
+import { dayOf, methodLabelOf, methodName } from '../shared/data'
 
 /**
  * Daily sales summary (sales.md §1), computed from every sale, payment and
@@ -96,8 +97,8 @@ export function computeDailySummary(sales: Sale[], payments: Payment[], date: IS
   const transactions = [...rows.values()].map((r) => ({ ...r, gross: round2(r.gross) }))
   const total = transactions.reduce((acc, r) => ({ salesQty: acc.salesQty + r.salesQty, refundQty: acc.refundQty + r.refundQty, gross: round2(acc.gross + r.gross) }), { salesQty: 0, refundQty: 0, gross: 0 })
 
-  const cash: CashRow = { key: 'cash', label: 'Cash', collected: 0, refunded: 0 }
-  const giftCards: CashRow = { key: 'gift_card', label: 'Gift card', collected: 0, refunded: 0 }
+  const cash: CashRow = { key: 'cash', label: i18n.t('sales.daily.rows.cash'), collected: 0, refunded: 0 }
+  const giftCards: CashRow = { key: 'gift_card', label: methodLabelOf('gift_card'), collected: 0, refunded: 0 }
   const methods = new Map<string, CashRow & { order: number }>()
   for (const p of payments) {
     if (p.status !== 'succeeded' || dayOf(p.at) !== date) continue

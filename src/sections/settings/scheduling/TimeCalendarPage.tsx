@@ -7,7 +7,7 @@ import { useSettings } from '../hooks'
 import { EditCard, FormCard, InfoGrid, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
 import { useAction, useDraft } from '../components/useAction'
-import { TIME_ZONES, WEEK_SUNDAY_FIRST, weekdayName } from './options'
+import { TIME_ZONES, WEEK_SUNDAY_FIRST, timeZoneLabel, weekdayName } from './options'
 
 const K = 'settings.sched.time'
 const COLOR_SOURCES: Settings['calendar']['colorSource'][] = ['team_member', 'category', 'status', 'resource']
@@ -20,11 +20,11 @@ export function TimeCalendarPage() {
   const enabled = (on: boolean) => t(on ? 'settings.common.enabled' : 'settings.common.disabled')
 
   return (
-    <SettingsPage title={t(`${K}.title`)} description={t(`${K}.description`)} learnMore="Time and calendar settings">
+    <SettingsPage title={t(`${K}.title`)} description={t(`${K}.description`)} learnMore={t('settings.sched.time.timeModalTitle')}>
       <EditCard title={t(`${K}.dateTimeCard`)} onEdit={() => setEditing('time')} testId="date-time-card">
         <InfoGrid
           rows={[
-            { label: t(`${K}.timeZone`), value: settings.timezone },
+            { label: t(`${K}.timeZone`), value: timeZoneLabel(t, settings.timezone) },
             { label: t(`${K}.timeFormat`), value: t(`${K}.format.${settings.timeFormat}`) },
             { label: t(`${K}.firstDay`), value: weekdayName(t, settings.firstDayOfWeek) },
           ]}
@@ -68,7 +68,8 @@ function TimeModal({ onClose }: { onClose: () => void }) {
   return (
     <FullModal open onClose={onClose} title={t(`${K}.timeModalTitle`)} onSave={save} saving={saving} testId="time-modal">
       <FormCard>
-        <Field label={t(`${K}.timeZone`)}>{(id) => <Select id={id} value={draft.timezone} onChange={(e) => patch({ timezone: e.target.value })} options={zones} />}</Field>
+        <Field label={t(`${K}.timeZone`)}>{(id) => <Select id={id} value={draft.timezone} onChange={(e) => patch({ timezone: e.target.value })} options={zones.map((z) => ({ value: z, label: timeZoneLabel(t, z) }))} />
+}</Field>
         <Field label={t(`${K}.timeFormat`)}>
           {(id) => (
             <Select
@@ -130,7 +131,7 @@ function CalendarModal({ onClose }: { onClose: () => void }) {
           label={t(`${K}.processingLabel`)}
           hint={
             <>
-              {t(`${K}.processingHint`)} <LearnMore topic="Processing time">{t('settings.common.learnMore')}</LearnMore>
+              {t(`${K}.processingHint`)} <LearnMore topic={t('catalog.extraTime.processing')}>{t('settings.common.learnMore')}</LearnMore>
             </>
           }
         />
@@ -140,7 +141,7 @@ function CalendarModal({ onClose }: { onClose: () => void }) {
           label={t(`${K}.blockedLabel`)}
           hint={
             <>
-              {t(`${K}.blockedHint`)} <LearnMore topic="Blocked time">{t('settings.common.learnMore')}</LearnMore>
+              {t(`${K}.blockedHint`)} <LearnMore topic={t('catalog.extraTime.blocked')}>{t('settings.common.learnMore')}</LearnMore>
             </>
           }
         />

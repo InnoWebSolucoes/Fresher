@@ -46,7 +46,7 @@ export function PinSwitchingPage() {
   }
 
   return (
-    <SettingsPage title={t('settings.more2.pin.title')} description={t('settings.more2.pin.description')} learnMore="PIN switching">
+    <SettingsPage title={t('settings.more2.pin.title')} description={t('settings.more2.pin.description')} learnMore={t('settings.more2.pin.title')}>
       <EditCard
         testId="pin-switching"
         title={

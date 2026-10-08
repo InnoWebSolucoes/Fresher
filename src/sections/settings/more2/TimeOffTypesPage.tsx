@@ -53,7 +53,7 @@ export function TimeOffTypesPage() {
     <SettingsPage
       title={t('settings.more2.timeOff.title')}
       description={t('settings.more2.timeOff.description')}
-      learnMore="Time off types"
+      learnMore={t('settings.more2.timeOff.title')}
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={220} groups={[{ items: [{ label: t('settings.common.changeOrder'), icon: <ListOrdered size={16} />, onSelect: () => setModal({ kind: 'order' }) }] }]} />

@@ -15,7 +15,7 @@ import { todayISO } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { Settings } from '@/types'
 import { useCheckout } from './context'
-import { EXPIRY_OPTIONS, appliedOfferKey, applyOffer, basePrice, dealsForLine, keypadPress, offerTotal, offerUnitPrice, offersForLine, parseAmount, type Offer } from './model'
+import { EXPIRY_OPTIONS, appliedOfferKey, expiryLabel, keypadMoney, applyOffer, basePrice, dealsForLine, keypadPress, offerTotal, offerUnitPrice, offersForLine, parseAmount, type Offer } from './model'
 import { OfferTag } from './OffersModal'
 import { Keypad } from './ui'
 
@@ -169,7 +169,7 @@ export function GiftCardModal({ lineKey, onClose }: { lineKey: string | null; on
     if (valueError || codeError || priceError) return
     const patch = {
       type: 'gift_card' as const,
-      name: 'Gift Card',
+      name: t('checkout.cart.giftCardTitle'),
       quantity: 1,
       unitPrice: round2(effectivePrice),
       discount,
@@ -201,7 +201,7 @@ export function GiftCardModal({ lineKey, onClose }: { lineKey: string | null; on
           {(id) => <Select id={id} value={dealId} disabled={!available.length} onChange={(e) => setDealId(e.target.value)} options={[{ value: '', label: available.length ? t('checkout.editItem.noneSelected') : t('checkout.editItem.noneAvailable') }, ...available.map((d) => ({ value: d.id, label: `${d.name} (${d.discountType === 'percent' ? `${d.value}%` : money(d.value)} ${t('checkout.editItem.off')})` }))]} />}
         </Field>
         <Field label={t('checkout.giftCard.expiration')}>
-          {(id) => <Select id={id} value={expiry} onChange={(e) => setExpiry(e.target.value)} options={EXPIRY_OPTIONS.map((o) => ({ value: o, label: o }))} />}
+          {(id) => <Select id={id} value={expiry} onChange={(e) => setExpiry(e.target.value)} options={EXPIRY_OPTIONS.map((o) => ({ value: o, label: expiryLabel(o) }))} />}
         </Field>
         <Checkbox label={t('checkout.giftCard.useCustomCode')} checked={useCustom} onChange={setUseCustom} />
         {useCustom && (
@@ -272,14 +272,14 @@ export function QuickPaymentModal({ onClose }: { onClose: () => void }) {
     if (!c.lines.length) c.close()
   }
   const go = () => {
-    c.addLine({ type: 'manual', name: 'Manual payment', quantity: 1, unitPrice: amount, teamMemberId: c.defaultMemberId })
+    c.addLine({ type: 'manual', name: t('checkout.lineNames.manualPayment'), quantity: 1, unitPrice: amount, teamMemberId: c.defaultMemberId })
     onClose()
     c.goto(c.tippingEnabled ? 'tip' : 'payment')
   }
   return (
     <Modal open onClose={dismiss} size="sm" title={t('checkout.quickPayment.title')}>
       <p className={`py-6 text-center font-display text-[44px] font-bold leading-[52px] tabular ${amount ? 'text-ink' : 'text-subtle'}`} aria-live="polite">
-        €{text || '0'}
+        {keypadMoney(text)}
       </p>
       <Keypad rounded={false} onPress={(k) => setText((s) => keypadPress(s, k))} />
       <div className="mt-6 flex h-12 justify-end">

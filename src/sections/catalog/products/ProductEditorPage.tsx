@@ -283,7 +283,7 @@ export function ProductEditorPage() {
             <div className="border-t border-line pt-5">
               <h3 className="font-display text-title-3 text-ink">{t(`${P}.form.lowStock`)}</h3>
               <p className="mb-4 mt-1 text-body text-muted">
-                {t(`${P}.form.lowStockSubtitle`)} <LearnMore topic="Low stock">{t('catalog.common.learnMore')}</LearnMore>
+                {t(`${P}.form.lowStockSubtitle`)} <LearnMore topic={t('catalog.topics.lowStock')}>{t('catalog.common.learnMore')}</LearnMore>
               </p>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label={t(`${P}.form.lowStockLevel`)} hint={t(`${P}.form.lowStockLevelHint`)}>

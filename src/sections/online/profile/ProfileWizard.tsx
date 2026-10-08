@@ -9,7 +9,7 @@ import { generateDescription, saveProfile, setProfileListed, type ProfilePatch }
 import { toClock } from '@/lib/time'
 import type { Address, Location, OpeningHours, Weekday } from '@/types'
 import { ChapterScreen } from '@/sections/marketing/components/kit'
-import { readImage, sampleImage, WEEKDAYS } from '../shared'
+import { featureLabel, readImage, sampleImage, WEEKDAYS } from '../shared'
 import { ProfilePreviewModal } from './ProfilePreview'
 
 export const PROFILE_STEPS = ['overview', 'essentials-overview', 'essentials', 'location', 'working-hours', 'showcase-overview', 'images', 'features', 'about', 'bookings-overview', 'enable'] as const
@@ -325,7 +325,8 @@ export function StepBody({ step, draft, set, error, location }: { step: ProfileS
                       className={clsx('flex h-10 items-center gap-2 rounded-full border px-4 text-body transition-colors', on ? 'border-primary bg-primary-subtle font-semibold text-primary' : 'border-line-strong bg-surface text-ink hover:bg-sunken')}
                     >
                       {on && <Check size={14} aria-hidden />}
-                      {o}
+                      {featureLabel(t, o)}
+
                     </button>
                   )
                 })}

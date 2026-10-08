@@ -1,4 +1,5 @@
-import { addDays, endOfMonth, endOfQuarter, endOfWeek, endOfYear, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from 'date-fns'
+import { addDays, endOfMonth, endOfQuarter, endOfWeek, endOfYear, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from 'date-fns'
+import { format } from '@/lib/dates'
 import { round2 } from '@/lib/format'
 import { L } from './labels'
 import type { Cell, Col, ColType, Filters, Link, Range, RangeFilters, Result, Row } from './types'

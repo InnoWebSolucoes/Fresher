@@ -369,7 +369,7 @@ export function ManualCardModal({ onClose }: { onClose: () => void }) {
             {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-number" placeholder="1234 1234 1234 1234" value={form.number} onChange={(e) => setForm((f) => ({ ...f, number: formatNumber(e.target.value) }))} invalid={Boolean(errors.number)} />}
           </Field>
           <Field label={t('checkout.card.expiry')} error={errors.expiry}>
-            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-exp" placeholder="MM/YY" value={form.expiry} onChange={(e) => setForm((f) => ({ ...f, expiry: formatExpiry(e.target.value) }))} invalid={Boolean(errors.expiry)} />}
+            {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-exp" placeholder={t('checkout.card.expiryPlaceholder')} value={form.expiry} onChange={(e) => setForm((f) => ({ ...f, expiry: formatExpiry(e.target.value) }))} invalid={Boolean(errors.expiry)} />}
           </Field>
           <Field label={t('checkout.card.cvc')} error={errors.cvc}>
             {(id) => <TextInput id={id} inputMode="numeric" autoComplete="cc-csc" placeholder="123" maxLength={4} value={form.cvc} onChange={(e) => setForm((f) => ({ ...f, cvc: e.target.value.replace(/\D/g, '') }))} invalid={Boolean(errors.cvc)} />}

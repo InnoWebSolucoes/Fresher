@@ -7,10 +7,10 @@ import type { Supplier } from '@/types'
 import { saveSupplier, type SupplierInput } from '@/api/catalog'
 import { EditorFrame, SectionCard } from '../ui'
 import { confirmDeleteSupplier } from './SuppliersPage'
+import { countryLabel, SUPPLIER_COUNTRIES } from '../lib'
 
 type SectionId = 'basic' | 'contact' | 'address'
 
-const COUNTRIES = ['Portugal', 'Spain', 'France', 'Germany', 'Italy', 'Netherlands', 'Belgium', 'Ireland', 'United Kingdom', 'United States', 'Brazil']
 
 const EMPTY: SupplierInput = { name: '', description: '', firstName: '', lastName: '', mobile: '', telephone: '', email: '', website: '', address: { country: 'Portugal' } }
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
@@ -142,7 +142,7 @@ function SupplierForm({ supplier }: { supplier?: Supplier }) {
             <Field label={t('catalog.inventory.supplierEditor.state')}>{(fid) => <TextInput id={fid} value={form.address.state ?? ''} onChange={(e) => setAddress({ state: e.target.value })} />}</Field>
             <Field label={t('catalog.inventory.supplierEditor.postcode')}>{(fid) => <TextInput id={fid} value={form.address.postcode ?? ''} onChange={(e) => setAddress({ postcode: e.target.value })} />}</Field>
             <Field label={t('catalog.inventory.supplierEditor.country')}>
-              {(fid) => <Select id={fid} value={form.address.country ?? 'Portugal'} onChange={(e) => setAddress({ country: e.target.value })} options={COUNTRIES.includes(form.address.country ?? '') || !form.address.country ? COUNTRIES : [form.address.country, ...COUNTRIES]} />}
+              {(fid) => <Select id={fid} value={form.address.country ?? 'Portugal'} onChange={(e) => setAddress({ country: e.target.value })} options={(SUPPLIER_COUNTRIES.includes(form.address.country ?? '') || !form.address.country ? SUPPLIER_COUNTRIES : [form.address.country, ...SUPPLIER_COUNTRIES]).map((value) => ({ value, label: countryLabel(value) }))} />}
             </Field>
           </div>
         </SectionCard>

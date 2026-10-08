@@ -10,7 +10,7 @@ import { fmtDateEU, fullName, money, round2 } from '@/lib/format'
 import { todayISO } from '@/lib/time'
 import type { GiftCard } from '@/types'
 import { useCheckout } from './context'
-import { keypadPress, parseAmount, quickAmounts } from './model'
+import { keypadMoney, keypadPress, parseAmount, quickAmounts } from './model'
 import { BackTitle, GiftCardArt, Keypad, Tile } from './ui'
 
 const fmtInput = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
@@ -43,7 +43,7 @@ export function CashModal({ split, onClose }: { split: boolean; onClose: () => v
     <Modal open onClose={onClose} size="md" title={<BackTitle onBack={split ? () => c.setModal({ kind: 'splitSelect' }) : undefined}>{t('checkout.cash.title')}</BackTitle>}>
       <div className="flex flex-col items-center pb-2">
         <p className="border-b-2 border-line px-4 pb-1 pt-2 font-display text-[40px] font-bold leading-[48px] text-ink tabular" aria-live="polite">
-          € {text || '0'}
+          {keypadMoney(text, true)}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           {quickAmounts(due).map((q) => (

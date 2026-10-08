@@ -13,7 +13,7 @@ import { now } from '@/lib/time'
 import type { Product } from '@/types'
 import { deleteProducts } from '@/api/catalog'
 import { InfoCard, PaneTitle, TwoPaneDrawer } from '../ui'
-import { StockModal, useReasonLabel } from './parts'
+import { StockModal, useReasonLabel, useRefLabel } from './parts'
 
 const P = 'catalog.products2'
 type Tab = 'details' | 'orders' | 'sales' | 'history'
@@ -266,6 +266,7 @@ function SalesTab({ product }: { product: Product }) {
 function HistoryTab({ product }: { product: Product }) {
   const { t } = useTranslation()
   const reasonLabel = useReasonLabel()
+  const refLabel = useRefLabel()
   const movements = useDb((s) => s.stockMovements)
   const locations = useDb((s) => s.locations)
   const list = useMemo(() => movements.filter((m) => m.productId === product.id).sort((a, b) => b.at.localeCompare(a.at)), [movements, product.id])
@@ -306,7 +307,7 @@ function HistoryTab({ product }: { product: Product }) {
                 </span>
                 <span className="mt-1 block text-small text-muted">
                   {reasonLabel(m.reason)}
-                  {m.ref ? ` · ${m.ref}` : ''}
+                  {m.ref ? ` · ${refLabel(m.ref)}` : ''}
                   {m.supplyPrice !== undefined ? ` · ${t(`${P}.history.cost`, { price: money(m.supplyPrice) })}` : ''}
                 </span>
               </span>

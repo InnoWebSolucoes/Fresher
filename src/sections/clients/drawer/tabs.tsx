@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarDays, ChevronDown, Pencil, Plus, Receipt, TriangleAlert } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,16 +8,17 @@ import { useNavigate } from 'react-router-dom'
 import type { Appointment, AppointmentStatus, Sale } from '@/types'
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
-import { money } from '@/lib/format'
+import { money, num } from '@/lib/format'
 import { todayISO } from '@/lib/time'
 import { Button, EmptyState, Menu, PillTabs } from '@/components/ui'
 import { useClientDrawer } from './context'
 import { AppointmentCard, SaleCard } from './cards'
-import { SeverityIcon } from './dialogs'
+import { allergyName, SeverityIcon } from './dialogs'
 import { InfoTip } from '../components/common'
 import { TagChip } from '../components/TagPicker'
-import { addressLines } from '../components/AddressModal'
 import { clientName, fmtLongDate, isPaidSale, saleItemsTotal } from '../lib/helpers'
+import { countryLabel, pronounLabel, reactionLabel } from '../lib/constants'
+import { addressLines, addressName } from '../components/AddressModal'
 
 export function TabHeader({ title, action }: { title: string; action?: ReactNode }) {
   return (
@@ -69,7 +71,7 @@ export function OverviewTab() {
   const reviews = useDb((s) => s.reviews)
   const { appts, upcoming, sales } = useClientRecords()
   const mine = reviews.filter((r) => r.clientId === client.id)
-  const rating = mine.length ? (mine.reduce((s, r) => s + r.rating, 0) / mine.length).toFixed(1) : '–'
+  const rating = mine.length ? num(mine.reduce((s, r) => s + r.rating, 0) / mine.length, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '–'
   const totalSales = sales.filter(isPaidSale).reduce((s, x) => s + saleItemsTotal(x), 0)
   const stat = (label: string, value: ReactNode, tip: string, wide?: boolean) => (
     <div className={clsx('rounded-lg border border-line bg-surface p-5', wide && 'col-span-2')}>
@@ -100,8 +102,8 @@ export function OverviewTab() {
               <div key={a.id} className="flex items-center gap-4 rounded-lg border border-line bg-surface p-4">
                 <SeverityIcon severity={a.severity} size={40} />
                 <div>
-                  <p className="text-body-lg font-semibold text-ink">{a.name}</p>
-                  <p className="text-body text-muted">{[a.severity ? t(`clients.allergy.severityLabel.${a.severity}`) : t('clients.allergy.unknownSeverity'), a.reaction].filter(Boolean).join(' • ')}</p>
+                  <p className="text-body-lg font-semibold text-ink">{allergyName(a)}</p>
+                  <p className="text-body text-muted">{[a.severity ? t(`clients.allergy.severityLabel.${a.severity}`) : t('clients.allergy.unknownSeverity'), reactionLabel(a.reaction)].filter(Boolean).join(' • ')}</p>
                 </div>
               </div>
             ))}
@@ -334,7 +336,7 @@ export function DetailsTab() {
             [t('clients.details.phone'), client.phone],
             [t('clients.details.dob'), client.birthday ? fmtLongDate(client.birthday) : ''],
             [t('clients.form.gender'), client.gender ? t(`clients.gender.${client.gender}`) : ''],
-            [t('clients.form.pronouns'), client.pronouns],
+            [t('clients.form.pronouns'), pronounLabel(client.pronouns)],
             [t('clients.details.joined'), fmtLongDate(client.createdAt.slice(0, 10))],
           ])}
         </section>
@@ -344,7 +346,7 @@ export function DetailsTab() {
             [t('clients.form.source'), sources.find((s) => s.id === client.sourceId)?.name],
             [t('clients.form.referredBy'), referrer ? clientName(referrer) : ''],
             [t('clients.form.language'), client.language],
-            [t('clients.form.country'), client.country],
+            [t('clients.form.country'), countryLabel(client.country)],
             [t('clients.form.occupation'), client.occupation],
             [t('clients.form.additionalEmail'), client.additionalEmail],
             [t('clients.form.additionalPhone'), client.additionalPhone],
@@ -365,7 +367,7 @@ export function DetailsTab() {
             <div className="flex flex-col gap-3">
               {client.addresses.map((a) => (
                 <div key={a.id} className="rounded-md bg-surface p-4 ring-1 ring-line">
-                  <p className="text-body-strong text-ink">{a.name}</p>
+                  <p className="text-body-strong text-ink">{addressName(a)}</p>
                   {addressLines(a).map((l) => (
                     <p key={l} className="text-body text-muted">
                       {l}

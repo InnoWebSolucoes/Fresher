@@ -1,3 +1,4 @@
+import i18n from 'i18next'
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { readExt, setExt, useExt } from '@/api/ext'
@@ -110,7 +111,7 @@ export interface CustomReportInput {
 
 export async function createCustomReport(input: CustomReportInput, author: { id: string | null; name: string }): Promise<CustomReport> {
   const name = input.name.trim()
-  if (!name) throw new ApiError('name_required', 'Enter a report name')
+  if (!name) throw new ApiError('name_required', i18n.t('reports.custom.nameRequired'))
   const at = nowISO()
   const report: CustomReport = { id: uid('rep'), name, description: input.description.trim(), base: input.base, createdById: author.id, createdBy: author.name, createdAt: at, updatedAt: at, config: input.config ?? {}, view: input.view ?? {} }
   await setExt(NS, 'custom', [...readExt(NS, 'custom', NO_CUSTOM), report])
@@ -119,7 +120,7 @@ export async function createCustomReport(input: CustomReportInput, author: { id:
 }
 
 export async function updateCustomReport(id: string, patch: Partial<Pick<CustomReport, 'name' | 'description' | 'config' | 'view'>>): Promise<void> {
-  if (patch.name !== undefined && !patch.name.trim()) throw new ApiError('name_required', 'Enter a report name')
+  if (patch.name !== undefined && !patch.name.trim()) throw new ApiError('name_required', i18n.t('reports.custom.nameRequired'))
   await setExt(
     NS,
     'custom',
@@ -137,9 +138,9 @@ export async function deleteCustomReport(id: string): Promise<void> {
 
 export async function createFolder(name: string): Promise<ReportFolder> {
   const clean = name.trim()
-  if (!clean) throw new ApiError('name_required', 'Enter a folder name')
+  if (!clean) throw new ApiError('name_required', i18n.t('reports.folder.nameRequired'))
   const folders = readExt(NS, 'folders', NO_FOLDERS)
-  if (folders.some((f) => f.name.toLowerCase() === clean.toLowerCase())) throw new ApiError('duplicate', 'A folder with this name already exists')
+  if (folders.some((f) => f.name.toLowerCase() === clean.toLowerCase())) throw new ApiError('duplicate', i18n.t('reports.folder.duplicate'))
   const folder: ReportFolder = { id: uid('fld'), name: clean, items: [], createdAt: nowISO() }
   await setExt(NS, 'folders', [...folders, folder])
   return folder
@@ -147,9 +148,9 @@ export async function createFolder(name: string): Promise<ReportFolder> {
 
 export async function renameFolder(id: string, name: string): Promise<void> {
   const clean = name.trim()
-  if (!clean) throw new ApiError('name_required', 'Enter a folder name')
+  if (!clean) throw new ApiError('name_required', i18n.t('reports.folder.nameRequired'))
   const folders = readExt(NS, 'folders', NO_FOLDERS)
-  if (folders.some((f) => f.id !== id && f.name.toLowerCase() === clean.toLowerCase())) throw new ApiError('duplicate', 'A folder with this name already exists')
+  if (folders.some((f) => f.id !== id && f.name.toLowerCase() === clean.toLowerCase())) throw new ApiError('duplicate', i18n.t('reports.folder.duplicate'))
   await setExt(NS, 'folders', folders.map((f) => (f.id === id ? { ...f, name: clean } : f)))
 }
 

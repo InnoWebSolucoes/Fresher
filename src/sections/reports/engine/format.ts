@@ -1,5 +1,6 @@
-import { format, parseISO } from 'date-fns'
-import { money2, round2 } from '@/lib/format'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
+import { money2, num, round2 } from '@/lib/format'
 import type { Cell, ColType } from './types'
 
 export const isNumeric = (type: ColType) => type === 'int' || type === 'num' || type === 'money' || type === 'pct' || type === 'hours' || type === 'mins'
@@ -18,11 +19,11 @@ export function formatCell(value: Cell, type: ColType): string {
     case 'money':
       return money2(Number(value))
     case 'int':
-      return Math.round(Number(value)).toLocaleString('en-IE')
+      return num(Math.round(Number(value)))
     case 'num':
-      return round2(Number(value)).toLocaleString('en-IE', { maximumFractionDigits: 2 })
+      return num(round2(Number(value)), { maximumFractionDigits: 2 })
     case 'pct':
-      return `${round2(Number(value)).toLocaleString('en-IE', { maximumFractionDigits: 2 })}%`
+      return `${num(round2(Number(value)), { maximumFractionDigits: 2 })}%`
     case 'hours':
       return hoursLabel(Number(value))
     case 'mins':

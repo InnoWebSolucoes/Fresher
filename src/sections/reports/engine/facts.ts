@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { computeTotals, lineTotal, PAYMENT_LABELS, salePaid } from '@/api/sales'
 import { round2 } from '@/lib/format'
 import type { Appointment, AppointmentItem, GiftCard, ID, Payment, Sale, SaleItem } from '@/types'

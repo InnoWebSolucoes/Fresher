@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { AlertTriangle } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +33,7 @@ export function UpdateAppointmentModal({ move, onCancel, onDone }: { move: Pendi
     try {
       const resizeIndex = move.resize ? appt.items.findIndex((i) => i.id === move.resize!.itemId) : -1
       if (move.resize && resizeIndex > 0) {
-        await updateAppointment(appt.id, { items: movedItems(appt, move) }, 'Appointment updated')
+        await updateAppointment(appt.id, { items: movedItems(appt, move) }, t('calendar.toasts.updated'))
       } else {
         await rescheduleAppointment(appt.id, { date: move.date, start: move.start, teamMemberId: move.teamMemberId, durationMin: move.resize?.durationMin }, { notify: Boolean(client) && notify })
       }

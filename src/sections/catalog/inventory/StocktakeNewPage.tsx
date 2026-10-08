@@ -44,7 +44,7 @@ export function StocktakeNewPage() {
       <p className="text-body text-muted">{t('catalog.inventory.stocktakeNew.eyebrow')}</p>
       <h1 className="mt-1 font-display text-display text-ink">{t('catalog.inventory.stocktakeNew.title')}</h1>
       <p className="mt-2 text-body-lg text-muted">
-        {t('catalog.inventory.stocktakeNew.subtitle')} <LearnMore topic="Stocktakes">{t('catalog.common.learnMore')}</LearnMore>
+        {t('catalog.inventory.stocktakeNew.subtitle')} <LearnMore topic={t('catalog.inventory.stocktakes.title')}>{t('catalog.common.learnMore')}</LearnMore>
       </p>
       {!tracked ? (
         <EmptyState

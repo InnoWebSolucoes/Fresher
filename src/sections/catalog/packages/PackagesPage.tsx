@@ -41,7 +41,7 @@ function PackagesArt() {
       <div className="rounded-xl p-6 text-white shadow-lg" style={{ background: themeOf('Purple Veil').gradient }}>
         <p className="font-display text-title-2">{t('catalog.packages.artName')}</p>
         <p className="text-body-strong opacity-90">{t('catalog.packages.artSessions')}</p>
-        <p className="mt-10 text-right font-display text-title-1">€120</p>
+        <p className="mt-10 text-right font-display text-title-1">{money(120)}</p>
         <p className="text-right text-body-strong opacity-90">{t('catalog.packages.artSave')}</p>
       </div>
       {[t('catalog.packages.artItem1'), t('catalog.packages.artItem2')].map((label, i) => (
@@ -60,7 +60,7 @@ export function PackagesPage() {
   const navigate = useNavigate()
   const drawer = useDrawer()
   const loading = usePageLoading()
-  const intro = useIntroProps('Packages')
+  const intro = useIntroProps(t('catalog.packages.title'))
   const packages = useDb((s) => s.packages)
   const categories = useDb((s) => s.serviceCategories)
   const clientPackages = useDb((s) => s.clientPackages)
@@ -135,7 +135,7 @@ export function PackagesPage() {
         title={t('catalog.packages.title')}
         subtitle={
           <>
-            {t('catalog.packages.subtitle')} <LearnMore topic="Packages">{t('catalog.common.learnMore')}</LearnMore>
+            {t('catalog.packages.subtitle')} <LearnMore topic={t('catalog.packages.title')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={

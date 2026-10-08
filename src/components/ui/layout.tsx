@@ -1,8 +1,10 @@
 import clsx from 'clsx'
 import { Check, Search, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useDrawer } from '@/lib/drawer'
+import { money } from '@/lib/format'
 import { Button } from './Button'
 
 /** Standard content width for shell pages. */
@@ -26,11 +28,12 @@ export function Toolbar({ children, className }: { children: ReactNode; classNam
 }
 
 /** Opens the help centre on a topic (every "Learn more" link). */
-export function LearnMore({ topic, children = 'Learn more' }: { topic: string; children?: ReactNode }) {
+export function LearnMore({ topic, children }: { topic: string; children?: ReactNode }) {
+  const { t } = useTranslation()
   const drawer = useDrawer()
   return (
     <button type="button" className="text-primary underline-offset-2 hover:underline" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: topic })}>
-      {children}
+      {children ?? t('common.learnMore')}
     </button>
   )
 }
@@ -40,11 +43,12 @@ export function LearnMore({ topic, children = 'Learn more' }: { topic: string; c
  * (catalog.md intro pattern): badge, headline, text, ✓ bullets, Start now,
  * Learn more and an illustration slot.
  */
-export function IntroPage({ badge = 'Included in your plan', title, body, bullets, primary, secondary, price, art }: { badge?: string; title: ReactNode; body: ReactNode; bullets: string[]; primary: { label: string; onClick: () => void; loading?: boolean }; secondary?: ReactNode; price?: ReactNode; art?: ReactNode }) {
+export function IntroPage({ badge, title, body, bullets, primary, secondary, price, art }: { badge?: string; title: ReactNode; body: ReactNode; bullets: string[]; primary: { label: string; onClick: () => void; loading?: boolean }; secondary?: ReactNode; price?: ReactNode; art?: ReactNode }) {
+  const { t } = useTranslation()
   return (
     <div className="grid items-center gap-10 py-6 lg:grid-cols-[1fr_minmax(0,420px)]">
       <div>
-        <span className="chip bg-accent-subtle text-warning">{badge}</span>
+        <span className="chip bg-accent-subtle text-warning">{badge ?? t('addons.includedInPlan')}</span>
         <h1 className="mt-4 font-display text-[36px] font-bold leading-[44px] text-ink">{title}</h1>
         <p className="mt-3 max-w-xl text-body-lg text-muted">{body}</p>
         <ul className="mt-6 flex flex-col gap-3">
@@ -69,10 +73,11 @@ export function IntroPage({ badge = 'Included in your plan', title, body, bullet
 }
 
 function LearnMoreButton({ topic }: { topic: string }) {
+  const { t } = useTranslation()
   const drawer = useDrawer()
   return (
     <Button size="lg" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: topic })}>
-      Learn more
+      {t('common.learnMore')}
     </Button>
   )
 }
@@ -91,7 +96,7 @@ export function IntroArt() {
           </div>
         ))}
       </div>
-      <div className="absolute right-6 top-10 rounded-lg bg-primary px-4 py-3 font-display text-title-3 text-on-primary shadow-md">€1,240</div>
+      <div className="absolute right-6 top-10 rounded-lg bg-primary px-4 py-3 font-display text-title-3 text-on-primary shadow-md">{money(1240)}</div>
     </div>
   )
 }
@@ -107,7 +112,7 @@ export function FullscreenFrame({
   progress,
   nav,
   children,
-  closeLabel = 'Close',
+  closeLabel,
   maxWidth = 'max-w-3xl',
 }: {
   title?: ReactNode
@@ -119,6 +124,7 @@ export function FullscreenFrame({
   closeLabel?: string
   maxWidth?: string
 }) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const close = onClose ?? (() => (window.history.length > 1 ? navigate(-1) : navigate('/')))
   return (
@@ -130,7 +136,7 @@ export function FullscreenFrame({
       )}
       <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-6">
         <Button icon={<X size={16} />} onClick={close}>
-          {closeLabel}
+          {closeLabel ?? t('common.close')}
         </Button>
         {title && <h1 className="truncate font-display text-title-3 text-ink">{title}</h1>}
         <div className="flex items-center gap-2">{actions}</div>
@@ -170,12 +176,13 @@ export function SectionNav<T extends string>({ groups, value, onChange }: { grou
 
 /** Right-hand drawer panel used inside a page (filters etc.). Registered drawers get the same chrome from DrawerHost. */
 export function SideDrawer({ open, onClose, title, children, footer, width = 481 }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; footer?: ReactNode; width?: number }) {
+  const { t } = useTranslation()
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[70] flex justify-end">
-      <button type="button" aria-label="Close Drawer" tabIndex={-1} className="absolute inset-0 cursor-default bg-ink/10" onClick={onClose} />
+      <button type="button" aria-label={t('drawers.closeDrawer')} tabIndex={-1} className="absolute inset-0 cursor-default bg-ink/10" onClick={onClose} />
       <div className="relative flex h-full animate-[slideIn_var(--dur-slow)_var(--ease)]">
-        <button type="button" onClick={onClose} aria-label="Close Drawer" className="absolute -left-16 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
+        <button type="button" onClick={onClose} aria-label={t('drawers.closeDrawer')} className="absolute -left-16 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface shadow-md hover:bg-sunken">
           <X size={20} aria-hidden />
         </button>
         <div role="dialog" aria-modal="true" aria-label={typeof title === 'string' ? title : undefined} className="flex h-full max-w-[100vw] flex-col bg-surface shadow-lg" style={{ width }}>

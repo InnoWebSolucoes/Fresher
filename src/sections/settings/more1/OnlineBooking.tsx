@@ -42,7 +42,7 @@ export function DynamicAssignmentPage() {
   else reassignItems.push({ key: 'cutoff', text: <Trans i18nKey={`${DA}.summary.cutoff`} values={{ value: minutesLabel(t, da.cutoffMin) }} components={b} /> })
 
   return (
-    <SettingsPage title={t(`${DA}.title`)} description={t(`${DA}.description`)} learnMore="Dynamic assignment">
+    <SettingsPage title={t(`${DA}.title`)} description={t(`${DA}.description`)} learnMore={t('settings.more1.dynamic.title')}>
       <EditCard title={t(`${DA}.assignTitle`)} description={t(`${DA}.assignDescription`)} onEdit={() => setModal('assign')} testId="assign-card">
         <SummaryList
           items={[
@@ -53,7 +53,7 @@ export function DynamicAssignmentPage() {
           ]}
         />
       </EditCard>
-      <EditCard title={t(`${DA}.reassignTitle`)} description={t(`${DA}.reassignDescription`)} learnMore="Reassignment" onEdit={() => setModal('reassign')} testId="reassign-card">
+      <EditCard title={t(`${DA}.reassignTitle`)} description={t(`${DA}.reassignDescription`)} learnMore={t('settings.common.topics.reassignment')} onEdit={() => setModal('reassign')} testId="reassign-card">
         <SummaryList items={reassignItems} />
       </EditCard>
       {modal === 'assign' && <AssignModal onClose={() => setModal(null)} />}
@@ -154,7 +154,7 @@ export function AvailabilityPage() {
   const notice = a.minNoticeMin === 0 ? t(`${AV}.immediately`) : t(`${AV}.beforeValue`, { value: minutesLabel(t, a.minNoticeMin) })
   const cancel = a.cancelWindowMin === 0 ? t(`${AV}.anytime`) : t(`${AV}.upToBefore`, { value: minutesLabel(t, a.cancelWindowMin) })
   return (
-    <SettingsPage title={t(`${AV}.title`)} description={t(`${AV}.description`)} learnMore="Online availability">
+    <SettingsPage title={t(`${AV}.title`)} description={t(`${AV}.description`)} learnMore={t('settings.more1.availability.online')}>
       <EditCard title={t(`${AV}.windowTitle`)} description={t(`${AV}.windowDescription`)} onEdit={() => setModal('window')} testId="window-card">
         <SummaryList
           items={[
@@ -282,7 +282,7 @@ export function BookingOptionsPage() {
   const [modal, setModal] = useState<BookingModal | null>(null)
   const line = (key: string, on: boolean) => ({ key, on, text: t(`${BO}.summary.${key}_${on ? 'on' : 'off'}`) })
   return (
-    <SettingsPage title={t(`${BO}.title`)} description={t(`${BO}.description`)} learnMore="Booking options">
+    <SettingsPage title={t(`${BO}.title`)} description={t(`${BO}.description`)} learnMore={t('settings.more1.booking.title')}>
       <EditCard title={t(`${BO}.teamTitle`)} description={t(`${BO}.teamDescription`)} onEdit={() => setModal('team')} testId="booking-team">
         <SummaryList items={[line('bookSpecific', o.bookSpecific), line('profiles', o.showProfiles), line('portfolio', o.showPortfolio), line('ratings', o.showRatings), line('gender', o.bookByGender)]} />
       </EditCard>
@@ -376,7 +376,7 @@ function BookingOptionsModal({ kind, onClose }: { kind: BookingModal; onClose: (
             {emailsOn && (
               <div className="ml-8">
                 <Field label={t(`${BO}.customEmails`)} hint={t(`${BO}.customEmailsHint`)}>
-                  {(id) => <TextArea id={id} className="min-h-[72px]" value={draft.emailAddresses} invalid={!!emailError} placeholder="example1@gmail.com, example2@gmail.com" onChange={(e) => patch({ emailAddresses: e.target.value })} data-testid="booking-emails" />}
+                  {(id) => <TextArea id={id} className="min-h-[72px]" value={draft.emailAddresses} invalid={!!emailError} placeholder={t(`${BO}.customEmailsPlaceholder`)} onChange={(e) => patch({ emailAddresses: e.target.value })} data-testid="booking-emails" />}
                 </Field>
                 <FieldError>{emailError}</FieldError>
               </div>

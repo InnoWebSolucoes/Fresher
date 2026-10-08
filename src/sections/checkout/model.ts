@@ -1,9 +1,11 @@
+import i18n from 'i18next'
 import type { CartItem, PaymentInput } from '@/api/sales'
 import { taxRateFor, availablePackageBenefits, availableRewards, computeTotals } from '@/api/sales'
 import type { LineOffer } from '@/api/checkout'
 import type { Appointment, ClientReward, Deal, DbData, ID, PaletteColor, Sale, SaleItem } from '@/types'
 import { PALETTE } from '@/styles/palette'
-import { round2 } from '@/lib/format'
+import { getLang } from '@/i18n/language'
+import { money, round2 } from '@/lib/format'
 import { uid } from '@/lib/ids'
 
 /** A line in the checkout cart (CartItem plus a stable UI key). */
@@ -77,6 +79,13 @@ export function keypadPress(current: string, key: string, maxDecimals = 2): stri
   return current + key
 }
 
+/** Keypad entry shown as an amount: "€28.7" / "€ 28.7" (spaced) in English, "28,7 €" in Portuguese. */
+export function keypadMoney(text: string, spaced = false): string {
+  const shown = text || '0'
+  if (getLang() === 'pt') return `${shown.replace('.', ',')} €`
+  return spaced ? `€ ${shown}` : `€${shown}`
+}
+
 /** Active point-of-sale deals that apply to a cart line (marketing deals with "pos"). */
 export function dealsForLine(line: Pick<Line, 'type' | 'refId' | 'teamMemberId'>, deals: Deal[], today: string): Deal[] {
   return deals.filter((d) => {
@@ -138,10 +147,10 @@ export function lineDuration(line: Pick<Line, 'type' | 'refId' | 'appointmentIte
 /** Cart lines for an appointment: services with add-ons, or the fee for a late cancellation / no-show. */
 export function linesFromAppointment(appt: Appointment): { lines: Line[]; feeOnly: boolean } {
   if (appt.status === 'no_show' && appt.noShowFee) {
-    return { feeOnly: true, lines: [{ key: newKey(), type: 'no_show_fee', name: 'No-show fee', detail: appt.items[0]?.name, quantity: 1, unitPrice: appt.noShowFee, teamMemberId: appt.items[0]?.teamMemberId ?? null, appointmentId: appt.id }] }
+    return { feeOnly: true, lines: [{ key: newKey(), type: 'no_show_fee', name: i18n.t('settings.more1.policy.noShowFee'), detail: appt.items[0]?.name, quantity: 1, unitPrice: appt.noShowFee, teamMemberId: appt.items[0]?.teamMemberId ?? null, appointmentId: appt.id }] }
   }
   if (appt.status === 'cancelled' && appt.cancellation?.fee) {
-    return { feeOnly: true, lines: [{ key: newKey(), type: 'late_cancellation_fee', name: 'Late cancellation fee', detail: appt.items[0]?.name, quantity: 1, unitPrice: appt.cancellation.fee, teamMemberId: appt.items[0]?.teamMemberId ?? null, appointmentId: appt.id }] }
+    return { feeOnly: true, lines: [{ key: newKey(), type: 'late_cancellation_fee', name: i18n.t('settings.more1.policy.lateFee'), detail: appt.items[0]?.name, quantity: 1, unitPrice: appt.cancellation.fee, teamMemberId: appt.items[0]?.teamMemberId ?? null, appointmentId: appt.id }] }
   }
   const lines: Line[] = appt.items.flatMap((it) => [
     { key: newKey(), type: 'service' as const, refId: it.serviceId, name: it.name, quantity: 1, unitPrice: it.price, originalPrice: it.originalPrice, teamMemberId: it.teamMemberId, appointmentId: appt.id, appointmentItemId: it.id, benefitNote: it.priceNote },
@@ -171,14 +180,25 @@ export function linesFromSale(sale: Sale, offers: Record<ID, LineOffer> = {}): L
   }))
 }
 
-/** Expiration options of the Edit gift card modal (calendar.md §10.9). */
+/** Expiration options of the Edit gift card modal (calendar.md §10.9). Stored values (data, parsed by the API); shown with expiryLabel(). */
 export const EXPIRY_OPTIONS = ['14 days', '1 month', ...Array.from({ length: 10 }, (_, i) => `${i + 2} months`), '1 year', '2 years', '3 years', '4 years', '5 years', 'Never']
+
+/** Translated label of a stored expiry value: "14 days", "3 months", "1 year", "Never" / "14 dias", "3 meses"… */
+export function expiryLabel(value: string): string {
+  if (value === 'Never') return i18n.t('settings.sale.gift.never')
+  const [n, unit] = value.split(' ')
+  const count = Number(n)
+  if (unit?.startsWith('day')) return i18n.t('settings.sale.gift.days', { count })
+  if (unit?.startsWith('month')) return i18n.t('settings.sale.gift.months', { count })
+  if (unit?.startsWith('year')) return i18n.t('settings.sale.gift.years', { count })
+  return value
+}
 
 export function giftDetail(line: Pick<Line, 'giftCard' | 'unitPrice'>): string {
   const gc = line.giftCard
   if (!gc) return ''
-  const value = `€${round2(gc.value)} value`
-  const valid = gc.expiry === 'Never' ? 'never expires' : `valid for ${gc.expiry}`
+  const value = i18n.t('checkout.giftLine.value', { amount: money(round2(gc.value)) })
+  const valid = gc.expiry === 'Never' ? i18n.t('checkout.giftLine.neverExpires') : i18n.t('checkout.giftLine.validFor', { period: expiryLabel(gc.expiry) })
   return [gc.customCode, value, valid].filter(Boolean).join(' • ')
 }
 

@@ -3,7 +3,7 @@ import type { ID, Product } from '@/types'
 import type { Ctx } from '../engine/context'
 import { lineFacts } from '../engine/facts'
 import { applyFilters, listResult } from '../engine/helpers'
-import { L } from '../engine/labels'
+import { L, stockReasonLabel } from '../engine/labels'
 import type { Params, Spec } from '../engine/types'
 import { inR } from './common'
 
@@ -41,7 +41,7 @@ function stockEvents(ctx: Ctx): StockEvent[] {
     if (f.item.type !== 'product' || !f.item.refId) continue
     const product = ctx.byId.product.get(f.item.refId)
     if (!product) continue
-    out.push({ key: `${f.sale.id}_${f.item.id}`, at: f.sale.createdAt, date: f.date, product, locationId: f.sale.locationId, reason: f.refund ? L('return') : L('sale'), ref: `${f.refund ? L('refund') : L('sale')} ${f.sale.number}`, qty: -f.qty, cost: round2(-f.qty * product.supplyPrice), kind: 'sold' })
+    out.push({ key: `${f.sale.id}_${f.item.id}`, at: f.sale.createdAt, date: f.date, product, locationId: f.sale.locationId, reason: f.refund ? 'Return' : 'Sale', ref: `${f.refund ? L('refund') : L('sale')} ${f.sale.number}`, qty: -f.qty, cost: round2(-f.qty * product.supplyPrice), kind: 'sold' })
   }
   out.sort((a, b) => b.at.localeCompare(a.at))
   stockStore.set(ctx, out)
@@ -155,7 +155,7 @@ const stockMovementLog: Spec = {
         { key: 'primarySku', type: 'text', get: (e) => sku(e.product) },
         { key: 'product', type: 'text', get: (e) => e.product.name },
         { key: 'location', type: 'text', get: (e) => ctx.locationName(e.locationId) },
-        { key: 'adjReason', type: 'text', get: (e) => e.reason },
+        { key: 'adjReason', type: 'text', get: (e) => stockReasonLabel(e.reason) },
         { key: 'adjRef', type: 'text', get: (e) => e.ref },
         { key: 'qty', type: 'int', total: true, get: (e) => e.qty },
         { key: 'cost', type: 'money', get: (e) => e.cost },

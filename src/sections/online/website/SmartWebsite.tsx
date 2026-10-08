@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, Globe, Home, Link2, Loader2, Monitor, Play, Plus, ShoppingCart, Smartphone, Sparkles, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, Chip, confirm, Field, IconButton, IntroPage, LearnMore, Menu, Modal, Page, PageHeader, PageSkeleton, Segmented, Select, Switch, TextArea, TextInput, toast, usePageLoading } from '@/components/ui'
@@ -47,9 +48,9 @@ export function SmartWebsitePage() {
           price={<span className="font-semibold">{t('online.website.price', { price: money2(SMART_WEBSITE_PRICE) })}</span>}
           primary={{ label: t('online.common.continue'), onClick: () => navigate('/online-presence/smart-website/overview') }}
           art={
-            <BrowserFrame url={website?.domain ?? `yourbusiness${SITE_SUFFIX}`}>
+            <BrowserFrame url={website?.domain ?? `${t('online.website.demo.domain')}${SITE_SUFFIX}`}>
               <div className="pointer-events-none h-[300px] overflow-hidden">
-                <SitePreview config={website ?? DEMO_CONFIG} compact />
+                <SitePreview config={website ?? demoConfig(t)} compact />
               </div>
             </BrowserFrame>
           }
@@ -148,16 +149,17 @@ export function SmartWebsitePage() {
   )
 }
 
-const DEMO_CONFIG: WebsiteConfig = {
+/** Sample site shown on the intro page before a website exists (built in the current language). */
+const demoConfig = (t: TFunction): WebsiteConfig => ({
   template: 'elegant',
   palette: 2,
   fontPack: 0,
   hideNavigation: false,
-  hero: { eyebrow: 'Your neighbourhood studio', heading: 'Look and feel your best', text: 'Book online in seconds.', button: 'Book now' },
+  hero: { eyebrow: t('online.website.demo.eyebrow'), heading: t('online.website.demo.heading'), text: t('online.website.demo.text'), button: t('online.preview.bookNow') },
   pages: [],
   domainType: 'included',
-  domain: `yourbusiness${SITE_SUFFIX}`,
-}
+  domain: `${t('online.website.demo.domain')}${SITE_SUFFIX}`,
+})
 
 /** Smart Website wizard (online-booking.md §5). */
 export function SmartWebsiteWizardPage() {
@@ -327,7 +329,7 @@ export function SmartWebsiteWizardPage() {
               <>
                 <h1 className="font-display text-[32px] font-bold leading-[40px] text-ink">{t('online.website.domainType.title')}</h1>
                 <p className="mb-8 mt-2 text-body-lg text-muted">
-                  {t('online.website.domainType.body')} <LearnMore topic="Smart Website domains" />
+                  {t('online.website.domainType.body')} <LearnMore topic={t('online.website.topics.domains')}>{t('common.learnMore')}</LearnMore>
                 </p>
                 <ul className="flex flex-col gap-3">
                   {DOMAIN_TYPES.map(({ value, icon }) => (
@@ -599,7 +601,7 @@ function BuilderStep({ config, set, device, page, setPage }: { config: WebsiteCo
           </div>
         )}
         <div className="mt-auto border-t border-line p-5 text-center">
-          <LearnMore topic="Smart Website">{t('online.website.builder.helpCenter')}</LearnMore>
+          <LearnMore topic={t('online.website.title')}>{t('online.website.builder.helpCenter')}</LearnMore>
         </div>
       </aside>
       <div className="bg-sunken p-6">
@@ -688,7 +690,8 @@ function DomainStep({ config, set, onStatus }: { config: WebsiteConfig; set: (p:
       <p className="mb-8 mt-2 text-body-lg text-muted">{t(`online.website.domain.${kind}Body`)}</p>
       <div className="flex items-start gap-2">
         <Field label={t('online.website.domain.name')} className="flex-1">
-          {(id) => <TextInput id={id} value={name} onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, ''))} suffix={kind === 'included' ? SITE_SUFFIX : undefined} placeholder={kind === 'existing' ? 'www.yourbusiness.com' : 'yourbusiness'} />}
+          {(id) => <TextInput id={id} value={name} onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, ''))} suffix={kind === 'included' ? SITE_SUFFIX : undefined} placeholder={kind === 'existing' ? t('online.website.demo.existingDomain') : t('online.website.demo.domain')}
+ />}
         </Field>
         {kind === 'custom' && (
           <Field label={t('online.website.domain.ending')}>

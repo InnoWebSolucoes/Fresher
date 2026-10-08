@@ -11,12 +11,12 @@ import { ApiError } from '@/api/client'
 import { blankClient, createClient, deleteClient, updateClient } from '@/api/clients'
 import { Button, confirm, EmptyState, Field, FullscreenFrame, LearnMore, Menu, SectionNav, Select, Skeleton, Switch, TextInput, toast, usePageLoading } from '@/components/ui'
 import { resizeImage } from '../lib/avatars'
-import { COUNTRIES, GENDERS, LANGUAGES, MONTHS, PRONOUNS } from '../lib/constants'
+import { countryOptions, GENDERS, LANGUAGES, MONTHS, pronounOptions } from '../lib/constants'
 import { clientName, joinPhone, splitPhone } from '../lib/helpers'
 import { ClientAvatar, PhoneField } from '../components/common'
 import { ClientSearchModal } from '../components/ClientSearchModal'
 import { TagPicker } from '../components/TagPicker'
-import { AddressModal, addressLines, type AddressDraft } from '../components/AddressModal'
+import { AddressModal, addressLines, addressName, type AddressDraft } from '../components/AddressModal'
 
 type Section = 'profile' | 'addresses' | 'emergency_contacts' | 'settings'
 const SECTIONS: Section[] = ['profile', 'addresses', 'emergency_contacts', 'settings']
@@ -399,7 +399,7 @@ function ClientForm({ client }: { client?: Client }) {
                   {(fid) => <Select id={fid} data-field="gender" value={draft.gender} onChange={(e) => set('gender', e.target.value)} placeholder={t('clients.form.selectOption')} options={GENDERS.map((g) => ({ value: g, label: t(`clients.gender.${g}`) }))} />}
                 </Field>
                 <Field label={t('clients.form.pronouns')}>
-                  {(fid) => <Select id={fid} data-field="pronouns" value={draft.pronouns} onChange={(e) => set('pronouns', e.target.value)} placeholder={t('clients.form.selectOption')} options={PRONOUNS} />}
+                  {(fid) => <Select id={fid} data-field="pronouns" value={draft.pronouns} onChange={(e) => set('pronouns', e.target.value)} placeholder={t('clients.form.selectOption')} options={pronounOptions()} />}
                 </Field>
               </div>
             </section>
@@ -414,7 +414,7 @@ function ClientForm({ client }: { client?: Client }) {
                   label={t('clients.form.source')}
                   hint={
                     <>
-                      {t('clients.form.sourceHint')} <LearnMore topic="Client sources">{t('clients.common.learnMore')}</LearnMore>
+                      {t('clients.form.sourceHint')} <LearnMore topic={t('pages.settingsClientSources.title')}>{t('clients.common.learnMore')}</LearnMore>
                     </>
                   }
                 >
@@ -424,7 +424,7 @@ function ClientForm({ client }: { client?: Client }) {
                   label={t('clients.form.referredBy')}
                   hint={
                     <>
-                      {t('clients.form.referredHint')} <LearnMore topic="Referred by">{t('clients.common.learnMore')}</LearnMore>
+                      {t('clients.form.referredHint')} <LearnMore topic={t('clients.form.referredBy')}>{t('clients.common.learnMore')}</LearnMore>
                     </>
                   }
                 >
@@ -448,7 +448,7 @@ function ClientForm({ client }: { client?: Client }) {
                   label={t('clients.form.language')}
                   hint={
                     <>
-                      {t('clients.form.languageHint')} <LearnMore topic="Preferred language">{t('clients.common.learnMore')}</LearnMore>
+                      {t('clients.form.languageHint')} <LearnMore topic={t('clients.form.language')}>{t('clients.common.learnMore')}</LearnMore>
                     </>
                   }
                 >
@@ -458,7 +458,7 @@ function ClientForm({ client }: { client?: Client }) {
                   {(fid) => <TextInput id={fid} data-field="occupation" maxLength={255} value={draft.occupation} onChange={(e) => set('occupation', e.target.value)} placeholder={t('clients.form.occupationPlaceholder')} />}
                 </Field>
                 <Field label={t('clients.form.country')}>
-                  {(fid) => <Select id={fid} data-field="country" value={draft.country} onChange={(e) => set('country', e.target.value)} placeholder={t('clients.form.selectCountry')} options={COUNTRIES} />}
+                  {(fid) => <Select id={fid} data-field="country" value={draft.country} onChange={(e) => set('country', e.target.value)} placeholder={t('clients.form.selectCountry')} options={countryOptions()} />}
                 </Field>
                 <div className="hidden sm:block" />
                 <Field label={t('clients.form.additionalEmail')} error={errors.additionalEmail}>
@@ -499,7 +499,7 @@ function ClientForm({ client }: { client?: Client }) {
               {draft.addresses.map((a) => (
                 <div key={a.id} className="flex items-start justify-between rounded-lg border border-line bg-sunken p-5">
                   <div>
-                    <p className="text-body-strong text-ink">{a.name}</p>
+                    <p className="text-body-strong text-ink">{addressName(a)}</p>
                     {addressLines(a).map((line) => (
                       <p key={line} className="text-body-lg text-ink">
                         {line}

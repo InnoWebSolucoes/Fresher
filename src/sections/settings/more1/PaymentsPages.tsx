@@ -39,7 +39,7 @@ export function PaymentPolicyPage() {
   const p = useSettings().paymentPolicy
   const [modal, setModal] = useState<'deposits' | 'cancellation' | null>(null)
   return (
-    <SettingsPage title={t(`${PP}.title`)} description={t(`${PP}.description`)} learnMore="Payment policy">
+    <SettingsPage title={t(`${PP}.title`)} description={t(`${PP}.description`)} learnMore={t('settings.more1.policy.title')}>
       <EditCard title={t(`${PP}.depositsTitle`)} description={t(`${PP}.depositsDescription`)} onEdit={() => setModal('deposits')} testId="policy-deposits">
         <SummaryList
           variant="check"
@@ -229,7 +229,7 @@ export function CardTerminalsPage() {
     <SettingsPage
       title={t(`${TM}.title`)}
       description={t(`${TM}.description`)}
-      learnMore="Card terminals"
+      learnMore={t('settings.more1.terminals.title')}
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={240} groups={[{ items: [{ label: t(`${TM}.pairExisting`), onSelect: () => setModal({ kind: 'pair' }) }] }]} />

@@ -50,7 +50,7 @@ function Body({ onClose, onConnected }: { onClose: () => void; onConnected?: () 
         footer={
           <>
             <span className="mr-auto">
-              <LearnMore topic="Google reviews">{t('clients.more.common.learnMore')}</LearnMore>
+              <LearnMore topic={t('clients.more.reputation.googleTopic')}>{t('clients.more.common.learnMore')}</LearnMore>
             </span>
             <Button variant="primary" onClick={() => setStep('account')}>
               {t('clients.more.common.continue')}

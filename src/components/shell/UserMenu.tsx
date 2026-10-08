@@ -1,8 +1,9 @@
-import { Check, Gift, LifeBuoy, LogOut, ShieldCheck, Settings2, UserRound } from 'lucide-react'
+import { Gift, Languages, LifeBuoy, LogOut, ShieldCheck, Settings2, UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { logout } from '@/api/auth'
+import { LanguageToggle } from './LanguageToggle'
 import { useDrawer } from '@/lib/drawer'
 import { initials, useCurrentUser } from '@/store/session'
 import { toast } from '@/store/toast'
@@ -79,15 +80,11 @@ export function UserMenu({ onClose }: { onClose: () => void }) {
         >
           {t('topbar.helpAndSupport')}
         </MenuItem>
-        <MenuItem
-          icon={<Check size={18} />}
-          onClick={() => {
-            onClose()
-            toast(t('topbar.language'))
-          }}
-        >
-          {t('topbar.language')} <span aria-hidden>🇺🇸</span>
-        </MenuItem>
+        <div className="flex items-center gap-3 px-3 py-2 text-body text-ink">
+          <Languages size={18} className="shrink-0 text-muted" aria-hidden />
+          <span className="flex-1">{t('language.label')}</span>
+          <LanguageToggle />
+        </div>
         <MenuItem
           icon={<LogOut size={18} />}
           onClick={async () => {

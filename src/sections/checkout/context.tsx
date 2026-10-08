@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
+import i18n from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import { ApiError } from '@/api/client'
@@ -210,10 +211,10 @@ function initialState(params: URLSearchParams, userMemberId: ID | undefined, lab
       const [type, ref] = token.split(':')
       if (type === 'package') {
         const def = data.packages.find((p) => p.id === ref)
-        if (def) init.lines.push({ key: newKey(), type: 'package', refId: def.id, name: def.name, detail: `${def.benefits.length} benefit${def.benefits.length === 1 ? '' : 's'}`, quantity: 1, unitPrice: def.price, teamMemberId: memberId })
+        if (def) init.lines.push({ key: newKey(), type: 'package', refId: def.id, name: def.name, detail: i18n.t('checkout.cart.benefits', { count: def.benefits.length }), quantity: 1, unitPrice: def.price, teamMemberId: memberId })
       } else if (type === 'membership') {
         const def = data.memberships.find((m) => m.id === ref)
-        if (def) init.lines.push({ key: newKey(), type: 'membership', refId: def.id, name: def.name, detail: def.interval === 'month' ? 'Monthly' : 'Weekly', quantity: 1, unitPrice: def.firstPeriodPrice ?? def.price, teamMemberId: memberId })
+        if (def) init.lines.push({ key: newKey(), type: 'membership', refId: def.id, name: def.name, detail: def.interval === 'month' ? i18n.t('checkout.cart.monthly') : i18n.t('checkout.cart.weekly'), quantity: 1, unitPrice: def.firstPeriodPrice ?? def.price, teamMemberId: memberId })
       } else if (type === 'product') {
         const def = data.products.find((p) => p.id === ref)
         if (def) init.lines.push({ key: newKey(), type: 'product', refId: def.id, name: def.name, quantity: 1, unitPrice: def.retailPrice, teamMemberId: memberId })
@@ -227,7 +228,7 @@ function initialState(params: URLSearchParams, userMemberId: ID | undefined, lab
       } else if (type === 'gift_card') {
         const value = Number(ref) || data.settings.giftCards.values[0] || 25
         const key = newKey()
-        init.lines.push({ key, type: 'gift_card', name: 'Gift Card', quantity: 1, unitPrice: value, teamMemberId: memberId, giftCard: { value, expiry: data.settings.giftCards.expiry, isGift: true, sendEmail: true } })
+        init.lines.push({ key, type: 'gift_card', name: i18n.t('checkout.cart.giftCardTitle'), quantity: 1, unitPrice: value, teamMemberId: memberId, giftCard: { value, expiry: data.settings.giftCards.expiry, isGift: true, sendEmail: true } })
         init.modal = { kind: 'giftCard', key }
       }
     }

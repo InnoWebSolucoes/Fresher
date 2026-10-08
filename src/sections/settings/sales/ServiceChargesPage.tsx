@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, EmptyState, Field, MoneyInput, RadioGroup, Select, TextArea, TextInput, confirm } from '@/components/ui'
 import { updateSettings } from '@/api/settings'
 import { uid } from '@/lib/ids'
-import { money2 } from '@/lib/format'
+import { money2, num } from '@/lib/format'
 import type { ServiceCharge, TaxRate } from '@/types'
 import { ActionsPill, FormCard, ListCard, ListRow, SettingsPage } from '../components/ui'
 import { FullModal } from '../components/FullModal'
@@ -55,7 +55,7 @@ export function ServiceChargesPage() {
   const [, run] = useAction()
 
   const summary = (c: ServiceChargeRecord) => {
-    const amount = c.rateType === 'flat' ? money2(c.amount) : `${Number(c.amount.toFixed(2))}%`
+    const amount = c.rateType === 'flat' ? money2(c.amount) : `${num(c.amount, { maximumFractionDigits: 2 })}%`
     const how = c.apply === 'automatic' ? t('settings.sale.charges.automaticShort') : t('settings.sale.charges.manualShort')
     const on = c.on === 'full' ? t('settings.sale.charges.fullShort') : (c.itemTypes ?? []).map((k) => t(`settings.sale.charges.types.${k}`)).join(', ')
     return [amount, how, on].filter(Boolean).join(' • ')
@@ -293,7 +293,7 @@ function ChargeModal({ editing, onClose, taxRates, charges }: { editing: Service
                 <Select
                   id={id}
                   value={draft.taxRateId}
-                  options={[{ value: '', label: t('settings.sale.charges.noTax') }, ...taxRates.map((r) => ({ value: r.id, label: `${r.name} (${Number(r.rate.toFixed(2))}%)` }))]}
+                  options={[{ value: '', label: t('settings.sale.charges.noTax') }, ...taxRates.map((r) => ({ value: r.id, label: `${r.name} (${num(r.rate, { maximumFractionDigits: 2 })}%)` }))]}
                   onChange={(e) => patch({ taxRateId: e.target.value })}
                 />
               )}

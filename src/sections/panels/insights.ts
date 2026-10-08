@@ -1,4 +1,5 @@
-import { addDays, eachDayOfInterval, endOfDay, endOfMonth, format, isAfter, parseISO, startOfDay, startOfMonth, startOfWeek, subDays, subMonths } from 'date-fns'
+import { addDays, eachDayOfInterval, endOfDay, endOfMonth, isAfter, parseISO, startOfDay, startOfMonth, startOfWeek, subDays, subMonths } from 'date-fns'
+import { format } from '@/lib/dates'
 import type { Appointment, BookingChannel, DbData, ID } from '@/types'
 import { computeTotals } from '@/api/sales'
 import { workingWindows } from '@/lib/schedule'

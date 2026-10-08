@@ -121,7 +121,7 @@ function MergeBody({ client, clients }: { client: Client; clients: Client[] }) {
     <>
       <h1 className="font-display text-display text-ink">{t('clients.more.merge.title', { count: candidates.length })}</h1>
       <p className="mt-3 max-w-4xl text-body-lg text-muted">
-        {t('clients.more.merge.subtitle')} <LearnMore topic="Merge clients">{t('clients.more.merge.subtitleLink')}</LearnMore> {t('clients.more.merge.subtitleTail')}
+        {t('clients.more.merge.subtitle')} <LearnMore topic={t('clients.list.mergeClients')}>{t('clients.more.merge.subtitleLink')}</LearnMore> {t('clients.more.merge.subtitleTail')}
       </p>
 
       <div className="mt-8 rounded-lg border border-line bg-sunken px-6 py-5">
@@ -249,7 +249,7 @@ function ConfirmMerge({ keep, others, onClose, onDone }: { keep: Client; others:
         )}
       </Field>
       <p className="mt-1.5 text-small text-muted">
-        {t('clients.more.merge.detailsHelp')} <LearnMore topic="Merge clients">{t('clients.more.merge.here')}</LearnMore>.
+        {t('clients.more.merge.detailsHelp')} <LearnMore topic={t('clients.list.mergeClients')}>{t('clients.more.merge.here')}</LearnMore>.
       </p>
       <p className="mt-6 text-body-lg text-ink">{t('clients.more.merge.confirm', { count: all.length })}</p>
     </Modal>

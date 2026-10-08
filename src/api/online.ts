@@ -1,4 +1,5 @@
-import { format, getDaysInMonth } from 'date-fns'
+import { getDaysInMonth } from 'date-fns'
+import { format } from '@/lib/dates'
 import { useMemo } from 'react'
 import { commit, db, useDb } from '@/store/db'
 import type { ActivityEntry, AddOnState, Address, DbData, ID, Location, OpeningHours } from '@/types'
@@ -7,6 +8,7 @@ import { now, nowISO } from '@/lib/time'
 import { round2 } from '@/lib/format'
 import { ApiError, actorName, latency } from './client'
 import { readExt, useExt, writeExt } from './ext'
+import { orList, t } from './i18n'
 
 /**
  * Online presence: marketplace profile, Facebook/Instagram connection, link
@@ -186,7 +188,7 @@ export async function saveProfile(locationId: ID, patch: ProfilePatch, activityT
   await latency()
   commit((d) => {
     const loc = d.locations.find((l) => l.id === locationId)
-    if (!loc) throw new ApiError('not_found', 'Location not found')
+    if (!loc) throw new ApiError('not_found', t('settings.biz.location.notFound'))
     const { marketplace, ...rest } = patch
     Object.assign(loc, rest)
     if (marketplace) Object.assign(loc.marketplace, marketplace)
@@ -198,11 +200,11 @@ export async function saveProfile(locationId: ID, patch: ProfilePatch, activityT
 export async function setProfileListed(locationId: ID, listed: boolean): Promise<void> {
   await latency(600, 1000)
   const loc = db().locations.find((l) => l.id === locationId)
-  if (!loc) throw new ApiError('not_found', 'Location not found')
+  if (!loc) throw new ApiError('not_found', t('settings.biz.location.notFound'))
   if (listed) {
-    if (!loc.phone) throw new ApiError('incomplete', 'Add a business phone number')
-    if (loc.marketplace.description.length < 200) throw new ApiError('incomplete', 'A venue description of at least 200 characters is required')
-    if (loc.marketplace.images.length < 3) throw new ApiError('incomplete', 'You must have at least 3 images')
+    if (!loc.phone) throw new ApiError('incomplete', t('online.wizard.errors.phone'))
+    if (loc.marketplace.description.length < 200) throw new ApiError('incomplete', t('api.online.descriptionTooShort'))
+    if (loc.marketplace.images.length < 3) throw new ApiError('incomplete', t('online.wizard.errors.images'))
   }
   commit((d) => {
     const l = d.locations.find((x) => x.id === locationId)!
@@ -217,7 +219,7 @@ export async function generateDescription(locationId: ID): Promise<string> {
   await latency(1400, 2000)
   const data = db()
   const loc = data.locations.find((l) => l.id === locationId)
-  if (!loc) throw new ApiError('not_found', 'Location not found')
+  if (!loc) throw new ApiError('not_found', t('settings.biz.location.notFound'))
   const services = data.services.filter((s) => !s.archived && s.locationIds.includes(locationId))
   const categories = [...new Set(services.map((s) => data.serviceCategories.find((c) => c.id === s.categoryId)?.name).filter(Boolean))] as string[]
   const team = data.teamMembers.filter((m) => !m.archived && m.locationIds.includes(locationId) && m.bookable)
@@ -225,10 +227,10 @@ export async function generateDescription(locationId: ID): Promise<string> {
   const extras = [...loc.marketplace.amenities, ...loc.marketplace.highlights].map((x) => x.toLowerCase())
   const area = loc.address.district && loc.address.district !== loc.address.city ? `${loc.address.district}, ${loc.address.city}` : loc.address.city
   const parts = [
-    `${loc.name} brings ${categories.slice(0, 3).join(', ').toLowerCase() || 'beauty and wellness'} together under one roof in ${area}.`,
-    `From ${featured.join(', ')} to tailored treatments, our team of ${team.length || 'skilled'} professionals takes the time to listen and make every visit feel personal.`,
-    extras.length ? `Expect a calm, welcoming space that is ${extras.slice(0, 3).join(', ')}.` : 'Expect a calm, welcoming space and a warm hello every time.',
-    'Book online in seconds, any time of day, and leave feeling refreshed.',
+    t('api.online.description.intro', { name: loc.name, categories: categories.slice(0, 3).join(', ').toLowerCase() || t('api.online.description.beautyWellness'), area }),
+    team.length ? t('api.online.description.team', { featured: featured.join(', '), count: team.length }) : t('api.online.description.teamSkilled', { featured: featured.join(', ') }),
+    extras.length ? t('api.online.description.space', { extras: extras.slice(0, 3).join(', ') }) : t('api.online.description.spaceDefault'),
+    t('api.online.description.bookOnline'),
   ]
   return parts.join(' ').slice(0, 1200)
 }
@@ -315,17 +317,17 @@ export function defaultWebsite(data: Pick<DbData, 'workspace' | 'services'>): We
     fontPack: 0,
     hideNavigation: false,
     hero: {
-      eyebrow: 'Porto’s friendly neighbourhood studio',
-      heading: 'Look and feel your best, every visit',
-      text: `Expert care tailored just for you. Book your ${featured.map((s) => s.name).join(', ').replace(/, ([^,]*)$/, ' or $1')} today.`,
-      button: 'Book now',
+      eyebrow: t('api.online.website.eyebrow'),
+      heading: t('api.online.website.heading'),
+      text: t('api.online.website.text', { services: orList(featured.map((s) => s.name)) }),
+      button: t('marketing.content.cta.book'),
     },
     pages: [
-      { id: 'home', name: 'Home', heading: '', text: '', hidden: false, system: true },
-      { id: 'services', name: 'Services', heading: 'Our services', text: 'Prices and durations are always up to date with our booking menu.', hidden: false, system: true },
-      { id: 'about', name: 'About', heading: `About ${data.workspace.name}`, text: 'Two salons in Porto with one idea: unhurried, honest beauty care from a team that listens.', hidden: false, system: true },
-      { id: 'team', name: 'Team', heading: 'Meet the team', text: 'Book directly with your favourite professional.', hidden: false, system: true },
-      { id: 'contact', name: 'Contact', heading: 'Visit us', text: 'Find us in Baixa and Foz. We would love to see you.', hidden: false, system: true },
+      { id: 'home', name: t('api.online.website.pages.home'), heading: '', text: '', hidden: false, system: true },
+      { id: 'services', name: t('api.online.website.pages.services'), heading: t('api.online.website.pages.servicesHeading'), text: t('api.online.website.pages.servicesText'), hidden: false, system: true },
+      { id: 'about', name: t('api.online.website.pages.about'), heading: t('api.online.website.pages.aboutHeading', { business: data.workspace.name }), text: t('api.online.website.pages.aboutText'), hidden: false, system: true },
+      { id: 'team', name: t('api.online.website.pages.team'), heading: t('api.online.website.pages.teamHeading'), text: t('api.online.website.pages.teamText'), hidden: false, system: true },
+      { id: 'contact', name: t('api.online.website.pages.contact'), heading: t('api.online.website.pages.contactHeading'), text: t('api.online.website.pages.contactText'), hidden: false, system: true },
     ],
     domainType: 'included',
     domain: `${businessSlug(data.workspace.name).replace(/-/g, '')}${SITE_SUFFIX}`,
@@ -376,7 +378,7 @@ export interface BillingInput {
 /** Activate the add-on (simulated payment) and publish the site. */
 export async function activateSmartWebsite(config: WebsiteConfig, billing: BillingInput): Promise<void> {
   await latency(1000, 1500)
-  if (billing.cardNumber.replace(/\D/g, '').length < 12) throw new ApiError('card_declined', 'Check your card number')
+  if (billing.cardNumber.replace(/\D/g, '').length < 12) throw new ApiError('card_declined', t('api.online.checkCardNumber'))
   const { payNow } = smartWebsiteProRata()
   commit((d) => {
     upsertAddOn(d, 'smart-website', 'active')
@@ -385,7 +387,7 @@ export async function activateSmartWebsite(config: WebsiteConfig, billing: Billi
       id: uid('inv'),
       number: `IB-${format(now(), 'yyyyMM')}-${300 + d.invoices.length}`,
       date: format(now(), 'yyyy-MM-dd'),
-      lines: [{ description: 'Smart Website add-on (first month, pro-rata)', quantity: 1, unitPrice: net }],
+      lines: [{ description: t('api.online.smartWebsiteInvoiceLine'), quantity: 1, unitPrice: net }],
       subtotal: net,
       tax: round2(payNow - net),
       total: payNow,

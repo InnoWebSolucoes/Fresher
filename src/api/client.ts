@@ -3,6 +3,7 @@ import { commit, db } from '@/store/db'
 import type { DbData, ID } from '@/types'
 import { uid } from '@/lib/ids'
 import { nowISO } from '@/lib/time'
+import { t } from './i18n'
 
 /** Simulated network latency for the mock API (SPEC §4: 300–800 ms). */
 export function latency(min = 300, max = 800): Promise<void> {
@@ -59,7 +60,7 @@ export function crud<K extends CollectionKey>(key: K, prefix = String(key).slice
       commit((d) => {
         const list = d[key] as unknown as (ItemOf<K> & { id: ID })[]
         const index = list.findIndex((x) => x.id === id)
-        if (index === -1) throw new ApiError('not_found', `${String(key)} ${id} not found`)
+        if (index === -1) throw new ApiError('not_found', t('api.errors.recordNotFound', { collection: String(key), id }))
         list[index] = { ...list[index], ...patch }
       })
     },

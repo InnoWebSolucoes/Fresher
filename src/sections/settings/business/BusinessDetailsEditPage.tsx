@@ -82,7 +82,7 @@ export function BusinessDetailsEditPage() {
           title={t('settings.biz.details.taxCalculation')}
           description={
             <>
-              {t('settings.biz.edit.taxHint')} <LearnMore topic="Tax calculation" />
+              {t('settings.biz.edit.taxHint')} <LearnMore topic={t('settings.biz.details.taxCalculation')}>{t('common.learnMore')}</LearnMore>
             </>
           }
         >
@@ -117,10 +117,11 @@ export function BusinessDetailsEditPage() {
 
         <FormCard title={t('settings.biz.details.externalLinks')} description={t('settings.biz.edit.linksHint')}>
           <div className="flex flex-col gap-4">
-            {linkField('facebook', <Facebook size={16} aria-hidden />, 'facebook.com/yoursite')}
-            {linkField('instagram', <Instagram size={16} aria-hidden />, 'instagram.com/yoursite')}
-            {linkField('x', <Twitter size={16} aria-hidden />, 'x.com/yoursite')}
-            {linkField('website', <Globe size={16} aria-hidden />, 'yoursite.com')}
+            {linkField('facebook', <Facebook size={16} aria-hidden />, t('settings.biz.links.placeholders.facebook'))}
+            {linkField('instagram', <Instagram size={16} aria-hidden />, t('settings.biz.links.placeholders.instagram'))}
+            {linkField('x', <Twitter size={16} aria-hidden />, t('settings.biz.links.placeholders.x'))}
+            {linkField('website', <Globe size={16} aria-hidden />, t('settings.biz.links.placeholders.website'))}
+
           </div>
         </FormCard>
       </FormStack>

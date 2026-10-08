@@ -66,7 +66,7 @@ function RulesStep() {
     >
       <h1 className="font-display text-display text-ink">{t('clients.segments.create.title')}</h1>
       <p className="mb-8 mt-2 text-body-lg text-muted">
-        {t('clients.segments.create.subtitle')} <LearnMore topic="client segments">{t('clients.common.learnMore')}</LearnMore>
+        {t('clients.segments.create.subtitle')} <LearnMore topic={t('clients.topics.segments')}>{t('clients.common.learnMore')}</LearnMore>
       </p>
       <RulesEditor
         rules={rules}

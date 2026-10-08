@@ -44,7 +44,11 @@ export const ARTICLES: HelpArticle[] = [
 
 export const TOP_ARTICLES = ['manage-shifts', 'patch-tests', 'blast-campaigns', 'smart-pricing', 'add-team-members']
 
-const STOP = new Set(['the', 'a', 'an', 'to', 'your', 'and', 'of', 'in', 'for', 'how', 'with', 'on', 'my', 'i', 'do', 'can', 'is', 'it', 'up', 'set', 'what', 'or', 'by', 'from', 'about', 'more', 'learn'])
+const STOP = new Set([
+  ...['the', 'a', 'an', 'to', 'your', 'and', 'of', 'in', 'for', 'how', 'with', 'on', 'my', 'i', 'do', 'can', 'is', 'it', 'up', 'set', 'what', 'or', 'by', 'from', 'about', 'more', 'learn'],
+  // Portuguese searches (the help centre is searched in the current language)
+  ...['de', 'da', 'das', 'dos', 'o', 'os', 'as', 'e', 'em', 'no', 'na', 'nos', 'nas', 'um', 'uma', 'para', 'por', 'com', 'como', 'ao', 'que', 'se', 'meu', 'minha', 'seu', 'sua', 'mais', 'saber'],
+])
 
 export function tokens(query: string): string[] {
   return query

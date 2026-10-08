@@ -1,11 +1,17 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
 import { computeTotals, lineTotal, saleBalance } from '@/api/sales'
 import { db } from '@/store/db'
 import { downloadBlob } from '@/lib/export'
 import { fullName, money2 } from '@/lib/format'
 import type { ID } from '@/types'
 
-/** Everything printed on a sale receipt (screenshots/files/sale-1-receipt.pdf). */
+/**
+ * Everything printed on a sale receipt (screenshots/files/sale-1-receipt.pdf).
+ * Labels are translated when the receipt is built: the English receipt matches
+ * the captured file, a Portuguese one is fully in Portuguese.
+ */
 export interface ReceiptData {
   business: string
   /** Address and the custom lines from Settings › Sales › Receipts, under the business name. */
@@ -22,9 +28,11 @@ export interface ReceiptData {
   balance: string
   note?: string
   footer?: string
+  /** Fixed labels of the receipt layout, in the language it was built in. */
+  labels: { client: string; total: string; tips: string; change: string; balance: string; comment: string }
 }
 
-const longDate = (iso: string) => `${format(parseISO(iso), 'EEEE, d MMM yyyy')} at ${format(parseISO(iso), 'HH:mm')}`
+const longDate = (iso: string) => i18n.t('calendar.update.when', { date: format(parseISO(iso), 'EEEE, d MMM yyyy'), time: format(parseISO(iso), 'HH:mm') })
 
 export function receiptData(saleId: ID): ReceiptData | undefined {
   const data = db()
@@ -63,16 +71,16 @@ export function receiptData(saleId: ID): ReceiptData | undefined {
     const appt = item.appointmentId ? data.appointments.find((a) => a.id === item.appointmentId) : undefined
     const apptItem = appt?.items.find((i) => i.id === item.appointmentItemId)
     const card = item.giftCardId ? data.giftCards.find((g) => g.id === item.giftCardId) : undefined
-    const team = settings.showTeam && item.teamMemberId ? `with ${memberName(item.teamMemberId)}` : ''
+    const team = settings.showTeam && item.teamMemberId ? i18n.t('checkout.receipt.with', { name: memberName(item.teamMemberId) }) : ''
     const sub = [apptItem && appt ? `${apptItem.start}, ${format(parseISO(appt.date), 'd MMM yyyy')}` : card ? card.code : item.detail, team, item.benefitNote].filter(Boolean).join(' • ') || undefined
     const name = card ? `${money2(card.value)} - ${item.name}` : item.name
     return { name: item.quantity > 1 ? `${name} × ${item.quantity}` : name, sub, amount: money2(lineTotal(item)) }
   })
   const rows: ReceiptData['rows'] = []
-  if (totals.cartDiscount) rows.push({ label: 'Cart discount', amount: `-${money2(totals.cartDiscount)}` })
-  rows.push({ label: 'Subtotal', amount: money2(totals.subtotal) })
+  if (totals.cartDiscount) rows.push({ label: i18n.t('checkout.totals.cartDiscount'), amount: `-${money2(totals.cartDiscount)}` })
+  rows.push({ label: i18n.t('checkout.totals.subtotal'), amount: money2(totals.subtotal) })
   for (const c of sale.serviceCharges) rows.push({ label: c.name, amount: money2(c.amount) })
-  if (totals.tax) rows.push({ label: data.workspace.taxCalculation === 'exclusive' ? 'Tax' : 'Of which tax', amount: money2(totals.tax) })
+  if (totals.tax) rows.push({ label: data.workspace.taxCalculation === 'exclusive' ? i18n.t('checkout.receipt.tax') : i18n.t('checkout.receipt.ofWhichTax'), amount: money2(totals.tax) })
   const clientLines = client
     ? [
         settings.showContact ? client.phone : '',
@@ -82,18 +90,26 @@ export function receiptData(saleId: ID): ReceiptData | undefined {
   return {
     business,
     businessLines,
-    title: `${sale.kind === 'refund' ? 'Refund' : settings.title || 'Sale'} ${prefix}${sale.number}`,
+    title: `${sale.kind === 'refund' ? i18n.t('checkout.sale.refundTitle') : settings.title || i18n.t('checkout.sale.title')} ${prefix}${sale.number}`,
     date: longDate(sale.completedAt ?? sale.createdAt),
     client: client ? { name: fullName(client), email: settings.showContact ? client.email : '', lines: clientLines } : undefined,
     items,
     rows,
     total: money2(totals.total),
     tips: totals.tips ? money2(totals.tips) : undefined,
-    payments: payments.map((p) => ({ label: `${p.kind === 'refund' ? 'Refund' : 'Payment'} with ${p.methodLabel}`, amount: money2(p.amount + (p.change ?? 0)), at: longDate(p.at) })),
+    payments: payments.map((p) => ({ label: i18n.t(p.kind === 'refund' ? 'checkout.receipt.refundWith' : 'checkout.receipt.paymentWith', { method: p.methodLabel }), amount: money2(p.amount + (p.change ?? 0)), at: longDate(p.at) })),
     change: change ? money2(change) : undefined,
     balance: money2(sale.status === 'voided' || sale.kind === 'refund' ? 0 : Math.max(0, saleBalance(sale))),
     note: [sale.receiptNote, locationReceipt?.note].filter(Boolean).join('\n') || undefined,
     footer: settings.footer || undefined,
+    labels: {
+      client: i18n.t('checkout.receipt.client'),
+      total: i18n.t('checkout.totals.total'),
+      tips: i18n.t('checkout.sale.tips'),
+      change: i18n.t('checkout.sale.change'),
+      balance: i18n.t('checkout.sale.balance'),
+      comment: i18n.t('checkout.sale.receiptComment'),
+    },
   }
 }
 
@@ -136,7 +152,7 @@ export async function buildReceiptPdf(r: ReceiptData): Promise<Blob> {
 
   let y = titleY + 37
   if (r.client) {
-    doc.text('Client', left + 5, y)
+    doc.text(r.labels.client, left + 5, y)
     rule(y + 9)
     doc.text(r.client.name, left + 5, y + 23)
     const details = [r.client.email, ...r.client.lines].filter(Boolean)
@@ -153,7 +169,7 @@ export async function buildReceiptPdf(r: ReceiptData): Promise<Blob> {
     y = text + 23
     rule(y)
   })
-  for (const line of [...r.rows, { label: 'Total', amount: r.total }]) {
+  for (const line of [...r.rows, { label: r.labels.total, amount: r.total }]) {
     const text = y + 17
     row(line.label, line.amount, text)
     y = text + 16
@@ -161,7 +177,7 @@ export async function buildReceiptPdf(r: ReceiptData): Promise<Blob> {
   }
   y += 20
   if (r.tips) {
-    row('Tips', r.tips, y)
+    row(r.labels.tips, r.tips, y)
     y += 20
   }
   for (const p of r.payments) {
@@ -172,16 +188,16 @@ export async function buildReceiptPdf(r: ReceiptData): Promise<Blob> {
   rule(y)
   y += 16
   if (r.change) {
-    row('Change', r.change, y)
+    row(r.labels.change, r.change, y)
     y += 14
   }
   doc.setFontSize(13)
-  row('Balance', r.balance, y + (r.change ? 0 : 2))
+  row(r.labels.balance, r.balance, y + (r.change ? 0 : 2))
   doc.setFontSize(10)
   y += 34
   if (r.note) {
     doc.setFont('helvetica', 'bold')
-    doc.text('Receipt comment', left + 1, y)
+    doc.text(r.labels.comment, left + 1, y)
     doc.setFont('helvetica', 'normal')
     doc.text(r.note, left + 1, y + 14, { maxWidth: right - left })
     y += 44
@@ -215,17 +231,17 @@ export function receiptHtml(r: ReceiptData): string {
   </style></head><body>
   <h1>${esc(r.business)}${r.businessLines.map((l) => `<div class="muted" style="font-weight:400">${esc(l)}</div>`).join('')}</h1>
   <div class="head"><b>${esc(r.title)}</b>${esc(r.date)}</div>
-  ${r.client ? `<div style="padding-left:6px">Client</div><div class="rule"></div><div style="padding-left:6px">${esc(r.client.name)}${[r.client.email, ...r.client.lines].filter(Boolean).map((l) => `<div class="muted">${esc(l)}</div>`).join('')}</div><br>` : ''}
+  ${r.client ? `<div style="padding-left:6px">${esc(r.labels.client)}</div><div class="rule"></div><div style="padding-left:6px">${esc(r.client.name)}${[r.client.email, ...r.client.lines].filter(Boolean).map((l) => `<div class="muted">${esc(l)}</div>`).join('')}</div><br>` : ''}
   <div class="rule"></div>
   ${r.items.map((it, i) => `<div class="item"><span class="n">${i + 1}</span><span class="name">${esc(it.name)}${it.sub ? `<div class="muted">${esc(it.sub)}</div>` : ''}</span><span>${esc(it.amount)}</span></div><div class="rule"></div>`).join('')}
   ${r.rows.map((x) => row(x.label, x.amount) + '<div class="rule"></div>').join('')}
-  ${row('Total', r.total)}<div class="rule"></div>
-  ${r.tips ? row('Tips', r.tips) : ''}
+  ${row(r.labels.total, r.total)}<div class="rule"></div>
+  ${r.tips ? row(r.labels.tips, r.tips) : ''}
   ${r.payments.map((p) => row(p.label, p.amount) + `<div class="muted center">${esc(p.at)}</div>`).join('')}
   <div class="rule"></div>
-  ${r.change ? row('Change', r.change) : ''}
-  ${row('Balance', r.balance, 'balance')}
-  ${r.note ? `<p><b>Receipt comment</b><br>${esc(r.note)}</p>` : ''}
+  ${r.change ? row(r.labels.change, r.change) : ''}
+  ${row(r.labels.balance, r.balance, 'balance')}
+  ${r.note ? `<p><b>${esc(r.labels.comment)}</b><br>${esc(r.note)}</p>` : ''}
   ${r.footer ? `<p class="muted center">${esc(r.footer)}</p>` : ''}
   <script>window.onload=function(){window.print()}</script>
   </body></html>`

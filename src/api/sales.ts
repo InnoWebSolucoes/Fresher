@@ -3,9 +3,10 @@ import { commit, db } from '@/store/db'
 import type { GiftCard, ID, Payment, PaymentMethod, Sale, SaleItem, SaleStatus } from '@/types'
 import { giftCode, uid } from '@/lib/ids'
 import { nowISO, toISODate, todayISO } from '@/lib/time'
-import { round2 } from '@/lib/format'
+import { money, money2, round2 } from '@/lib/format'
 import { activity, actorName, ApiError, latency } from './client'
 import { notifyAppointment, pushNotification, queueMessage } from './messaging'
+import { isoDay, t } from './i18n'
 
 /** One line in the checkout cart. */
 export interface CartItem {
@@ -83,17 +84,38 @@ export interface CheckoutInput {
   saveAs?: 'unpaid' | 'draft'
 }
 
+/** Payment method names in the current language (getters, so every read is translated). */
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-  cash: 'Cash',
-  other: 'Other',
-  gift_card: 'Gift card',
-  card_terminal: 'Card terminal',
-  self_checkout: 'Self checkout',
-  qr_code: 'QR code',
-  manual_card: 'Manual card entry',
-  deposit: 'Deposit',
-  online_card: 'Card',
-  custom: 'Other',
+  get cash() {
+    return t('reports.l.opt.paymentMethod.cash')
+  },
+  get other() {
+    return t('reports.l.opt.paymentMethod.other')
+  },
+  get gift_card() {
+    return t('reports.l.opt.paymentMethod.gift_card')
+  },
+  get card_terminal() {
+    return t('reports.l.opt.paymentMethod.card_terminal')
+  },
+  get self_checkout() {
+    return t('reports.l.opt.paymentMethod.self_checkout')
+  },
+  get qr_code() {
+    return t('reports.l.opt.paymentMethod.qr_code')
+  },
+  get manual_card() {
+    return t('reports.l.opt.paymentMethod.manual_card')
+  },
+  get deposit() {
+    return t('reports.l.opt.paymentMethod.deposit')
+  },
+  get online_card() {
+    return t('sales.register.lines.card')
+  },
+  get custom() {
+    return t('reports.l.opt.paymentMethod.other')
+  },
 }
 
 export function lineTotal(item: Pick<SaleItem, 'unitPrice' | 'quantity' | 'discount'>): number {
@@ -163,6 +185,16 @@ export function saleBalance(sale: Sale): number {
   return round2(computeTotals(sale).total - salePaid(sale))
 }
 
+/** Gift card expiry setting ("14 days", "3 months", "1 year") in the current language. */
+function expiryLabel(expiry: string): string {
+  const [n, unit] = expiry.split(' ')
+  const count = Number(n)
+  if (unit?.startsWith('day')) return t('settings.sale.gift.days', { count })
+  if (unit?.startsWith('month')) return t('settings.sale.gift.months', { count })
+  if (unit?.startsWith('year')) return t('settings.sale.gift.years', { count })
+  return expiry
+}
+
 function expiryDate(expiry: string): string | undefined {
   if (expiry === 'Never') return undefined
   const [n, unit] = expiry.split(' ')
@@ -195,12 +227,12 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
   // Gift card balances must cover redemptions.
   for (const p of input.payments.filter((x) => x.method === 'gift_card')) {
     const card = data.giftCards.find((g) => g.id === p.giftCardId)
-    if (!card || card.status !== 'active' || card.balance + 0.001 < p.amount) throw new ApiError('gift_card', 'Gift card balance is too low')
+    if (!card || card.status !== 'active' || card.balance + 0.001 < p.amount) throw new ApiError('gift_card', t('api.sales.giftCardBalanceLow'))
   }
   const declined = input.payments.find((p) => (globalThis as unknown as { __ibDeclineNext?: boolean }).__ibDeclineNext && ['card_terminal', 'manual_card', 'qr_code', 'self_checkout'].includes(p.method))
   if (declined) {
     ;(globalThis as unknown as { __ibDeclineNext?: boolean }).__ibDeclineNext = false
-    throw new ApiError('card_declined', 'Card declined. Ask the client for another payment method.')
+    throw new ApiError('card_declined', t('api.sales.cardDeclined'))
   }
 
   const items: SaleItem[] = input.items.map((c) => {
@@ -254,7 +286,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
     kind: 'sale',
     method: p.method,
     customMethodId: p.customMethodId,
-    methodLabel: p.methodLabel ?? (p.method === 'gift_card' ? `Gift card (${data.giftCards.find((g) => g.id === p.giftCardId)?.code})` : PAYMENT_LABELS[p.method]),
+    methodLabel: p.methodLabel ?? (p.method === 'gift_card' ? t('api.payments.giftCardWithCode', { code: data.giftCards.find((g) => g.id === p.giftCardId)?.code }) : PAYMENT_LABELS[p.method]),
     amount: round2(p.amount),
     change: p.change,
     at,
@@ -274,7 +306,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
       draft.number = d.meta.nextSaleNumber++
       d.sales.push(draft)
       sale = d.sales.find((s) => s.id === draft.id)!
-      sale.activity.unshift(activity(`Sale ${draft.number} created`, status === 'completed' ? `Completed by ${by}` : undefined))
+      sale.activity.unshift(activity(t('api.sales.activity.created', { number: draft.number }), status === 'completed' ? t('api.sales.activity.completedBy', { name: by }) : undefined))
     } else {
       Object.assign(sale, { clientId: input.clientId, items, tips: input.tips, cartDiscount: input.cartDiscount, serviceCharges: input.serviceCharges ?? [], receiptNote: input.receiptNote })
     }
@@ -287,17 +319,17 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
       p.saleId = sale.id
       d.payments.push(p)
       sale.paymentIds.push(p.id)
-      sale.activity.unshift(activity(`€${p.amount.toFixed(2)} paid by ${p.methodLabel}`, `Paid with ${p.methodLabel}. Payment taken by ${by}`))
+      sale.activity.unshift(activity(t('api.sales.activity.paidBy', { amount: money2(p.amount), method: p.methodLabel }), t('api.sales.activity.paidWith', { method: p.methodLabel, name: by })))
       if (p.method === 'gift_card' && p.giftCardId) {
         const card = d.giftCards.find((g) => g.id === p.giftCardId)!
         card.balance = round2(card.balance - p.amount)
         if (card.balance <= 0.004) card.status = 'redeemed'
-        card.activity.unshift(activity('Gift card redeemed', `€${p.amount.toFixed(2)} in sale ${sale.number}`))
+        card.activity.unshift(activity(t('api.sales.activity.giftCardRedeemed'), t('api.sales.activity.amountInSale', { amount: money2(p.amount), number: sale.number })))
       }
       if (['card_terminal', 'qr_code', 'self_checkout', 'manual_card'].includes(p.method)) {
         d.wallet.balance = round2(d.wallet.balance + p.amount * 0.985)
         d.wallet.available = round2(d.wallet.available + p.amount * 0.985)
-        d.wallet.transactions.unshift({ id: uid('wt'), at, type: 'payment', description: `${p.methodLabel} · Sale ${sale.number}`, amount: p.amount })
+        d.wallet.transactions.unshift({ id: uid('wt'), at, type: 'payment', description: `${p.methodLabel} · ${t('api.sales.saleNumber', { number: sale.number })}`, amount: p.amount })
       }
     }
     const wasCompleted = sale.status === 'completed'
@@ -323,12 +355,16 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
             saleId: sale!.id,
             isGift: cartItem.giftCard.isGift,
             onlinePurchase: false,
-            activity: [activity('Gift card purchased', `View sale ${sale!.number}`)],
+            activity: [activity(t('api.sales.activity.giftCardPurchased'), t('api.sales.activity.viewSale', { number: sale!.number }))],
           }
           d.giftCards.push(gc)
           issuedCards.push(gc)
           line.giftCardId = gc.id
-          line.detail = `${gc.code} • €${gc.value} value • ${cartItem.giftCard.expiry === 'Never' ? 'never expires' : `valid for ${cartItem.giftCard.expiry}`}`
+          line.detail = t('api.sales.giftCardDetail', {
+            code: gc.code,
+            value: money(gc.value),
+            validity: cartItem.giftCard.expiry === 'Never' ? t('api.sales.neverExpires') : t('api.sales.validFor', { period: expiryLabel(cartItem.giftCard.expiry) }),
+          })
         }
         if (cartItem.type === 'package' && cartItem.refId && input.clientId) {
           const def = d.packages.find((p) => p.id === cartItem.refId)
@@ -369,7 +405,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
             product.stock -= cartItem.quantity
             d.stockMovements.push({ id: uid('sm'), productId: product.id, locationId: input.locationId, qty: -cartItem.quantity, reason: 'Sale', by, at, ref: `Sale ${sale!.number}` })
             if (product.lowStockNotify && product.stock <= product.lowStockLevel) {
-              d.notifications.unshift({ id: uid('nt'), tab: 'actions', title: 'Low stock', body: `${product.name} has ${product.stock} left (low stock level ${product.lowStockLevel}).`, at, read: false, link: `/catalogue/products?drawer=product&id=${product.id}` })
+              d.notifications.unshift({ id: uid('nt'), tab: 'actions', title: t('api.notifications.lowStock.title'), body: t('api.notifications.lowStock.body', { product: product.name, stock: product.stock, level: product.lowStockLevel }), at, read: false, link: `/catalogue/products?drawer=product&id=${product.id}` })
             }
           }
         }
@@ -379,11 +415,11 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
         if (appt) {
           appt.status = 'completed'
           appt.saleId = sale.id
-          appt.activity.unshift(activity('Appointment checked out', `Sale ${sale.number}`))
+          appt.activity.unshift(activity(t('api.sales.activity.appointmentCheckedOut'), t('api.sales.saleNumber', { number: sale.number })))
         }
       }
       if (sale.tips.length) {
-        d.notifications.unshift({ id: uid('nt'), tab: 'tips', title: 'New tip', body: `€${round2(sale.tips.reduce((s, t) => s + t.amount, 0)).toFixed(2)} tip in sale ${sale.number}`, at, read: false, link: `/sales/sales-list?drawer=sale&id=${sale.id}` })
+        d.notifications.unshift({ id: uid('nt'), tab: 'tips', title: t('api.notifications.newTip.title'), body: t('api.notifications.newTip.body', { amount: money2(round2(sale.tips.reduce((s, tip) => s + tip.amount, 0))), number: sale.number }), at, read: false, link: `/sales/sales-list?drawer=sale&id=${sale.id}` })
       }
     } else {
       for (const apptId of appointmentIds) {
@@ -401,7 +437,7 @@ export async function checkout(input: CheckoutInput): Promise<Sale> {
     const card = issuedCards.find((g) => g.id === saved.items[index]?.giftCardId)
     if (card && cartItem.giftCard?.sendEmail && input.clientId) {
       const client = db().clients.find((c) => c.id === input.clientId)
-      if (client) queueMessage({ clientId: client.id, to: client.email, toName: `${client.firstName} ${client.lastName}`, channel: 'email', type: 'gift_card', subject: `Your €${card.value} gift card for ${db().workspace.name}`, body: `Gift card code ${card.code}. Use it at checkout or when booking online.${card.expiresAt ? ` Valid until ${card.expiresAt}.` : ''}`, saleId: saved.id })
+      if (client) queueMessage({ clientId: client.id, to: client.email, toName: `${client.firstName} ${client.lastName}`, channel: 'email', type: 'gift_card', subject: t('api.sales.giftCardEmail.subject', { value: money(card.value), business: db().workspace.name }), body: t('api.sales.giftCardEmail.body', { code: card.code, validUntil: card.expiresAt ? ` ${t('api.sales.giftCardEmail.validUntil', { date: isoDay(card.expiresAt) })}` : '' }), saleId: saved.id })
     }
   }
   return saved
@@ -412,8 +448,8 @@ export async function findGiftCard(code: string): Promise<GiftCard> {
   await latency()
   const value = code.trim().toUpperCase()
   const card = db().giftCards.find((g) => g.code === value || g.customCode?.toUpperCase() === value)
-  if (!card) throw new ApiError('not_found', 'No gift card found with this code')
-  if (card.status !== 'active') throw new ApiError('inactive', `This gift card is ${card.status}`)
+  if (!card) throw new ApiError('not_found', t('api.sales.giftCardCodeNotFound'))
+  if (card.status !== 'active') throw new ApiError('inactive', t(`api.sales.giftCardInactive.${card.status}`))
   return card
 }
 
@@ -431,7 +467,7 @@ export async function refundSale(input: RefundInput): Promise<Sale> {
   await latency(500, 900)
   const data = db()
   const original = data.sales.find((s) => s.id === input.saleId)
-  if (!original) throw new ApiError('not_found', 'Sale not found')
+  if (!original) throw new ApiError('not_found', t('checkout.sale.notFound'))
   const lines = input.itemIds ? original.items.filter((i) => input.itemIds!.includes(i.id)) : []
   const amount = input.amount ?? round2(lines.reduce((s, i) => s + lineTotal(i), 0) * (computeTotals(original).itemsTotal ? computeTotals(original).subtotal / computeTotals(original).itemsTotal : 1))
   const by = actorName()
@@ -442,7 +478,7 @@ export async function refundSale(input: RefundInput): Promise<Sale> {
     const paymentId = uid('pay')
     const items: SaleItem[] = lines.length
       ? lines.map((l) => ({ ...l, id: uid('si'), unitPrice: -round2((lineTotal(l) / l.quantity) * (amount / (lines.reduce((s, x) => s + lineTotal(x), 0) || 1))), discount: undefined }))
-      : [{ id: uid('si'), type: 'manual', name: 'Refund amount', quantity: 1, unitPrice: -amount, teamMemberId: null, taxRate: taxRateFor('manual') }]
+      : [{ id: uid('si'), type: 'manual', name: t('sales.refund.refundAmount'), quantity: 1, unitPrice: -amount, teamMemberId: null, taxRate: taxRateFor('manual') }]
     d.sales.push({
       id: refundId,
       number,
@@ -461,12 +497,12 @@ export async function refundSale(input: RefundInput): Promise<Sale> {
       refundReason: input.reason,
       channel: original.channel,
       notes: [],
-      activity: [activity(`Refund ${number} created`, `Refund of sale ${original.number}`)],
+      activity: [activity(t('api.sales.activity.refundCreated', { number }), t('api.sales.activity.refundOf', { number: original.number }))],
     })
     d.payments.push({ id: paymentId, saleId: refundId, kind: 'refund', method: input.method, methodLabel: input.methodLabel ?? PAYMENT_LABELS[input.method], amount: -amount, at, by, status: 'succeeded', clientId: original.clientId, locationId: original.locationId, registerSessionId: input.method === 'cash' ? openRegisterSession(original.locationId)?.id : undefined })
     const o = d.sales.find((s) => s.id === original.id)!
     o.refundedById = refundId
-    o.activity.unshift(activity('Sale refunded', `€${amount.toFixed(2)} · ${input.reason}`))
+    o.activity.unshift(activity(t('api.sales.activity.refunded'), `${money2(amount)} · ${input.reason}`))
     for (const line of lines) {
       if (line.type === 'product' && line.refId) {
         const product = d.products.find((p) => p.id === line.refId)
@@ -490,7 +526,7 @@ export async function voidSale(saleId: ID): Promise<void> {
     const sale = d.sales.find((s) => s.id === saleId)
     if (!sale) return
     sale.status = 'voided'
-    sale.activity.unshift(activity('Sale voided'))
+    sale.activity.unshift(activity(t('checkout.toasts.saleVoided')))
     const appt = d.appointments.find((a) => a.saleId === saleId)
     if (appt) appt.saleId = undefined
   })
@@ -517,7 +553,7 @@ export async function editSaleDetails(saleId: ID, patch: { itemTeam: Record<ID, 
       const p = d.payments.find((x) => x.id === paymentId)
       if (p) p.collectedById = memberId
     }
-    sale.activity.unshift(activity('Sale details edited'))
+    sale.activity.unshift(activity(t('api.sales.activity.detailsEdited')))
   })
 }
 
@@ -526,9 +562,9 @@ export async function sellGiftCardOnline(clientId: ID, value: number, recipientN
   const sale = await checkout({
     clientId,
     locationId: db().locations[0].id,
-    items: [{ type: 'gift_card', name: 'Gift Card', quantity: 1, unitPrice: value, teamMemberId: null, giftCard: { value, expiry: db().settings.giftCards.expiry, isGift: Boolean(recipientName), sendEmail: true } }],
+    items: [{ type: 'gift_card', name: t('api.sales.giftCardLine'), quantity: 1, unitPrice: value, teamMemberId: null, giftCard: { value, expiry: db().settings.giftCards.expiry, isGift: Boolean(recipientName), sendEmail: true } }],
     tips: [],
-    payments: [{ method: 'online_card', amount: value, methodLabel: 'Card (online)' }],
+    payments: [{ method: 'online_card', amount: value, methodLabel: t('reports.l.opt.paymentMethod.online_card') }],
   })
   const cardId = sale.items[0].giftCardId!
   commit((d) => {
@@ -541,6 +577,6 @@ export async function sellGiftCardOnline(clientId: ID, value: number, recipientN
     }
   })
   const client = db().clients.find((c) => c.id === clientId)
-  pushNotification({ tab: 'online_sales', title: 'Gift card sold online', body: `${client?.firstName} ${client?.lastName} bought a €${value} gift card`, link: `/sales/gift-cards?drawer=gift-card&id=${cardId}`, initials: client ? `${client.firstName[0]}${client.lastName[0]}` : undefined })
+  pushNotification({ tab: 'online_sales', title: t('api.notifications.giftCardSold.title'), body: t('api.notifications.giftCardSold.body', { name: `${client?.firstName} ${client?.lastName}`, value: money(value) }), link: `/sales/gift-cards?drawer=gift-card&id=${cardId}`, initials: client ? `${client.firstName[0]}${client.lastName[0]}` : undefined })
   return db().giftCards.find((g) => g.id === cardId)!
 }

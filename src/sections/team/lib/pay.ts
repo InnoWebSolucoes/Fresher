@@ -1,4 +1,5 @@
-import { addDays, differenceInCalendarDays, endOfMonth, format, parseISO, startOfMonth, subDays } from 'date-fns'
+import { addDays, differenceInCalendarDays, endOfMonth, parseISO, startOfMonth, subDays } from 'date-fns'
+import { format } from '@/lib/dates'
 import { useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import type { DbData, ID, ISODate, PayAdjustment, PayRunLine, Sale, SaleItem, Settings, TeamMember } from '@/types'

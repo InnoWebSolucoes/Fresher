@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export interface Column<T> {
   key: string
@@ -31,6 +32,7 @@ interface DataTableProps<T> {
 
 /** Table used by list pages and reports. */
 export function DataTable<T>({ columns, rows, rowKey, onRowClick, totalRow, empty, selectable, pageSize = 50, initialSort, className, footer = true }: DataTableProps<T>) {
+  const { t } = useTranslation()
   const [sort, setSort] = useState(initialSort)
   const [page, setPage] = useState(0)
   const sorted = useMemo(() => {
@@ -58,7 +60,7 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, totalRow, empt
                 <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
-                    aria-label="Select all"
+                    aria-label={t('common.table.selectAll')}
                     checked={Boolean(allSelected)}
                     onChange={(e) => selectable.onChange(new Set(e.target.checked ? rows.map(rowKey) : []))}
                     className="h-4 w-4 accent-[rgb(var(--primary))]"
@@ -106,7 +108,7 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, totalRow, empt
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
-                        aria-label="Select row"
+                        aria-label={t('common.table.selectRow')}
                         checked={selectable.selected.has(key)}
                         onChange={(e) => {
                           const next = new Set(selectable.selected)
@@ -129,20 +131,20 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, totalRow, empt
           </tbody>
         </table>
       </div>
-      {rows.length === 0 && (empty ?? <p className="px-6 py-10 text-center text-body text-muted">No results found — Try using different filters</p>)}
+      {rows.length === 0 && (empty ?? <p className="px-6 py-10 text-center text-body text-muted">{t('common.table.empty')}</p>)}
       {footer && rows.length > 0 && (
         <div className="flex items-center justify-center gap-4 border-t border-line px-4 py-3 text-small text-muted">
           {pages > 1 && (
             <button type="button" className="btn-ghost h-8 px-3" disabled={current === 0} onClick={() => setPage(current - 1)}>
-              Previous
+              {t('common.table.previous')}
             </button>
           )}
           <span>
-            Viewing {current * pageSize + 1} - {Math.min(sorted.length, (current + 1) * pageSize)} of {sorted.length} results
+            {t('common.table.viewing', { from: current * pageSize + 1, to: Math.min(sorted.length, (current + 1) * pageSize), total: sorted.length })}
           </span>
           {pages > 1 && (
             <button type="button" className="btn-ghost h-8 px-3" disabled={current >= pages - 1} onClick={() => setPage(current + 1)}>
-              Next
+              {t('common.table.next')}
             </button>
           )}
         </div>

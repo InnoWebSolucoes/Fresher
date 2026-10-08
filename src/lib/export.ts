@@ -1,4 +1,5 @@
-import { format } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
 import { now } from './time'
 
 /**
@@ -62,7 +63,7 @@ export async function exportXlsx(filename: string, tables: ExportTable[], option
   }))
   const book = XLSX.utils.book_new()
   // Sheet names: max 31 characters, none of : \ / ? * [ ]
-  const sheetName = (options.sheetName ?? 'Sheet1').replace(/[:\\/?*[\]]/g, ' ').slice(0, 31)
+  const sheetName = (options.sheetName ?? i18n.t('common.export.sheet')).replace(/[:\\/?*[\]]/g, ' ').slice(0, 31)
   XLSX.utils.book_append_sheet(book, sheet, sheetName)
   const data = XLSX.write(book, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
   downloadBlob(new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${filename}.xlsx`)
@@ -84,7 +85,7 @@ export async function buildPdf({ title, subtitle, tables, orientation = 'portrai
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
   doc.setTextColor(90)
-  doc.text(subtitle ?? `Generated ${format(now(), "EEEE, d MMM yyyy 'at' HH:mm")}`, 40, 68)
+  doc.text(subtitle ?? i18n.t('reports.export.generated', { date: format(now(), "EEEE, d MMM yyyy 'at' HH:mm") }), 40, 68)
   let y = 90
   for (const t of tables) {
     if (t.title) {

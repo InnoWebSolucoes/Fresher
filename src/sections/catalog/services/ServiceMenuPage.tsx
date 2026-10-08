@@ -160,7 +160,7 @@ export function ServiceMenuPage() {
         title={t('catalog.menu.title')}
         subtitle={
           <>
-            {t('catalog.menu.subtitle')} <LearnMore topic="Service menu">{t('catalog.common.learnMore')}</LearnMore>
+            {t('catalog.menu.subtitle')} <LearnMore topic={t('catalog.menu.title')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={

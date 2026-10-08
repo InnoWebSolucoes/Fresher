@@ -1,16 +1,6 @@
 import clsx from 'clsx'
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameMonth,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-} from 'date-fns'
+import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, isSameMonth, parseISO, startOfMonth, startOfWeek, subMonths } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Calculator, ChevronLeft, ChevronRight, Minus, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'

@@ -130,7 +130,7 @@ export function ProductOrdersPage() {
         count={orders.length}
         subtitle={
           <>
-            {t('sales.orders.subtitle')} <LearnMore topic="online store" />
+            {t('sales.orders.subtitle')} <LearnMore topic={t('sales.helpTopics.onlineStore')}>{t('common.learnMore')}</LearnMore>
           </>
         }
         actions={

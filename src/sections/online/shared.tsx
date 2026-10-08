@@ -16,6 +16,35 @@ export function opensAt(hours: OpeningHours, day: Weekday): string | null {
   return d?.open && d.ranges.length ? d.ranges[0].start : null
 }
 
+/** Marketplace amenities, highlights and values are stored in English (option values); these are their label keys. */
+const FEATURE_KEYS: Record<string, string> = {
+  'Parking available': 'parking',
+  'Near public transport': 'publicTransport',
+  'Showers': 'showers',
+  'Lockers': 'lockers',
+  'Bath towels': 'towels',
+  'Swimming pool': 'pool',
+  'Sauna': 'sauna',
+  'Pet-friendly': 'petFriendly',
+  'Adults only': 'adultsOnly',
+  'Kid-friendly': 'kidFriendly',
+  'Wheelchair accessible': 'wheelchair',
+  'Men only': 'menOnly',
+  'Women only': 'womenOnly',
+  'Organic products only': 'organic',
+  'Vegan products only': 'vegan',
+  'Environmentally friendly': 'ecoFriendly',
+  'LGBTQ+': 'lgbtq',
+  'Black-owned': 'blackOwned',
+  'Woman-owned': 'womanOwned',
+  'Asian-owned': 'asianOwned',
+  'Hispanic-owned': 'hispanicOwned',
+  'Indigenous-owned': 'indigenousOwned',
+}
+
+/** Display label of a stored amenity / highlight / value (unknown values are shown as stored). */
+export const featureLabel = (t: (key: string) => string, value: string) => (FEATURE_KEYS[value] ? t(`online.wizard.features.options.${FEATURE_KEYS[value]}`) : value)
+
 export const addressLine = (loc: Pick<Location, 'address'>) =>
   [loc.address.line1, loc.address.district, loc.address.city, loc.address.country].filter(Boolean).join(', ')
 

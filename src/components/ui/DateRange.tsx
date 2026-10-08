@@ -1,23 +1,9 @@
-import {
-  endOfMonth,
-  endOfQuarter,
-  endOfYear,
-  format,
-  parseISO,
-  startOfMonth,
-  startOfQuarter,
-  startOfWeek,
-  startOfYear,
-  subDays,
-  subMonths,
-  subYears,
-  addDays,
-  addMonths,
-  endOfWeek,
-  subWeeks,
-} from 'date-fns'
+import { endOfMonth, endOfQuarter, endOfYear, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear, subDays, subMonths, subYears, addDays, addMonths, endOfWeek, subWeeks } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarDays } from 'lucide-react'
+import i18n from 'i18next'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDismiss } from '@/lib/useDismiss'
 import { now, toISODate } from '@/lib/time'
 import { Button } from './Button'
@@ -45,27 +31,28 @@ export type PresetKey =
   | 'all_time'
   | 'custom'
 
+/** Preset names in the current language (getters, so each read is translated). */
 export const PRESET_LABELS: Record<PresetKey, string> = {
-  today: 'Today',
-  yesterday: 'Yesterday',
-  last_7_days: 'Last 7 days',
-  last_30_days: 'Last 30 days',
-  last_90_days: 'Last 90 days',
-  last_week: 'Last week',
-  last_month: 'Last month',
-  last_3_months: 'Last 3 months',
-  last_6_months: 'Last 6 months',
-  last_year: 'Last year',
-  week_to_date: 'Week to date',
-  month_to_date: 'Month to date',
-  quarter_to_date: 'Quarter to date',
-  year_to_date: 'Year to date',
-  tomorrow: 'Tomorrow',
-  next_7_days: 'Next 7 days',
-  next_month: 'Next month',
-  next_30_days: 'Next 30 days',
-  all_time: 'All time',
-  custom: 'Custom',
+  get today() { return i18n.t('reports.range.today') },
+  get yesterday() { return i18n.t('reports.range.yesterday') },
+  get last_7_days() { return i18n.t('reports.range.last_7_days') },
+  get last_30_days() { return i18n.t('reports.range.last_30_days') },
+  get last_90_days() { return i18n.t('reports.range.last_90_days') },
+  get last_week() { return i18n.t('reports.range.last_week') },
+  get last_month() { return i18n.t('reports.range.last_month') },
+  get last_3_months() { return i18n.t('reports.range.last_3_months') },
+  get last_6_months() { return i18n.t('reports.range.last_6_months') },
+  get last_year() { return i18n.t('reports.range.last_year') },
+  get week_to_date() { return i18n.t('reports.range.week_to_date') },
+  get month_to_date() { return i18n.t('reports.range.month_to_date') },
+  get quarter_to_date() { return i18n.t('reports.range.quarter_to_date') },
+  get year_to_date() { return i18n.t('reports.range.year_to_date') },
+  get tomorrow() { return i18n.t('reports.range.tomorrow') },
+  get next_7_days() { return i18n.t('reports.range.next_7_days') },
+  get next_month() { return i18n.t('reports.range.next_month') },
+  get next_30_days() { return i18n.t('reports.range.next_30_days') },
+  get all_time() { return i18n.t('reports.range.all_time') },
+  get custom() { return i18n.t('reports.range.custom') },
 }
 
 export interface DateRangeValue {
@@ -134,6 +121,7 @@ export function rangeLabel(value: DateRangeValue): string {
 
 /** "Date range" pill with presets, Starting/Ending date fields, Cancel/Apply. */
 export function DateRangeButton({ value, onChange, presets }: { value: DateRangeValue; onChange: (v: DateRangeValue) => void; presets: PresetKey[] }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(value)
   const ref = useRef<HTMLDivElement>(null)
@@ -155,8 +143,8 @@ export function DateRangeButton({ value, onChange, presets }: { value: DateRange
         <span aria-hidden className="text-[10px]">▼</span>
       </button>
       {open && (
-        <div role="dialog" aria-label="Date range" className="absolute left-0 top-full z-[60] mt-2 w-[360px] rounded-lg border border-line bg-raised p-5 shadow-md">
-          <label className="label">Date range</label>
+        <div role="dialog" aria-label={t('reports.range.label')} className="absolute left-0 top-full z-[60] mt-2 w-[360px] rounded-lg border border-line bg-raised p-5 shadow-md">
+          <label className="label">{t('reports.range.label')}</label>
           <Select
             value={draft.preset}
             onChange={(e) => setDraft(resolvePreset(e.target.value as PresetKey, draft))}
@@ -164,16 +152,16 @@ export function DateRangeButton({ value, onChange, presets }: { value: DateRange
           />
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Starting Date</label>
+              <label className="label">{t('reports.range.from')}</label>
               <input type="date" className="input" value={draft.from} onChange={(e) => setDraft({ preset: 'custom', from: e.target.value, to: draft.to })} />
             </div>
             <div>
-              <label className="label">Ending Date</label>
+              <label className="label">{t('reports.range.to')}</label>
               <input type="date" className="input" value={draft.to} onChange={(e) => setDraft({ preset: 'custom', from: draft.from, to: e.target.value })} />
             </div>
           </div>
           <div className="mt-5 flex justify-end gap-2">
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
             <Button
               variant="primary"
               onClick={() => {
@@ -181,7 +169,7 @@ export function DateRangeButton({ value, onChange, presets }: { value: DateRange
                 setOpen(false)
               }}
             >
-              Apply
+              {t('reports.page.apply')}
             </Button>
           </div>
         </div>

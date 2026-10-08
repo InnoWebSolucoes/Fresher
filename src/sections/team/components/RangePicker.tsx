@@ -1,4 +1,5 @@
-import { endOfWeek, format, startOfMonth, startOfWeek, startOfYear, subDays, subWeeks } from 'date-fns'
+import { endOfWeek, startOfMonth, startOfWeek, startOfYear, subDays, subWeeks } from 'date-fns'
+import { format } from '@/lib/dates'
 import { CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'

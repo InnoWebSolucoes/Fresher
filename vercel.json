@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
+  "framework": null,
+  "redirects": [{ "source": "/", "destination": "/bookings/", "permanent": false }],
+  "rewrites": [{ "source": "/bookings/:path*", "destination": "/bookings/index.html" }],
+  "headers": [
+    {
+      "source": "/bookings/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/bookings/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { money } from '@/lib/format'
 import { formatCell } from '../engine/format'
 import type { Col, Row } from '../engine/types'
 
@@ -12,7 +13,7 @@ export function ReportChart({ rows, label, metric, kind }: { rows: Row[]; label:
     .slice(0, 40)
     .map((r) => ({ name: formatCell(r.cells[label.key], label.type), value: Number(r.cells[metric.key] ?? 0) }))
   const fmt = (v: number) => formatCell(v, metric.type)
-  const axis = (v: number) => (metric.type === 'money' ? `€${Math.round(v).toLocaleString('en-IE')}` : fmt(v))
+  const axis = (v: number) => (metric.type === 'money' ? money(Math.round(v)) : fmt(v))
   return (
     <figure className="mb-4 rounded-lg border border-line bg-surface p-5" aria-label={`${metric.label} · ${label.label}`}>
       <figcaption className="mb-3 text-body-strong text-ink">{metric.label}</figcaption>

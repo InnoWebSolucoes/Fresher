@@ -5,7 +5,7 @@ import type { ID } from '@/types'
 import { useDb } from '@/store/db'
 import { Button, Field, Modal, Select, toast } from '@/components/ui'
 import { assignTags, blockClients, setClientTags } from '@/api/clients'
-import { BLOCK_REASONS } from '../lib/constants'
+import { blockReasonOptions } from '../lib/constants'
 import { TagPicker } from './TagPicker'
 
 /** "Block Client" (clients.md §4). Works for one client or a bulk selection. */
@@ -60,7 +60,7 @@ function BlockBody({ onClose, clientIds, onDone }: { onClose: () => void; client
                 setError(false)
               }}
               placeholder={t('clients.block.reason')}
-              options={BLOCK_REASONS}
+              options={blockReasonOptions()}
             />
           )}
         </Field>

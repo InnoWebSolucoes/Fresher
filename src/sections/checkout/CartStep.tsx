@@ -4,7 +4,8 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Button, EmptyState, SearchInput, Select } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { durationLabel, toClock, toMinutes, toISODate, useNow } from '@/lib/time'
@@ -428,7 +429,7 @@ function GiftCardsCategory() {
   const c = useCheckout()
   const settings = useDb((s) => s.settings.giftCards)
   const addGift = (value: number) => {
-    const key = c.addLine({ type: 'gift_card', name: 'Gift Card', quantity: 1, unitPrice: value, teamMemberId: c.defaultMemberId, giftCard: { value, expiry: settings.expiry, isGift: true, sendEmail: Boolean(c.clientId) } })
+    const key = c.addLine({ type: 'gift_card', name: t('checkout.cart.giftCardTitle'), quantity: 1, unitPrice: value, teamMemberId: c.defaultMemberId, giftCard: { value, expiry: settings.expiry, isGift: true, sendEmail: Boolean(c.clientId) } })
     c.setModal({ kind: 'giftCard', key })
   }
   return (

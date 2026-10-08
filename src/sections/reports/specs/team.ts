@@ -1,4 +1,5 @@
-import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns'
+import { addDays, differenceInCalendarDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { round2 } from '@/lib/format'
 import { rawShifts, timeOffOn, workingWindows } from '@/lib/schedule'
 import { toClock, toMinutes } from '@/lib/time'

@@ -1,4 +1,5 @@
 import { addDays, differenceInCalendarDays, parseISO } from 'date-fns'
+import i18n from 'i18next'
 import type { Appointment, AppointmentItem, DbData, ExtraTime, ID, ISODate, Service, TeamMember } from '@/types'
 import { closedPeriodOn, workingWindows } from './schedule'
 import { toClock, toISODate, toMinutes, weekdayOf } from './time'
@@ -386,24 +387,24 @@ export function findConflicts(data: AvailabilityData, appointment: Pick<Appointm
   const resources = resourceUse(data, appointment.date, appointment.id)
   for (const item of appointment.items) {
     const member = data.teamMembers.find((m) => m.id === item.teamMemberId)
-    const name = member?.firstName ?? 'This team member'
-    if (closed) conflicts.push({ itemId: item.id, kind: 'closed', message: `The business is closed (${closed.description})` })
+    const name = member?.firstName ?? i18n.t('common.conflicts.thisMember')
+    if (closed) conflicts.push({ itemId: item.id, kind: 'closed', message: i18n.t('common.conflicts.closed', { description: closed.description }) })
     const segments = itemSegments(toMinutes(item.start), item.durationMin, item.extraTime).filter((s) => s.busy)
     const windows = workingWindows(data, item.teamMemberId, appointment.date, appointment.locationId)
     if (segments.some((s) => !windows.some(([ws, we]) => ws <= s.start && s.end <= we))) {
-      conflicts.push({ itemId: item.id, kind: 'outside_shift', message: `${name} isn't working at this time` })
+      conflicts.push({ itemId: item.id, kind: 'outside_shift', message: i18n.t('common.conflicts.outsideShift', { name }) })
     }
     const theirs = busy.get(item.teamMemberId) ?? []
     if (segments.some((s) => theirs.some((b) => overlaps(b, [s.start, s.end])))) {
       const blocked = data.blockedTimes.some((b) => b.date === appointment.date && b.teamMemberId === item.teamMemberId && segments.some((s) => overlaps([toMinutes(b.start), toMinutes(b.end)], [s.start, s.end])))
-      conflicts.push({ itemId: item.id, kind: blocked ? 'blocked_time' : 'overlap', message: blocked ? `${name} has blocked time then` : `${name} is already booked at this time` })
+      conflicts.push({ itemId: item.id, kind: blocked ? 'blocked_time' : 'overlap', message: blocked ? i18n.t('common.conflicts.blockedTime', { name }) : i18n.t('common.conflicts.overlap', { name }) })
     }
     if (item.resourceId) {
       const res = data.resources.find((r) => r.id === item.resourceId)
       const start = toMinutes(item.start)
       const range: [number, number] = [start, start + itemTotalMinutes(item.durationMin, item.extraTime)]
       if (res && (resources.get(res.id) ?? []).filter((u) => overlaps(u, range)).length >= res.capacity) {
-        conflicts.push({ itemId: item.id, kind: 'resource', message: `${res.name} is in use` })
+        conflicts.push({ itemId: item.id, kind: 'resource', message: i18n.t('common.conflicts.resource', { name: res.name }) })
       }
     }
   }

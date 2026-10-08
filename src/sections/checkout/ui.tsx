@@ -3,6 +3,7 @@ import { ArrowLeft, Banknote, CircleDollarSign, CreditCard, Delete, Gift, Keyboa
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MenuGroup } from '@/components/ui'
+import { getLang } from '@/i18n/language'
 import { useDismiss } from '@/lib/useDismiss'
 import { money } from '@/lib/format'
 import type { PaymentMethod } from '@/types'
@@ -35,6 +36,8 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'back']
 /** Number keypad 1–9 . 0 ⌫, also driven by the physical keyboard. */
 export function Keypad({ onPress, rounded = true }: { onPress: (key: string) => void; rounded?: boolean }) {
   const { t } = useTranslation()
+  // The decimal key types "." either way; Portuguese shows it as ",".
+  const shown = (k: string) => (k === '.' && getLang() === 'pt' ? ',' : k)
   const press = useRef(onPress)
   press.current = onPress
   useEffect(() => {
@@ -55,10 +58,10 @@ export function Keypad({ onPress, rounded = true }: { onPress: (key: string) => 
           key={k}
           type="button"
           onClick={() => onPress(k)}
-          aria-label={k === 'back' ? t('checkout.keypad.backspace') : k}
+          aria-label={k === 'back' ? t('checkout.keypad.backspace') : shown(k)}
           className={clsx('flex h-14 items-center justify-center border border-line bg-surface font-display text-title-2 text-ink transition-colors hover:bg-sunken active:bg-sunken', rounded ? 'rounded-full' : 'rounded-md')}
         >
-          {k === 'back' ? <Delete size={22} aria-hidden /> : k}
+          {k === 'back' ? <Delete size={22} aria-hidden /> : shown(k)}
         </button>
       ))}
     </div>

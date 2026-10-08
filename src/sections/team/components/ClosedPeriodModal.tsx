@@ -63,7 +63,7 @@ function ClosedPeriodForm({ onClose, locationId, date, period }: Props) {
       title={t(period ? 'team.closed.editTitle' : 'team.closed.addTitle', { location: location?.name ?? '' })}
       subtitle={
         <>
-          {t('team.closed.subtitle')} <LearnMore topic="closed periods">{t('team.common.learnMoreDot')}</LearnMore>
+          {t('team.closed.subtitle')} <LearnMore topic={t('team.topics.closedPeriods')}>{t('team.common.learnMoreDot')}</LearnMore>
         </>
       }
       footer={

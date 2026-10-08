@@ -10,6 +10,7 @@ import { addOnActive, createAutomation, setAutomationEnabled, useMarketingSettin
 import { money, money2 } from '@/lib/format'
 import { ProfileGateModal } from '@/sections/online/shared'
 import { AdvancedOptionsModal, AutoTopUpModal, TopUpModal } from '../components/BalanceModals'
+import { CUSTOM_TRIGGERS, triggerLabel } from './automationTriggers'
 
 export const AUTOMATION_SECTIONS: Automation['section'][] = ['reminders', 'appointment_updates', 'waitlist_updates', 'increase_bookings', 'celebrate_milestones', 'client_messages', 'client_loyalty']
 
@@ -22,15 +23,6 @@ export const SECTION_ICONS: Record<Automation['section'], LucideIcon> = {
   client_messages: MessageCircle,
   client_loyalty: Gift,
 }
-
-export const CUSTOM_TRIGGERS = [
-  "7 days after a client's last appointment",
-  "30 days after a client's last appointment",
-  "90 days after a client's last appointment",
-  'On the day a client is added',
-  "7 days before a client's birthday",
-  "On a client's first visit anniversary",
-]
 
 export function ChannelIcons({ channels, className }: { channels: Automation['channels']; className?: string }) {
   const { t } = useTranslation()
@@ -100,7 +92,8 @@ function CreateAutomationModal({ open, onClose }: { open: boolean; onClose: () =
             />
           )}
         </Field>
-        <Field label={t('marketing.automations.create.trigger')}>{(id) => <Select id={id} value={trigger} onChange={(e) => setTrigger(e.target.value)} options={CUSTOM_TRIGGERS} />}</Field>
+        <Field label={t('marketing.automations.create.trigger')}>{(id) => <Select id={id} value={trigger} onChange={(e) => setTrigger(e.target.value)} options={CUSTOM_TRIGGERS.map((value) => ({ value, label: triggerLabel(t, value) }))} />
+}</Field>
         <div>
           <p className="mb-2 text-body-strong text-ink">{t('marketing.automations.create.channels')}</p>
           <div className="flex flex-col gap-2">
@@ -231,7 +224,7 @@ export function AutomationsPage() {
         <div className="min-w-0">
           <h1 className="font-display text-title-1 text-ink">{t('marketing.automations.title')}</h1>
           <p className="mt-1 text-body-lg text-muted">
-            {t('marketing.automations.subtitle')} <LearnMore topic="automations">{t('marketing.common.learnMore')}</LearnMore>
+            {t('marketing.automations.subtitle')} <LearnMore topic={t('marketing.common.topics.automations')}>{t('marketing.common.learnMore')}</LearnMore>
           </p>
         </div>
         <div className="flex min-w-[280px] items-start justify-between gap-4 rounded-lg border border-line bg-surface px-5 py-4" data-testid="communication-balance">

@@ -5,6 +5,7 @@ import { nowISO } from '@/lib/time'
 import { money } from '@/lib/format'
 import { actorName, ApiError, latency } from './client'
 import { queueMessage } from './messaging'
+import { isoDay, t } from './i18n'
 
 /**
  * Domain operations for the Sales "Sold items" pages (sales.md §6):
@@ -22,7 +23,7 @@ function clientContact(clientId: ID | null) {
 export async function setMembershipStatus(id: ID, status: ClientMembership['status']): Promise<ClientMembership> {
   await latency()
   const record = db().clientMemberships.find((m) => m.id === id)
-  if (!record) throw new ApiError('not_found', 'Membership not found')
+  if (!record) throw new ApiError('not_found', t('api.salesPages.membershipNotFound'))
   commit((d) => {
     const m = d.clientMemberships.find((x) => x.id === id)
     if (m) m.status = status
@@ -30,17 +31,17 @@ export async function setMembershipStatus(id: ID, status: ClientMembership['stat
   const def = db().memberships.find((m) => m.id === record.membershipId)
   const contact = clientContact(record.clientId)
   if (contact && def) {
-    const subjects: Record<ClientMembership['status'], string> = {
-      active: `Your ${def.name} membership is active again`,
-      paused: `Your ${def.name} membership has been paused`,
-      canceled: `Your ${def.name} membership has been canceled`,
-    }
-    const bodies: Record<ClientMembership['status'], string> = {
-      active: `Hi ${contact.client.firstName}, your ${def.name} membership has been resumed. Your next payment of ${money(record.price)} is due on ${record.nextBillingAt}.`,
-      paused: `Hi ${contact.client.firstName}, your ${def.name} membership is paused. You won't be charged until it is resumed.`,
-      canceled: `Hi ${contact.client.firstName}, your ${def.name} membership has been canceled. No further payments will be taken. We hope to see you again soon.`,
-    }
-    queueMessage({ clientId: contact.client.id, to: contact.client.email, toName: contact.name, channel: 'email', type: 'other', subject: subjects[status], body: bodies[status], saleId: record.saleId || undefined })
+    const vars = { name: def.name, firstName: contact.client.firstName, amount: money(record.price), date: isoDay(record.nextBillingAt) }
+    queueMessage({
+      clientId: contact.client.id,
+      to: contact.client.email,
+      toName: contact.name,
+      channel: 'email',
+      type: 'other',
+      subject: t(`api.salesPages.membership.${status}.subject`, vars),
+      body: t(`api.salesPages.membership.${status}.body`, vars),
+      saleId: record.saleId || undefined,
+    })
   }
   return db().clientMemberships.find((m) => m.id === id)!
 }
@@ -48,7 +49,7 @@ export async function setMembershipStatus(id: ID, status: ClientMembership['stat
 export async function cancelClientPackage(id: ID): Promise<void> {
   await latency()
   const record = db().clientPackages.find((p) => p.id === id)
-  if (!record) throw new ApiError('not_found', 'Package not found')
+  if (!record) throw new ApiError('not_found', t('api.salesPages.packageNotFound'))
   commit((d) => {
     const p = d.clientPackages.find((x) => x.id === id)
     if (p) p.status = 'canceled'
@@ -62,39 +63,21 @@ export async function cancelClientPackage(id: ID): Promise<void> {
       toName: contact.name,
       channel: 'email',
       type: 'other',
-      subject: `Your ${def.name} package has been canceled`,
-      body: `Hi ${contact.client.firstName}, your ${def.name} package has been canceled and can no longer be used for bookings. Contact us if you have any questions.`,
+      subject: t('api.salesPages.packageCanceled.subject', { name: def.name }),
+      body: t('api.salesPages.packageCanceled.body', { name: def.name, firstName: contact.client.firstName }),
       saleId: record.saleId,
     })
   }
 }
 
-const ORDER_MESSAGES: Record<Exclude<ProductOrder['status'], 'new'>, { subject: (n: number) => string; body: (first: string, n: number, extra: string) => string }> = {
-  ready: {
-    subject: (n) => `Your order #${n} is ready for pickup`,
-    body: (first, n, extra) => `Hi ${first}, good news: your order #${n} is ready to collect${extra}. Bring your order number with you.`,
-  },
-  shipped: {
-    subject: (n) => `Your order #${n} has shipped`,
-    body: (first, n) => `Hi ${first}, your order #${n} is on its way. It should arrive in 2 to 4 working days.`,
-  },
-  completed: {
-    subject: (n) => `Your order #${n} is complete`,
-    body: (first, n) => `Hi ${first}, your order #${n} is complete. Thank you for shopping with us!`,
-  },
-  cancelled: {
-    subject: (n) => `Your order #${n} has been cancelled`,
-    body: (first, n, extra) => `Hi ${first}, your order #${n} has been cancelled.${extra} We're sorry for any inconvenience.`,
-  },
-}
 
 /** Move an online store order through its fulfilment steps and tell the client. */
 export async function setProductOrderStatus(id: ID, status: Exclude<ProductOrder['status'], 'new'>, notifyClient = true): Promise<ProductOrder> {
   await latency()
   const data = db()
   const order = data.productOrders.find((o) => o.id === id)
-  if (!order) throw new ApiError('not_found', 'Order not found')
-  if (order.status === 'cancelled' || order.status === 'completed') throw new ApiError('closed', 'This order is already closed')
+  if (!order) throw new ApiError('not_found', t('api.salesPages.orderNotFound'))
+  if (order.status === 'cancelled' || order.status === 'completed') throw new ApiError('closed', t('api.salesPages.orderClosed'))
   const by = actorName()
   const at = nowISO()
   commit((d) => {
@@ -116,9 +99,15 @@ export async function setProductOrderStatus(id: ID, status: Exclude<ProductOrder
   if (notifyClient && contact) {
     const location = data.locations[0]
     const extra =
-      status === 'ready' ? (location ? ` at ${location.name}, ${location.address.line1}` : '') : status === 'cancelled' ? ` A refund of ${money(order.total)} has been issued to your original payment method.` : ''
-    const message = ORDER_MESSAGES[status]
-    queueMessage({ clientId: contact.client.id, to: contact.client.email, toName: contact.name, channel: 'email', type: 'other', subject: message.subject(order.number), body: message.body(contact.client.firstName, order.number, extra), saleId: order.saleId })
+      status === 'ready'
+        ? location
+          ? ` ${t('api.salesPages.order.readyAt', { place: `${location.name}, ${location.address.line1}` })}`
+          : ''
+        : status === 'cancelled'
+          ? ` ${t('api.salesPages.order.refundIssued', { amount: money(order.total) })}`
+          : ''
+    const vars = { firstName: contact.client.firstName, number: order.number, extra }
+    queueMessage({ clientId: contact.client.id, to: contact.client.email, toName: contact.name, channel: 'email', type: 'other', subject: t(`api.salesPages.order.${status}.subject`, vars), body: t(`api.salesPages.order.${status}.body`, vars), saleId: order.saleId })
   }
   return db().productOrders.find((o) => o.id === id)!
 }

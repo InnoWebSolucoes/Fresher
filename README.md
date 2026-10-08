@@ -2,6 +2,8 @@
 
 A front-end-only, fully clickable demo of a salon and wellness business workspace: calendar, checkout, sales, clients, catalog, online booking, marketing, team, reports, add-ons and settings. Everything runs in the browser on seeded mock data (a Porto salon, "Studio Aliados", with two locations). Nothing is sent anywhere: emails, SMS and payments are simulated.
 
+The app is in **European Portuguese** by default, with **English** as the second language: use the **PT | EN** switch in the top bar, the user menu or the login screen. The choice is remembered in the browser.
+
 - Brief: [SPEC.md](SPEC.md) · Reference → route map: [REFERENCE_MAP.md](REFERENCE_MAP.md) · Design tokens: [DESIGN_TOKENS.md](DESIGN_TOKENS.md) · Status: [PROGRESS.md](PROGRESS.md) · Conventions: [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md)
 
 ## Run it
@@ -11,7 +13,7 @@ npm install
 npm run dev        # http://localhost:5196
 ```
 
-The first load builds the demo data (a second or two), then keeps it in the browser (IndexedDB). Refreshing keeps your changes; **Reset demo** in the presenter panel restores the seed. Two tabs of the same browser stay in sync, so you can show the front desk and the owner side by side.
+The first load builds the demo data (a second or two) in the current language, then keeps it in the browser (IndexedDB). Switching language later changes the interface straight away; the sample data (service names, messages, notes) stays in the language it was created in until you press **Reset demo**, which rebuilds it in the current language. Refreshing keeps your changes; **Reset demo** in the presenter panel restores the seed. Two tabs of the same browser stay in sync, so you can show the front desk and the owner side by side.
 
 Other scripts: `npm run typecheck`, `npm run lint`, `npm test` (Vitest), `npm run build`, `npm run e2e` (Playwright; run `npx playwright install chromium` once first). The e2e suite runs the golden path (online booking → arrived → checkout → Daily sales, Sales, Reports and the client profile), loads every page, and walks every menu link.
 
@@ -36,7 +38,7 @@ A hidden panel for driving the demo:
 
 ## Walkthrough script (about 10 minutes)
 
-1. **Log in** as the owner (`owner@demo.app` / `demo1234`). Point out the main menu rail, the top bar (Continue setup, Search, Performance insights, Notifications, client messages, Wallet) and the Home dashboard: recent sales, upcoming appointments, activity, top services and top team member.
+1. **Log in** as the owner (`owner@demo.app` / `demo1234`). To present in English, switch **PT | EN** to EN and press **Reset demo** in the presenter panel so the sample data is in English too. Point out the main menu rail, the top bar (Continue setup, Search, Performance insights, Notifications, client messages, Wallet) and the Home dashboard: recent sales, upcoming appointments, activity, top services and top team member.
 2. **Calendar**: open Calendar, switch Day / Week / Month and the Baixa / Foz locations, open the team selector and filters. Hover an appointment, click one to open the appointment panel, and show the status menu and the ⋮ quick actions.
 3. **An online booking arrives**: press `Ctrl+Shift+D` → Simulate → *New online booking* → *Book a random free time*. The calendar opens on the new booking, a notification appears in the bell, and a confirmation email shows in the demo outbox.
 4. **Front desk**: on that appointment set the status to **Arrived**, then **Checkout**. Choose a tip, continue to payment, take **Cash** (or Card terminal), and **Pay now**. Show the sale panel and *Download PDF* for the receipt, then *Email* it (it appears in the outbox).
@@ -53,7 +55,7 @@ A hidden panel for driving the demo:
 ## Project layout
 
 ```
-locales/en.json          shell strings; each section adds src/sections/<name>/en.json
+locales/pt.json, en.json every UI string, Portuguese and English (same keys)
 src/app/                 route registry, navigation, router, section registry, data gate
 src/api/                 mock API (async, simulated latency); the UI calls this, never the store
 src/store/               Zustand stores (db persisted to IndexedDB, session, ui, toasts)

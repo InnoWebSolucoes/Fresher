@@ -2,7 +2,8 @@ import { CreditCard, Landmark, Plus, Receipt, Wallet } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Trans, useTranslation } from 'react-i18next'
-import { addMonths, differenceInCalendarDays, format, parseISO, startOfMonth } from 'date-fns'
+import { addMonths, differenceInCalendarDays, parseISO, startOfMonth } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Button, Checkbox, Chip, DataTable, EmptyState, Field, Modal, RadioGroup, Select, TextInput, confirm } from '@/components/ui'
 import {
   BANK_ACCOUNTS_KEY,
@@ -57,7 +58,7 @@ export function BillingDetailsPage() {
   const details = workspace.plan.billingDetails
   const [open, setOpen] = useState(false)
   return (
-    <SettingsPage title={t('settings.bill.details.title')} description={t('settings.bill.details.description')} learnMore="Billing details">
+    <SettingsPage title={t('settings.bill.details.title')} description={t('settings.bill.details.description')} learnMore={t('settings.bill.details.card')}>
       {details ? (
         <EditCard title={t('settings.bill.details.card')} onEdit={() => setOpen(true)} testId="billing-details-card">
           <InfoGrid
@@ -161,7 +162,7 @@ export function BankAccountsPage() {
     <SettingsPage
       title={t('settings.bill.bank.title')}
       description={t('settings.bill.bank.description')}
-      learnMore="Bank accounts"
+      learnMore={t('settings.bill.bank.title')}
       actions={
         <Button variant="primary" icon={<Plus size={16} />} onClick={() => setOpen(true)} data-testid="bank-add">
           {t('settings.bill.bank.add')}
@@ -265,7 +266,7 @@ export function BillingPaymentMethodsPage() {
     <SettingsPage
       title={t('settings.bill.methods.title')}
       description={t('settings.bill.methods.description')}
-      learnMore="Payment methods"
+      learnMore={t('settings.bill.methods.title')}
       actions={
         card ? (
           <Button variant="primary" onClick={() => setOpen(true)} data-testid="card-update">
@@ -326,7 +327,7 @@ export function CommunicationPage() {
   const [modal, setModal] = useState<'topUp' | 'auto' | null>(null)
   const low = balance < (marketing.autoTopUpEnabled ? marketing.autoTopUp.threshold : 10)
   return (
-    <SettingsPage title={t('settings.bill.comm.title')} description={t('settings.bill.comm.description')} learnMore="Communication balance">
+    <SettingsPage title={t('settings.bill.comm.title')} description={t('settings.bill.comm.description')} learnMore={t('settings.bill.comm.title')}>
       <EditCard
         title={t('settings.bill.comm.balance')}
         description={t('settings.bill.comm.hint')}
@@ -440,7 +441,7 @@ export function InvoicesPage() {
   const [preview, setPreview] = useState<Invoice | null>(null)
   const rows = useMemo(() => [...invoices].sort((a, b) => b.date.localeCompare(a.date) || b.number.localeCompare(a.number)), [invoices])
   return (
-    <SettingsPage title={t('settings.bill.invoices.title')} description={t('settings.bill.invoices.pageDescription')} learnMore="Invoices and fees">
+    <SettingsPage title={t('settings.bill.invoices.title')} description={t('settings.bill.invoices.pageDescription')} learnMore={t('settings.bill.invoices.title')}>
       {rows.length ? (
         <DataTable
           rows={rows}
@@ -492,22 +493,13 @@ export function InvoicesPage() {
 
 // ─── Subscriptions ────────────────────────────────────────────────────────
 
-const ADDON_NAMES: Record<string, string> = {
-  payments: 'Payments',
-  'premium-support': 'Premium Support',
-  insights: 'Insights',
-  'google-rating-boost': 'Google Rating Boost',
-  loyalty: 'Client Loyalty',
-  'data-connector': 'Data Connector',
-  'client-connect': 'Client Connect',
-  'smart-website': 'Smart Website',
-  'team-chat': 'Team Connect',
-  'bookable-resources': 'Bookable Resources',
-  'blast-marketing': 'Blast marketing',
-  'auto-top-up': 'Auto top-up',
-  xero: 'Xero Accounting',
-  quickbooks: 'QuickBooks Accounting',
+/** Add-on names (marketplace names live under addons.items.<slug>.name). */
+const ADDON_NAME_KEYS: Record<string, string> = {
+  'blast-marketing': 'settings.bill.subs.addonNames.blastMarketing',
+  'auto-top-up': 'settings.bill.comm.auto.title',
 }
+const CATALOG_SLUGS = new Set(['payments', 'premium-support', 'insights', 'google-rating-boost', 'loyalty', 'data-connector', 'client-connect', 'smart-website', 'team-chat', 'bookable-resources', 'xero', 'quickbooks'])
+const addonName = (t: (key: string) => string, slug: string) => (ADDON_NAME_KEYS[slug] ? t(ADDON_NAME_KEYS[slug]) : CATALOG_SLUGS.has(slug) ? t(`addons.items.${slug}.name`) : slug)
 
 export function SubscriptionsPage() {
   const { t } = useTranslation()
@@ -535,7 +527,7 @@ export function SubscriptionsPage() {
   }
   const active = addOns.filter((a) => a.status !== 'inactive')
   return (
-    <SettingsPage title={t('settings.bill.subs.title')} description={t('settings.bill.subs.description')} learnMore="Subscriptions">
+    <SettingsPage title={t('settings.bill.subs.title')} description={t('settings.bill.subs.description')} learnMore={t('settings.bill.subs.title')}>
       <div className="card flex flex-wrap items-center justify-between gap-4 p-6">
         <p className="font-display text-title-3 text-ink">{t('settings.bill.subs.discover')}</p>
         <Button onClick={() => navigate('/add-ons')}>{t('settings.bill.subs.viewAddons')}</Button>
@@ -606,7 +598,8 @@ export function SubscriptionsPage() {
             <ListRow
               key={a.slug}
               testId={`addon-${a.slug}`}
-              title={ADDON_NAMES[a.slug] ?? a.slug}
+              title={addonName(t, a.slug)}
+
               subtitle={a.status === 'trial' && a.trialEndsAt ? t('settings.bill.subs.trialEnds', { date: format(parseISO(a.trialEndsAt), 'MMM d, yyyy') }) : t('settings.common.active')}
               trailing={
                 <Button size="sm" onClick={() => navigate(`/add-ons/manage/${a.slug}`)}>

@@ -2,9 +2,10 @@ import { Coins, Percent, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Modal, MoneyInput, Segmented, Select } from '@/components/ui'
+import { getLang } from '@/i18n/language'
 import { fullName, money, round2 } from '@/lib/format'
 import { useCheckout } from './context'
-import { keypadPress, parseAmount } from './model'
+import { keypadMoney, keypadPress, parseAmount } from './model'
 import { Keypad } from './ui'
 
 /** "Add a tip" with keypad and Amount / Percentage toggle (calendar.md §10 step 1). */
@@ -31,7 +32,7 @@ export function CustomTipModal({ onClose }: { onClose: () => void }) {
     <Modal open onClose={onClose} size="sm" title={t('checkout.tip.addTip')}>
       <div className="flex flex-col items-center pb-2">
         <p className="border-b-2 border-line px-4 pb-1 pt-4 font-display text-[40px] font-bold leading-[48px] text-ink tabular" aria-live="polite">
-          {mode === 'amount' ? `€ ${text || '0'}` : `${text || '0'} %`}
+          {mode === 'amount' ? keypadMoney(text, true) : `${(text || '0').replace('.', getLang() === 'pt' ? ',' : '.')} %`}
         </p>
         <Segmented
           className="mt-4"

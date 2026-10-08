@@ -74,7 +74,7 @@ export function CalendarSyncPage() {
       <>
         <h1 className="font-display text-title-1 text-ink">{t('team.sync.typeTitle')}</h1>
         <p className="mb-6 mt-2 text-body-lg text-muted">
-          {t('team.sync.typeBody')} <LearnMore topic="calendar sync" />
+          {t('team.sync.typeBody')} <LearnMore topic={t('team.topics.calendarSync')} />
         </p>
         <RadioGroup
           variant="cards"

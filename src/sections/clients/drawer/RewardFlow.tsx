@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Client, ClientReward, ID } from '@/types'
 import { useDb } from '@/store/db'
-import { money } from '@/lib/format'
+import { money, num as formatNum } from '@/lib/format'
 import { Button, Checkbox, Field, FullscreenFrame, Modal, SearchInput, Select, TextInput, toast } from '@/components/ui'
 import { addReward, type RewardInput } from '@/api/clients'
 import { useEscape } from './context'
@@ -136,7 +136,7 @@ export function RewardFlow({ client, onClose }: { client: Client; onClose: () =>
             <div className="mt-8 flex flex-col gap-6">
               {discount ? (
                 <Field label={t('clients.reward.value')} error={errors.value}>
-                  {(id) => <TextInput id={id} autoFocus type="number" min={0} step={type === 'percent' ? 1 : 0.01} inputMode="decimal" value={value} onChange={(e) => { setValue(e.target.value); clearError('value') }} placeholder={type === 'percent' ? '10' : '10.00'} prefix={type === 'amount' ? '€' : undefined} suffix={type === 'percent' ? '%' : undefined} invalid={Boolean(errors.value)} />}
+                  {(id) => <TextInput id={id} autoFocus type="number" min={0} step={type === 'percent' ? 1 : 0.01} inputMode="decimal" value={value} onChange={(e) => { setValue(e.target.value); clearError('value') }} placeholder={type === 'percent' ? '10' : formatNum(10, { minimumFractionDigits: 2 })} prefix={type === 'amount' ? '€' : undefined} suffix={type === 'percent' ? '%' : undefined} invalid={Boolean(errors.value)} />}
                 </Field>
               ) : (
                 <Field label={type === 'free_service' ? t('clients.reward.service') : t('clients.reward.product')} error={errors.item}>

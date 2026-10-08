@@ -13,11 +13,58 @@
     "add": "Add",
     "addNew": "Add new",
     "options": "Options",
-    "export": "Export",
+    "export": {
+      "sheet": "Sheet1"
+    },
     "learnMore": "Learn more",
     "loading": "Loading…",
     "dismiss": "Dismiss",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "palette": {
+      "blue": "Blue",
+      "darkBlue": "Dark blue",
+      "jordyBlue": "Jordy blue",
+      "indigo": "Indigo",
+      "lavender": "Lavender",
+      "purple": "Purple",
+      "wisteria": "Wisteria",
+      "pink": "Pink",
+      "coral": "Coral",
+      "red": "Red",
+      "bloodOrange": "Blood orange",
+      "orange": "Orange",
+      "amber": "Amber",
+      "yellow": "Yellow",
+      "lime": "Lime",
+      "green": "Green",
+      "teal": "Teal",
+      "cyan": "Cyan"
+    },
+    "table": {
+      "selectAll": "Select all",
+      "selectRow": "Select row",
+      "empty": "No results found — Try using different filters",
+      "previous": "Previous",
+      "next": "Next",
+      "viewing": "Viewing {{from}} - {{to}} of {{total}} results"
+    },
+    "confirm": "Confirm",
+    "actions": "Actions",
+    "loadingLabel": "Loading",
+    "conflicts": {
+      "thisMember": "This team member",
+      "closed": "The business is closed ({{description}})",
+      "outsideShift": "{{name}} isn't working at this time",
+      "blockedTime": "{{name}} has blocked time then",
+      "overlap": "{{name}} is already booked at this time",
+      "resource": "{{name}} is in use"
+    },
+    "duration": {
+      "hoursMinutes": "{{h}} hr, {{m}} min",
+      "hours": "{{h}} hr",
+      "minutes": "{{m}} min"
+    },
+    "walkIn": "Walk-In"
   },
   "nav": {
     "mainMenu": "Main menu",
@@ -201,7 +248,18 @@
       "learnMore": "Learn more",
       "setUpNow": "Set up now",
       "copy": "Copy",
-      "copied": "Copied"
+      "copied": "Copied",
+      "breadcrumb": "Breadcrumb",
+      "topics": {
+        "linkedCalendars": "linked calendars",
+        "notificationPrefs": "notification preferences",
+        "payRuns": "pay runs",
+        "personalSettings": "personal settings",
+        "photoTips": "profile photo tips",
+        "reviews": "reviews",
+        "workspaceSettings": "workspace settings",
+        "workspaces": "workspaces"
+      }
     },
     "profile": {
       "title": "My profile",
@@ -999,7 +1057,11 @@
       "noResults": "No results found",
       "copied": "Link copied",
       "system": "System",
-      "orderUpdated": "Order updated"
+      "orderUpdated": "Order updated",
+      "expiryPlaceholder": "MM/YY",
+      "topics": {
+        "reassignment": "Reassignment"
+      }
     },
     "bill": {
       "setUpNow": "Set up now",
@@ -1170,7 +1232,10 @@
         "trialBanner_one": "Activate your plan to ensure uninterrupted access after your free trial ends in <b>{{count}} day</b>",
         "trialBanner_other": "Activate your plan to ensure uninterrupted access after your free trial ends in <b>{{count}} days</b>",
         "noAddons": "No add-ons yet",
-        "monthlyWithIva": "{{net}} + IVA = {{total}}"
+        "monthlyWithIva": "{{net}} + IVA = {{total}}",
+        "addonNames": {
+          "blastMarketing": "Blast marketing"
+        }
       },
       "change": {
         "title": "Change your plan",
@@ -1214,7 +1279,13 @@
         "facebook": "Facebook",
         "instagram": "Instagram",
         "x": "X (Twitter)",
-        "website": "Website"
+        "website": "Website",
+        "placeholders": {
+          "facebook": "facebook.com/yoursite",
+          "instagram": "instagram.com/yoursite",
+          "website": "yoursite.com",
+          "x": "x.com/yoursite"
+        }
       },
       "edit": {
         "title": "Edit business details",
@@ -1310,7 +1381,25 @@
         "cardTitle": "Business types",
         "main": "Main",
         "additional": "Additional",
-        "saved": "Business types updated"
+        "saved": "Business types updated",
+        "names": {
+          "barber": "Barber",
+          "beautySalon": "Beauty Salon",
+          "browsLashes": "Eyebrows & Lashes",
+          "fitnessRecovery": "Fitness & recovery",
+          "hairSalon": "Hair Salon",
+          "healthPractice": "Health practice",
+          "massage": "Massage",
+          "medspa": "Medspa",
+          "nails": "Nails",
+          "other": "Other",
+          "petGrooming": "Pet grooming",
+          "physicalTherapy": "Physical therapy",
+          "spaSauna": "Spa & sauna",
+          "tanningStudio": "Tanning Studio",
+          "tattooPiercing": "Tattooing & piercing",
+          "waxingSalon": "Waxing Salon"
+        }
       },
       "hours": {
         "open": "Open",
@@ -1353,7 +1442,14 @@
         "postcodeInvalid": "Use the format 4000-000",
         "mapLabel": "Map showing {{name}}",
         "zoomIn": "Zoom in",
-        "zoomOut": "Zoom out"
+        "zoomOut": "Zoom out",
+        "countries": {
+          "france": "France",
+          "ireland": "Ireland",
+          "portugal": "Portugal",
+          "spain": "Spain",
+          "unitedKingdom": "United Kingdom"
+        }
       },
       "new": {
         "title": "Add new location",
@@ -2127,6 +2223,68 @@
         "typeCreated": "Resource type created",
         "typeUpdated": "Resource type updated",
         "typeDeleted": "Resource type deleted"
+      },
+      "resourceTypes": {
+        "bed": "Bed",
+        "chair": "Chair",
+        "equipment": "Equipment",
+        "manicureStation": "Manicure station",
+        "pool": "Pool",
+        "room": "Room",
+        "sauna": "Sauna",
+        "studio": "Studio",
+        "table": "Table",
+        "tanningStation": "Tanning station"
+      },
+      "zones": {
+        "amsterdam": "Amsterdam",
+        "anchorage": "Anchorage",
+        "athens": "Athens",
+        "auckland": "Auckland",
+        "azores": "Azores",
+        "bangkok": "Bangkok",
+        "berlin": "Berlin",
+        "brisbane": "Brisbane",
+        "brussels": "Brussels",
+        "buenosAires": "Buenos Aires",
+        "capeVerde": "Cape Verde",
+        "caracas": "Caracas",
+        "casablanca": "Casablanca",
+        "chicago": "Chicago",
+        "denver": "Denver",
+        "dubai": "Dubai",
+        "dublin": "Dublin",
+        "hongKong": "Hong Kong",
+        "honolulu": "Honolulu",
+        "istanbul": "Istanbul",
+        "johannesburg": "Johannesburg",
+        "karachi": "Karachi",
+        "kolkata": "Kolkata",
+        "lagos": "Lagos",
+        "lisbon": "Lisbon",
+        "london": "London",
+        "losAngeles": "Los Angeles",
+        "luanda": "Luanda",
+        "madeira": "Madeira",
+        "madrid": "Madrid",
+        "maputo": "Maputo",
+        "mexicoCity": "Mexico City",
+        "moscow": "Moscow",
+        "nairobi": "Nairobi",
+        "newYork": "New York",
+        "noronha": "Fernando de Noronha",
+        "pagoPago": "Pago Pago",
+        "paris": "Paris",
+        "reykjavik": "Reykjavik",
+        "rome": "Rome",
+        "santiago": "Santiago",
+        "saoPaulo": "São Paulo",
+        "singapore": "Singapore",
+        "sydney": "Sydney",
+        "tokyo": "Tokyo",
+        "toronto": "Toronto",
+        "vancouver": "Vancouver",
+        "zurich": "Zurich"
       }
     },
     "tm": {
@@ -2672,7 +2830,8 @@
           "emailAddresses": "Send emails to specific addresses: <b>{{value}}</b>",
           "emailNone": "Team members don't receive emails for online bookings"
         },
-        "saved": "Booking options updated"
+        "saved": "Booking options updated",
+        "customEmailsPlaceholder": "example1@gmail.com, example2@gmail.com"
       },
       "resource": {
         "newTitle": "New resource",
@@ -4587,7 +4746,8 @@
       "alreadyIn": "Already added",
       "new": "New folder",
       "remove": "Remove from folder",
-      "removed": "Removed from {{folder}}"
+      "removed": "Removed from {{folder}}",
+      "duplicate": "A folder with this name already exists"
     },
     "custom": {
       "createTitle": "Create custom report",
@@ -4759,12 +4919,260 @@
       "month_to_date": "Month to date",
       "quarter_to_date": "Quarter to date",
       "year_to_date": "Year to date",
-      "all_time": "All time"
+      "all_time": "All time",
+      "tomorrow": "Tomorrow",
+      "next_7_days": "Next 7 days",
+      "next_month": "Next month",
+      "next_30_days": "Next 30 days",
+      "isoPlaceholder": "yyyy-mm-dd"
     },
     "export": {
       "range": "From {{from}} to {{to}}",
       "groupedBy": "Grouped by: {{name}}",
       "generated": "Generated {{date}}"
+    },
+    "catalog": {
+      "r01": {
+        "name": "Performance dashboard",
+        "description": "Dashboard of your business performance."
+      },
+      "r02": {
+        "name": "Online presence dashboard",
+        "description": "Online sales and online client performance"
+      },
+      "r03": {
+        "name": "Loyalty dashboard",
+        "description": "Dashboard of your loyalty program performance."
+      },
+      "r04": {
+        "name": "Performance summary",
+        "description": "Overview of business performance by team or location"
+      },
+      "r05": {
+        "name": "Performance over time",
+        "description": "View of key business metrics by Location or Team Member over time"
+      },
+      "r06": {
+        "name": "Sales summary",
+        "description": "Sales quantities and value, excluding tips and gift card sales."
+      },
+      "r07": {
+        "name": "Sales by time period",
+        "description": "Detailed sales data based on selected time periods."
+      },
+      "r08": {
+        "name": "Sales list",
+        "description": "Complete listing of all sales transactions."
+      },
+      "r09": {
+        "name": "Sales log detail",
+        "description": "In-depth view into each sale transaction."
+      },
+      "r10": {
+        "name": "Gift card by time period",
+        "description": "Gift card sales and usage data based on selected time periods."
+      },
+      "r11": {
+        "name": "Gift card list",
+        "description": "Full list of issued and outstanding gift cards."
+      },
+      "r12": {
+        "name": "Memberships list",
+        "description": "Operational details of your memberships including benefits and financials."
+      },
+      "r13": {
+        "name": "Memberships summary",
+        "description": "Membership performance including benefits and financials."
+      },
+      "r14": {
+        "name": "Memberships benefits consumption",
+        "description": "Benefit-level membership redemptions and recognized revenue."
+      },
+      "r15": {
+        "name": "Packages list",
+        "description": "Operational details of your packages including benefits and financials."
+      },
+      "r16": {
+        "name": "Packages summary",
+        "description": "Aggregated view of packages performance."
+      },
+      "r17": {
+        "name": "Packages benefits consumption",
+        "description": "Benefit-level package redemptions and recognized revenue, for packages accounting. Packages with any unlimited benefit are reported as one package-level row, including their capped benefits, and recognized by duration rather than per benefit."
+      },
+      "r18": {
+        "name": "Cash register summary",
+        "description": "Overview of register activities. Excludes online purchases."
+      },
+      "r19": {
+        "name": "Discount summary",
+        "description": "Overview of discounts granted and their impact on sales."
+      },
+      "r20": {
+        "name": "Taxes summary",
+        "description": "Summary of all tax-related transactions."
+      },
+      "r21": {
+        "name": "Finance summary",
+        "description": "High-level summary of sales, payments and liabilities"
+      },
+      "r22": {
+        "name": "Payments summary",
+        "description": "Payments split by payment methods."
+      },
+      "r23": {
+        "name": "Payment transactions",
+        "description": "Detailed view of all payment transactions."
+      },
+      "r24": {
+        "name": "Cash flow summary",
+        "description": "Overview of funds inflow and outflows."
+      },
+      "r25": {
+        "name": "Cash flow statement",
+        "description": "Detailed record of cash flow over a selected period."
+      },
+      "r26": {
+        "name": "Service charges",
+        "description": "Breakdown of service charge revenue."
+      },
+      "r27": {
+        "name": "Liability summary",
+        "description": "Overview of company liabilities by type. This report excludes unpaid and voided gift cards."
+      },
+      "r28": {
+        "name": "Liability activity",
+        "description": "Detailed view of liability-related transactions."
+      },
+      "r29": {
+        "name": "Prepayments by time period",
+        "description": "Analysis of prepayments over a selected time period."
+      },
+      "r30": {
+        "name": "Prepayment list",
+        "description": "Complete record of all prepayments."
+      },
+      "r31": {
+        "name": "Taxes list",
+        "description": "Complete listing of all taxes transactions."
+      },
+      "r32": {
+        "name": "Appointments summary",
+        "description": "General overview of appointment trends and patterns, including cancellations and no-shows."
+      },
+      "r33": {
+        "name": "Appointments list",
+        "description": "Full list of scheduled appointments."
+      },
+      "r34": {
+        "name": "Appointments cancellations & no-show summary",
+        "description": "Insight into appointment cancellations and no-shows."
+      },
+      "r35": {
+        "name": "Waitlist detail",
+        "description": "Detailed view of waitlist entries"
+      },
+      "r36": {
+        "name": "Waitlist summary",
+        "description": "Overview of waitlist trends and patterns, including appointments booked and expired waitlist entries"
+      },
+      "r37": {
+        "name": "Working hours activity",
+        "description": "Detailed view of team members worked hours, shifts, and timesheets"
+      },
+      "r38": {
+        "name": "Break activity",
+        "description": "Detailed view of team members' breaks"
+      },
+      "r39": {
+        "name": "Attendance summary",
+        "description": "Overview of team members' punctuality and attendance for their shifts"
+      },
+      "r40": {
+        "name": "Wages detail",
+        "description": "Detailed view of wages earned by team members across locations"
+      },
+      "r41": {
+        "name": "Wages summary",
+        "description": "Overview of wages earned by team members"
+      },
+      "r42": {
+        "name": "Fee deduction activity",
+        "description": "Complete list of fees applied to team member earnings"
+      },
+      "r43": {
+        "name": "Fee deduction summary",
+        "description": "Overview of fees applied to earnings by team member, locations and sale items"
+      },
+      "r44": {
+        "name": "Pay summary",
+        "description": "Overview of team member compensation"
+      },
+      "r45": {
+        "name": "Scheduled shifts",
+        "description": "Detailed view of team members scheduled shifts"
+      },
+      "r46": {
+        "name": "Working hours summary",
+        "description": "Overview of operational hours and productivity"
+      },
+      "r47": {
+        "name": "Team time off report",
+        "description": "Detailed view of team time off."
+      },
+      "r48": {
+        "name": "Tips summary",
+        "description": "Analysis of gratuity income."
+      },
+      "r49": {
+        "name": "Tips detail",
+        "description": "Comprehensive breakdown of all tips received."
+      },
+      "r50": {
+        "name": "Commission activity",
+        "description": "Full list of all sales with commissions payable."
+      },
+      "r51": {
+        "name": "Commission summary",
+        "description": "Overview of commission earned by team members, locations and sale items."
+      },
+      "r52": {
+        "name": "Client summary",
+        "description": "Overview of new, returning and walk-in clients with appointments in the chosen timeframe"
+      },
+      "r53": {
+        "name": "Client list",
+        "description": "Comprehensive list of all active clients."
+      },
+      "r54": {
+        "name": "Client insights",
+        "description": "Deep dive into individual client behaviour and preferences."
+      },
+      "r55": {
+        "name": "Stock on hand",
+        "description": "Current status and quantity of stock items."
+      },
+      "r56": {
+        "name": "Stock movement summary",
+        "description": "Summary of stock inflow and outflow."
+      },
+      "r57": {
+        "name": "Stock movement log",
+        "description": "Detailed record of all stock movements."
+      },
+      "r58": {
+        "name": "Product list",
+        "description": "Comprehensive list of all products."
+      },
+      "r59": {
+        "name": "Ordered stock",
+        "description": "Detailed record of all stock orders."
+      }
+    },
+    "topics": {
+      "dataConnector": "Data Connector",
+      "reports": "Reports",
+      "insights": "Insights"
     }
   },
   "pages": {
@@ -5541,7 +5949,8 @@
       "cardNumberPlaceholder": "Credit or debit card number",
       "cvvPlaceholder": "3 digits",
       "order": "Order summary",
-      "trialEnding": "Free trial, ending {{date}}"
+      "trialEnding": "Free trial, ending {{date}}",
+      "addonLine": "{{name}} add-on"
     },
     "manage": {
       "breadcrumb": "Add-ons",
@@ -6014,7 +6423,7 @@
         "xero": [
           {
             "title": "Make sure you have a Xero account",
-            "body": "If you don't have a Xero account set one up",
+            "body": "If you don't have a Xero account",
             "link": "set one up"
           },
           {
@@ -6030,7 +6439,7 @@
         "quickbooks": [
           {
             "title": "Make sure you have a QuickBooks account",
-            "body": "If you don't have a QuickBooks account set one up",
+            "body": "If you don't have a QuickBooks account",
             "link": "set one up"
           },
           {
@@ -6071,7 +6480,16 @@
         "hourly": "Every hour"
       },
       "includeUnpaid": "Include unpaid sales",
-      "demoOrg": "{{name}} (Demo company)"
+      "demoOrg": "{{name}} (Demo company)",
+      "ledger": {
+        "bank": "Business bank account",
+        "cardClearing": "Card payments clearing",
+        "otherRevenue": "Other revenue",
+        "receivable": "Accounts receivable",
+        "sales": "Sales",
+        "servicesRevenue": "Services revenue",
+        "tipsPayable": "Tips payable"
+      }
     },
     "integration": {
       "fb-and-ig-bookings": {
@@ -6230,7 +6648,8 @@
         "accepts": "Innoweb accepts all major payment methods",
         "see": "See our",
         "pricingPage": "pricing page",
-        "details": "for more details."
+        "details": "for more details.",
+        "contactless": "Contactless"
       },
       "expect": {
         "title": "Before you can start taking payments we need to verify your details",
@@ -6317,7 +6736,11 @@
         "verifiedToast": "Payments account verified"
       },
       "stepsLeft_one": "{{count}} more step left to go",
-      "stepsLeft_other": "{{count}} more steps left to go"
+      "stepsLeft_other": "{{count}} more steps left to go",
+      "topics": {
+        "accountType": "Payments account type",
+        "pricing": "Payments pricing"
+      }
     },
     "items": {
       "payments": {
@@ -6474,7 +6897,9 @@
         "search": "Search",
         "all": "All segments",
         "selected": "{{count}} selected",
-        "empty": "No segments found"
+        "empty": "No segments found",
+        "selected_one": "{{count}} selected",
+        "selected_other": "{{count}} selected"
       },
       "preset": {
         "createTitle": "Create a new filter preset",
@@ -7183,6 +7608,432 @@
       "body": "If you close the appointment now, the changes will be lost. Do you wish to exit?",
       "back": "Go back",
       "exit": "Yes, exit"
+    },
+    "emojiNames": {
+      "grinning_face": "grinning face",
+      "grinning_face_with_big_eyes": "grinning face with big eyes",
+      "grinning_face_with_smiling_eyes": "grinning face with smiling eyes",
+      "beaming_face": "beaming face",
+      "grinning_squinting_face": "grinning squinting face",
+      "grinning_face_with_sweat": "grinning face with sweat",
+      "rolling_on_the_floor_laughing": "rolling on the floor laughing",
+      "face_with_tears_of_joy": "face with tears of joy",
+      "slightly_smiling_face": "slightly smiling face",
+      "upside_down_face": "upside-down face",
+      "winking_face": "winking face",
+      "smiling_face_with_smiling_eyes": "smiling face with smiling eyes",
+      "smiling_face_with_halo": "smiling face with halo",
+      "smiling_face_with_hearts": "smiling face with hearts",
+      "smiling_face_with_heart_eyes": "smiling face with heart-eyes",
+      "star_struck": "star-struck",
+      "face_blowing_a_kiss": "face blowing a kiss",
+      "face_savoring_food": "face savoring food",
+      "face_with_tongue": "face with tongue",
+      "winking_face_with_tongue": "winking face with tongue",
+      "zany_face": "zany face",
+      "smiling_face_with_open_hands": "smiling face with open hands",
+      "face_with_hand_over_mouth": "face with hand over mouth",
+      "shushing_face": "shushing face",
+      "thinking_face": "thinking face",
+      "neutral_face": "neutral face",
+      "expressionless_face": "expressionless face",
+      "face_without_mouth": "face without mouth",
+      "smirking_face": "smirking face",
+      "unamused_face": "unamused face",
+      "face_with_rolling_eyes": "face with rolling eyes",
+      "grimacing_face": "grimacing face",
+      "relieved_face": "relieved face",
+      "pensive_face": "pensive face",
+      "sleepy_face": "sleepy face",
+      "sleeping_face": "sleeping face",
+      "face_with_medical_mask": "face with medical mask",
+      "face_with_thermometer": "face with thermometer",
+      "sneezing_face": "sneezing face",
+      "hot_face": "hot face",
+      "cold_face": "cold face",
+      "partying_face": "partying face",
+      "smiling_face_with_sunglasses": "smiling face with sunglasses",
+      "nerd_face": "nerd face",
+      "face_with_monocle": "face with monocle",
+      "confused_face": "confused face",
+      "face_with_open_mouth": "face with open mouth",
+      "astonished_face": "astonished face",
+      "flushed_face": "flushed face",
+      "pleading_face": "pleading face",
+      "crying_face": "crying face",
+      "loudly_crying_face": "loudly crying face",
+      "face_screaming_in_fear": "face screaming in fear",
+      "face_with_steam_from_nose": "face with steam from nose",
+      "enraged_face": "enraged face",
+      "waving_hand": "waving hand",
+      "thumbs_up": "thumbs up",
+      "thumbs_down": "thumbs down",
+      "clapping_hands": "clapping hands",
+      "raising_hands": "raising hands",
+      "folded_hands": "folded hands",
+      "flexed_biceps": "flexed biceps",
+      "writing_hand": "writing hand",
+      "nail_polish": "nail polish",
+      "person_getting_haircut": "person getting haircut",
+      "person_getting_massage": "person getting massage",
+      "person_in_steamy_room": "person in steamy room",
+      "teacher": "teacher",
+      "office_worker": "office worker",
+      "person_running": "person running",
+      "person_in_lotus_position": "person in lotus position",
+      "dog_face": "dog face",
+      "cat_face": "cat face",
+      "mouse_face": "mouse face",
+      "rabbit_face": "rabbit face",
+      "fox": "fox",
+      "bear": "bear",
+      "panda": "panda",
+      "koala": "koala",
+      "tiger_face": "tiger face",
+      "lion": "lion",
+      "cow_face": "cow face",
+      "pig_face": "pig face",
+      "frog": "frog",
+      "monkey_face": "monkey face",
+      "chicken": "chicken",
+      "penguin": "penguin",
+      "bird": "bird",
+      "butterfly": "butterfly",
+      "honeybee": "honeybee",
+      "turtle": "turtle",
+      "dolphin": "dolphin",
+      "spouting_whale": "spouting whale",
+      "cactus": "cactus",
+      "evergreen_tree": "evergreen tree",
+      "deciduous_tree": "deciduous tree",
+      "palm_tree": "palm tree",
+      "seedling": "seedling",
+      "herb": "herb",
+      "four_leaf_clover": "four leaf clover",
+      "maple_leaf": "maple leaf",
+      "cherry_blossom": "cherry blossom",
+      "rose": "rose",
+      "sunflower": "sunflower",
+      "blossom": "blossom",
+      "tulip": "tulip",
+      "sun_with_face": "sun with face",
+      "crescent_moon": "crescent moon",
+      "star": "star",
+      "rainbow": "rainbow",
+      "sun": "sun",
+      "cloud": "cloud",
+      "cloud_with_rain": "cloud with rain",
+      "snowflake": "snowflake",
+      "fire": "fire",
+      "droplet": "droplet",
+      "water_wave": "water wave",
+      "green_apple": "green apple",
+      "red_apple": "red apple",
+      "pear": "pear",
+      "tangerine": "tangerine",
+      "lemon": "lemon",
+      "banana": "banana",
+      "watermelon": "watermelon",
+      "grapes": "grapes",
+      "strawberry": "strawberry",
+      "blueberries": "blueberries",
+      "cherries": "cherries",
+      "peach": "peach",
+      "mango": "mango",
+      "pineapple": "pineapple",
+      "coconut": "coconut",
+      "kiwi_fruit": "kiwi fruit",
+      "avocado": "avocado",
+      "carrot": "carrot",
+      "ear_of_corn": "ear of corn",
+      "broccoli": "broccoli",
+      "croissant": "croissant",
+      "bagel": "bagel",
+      "bread": "bread",
+      "cheese_wedge": "cheese wedge",
+      "egg": "egg",
+      "cooking": "cooking",
+      "pancakes": "pancakes",
+      "bacon": "bacon",
+      "hamburger": "hamburger",
+      "french_fries": "french fries",
+      "pizza": "pizza",
+      "hot_dog": "hot dog",
+      "sandwich": "sandwich",
+      "taco": "taco",
+      "burrito": "burrito",
+      "green_salad": "green salad",
+      "spaghetti": "spaghetti",
+      "steaming_bowl": "steaming bowl",
+      "sushi": "sushi",
+      "bento_box": "bento box",
+      "cookie": "cookie",
+      "birthday_cake": "birthday cake",
+      "shortcake": "shortcake",
+      "cupcake": "cupcake",
+      "chocolate_bar": "chocolate bar",
+      "doughnut": "doughnut",
+      "hot_beverage": "hot beverage",
+      "teacup_without_handle": "teacup without handle",
+      "beverage_box": "beverage box",
+      "cup_with_straw": "cup with straw",
+      "bubble_tea": "bubble tea",
+      "wine_glass": "wine glass",
+      "beer_mug": "beer mug",
+      "clinking_glasses": "clinking glasses",
+      "soccer_ball": "soccer ball",
+      "basketball": "basketball",
+      "american_football": "american football",
+      "baseball": "baseball",
+      "tennis": "tennis",
+      "volleyball": "volleyball",
+      "ping_pong": "ping pong",
+      "badminton": "badminton",
+      "boxing_glove": "boxing glove",
+      "martial_arts_uniform": "martial arts uniform",
+      "flag_in_hole": "flag in hole",
+      "bow_and_arrow": "bow and arrow",
+      "fishing_pole": "fishing pole",
+      "diving_mask": "diving mask",
+      "skis": "skis",
+      "skateboard": "skateboard",
+      "person_lifting_weights": "person lifting weights",
+      "person_cartwheeling": "person cartwheeling",
+      "person_climbing": "person climbing",
+      "person_biking": "person biking",
+      "person_swimming": "person swimming",
+      "running_shirt": "running shirt",
+      "trophy": "trophy",
+      "1st_place_medal": "1st place medal",
+      "military_medal": "military medal",
+      "ticket": "ticket",
+      "admission_tickets": "admission tickets",
+      "performing_arts": "performing arts",
+      "artist_palette": "artist palette",
+      "clapper_board": "clapper board",
+      "microphone": "microphone",
+      "headphone": "headphone",
+      "musical_score": "musical score",
+      "musical_keyboard": "musical keyboard",
+      "drum": "drum",
+      "guitar": "guitar",
+      "violin": "violin",
+      "game_die": "game die",
+      "puzzle_piece": "puzzle piece",
+      "bullseye": "bullseye",
+      "bowling": "bowling",
+      "video_game": "video game",
+      "party_popper": "party popper",
+      "balloon": "balloon",
+      "wrapped_gift": "wrapped gift",
+      "automobile": "automobile",
+      "taxi": "taxi",
+      "bus": "bus",
+      "trolleybus": "trolleybus",
+      "racing_car": "racing car",
+      "police_car": "police car",
+      "ambulance": "ambulance",
+      "fire_engine": "fire engine",
+      "delivery_truck": "delivery truck",
+      "bicycle": "bicycle",
+      "kick_scooter": "kick scooter",
+      "motor_scooter": "motor scooter",
+      "locomotive": "locomotive",
+      "train": "train",
+      "metro": "metro",
+      "tram": "tram",
+      "airplane": "airplane",
+      "airplane_departure": "airplane departure",
+      "airplane_arrival": "airplane arrival",
+      "helicopter": "helicopter",
+      "rocket": "rocket",
+      "sailboat": "sailboat",
+      "speedboat": "speedboat",
+      "passenger_ship": "passenger ship",
+      "anchor": "anchor",
+      "fuel_pump": "fuel pump",
+      "construction": "construction",
+      "vertical_traffic_light": "vertical traffic light",
+      "world_map": "world map",
+      "statue_of_liberty": "statue of liberty",
+      "castle": "castle",
+      "stadium": "stadium",
+      "beach_with_umbrella": "beach with umbrella",
+      "desert_island": "desert island",
+      "mountain": "mountain",
+      "camping": "camping",
+      "house": "house",
+      "house_with_garden": "house with garden",
+      "office_building": "office building",
+      "hospital": "hospital",
+      "bank": "bank",
+      "hotel": "hotel",
+      "convenience_store": "convenience store",
+      "school": "school",
+      "wedding": "wedding",
+      "church": "church",
+      "cityscape_at_dusk": "cityscape at dusk",
+      "night_with_stars": "night with stars",
+      "ferris_wheel": "ferris wheel",
+      "watch": "watch",
+      "mobile_phone": "mobile phone",
+      "laptop": "laptop",
+      "keyboard": "keyboard",
+      "desktop_computer": "desktop computer",
+      "printer": "printer",
+      "computer_mouse": "computer mouse",
+      "camera": "camera",
+      "video_camera": "video camera",
+      "television": "television",
+      "radio": "radio",
+      "alarm_clock": "alarm clock",
+      "hourglass_not_done": "hourglass not done",
+      "hourglass_done": "hourglass done",
+      "light_bulb": "light bulb",
+      "flashlight": "flashlight",
+      "candle": "candle",
+      "money_with_wings": "money with wings",
+      "dollar_banknote": "dollar banknote",
+      "euro_banknote": "euro banknote",
+      "credit_card": "credit card",
+      "receipt": "receipt",
+      "gem_stone": "gem stone",
+      "wrench": "wrench",
+      "hammer": "hammer",
+      "hammer_and_wrench": "hammer and wrench",
+      "key": "key",
+      "door": "door",
+      "couch_and_lamp": "couch and lamp",
+      "bed": "bed",
+      "lotion_bottle": "lotion bottle",
+      "soap": "soap",
+      "sponge": "sponge",
+      "razor": "razor",
+      "hair_pick": "hair pick",
+      "barber_pole": "barber pole",
+      "lipstick": "lipstick",
+      "ring": "ring",
+      "glasses": "glasses",
+      "luggage": "luggage",
+      "umbrella": "umbrella",
+      "backpack": "backpack",
+      "books": "books",
+      "open_book": "open book",
+      "ledger": "ledger",
+      "memo": "memo",
+      "pencil": "pencil",
+      "pen": "pen",
+      "pushpin": "pushpin",
+      "paperclip": "paperclip",
+      "scissors": "scissors",
+      "calendar": "calendar",
+      "tear_off_calendar": "tear-off calendar",
+      "spiral_calendar": "spiral calendar",
+      "clipboard": "clipboard",
+      "chart_increasing": "chart increasing",
+      "package": "package",
+      "envelope": "envelope",
+      "e_mail": "e-mail",
+      "telephone_receiver": "telephone receiver",
+      "bell": "bell",
+      "pill": "pill",
+      "stethoscope": "stethoscope",
+      "adhesive_bandage": "adhesive bandage",
+      "broom": "broom",
+      "basket": "basket",
+      "red_heart": "red heart",
+      "orange_heart": "orange heart",
+      "yellow_heart": "yellow heart",
+      "green_heart": "green heart",
+      "blue_heart": "blue heart",
+      "purple_heart": "purple heart",
+      "black_heart": "black heart",
+      "white_heart": "white heart",
+      "broken_heart": "broken heart",
+      "two_hearts": "two hearts",
+      "sparkling_heart": "sparkling heart",
+      "hundred_points": "hundred points",
+      "check_mark_button": "check mark button",
+      "check_box_with_check": "check box with check",
+      "check_mark": "check mark",
+      "cross_mark": "cross mark",
+      "cross_mark_button": "cross mark button",
+      "hollow_red_circle": "hollow red circle",
+      "stop_sign": "stop sign",
+      "no_entry": "no entry",
+      "prohibited": "prohibited",
+      "warning": "warning",
+      "red_exclamation_mark": "red exclamation mark",
+      "red_question_mark": "red question mark",
+      "zzz": "zzz",
+      "recycling_symbol": "recycling symbol",
+      "high_voltage": "high voltage",
+      "sparkles": "sparkles",
+      "glowing_star": "glowing star",
+      "dizzy": "dizzy",
+      "red_circle": "red circle",
+      "orange_circle": "orange circle",
+      "yellow_circle": "yellow circle",
+      "green_circle": "green circle",
+      "blue_circle": "blue circle",
+      "purple_circle": "purple circle",
+      "black_circle": "black circle",
+      "white_circle": "white circle",
+      "large_orange_diamond": "large orange diamond",
+      "large_blue_diamond": "large blue diamond",
+      "play_button": "play button",
+      "pause_button": "pause button",
+      "stop_button": "stop button",
+      "repeat_button": "repeat button",
+      "shuffle_tracks_button": "shuffle tracks button",
+      "plus": "plus",
+      "minus": "minus",
+      "divide": "divide",
+      "new_button": "new button",
+      "free_button": "free button",
+      "ok_button": "ok button",
+      "p_button": "p button",
+      "information": "information",
+      "top_arrow": "top arrow",
+      "soon_arrow": "soon arrow",
+      "chequered_flag": "chequered flag",
+      "triangular_flag": "triangular flag",
+      "crossed_flags": "crossed flags",
+      "black_flag": "black flag",
+      "white_flag": "white flag",
+      "rainbow_flag": "rainbow flag",
+      "flag_portugal": "flag portugal",
+      "flag_spain": "flag spain",
+      "flag_france": "flag france",
+      "flag_germany": "flag germany",
+      "flag_italy": "flag italy",
+      "flag_united_kingdom": "flag united kingdom",
+      "flag_ireland": "flag ireland",
+      "flag_netherlands": "flag netherlands",
+      "flag_belgium": "flag belgium",
+      "flag_switzerland": "flag switzerland",
+      "flag_austria": "flag austria",
+      "flag_sweden": "flag sweden",
+      "flag_norway": "flag norway",
+      "flag_denmark": "flag denmark",
+      "flag_finland": "flag finland",
+      "flag_poland": "flag poland",
+      "flag_greece": "flag greece",
+      "flag_united_states": "flag united states",
+      "flag_canada": "flag canada",
+      "flag_mexico": "flag mexico",
+      "flag_brazil": "flag brazil",
+      "flag_argentina": "flag argentina",
+      "flag_angola": "flag angola",
+      "flag_mozambique": "flag mozambique",
+      "flag_cape_verde": "flag cape verde",
+      "flag_south_africa": "flag south africa",
+      "flag_japan": "flag japan",
+      "flag_china": "flag china",
+      "flag_india": "flag india",
+      "flag_australia": "flag australia",
+      "flag_new_zealand": "flag new zealand",
+      "flag_european_union": "flag european union"
     }
   },
   "catalog": {
@@ -8362,16 +9213,34 @@
         "subtitle": "Upload a CSV file with one product per row. Brands, categories and suppliers are created when missing.",
         "drop": "Drop your CSV file here",
         "template": "Download template",
-        "hint": "Columns: Product name, Barcode, Brand, Category, Supplier, Supply price, Retail price, Quantity, SKU, Measure, Amount",
         "wrongType": "Please choose a .csv file",
-        "missingName": "The file needs a \"Product name\" column",
         "preview_one": "{{count}} product ready to import",
         "preview_other": "{{count}} products ready to import",
         "skipped_one": "{{count}} row without a name will be skipped",
         "skipped_other": "{{count}} rows without a name will be skipped",
         "import": "Import",
         "importCount_one": "Import {{count}} product",
-        "importCount_other": "Import {{count}} products"
+        "importCount_other": "Import {{count}} products",
+        "columns": {
+          "amount": "Amount",
+          "barcode": "Barcode",
+          "brand": "Brand",
+          "category": "Category",
+          "measure": "Measure",
+          "name": "Product name",
+          "retailPrice": "Retail price",
+          "sku": "SKU",
+          "stock": "Quantity",
+          "supplier": "Supplier",
+          "supplyPrice": "Supply price"
+        },
+        "columnsHint": "Columns: {{columns}}",
+        "missingColumn": "The file needs a \"{{column}}\" column",
+        "sample": {
+          "category": "Hair care",
+          "name": "Argan Hair Oil"
+        },
+        "templateFile": "products_import_template.csv"
       },
       "form": {
         "addTitle": "Add new product",
@@ -8492,7 +9361,8 @@
         "sale": "Sale",
         "stocktake": "Stocktake",
         "stockOrder": "Stock order",
-        "received": "Received"
+        "received": "Received",
+        "orderCancelled": "Order cancelled"
       },
       "ordersEmpty": "No orders here yet.",
       "ordersEmptyBody": "Stock orders that include this product will appear here.",
@@ -8620,7 +9490,168 @@
         "gateContinue": "Continue"
       },
       "deleteManyTitle_one": "Delete {{count}} product?",
-      "deleteManyTitle_other": "Delete {{count}} products?"
+      "deleteManyTitle_other": "Delete {{count}} products?",
+      "introArt": {
+        "arganOil": "Argan Hair Oil",
+        "matteClay": "Matte Clay",
+        "repairShampoo": "Repair Shampoo"
+      },
+      "refs": {
+        "refund": "Refund {{number}}",
+        "sale": "Sale {{number}}",
+        "stockOrder": "Order {{number}}",
+        "storeOrder": "Order #{{number}}"
+      }
+    },
+    "ai": {
+      "copy": {
+        "beard": "Experience a fresh take on your facial hair with our expert {{subject}} service. Enjoy a polished look that enhances your style while maintaining the perfect balance between neatness and personal expression. Let us help you achieve the beard of your dreams.",
+        "colour": "Refresh your look with our {{subject}}. Our colour specialists start with a consultation, choose the right shade for your skin tone and lifestyle, and finish with a gloss for shine that lasts. Expect rich, even colour in about {{minutes}}.",
+        "massage": "Unwind completely with our {{subject}}. Our therapists tailor the pressure to you, easing tension and leaving body and mind deeply relaxed. Take {{minutes}} just for yourself and walk out feeling lighter, calmer and restored.",
+        "nails": "Treat your hands and feet to our {{subject}}. We shape, tidy cuticles and finish with a flawless, long-lasting polish in the shade you love. Relax in a calm, hygienic space and leave with nails that stay picture-perfect for weeks.",
+        "other": "Enjoy our {{subject}}, delivered by an experienced stylist who listens first and works with your hair type and routine. Finished with a wash and style, it takes about {{minutes}} and leaves you with a look that is easy to keep at home.",
+        "skin": "Reveal your best self with our {{subject}}. We tailor each step to your skin and features, using gentle, professional products for a clean, natural finish. In just {{minutes}} you'll leave feeling fresh, confident and cared for."
+      },
+      "fallbackSubject": "service",
+      "hoursMinutes": "{{hours}} {{minutes}}",
+      "hours_one": "{{count}} hour",
+      "hours_other": "{{count}} hours",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
+    "durationShort": {
+      "hours": "{{h}}h",
+      "hoursMinutes": "{{h}}h {{m}}m",
+      "minutes": "{{m}}m"
+    },
+    "export": {
+      "availableFor": {
+        "everyone": "Everyone",
+        "female": "Females only",
+        "male": "Males only"
+      },
+      "generated": "All time, all staff, generated {{date}}",
+      "headers": {
+        "availableFor": "Available For",
+        "categoryName": "Category Name",
+        "commissions": "Commissions",
+        "description": "Description",
+        "duration": "Duration",
+        "extraTime": "Extra Time",
+        "onlineBooking": "Online Booking",
+        "resource": "Resource",
+        "retailPrice": "Retail Price",
+        "serviceId": "Service ID",
+        "serviceName": "Service Name",
+        "sku": "SKU",
+        "tax": "Tax",
+        "treatmentType": "Treatment Type",
+        "voucherSales": "Voucher Sales"
+      },
+      "inherited": "Inherited from services",
+      "title": "Services List"
+    },
+    "topics": {
+      "bookingSequence": "Booking sequence",
+      "lowStock": "Low stock"
+    },
+    "treatmentGroups": {
+      "barbering": "Barbering",
+      "bodySpa": "Body & spa",
+      "browsLashesMakeup": "Brows, lashes & makeup",
+      "hair": "Hair",
+      "hairColour": "Hair colour",
+      "hairRemoval": "Hair removal",
+      "massage": "Massage",
+      "nails": "Nails",
+      "skin": "Skin"
+    },
+    "treatments": {
+      "acrylicNails": "Acrylic nails",
+      "antiAgeingFacial": "Anti-ageing facial",
+      "armWaxing": "Arm waxing",
+      "aromatherapyMassage": "Aromatherapy massage",
+      "backMassage": "Back massage",
+      "backWaxing": "Back waxing",
+      "balayage": "Balayage",
+      "beardColoring": "Beard coloring",
+      "beardGrooming": "Beard grooming",
+      "beardShaping": "Beard shaping",
+      "beardShave": "Beard shave",
+      "beardTrim": "Beard trim",
+      "bikiniWaxing": "Bikini waxing",
+      "bleach": "Bleach",
+      "blowDry": "Blow dry",
+      "bodyScrub": "Body scrub",
+      "bodyWrap": "Body wrap",
+      "bridalHair": "Bridal hair",
+      "bridalMakeup": "Bridal makeup",
+      "buzzCut": "Buzz cut",
+      "chemicalPeel": "Chemical peel",
+      "colourCorrection": "Colour correction",
+      "couplesMassage": "Couples massage",
+      "deepCleansingFacial": "Deep cleansing facial",
+      "deepTissueMassage": "Deep tissue massage",
+      "eyebrowLamination": "Eyebrow lamination",
+      "eyebrowShaping": "Eyebrow shaping",
+      "eyebrowTinting": "Eyebrow tinting",
+      "eyelashExtensions": "Eyelash extensions",
+      "eyelashTinting": "Eyelash tinting",
+      "faceWaxing": "Face waxing",
+      "facial": "Facial",
+      "fadeHaircut": "Fade haircut",
+      "frenchManicure": "French manicure",
+      "fringeTrim": "Fringe trim",
+      "gelManicure": "Gel manicure",
+      "gelPedicure": "Gel pedicure",
+      "greyBlending": "Grey blending",
+      "hairColouring": "Hair colouring",
+      "hairExtensions": "Hair extensions",
+      "hairStraightening": "Hair straightening",
+      "hairStyling": "Hair styling",
+      "hairTreatment": "Hair treatment",
+      "haircut": "Haircut",
+      "haircutBeardTrim": "Haircut & beard trim",
+      "headMassage": "Head massage",
+      "headShave": "Head shave",
+      "highlights": "Highlights",
+      "hotStoneMassage": "Hot stone massage",
+      "hotTowelShave": "Hot towel shave",
+      "hydratingFacial": "Hydrating facial",
+      "keratinTreatment": "Keratin treatment",
+      "kidsHaircut": "Kids haircut",
+      "lashLift": "Lash lift",
+      "legWaxing": "Leg waxing",
+      "lymphaticDrainage": "Lymphatic drainage",
+      "makeup": "Makeup",
+      "manicure": "Manicure",
+      "mensHaircut": "Men's haircut",
+      "microdermabrasion": "Microdermabrasion",
+      "mustacheBeardTrim": "Mustache & beard trim",
+      "nailArt": "Nail art",
+      "nailExtensions": "Nail extensions",
+      "nailPolishRemoval": "Nail polish removal",
+      "nailRepair": "Nail repair",
+      "ombre": "Ombre",
+      "pedicure": "Pedicure",
+      "perm": "Perm",
+      "reflexology": "Reflexology",
+      "rootTouchUp": "Root touch up",
+      "sauna": "Sauna",
+      "scalpTreatment": "Scalp treatment",
+      "skinConsultation": "Skin consultation",
+      "spaPackage": "Spa package",
+      "sportsMassage": "Sports massage",
+      "sprayTan": "Spray tan",
+      "swedishMassage": "Swedish massage",
+      "tanning": "Tanning",
+      "threading": "Threading",
+      "toner": "Toner",
+      "underarmWaxing": "Underarm waxing",
+      "updo": "Updo",
+      "washHaircutStylingBeardTrim": "Wash, haircut, styling & beard trim",
+      "womensBlowDry": "Women's blow dry",
+      "womensHaircut": "Women's haircut"
     }
   },
   "checkout": {
@@ -8878,7 +9909,8 @@
       "customDate": "Choose a date",
       "newExpiry": "New expiry date",
       "newExpiryIs": "New expiry date: {{date}}",
-      "futureDate": "Choose a date in the future"
+      "futureDate": "Choose a date in the future",
+      "printTitle": "Gift card {{code}}"
     },
     "custom": {
       "titlePackage": "Sell custom package",
@@ -9019,7 +10051,8 @@
         "expiry": "Enter a valid expiry date (MM/YY)",
         "cvc": "Enter the 3 or 4 digit code"
       },
-      "declinedBody": "Ask the client for another payment method."
+      "declinedBody": "Ask the client for another payment method.",
+      "expiryPlaceholder": "MM/YY"
     },
     "discount": {
       "title": "Add cart discount",
@@ -9170,7 +10203,9 @@
       "noTips": "No tips on this sale",
       "payments": "Payments",
       "collectedBy": "Payment collected by",
-      "noMember": "No team member"
+      "noMember": "No team member",
+      "todayAt": "Today at {{time}}",
+      "yesterdayAt": "Yesterday at {{time}}"
     },
     "payments": {
       "frameTitle": "Payments",
@@ -9248,6 +10283,22 @@
       "appliedCount_other": "{{count}} applied",
       "availableCount_one": "{{count}} available",
       "availableCount_other": "{{count}} available"
+    },
+    "receipt": {
+      "client": "Client",
+      "tax": "Tax",
+      "ofWhichTax": "Of which tax",
+      "with": "with {{name}}",
+      "paymentWith": "Payment with {{method}}",
+      "refundWith": "Refund with {{method}}"
+    },
+    "lineNames": {
+      "manualPayment": "Manual payment"
+    },
+    "giftLine": {
+      "value": "{{amount}} value",
+      "neverExpires": "never expires",
+      "validFor": "valid for {{period}}"
     }
   },
   "clients": {
@@ -9392,7 +10443,16 @@
       "reasonError": "Select a blocking reason",
       "confirm": "Block",
       "toast": "Client blocked",
-      "toastMany": "{{count}} clients blocked"
+      "toastMany": "{{count}} clients blocked",
+      "reasons": {
+        "fakeAppointments": "Booked fake appointments",
+        "lateCancellations": "Too many late cancellations",
+        "noShows": "Too many no-shows",
+        "other": "Other",
+        "refusedToPay": "Refused to pay",
+        "reschedules": "Too many reschedules",
+        "rude": "Rude or inappropriate to a team member"
+      }
     },
     "unblock": {
       "title": "Unblock client",
@@ -9642,7 +10702,37 @@
       "deleteBody": "Are you sure you want to delete this allergy?",
       "deleted": "Allergy deleted",
       "emptyTitle": "No allergies",
-      "emptyBody": "No allergies have been added for this client"
+      "emptyBody": "No allergies have been added for this client",
+      "reactions": {
+        "acuteKidneyFailure": "Acute kidney failure",
+        "alteredMentalState": "Altered mental state",
+        "anaphylaxis": "Anaphylaxis",
+        "angioedema": "Angioedema",
+        "arthralgia": "Arthralgia",
+        "chills": "Chills",
+        "cough": "Cough",
+        "diarrhea": "Diarrhea",
+        "dizziness": "Dizziness",
+        "fever": "Fever",
+        "gastrointestinalIrritation": "Gastrointestinal irritation",
+        "headache": "Headache",
+        "hives": "Hives",
+        "itching": "Itching",
+        "myalgia": "Myalgia",
+        "nasalCongestion": "Nasal congestion",
+        "nausea": "Nausea",
+        "painInInjectionSite": "Pain in injection site",
+        "palpitations": "Palpitations",
+        "rash": "Rash",
+        "respiratoryDistress": "Respiratory distress",
+        "rhinorrhea": "Rhinorrhea",
+        "shortnessOfBreath": "Shortness of breath",
+        "sneezing": "Sneezing",
+        "soreThroat": "Sore throat",
+        "swelling": "Swelling",
+        "vomiting": "Vomiting",
+        "wheezing": "Wheezing"
+      }
     },
     "patch": {
       "title": "Patch test",
@@ -9869,7 +10959,8 @@
       "activityTitle": "Rewards activity",
       "noActivity": "No reward activity yet",
       "redeemedOn": "Redeemed {{date}}",
-      "addedBy": "Added {{date}} by {{name}}"
+      "addedBy": "Added {{date}} by {{name}}",
+      "topic": "Client wallet"
     },
     "details": {
       "profile": "Profile",
@@ -10109,6 +11200,11 @@
           "failedBody": "Something went wrong while importing. Your client list wasn't changed.",
           "retry": "Try again",
           "done": "Done"
+        },
+        "template": {
+          "fileName": "client_import_template.csv",
+          "sampleAlert": "Allergic to hair dye",
+          "sampleTags": "VIP|returning"
         }
       },
       "merge": {
@@ -10298,7 +11394,8 @@
           "line3": "Reply to every review – clients notice, and so does your rating.",
           "line4": "Link Google to see all of your reviews in one place.",
           "ended": "Thanks for watching!"
-        }
+        },
+        "googleTopic": "Google reviews"
       }
     },
     "segments": {
@@ -10424,7 +11521,10 @@
           "attribute": "Select an attribute",
           "condition": "Select a condition",
           "value": "Select a value"
-        }
+        },
+        "maxOf": "{{label}} max",
+        "minOf": "{{label}} min",
+        "operatorOf": "{{label}} operator"
       },
       "groups": {
         "appointments": "Appointments",
@@ -10519,6 +11619,9 @@
         "enrolled": "Enrolled",
         "not_enrolled": "Not enrolled"
       }
+    },
+    "topics": {
+      "segments": "client segments"
     }
   },
   "demo": {
@@ -10563,7 +11666,7 @@
       "late": "Inside the {{hours}}-hour policy window: a {{pct}}% late cancellation fee will be charged.",
       "free": "More than {{hours}} hours before the appointment: free cancellation.",
       "done": "Client canceled the appointment",
-      "doneFee": "Late cancellation: €{{fee}} fee charged"
+      "doneFeeAmount": "Late cancellation: {{fee}} fee charged"
     },
     "giftCard": {
       "title": "Client buys a gift card online",
@@ -10576,10 +11679,10 @@
       "title": "Client places a product order",
       "product": "Product",
       "qty": "Qty",
-      "shipping": "Shipping (€4.50)",
       "pickup": "Pick up in store",
       "action": "Place order",
-      "done": "New product order received"
+      "done": "New product order received",
+      "shippingAmount": "Shipping ({{amount}})"
     },
     "review": {
       "title": "Client leaves a review",
@@ -10587,12 +11690,14 @@
       "for": "For {{service}} on {{date}}",
       "noVisit": "No completed visit yet; the review is not linked to an appointment.",
       "action": "Post review",
-      "done": "New review received"
+      "done": "New review received",
+      "defaultText": "Lovely visit, thank you!"
     },
     "message": {
       "title": "Client sends a message",
       "action": "Send message",
-      "done": "Client message delivered to the inbox"
+      "done": "Client message delivered to the inbox",
+      "defaultText": "Hi! Do you have anything free on Saturday morning?"
     },
     "events": {
       "trigger": "Trigger",
@@ -10603,10 +11708,10 @@
       "cardDeclinedDone": "The next card payment will be declined",
       "payout": "Payout completed",
       "payoutHint": "Sends the available wallet balance to the bank.",
-      "payoutDone": "Payout of €{{amount}} completed",
       "campaign": "Blast campaign approved",
       "campaignHint": "{{count}} campaign(s) waiting for review.",
-      "campaignDone": "\"{{name}}\" approved after review"
+      "campaignDone": "\"{{name}}\" approved after review",
+      "payoutDoneAmount": "Payout of {{amount}} completed"
     },
     "outbox": {
       "all": "All channels",
@@ -10872,7 +11977,26 @@
       "points-summary": "When a client earns loyalty points",
       "tier": "When a client reaches a new loyalty tier",
       "rewards-summary": "When a client earns a reward",
-      "referrer": "When a referred friend completes their first appointment"
+      "referrer": "When a referred friend completes their first appointment",
+      "custom": {
+        "after30": "30 days after a client's last appointment",
+        "after7": "7 days after a client's last appointment",
+        "after90": "90 days after a client's last appointment",
+        "anniversary": "On a client's first visit anniversary",
+        "beforeBirthday": "7 days before a client's birthday",
+        "clientAdded": "On the day a client is added"
+      },
+      "values": {
+        "day_one": "{{count}} day",
+        "day_other": "{{count}} days",
+        "hour_one": "{{count}} hour",
+        "hour_other": "{{count}} hours",
+        "month_one": "{{count}} month",
+        "month_other": "{{count}} months",
+        "onTheDay": "On the day",
+        "week_one": "{{count}} week",
+        "week_other": "{{count}} weeks"
+      }
     },
     "configure": {
       "trigger": "Trigger",
@@ -11037,7 +12161,9 @@
       "custom": {
         "heading": "Hi {{firstName}}",
         "sms": "{{business}}: Hi {{firstName}}, {{name}}."
-      }
+      },
+      "sampleService": "Blow Dry",
+      "when": "{{date}} at {{time}}"
     },
     "common": {
       "learnMore": "Learn more",
@@ -11065,7 +12191,17 @@
       "filters": "Filters",
       "clear": "Clear",
       "selectAll": "Select all",
-      "nextStep": "Next step"
+      "nextStep": "Next step",
+      "topics": {
+        "automations": "automations",
+        "blastCampaigns": "blast campaigns",
+        "deals": "deals",
+        "fees": "fees and commissions",
+        "messagesHistory": "messages history",
+        "smartPricing": "smart pricing",
+        "smartPricingRules": "smart pricing rules",
+        "whatsappSms": "whatsapp and text messages"
+      }
     },
     "campaigns": {
       "title": "Blast campaigns",
@@ -11263,7 +12399,8 @@
         "billingFirst": "Add your payment method to start sending campaigns",
         "submitted": "Campaign sent for review",
         "failed": "Something went wrong. Try again"
-      }
+      },
+      "smsCode": "Code {{code}}."
     },
     "detail": {
       "notFound": "Campaign not found",
@@ -11367,7 +12504,8 @@
       "vatNumber": "Número de IVA",
       "vatHint": "e.g. PT123456789",
       "address": "Address",
-      "addressPlaceholder": "Street, postcode and city"
+      "addressPlaceholder": "Street, postcode and city",
+      "breadcrumb": "Breadcrumb"
     },
     "history": {
       "title": "Messages history",
@@ -11934,7 +13072,31 @@
         "body": "Let clients know what makes your business special by selecting any amenities or additional information that are important to you.",
         "amenities": "Amenities",
         "highlights": "Highlights",
-        "values": "Values"
+        "values": "Values",
+        "options": {
+          "adultsOnly": "Adults only",
+          "asianOwned": "Asian-owned",
+          "blackOwned": "Black-owned",
+          "ecoFriendly": "Environmentally friendly",
+          "hispanicOwned": "Hispanic-owned",
+          "indigenousOwned": "Indigenous-owned",
+          "kidFriendly": "Kid-friendly",
+          "lgbtq": "LGBTQ+",
+          "lockers": "Lockers",
+          "menOnly": "Men only",
+          "organic": "Organic products only",
+          "parking": "Parking available",
+          "petFriendly": "Pet-friendly",
+          "pool": "Swimming pool",
+          "publicTransport": "Near public transport",
+          "sauna": "Sauna",
+          "showers": "Showers",
+          "towels": "Bath towels",
+          "vegan": "Vegan products only",
+          "wheelchair": "Wheelchair accessible",
+          "womanOwned": "Woman-owned",
+          "womenOnly": "Women only"
+        }
       },
       "about": {
         "title": "Tell us a bit about this venue",
@@ -12315,6 +13477,16 @@
         "helpCenter": "Go to help center",
         "saving": "Saving",
         "saved": "All changes saved"
+      },
+      "demo": {
+        "domain": "yourbusiness",
+        "existingDomain": "www.yourbusiness.com",
+        "eyebrow": "Your neighbourhood studio",
+        "heading": "Look and feel your best",
+        "text": "Book online in seconds."
+      },
+      "topics": {
+        "domains": "Smart Website domains"
       }
     },
     "store": {
@@ -13229,6 +14401,9 @@
         "pickClient": "Pick a client first",
         "typeFirst": "Type a message first"
       }
+    },
+    "topics": {
+      "walletCredits": "wallet credits fees"
     }
   },
   "sales": {
@@ -13908,6 +15083,14 @@
       "emptyTitle": "Online store is not yet set up",
       "emptyBody": "Set up your store in minutes and get clients buying your products online.",
       "setUp": "Set up now"
+    },
+    "helpTopics": {
+      "sales": "sales",
+      "refunds": "refunds",
+      "registers": "registers",
+      "giftCards": "gift cards",
+      "packages": "packages",
+      "onlineStore": "online store"
     }
   },
   "team": {
@@ -14963,6 +16146,580 @@
         "match": "Passwords don't match",
         "emailTaken": "A login with this email already exists. Sign in instead."
       }
+    },
+    "export": {
+      "headers": {
+        "bookings": "Calendar bookings",
+        "email": "Email",
+        "firstName": "First name",
+        "jobTitle": "Job title",
+        "lastName": "Last name",
+        "locations": "Locations",
+        "phone": "Phone",
+        "role": "Permission role",
+        "startDate": "Start date",
+        "status": "Status"
+      }
+    },
+    "hoursLabel": {
+      "hours": "{{h}} hr",
+      "hoursMinutes": "{{h}} hr {{m}} min",
+      "minutes": "{{m}} min"
+    },
+    "topics": {
+      "calendarBookings": "calendar bookings",
+      "calendarSync": "calendar sync",
+      "closedPeriods": "closed periods",
+      "linkedCalendars": "linked calendars",
+      "overtime": "overtime",
+      "payRunDeductions": "pay run deductions",
+      "payRunPaymentMethods": "pay run payment methods",
+      "payRuns": "pay runs",
+      "repeatingShifts": "repeating shifts",
+      "timesheets": "timesheets",
+      "wages": "wages"
     }
+  },
+  "api": {
+    "common": {
+      "dateAt": "{{date}} at {{time}}",
+      "orList": "{{list}} or {{last}}"
+    },
+    "errors": {
+      "recordNotFound": "{{collection}} {{id}} not found",
+      "serviceNotFound": "Service not found"
+    },
+    "auth": {
+      "currentPasswordIncorrect": "Current password is incorrect",
+      "reset": {
+        "subject": "Reset your Innoweb Bookings password",
+        "body": "Hi {{firstName}}, we received a request to reset your password. The link below works once and expires in 1 hour."
+      }
+    },
+    "messaging": {
+      "ourTeam": "our team",
+      "subject": {
+        "noShow": "We missed you on {{when}}"
+      },
+      "lateCancellationFee": "A late cancellation fee of {{amount}} was charged.",
+      "noShowFee": "A no-show fee of {{amount}} was charged.",
+      "body": {
+        "confirmation": "Hi {{firstName}}, your booking at {{location}} is confirmed.\n\n{{services}} with {{member}}\n{{when}}\nTotal {{total}}\n\nBooking ref: {{ref}}\n{{address}}",
+        "reschedule": "Hi {{firstName}}, your {{services}} with {{member}} is now on {{when}}. Booking ref: {{ref}}.",
+        "cancellation": "Hi {{firstName}}, your {{services}} on {{when}} has been canceled.{{fee}} We hope to see you soon.",
+        "noShow": "Hi {{firstName}}, we missed you at your {{services}} appointment on {{when}}.{{fee}} Book again any time.",
+        "thankYou": "Hi {{firstName}}, thank you for visiting {{location}} today. How was your {{services}}? Leave a review: ★★★★★",
+        "reminder": "Hi {{firstName}}, just a quick reminder about your {{services}} on {{when}} at {{location}}."
+      },
+      "receipt": {
+        "subject": "Your receipt from {{business}} (Sale #{{number}})",
+        "body": "Sale #{{number}}\n{{lines}}\n\nTotal {{total}}\nThank you for your visit!"
+      }
+    },
+    "register": {
+      "alreadyOpen": "This register is already open",
+      "closed": "Register is closed"
+    },
+    "appointments": {
+      "blockedOnline": "This client is blocked from booking online",
+      "depositFor": "Deposit for appointment {{ref}}",
+      "activity": {
+        "bookedByRef": "Booked by {{name}}, reference {{ref}}",
+        "statusChanged": "Status changed to {{status}}",
+        "statusFrom": "From {{status}}",
+        "feeCharged": "Fee charged to card on file",
+        "canceled": "Appointment canceled",
+        "lateCancellation": "Late cancellation",
+        "markedNoShow": "Marked as no-show",
+        "rescheduledDetail": "Rescheduled by {{name}} from {{from}} to {{to}} with {{member}}"
+      },
+      "waitlist": {
+        "subject": "You're on the waitlist",
+        "body": "Hi {{firstName}}, you're on the waitlist. We'll let you know as soon as a time slot becomes available."
+      }
+    },
+    "payments": {
+      "depositCard": "Deposit (card)",
+      "cardOnFile": "Card on file",
+      "giftCardWithCode": "Gift card ({{code}})"
+    },
+    "sales": {
+      "activity": {
+        "created": "Sale {{number}} created",
+        "completedBy": "Completed by {{name}}",
+        "paidBy": "{{amount}} paid by {{method}}",
+        "paidWith": "Paid with {{method}}. Payment taken by {{name}}",
+        "giftCardRedeemed": "Gift card redeemed",
+        "amountInSale": "{{amount}} in sale {{number}}",
+        "giftCardPurchased": "Gift card purchased",
+        "viewSale": "View sale {{number}}",
+        "appointmentCheckedOut": "Appointment checked out",
+        "refundCreated": "Refund {{number}} created",
+        "refundOf": "Refund of sale {{number}}",
+        "refunded": "Sale refunded",
+        "detailsEdited": "Sale details edited"
+      },
+      "giftCardBalanceLow": "Gift card balance is too low",
+      "cardDeclined": "Card declined. Ask the client for another payment method.",
+      "saleNumber": "Sale {{number}}",
+      "giftCardDetail": "{{code}} • {{value}} value • {{validity}}",
+      "neverExpires": "never expires",
+      "validFor": "valid for {{period}}",
+      "giftCardLine": "Gift Card",
+      "giftCardEmail": {
+        "subject": "Your {{value}} gift card for {{business}}",
+        "body": "Gift card code {{code}}. Use it at checkout or when booking online.{{validUntil}}",
+        "validUntil": "Valid until {{date}}."
+      },
+      "giftCardCodeNotFound": "No gift card found with this code",
+      "giftCardInactive": {
+        "active": "This gift card is active",
+        "redeemed": "This gift card is redeemed",
+        "expired": "This gift card is expired",
+        "cancelled": "This gift card is cancelled"
+      }
+    },
+    "notifications": {
+      "theTeam": "the team",
+      "newOnlineBooking": {
+        "title": "New online booking",
+        "body": "{{date}} {{time}} {{service}} for {{client}} booked with {{member}}"
+      },
+      "lowStock": {
+        "title": "Low stock",
+        "body": "{{product}} has {{stock}} left (low stock level {{level}}).",
+        "bodyReorder": "{{product}} has {{stock}} left (low stock level {{level}}). Reorder {{reorder}}."
+      },
+      "newTip": {
+        "title": "New tip",
+        "body": "{{amount}} tip in sale {{number}}"
+      },
+      "giftCardSold": {
+        "title": "Gift card sold online",
+        "body": "{{name}} bought a {{value}} gift card"
+      },
+      "planChanged": {
+        "title": "Plan changed",
+        "body": "You're now on the {{plan}}."
+      },
+      "clientRescheduled": "{{name}} moved {{service}} to {{when}}",
+      "clientCanceled": "{{name}} canceled {{service}} on {{when}}{{fee}}",
+      "feeCharged": "{{amount}} fee charged",
+      "newProductOrder": {
+        "title": "New product order",
+        "body": "Order #{{number}} from {{name}} • {{total}}"
+      },
+      "newReview_one": "New {{count}}-star review",
+      "newReview_other": "New {{count}}-star review",
+      "noComment": "No comment",
+      "newClientMessage": "New client message",
+      "payoutCompleted": {
+        "title": "Payout completed",
+        "body": "{{amount}} was sent to your bank account ending {{last4}}."
+      },
+      "campaignApproved": {
+        "title": "Campaign approved",
+        "scheduled": "\"{{name}}\" passed review and is scheduled.",
+        "sent": "\"{{name}}\" passed review and is sent."
+      }
+    },
+    "calendar": {
+      "filterNotFound": "Saved filter not found",
+      "appointmentOrFormNotFound": "Appointment or form not found",
+      "formsClientOnly": "Forms can only be sent to a client",
+      "theClient": "the client",
+      "activity": {
+        "formSent": "Form sent",
+        "formSentTo": "{{form}} sent to {{name}}",
+        "bookedBySeries": "Booked by {{name}}, repeating series",
+        "setRepeating": "Set as repeating",
+        "seriesCount_one": "{{count}} appointment in the series",
+        "seriesCount_other": "{{count}} appointments in the series"
+      },
+      "form": {
+        "subject": "Please complete \"{{form}}\" before your appointment",
+        "body": "Hi {{firstName}}, please fill in the form \"{{form}}\" before your visit. It only takes a couple of minutes.",
+        "link": "Complete form"
+      },
+      "blockedTimeNotFound": "Blocked time not found",
+      "messageFrom": "Message from {{business}}"
+    },
+    "checkout": {
+      "maxQuickSaleItems": "Max 12 items",
+      "shareGiftCard": {
+        "body": "You have a {{value}} gift card for {{business}}.\n\nCode: {{code}}{{customCode}}\nBalance: {{balance}}{{validUntil}}\n\nShow this code at checkout or use it when booking online.",
+        "customCode": "Custom code: {{code}}",
+        "validUntil": "Valid until {{date}}"
+      },
+      "activity": {
+        "giftCardShared": "Gift card shared",
+        "sentTo": "Sent to {{to}}",
+        "newExpiry": "New expiry date {{date}}"
+      },
+      "paymentLink": {
+        "subject": "Payment link",
+        "body": "{{business}}: your bill of {{amount}} is ready. Pay securely here: {{link}}",
+        "payNow": "Pay now"
+      },
+      "hasPayments": "This sale has payments and cannot be discarded"
+    },
+    "billing": {
+      "accountOwner": "Account owner",
+      "invoiceEmail": {
+        "body": "Your invoice {{number}} for {{total}} (IVA included) is available in Settings › Billing › Invoices and fees.",
+        "link": "View invoice"
+      },
+      "lines": {
+        "proRata_one": "{{plan}} · {{count}} bookable team member (pro-rata {{period}})",
+        "proRata_other": "{{plan}} · {{count}} bookable team members (pro-rata {{period}})",
+        "unusedTime": "Unused time on {{plan}} ({{period}})",
+        "monthly_one": "{{plan}} · {{count}} bookable team member (monthly)",
+        "monthly_other": "{{plan}} · {{count}} bookable team members (monthly)",
+        "topUp": "Communication balance top-up"
+      },
+      "errors": {
+        "samePlan": "You are already on this plan",
+        "noCardChange": "Add a payment method before changing your plan",
+        "chooseBookable": "Choose the team member who stays bookable on the {{plan}}",
+        "noCardActivate": "Add a payment method to activate your plan",
+        "cardExpired": "Your card has expired",
+        "cardDeclined": "Your card was declined. Try a different card.",
+        "chooseAmount": "Choose an amount",
+        "noCardTopUp": "Add a payment method to top up",
+        "primaryAccount": "Set another account as primary before removing this one"
+      },
+      "pdf": {
+        "paidWithCardOnFile": "Paid with card on file. Prices exclude IVA unless stated."
+      },
+      "terminals": {
+        "frontDesk": "Front desk terminal",
+        "frontDeskShort": "Front desk",
+        "notFound": "Terminal not found",
+        "invoiceLine": "{{model}} card terminal",
+        "chooseTerminal": "Choose a terminal",
+        "quantity": "You can order between 1 and 5 terminals",
+        "chooseLocation": "Choose a delivery location",
+        "noCard": "Add a payment method to order a terminal",
+        "name": "{{location}} terminal {{number}}",
+        "orderedBody": "{{quantity}} × {{model}} on the way to {{location}}. Estimated delivery {{date}}.",
+        "pairingCode": "Enter the 6-digit pairing code shown on your terminal",
+        "nameRequired": "Enter a terminal name",
+        "notPaired": "Pair this terminal before testing its connection"
+      }
+    },
+    "catalog": {
+      "notFound": {
+        "category": "category {{id}} not found",
+        "service": "service {{id}} not found",
+        "bundle": "bundle {{id}} not found",
+        "package": "package {{id}} not found",
+        "membership": "membership {{id}} not found",
+        "brand": "brand {{id}} not found",
+        "product": "product {{id}} not found",
+        "stockOrder": "stock order {{id}} not found",
+        "stocktake": "stocktake {{id}} not found"
+      },
+      "missing": {
+        "service": "service not found",
+        "bundle": "bundle not found",
+        "package": "package not found",
+        "membership": "membership not found",
+        "supplier": "supplier not found",
+        "product": "product not found"
+      },
+      "activity": {
+        "orderSummary_one": "{{count}} product · {{total}}",
+        "orderSummary_other": "{{count}} products · {{total}}",
+        "orderEdited": "Stock order edited",
+        "stockReceived": "Stock received",
+        "productsReceived_one": "{{count}} product received",
+        "productsReceived_other": "{{count}} products received",
+        "orderEmailed": "Stock order emailed"
+      },
+      "supplierNoEmail": "This supplier has no email address",
+      "product": "Product",
+      "orderEmail": {
+        "subject": "Stock order {{number}} from {{business}}",
+        "greeting": "Hello {{name}},",
+        "intro": "Please find our stock order {{number}} below.",
+        "expectedBy": "Expected by: {{date}}",
+        "deliverTo": "Deliver to: {{address}}",
+        "signOff": "Thank you,"
+      },
+      "stocktakeName": "{{month}} count"
+    },
+    "clients": {
+      "notFound": "Client {{id}} not found",
+      "formNotFound": "Form not found",
+      "form": {
+        "subject": "Please complete: {{form}}",
+        "body": "Hi {{firstName}}, please fill in the \"{{form}}\" form before your next visit."
+      },
+      "imported": "Imported",
+      "segmentNotFound": "Segment not found",
+      "reviewNotFound": "Review not found",
+      "reviewReplySubject": "The business replied to your review",
+      "googleSynced_one": "{{reviews}} Google reviews synced for {{count}} location.",
+      "googleSynced_other": "{{reviews}} Google reviews synced for {{count}} locations."
+    },
+    "payouts": {
+      "nothingAvailable": "There is nothing available to pay out",
+      "toBank": "Payout to bank account ending {{last4}}",
+      "instantFee": "Instant payout fee",
+      "instantToBank": "Instant payout to bank account ending {{last4}}"
+    },
+    "demo": {
+      "storeOrder": {
+        "subject": "Order #{{number}} confirmed",
+        "body": "Thanks {{firstName}}! We received your order #{{number}} ({{items}}). {{next}}",
+        "pickup": "We'll let you know when it's ready to collect.",
+        "shipping": "We'll email you when it ships."
+      },
+      "onlineStore": "Online store",
+      "noPendingCampaigns": "No campaigns are waiting for review"
+    },
+    "addons": {
+      "invalidCode": "This discount code is invalid or has expired",
+      "proRataLine_one": "{{description}} (pro-rata, {{count}} day)",
+      "proRataLine_other": "{{description}} (pro-rata, {{count}} days)",
+      "trialEnds": "Your free trial ends on {{date}}.",
+      "enabled": {
+        "title": "{{name}} enabled",
+        "body": "{{name}} is now active in your workspace."
+      },
+      "orderEmail": {
+        "subject": "{{name}} add-on order confirmation",
+        "body": "Hi {{firstName}}, thanks for enabling {{name}}. {{note}}",
+        "invoiceReady": "Your invoice is available in Billing.",
+        "link": "View billing"
+      },
+      "selectReason": "Select a reason",
+      "notFound": "Add-on not found",
+      "payments": {
+        "submitted": {
+          "title": "Payments account submitted",
+          "body": "{{business}} is being verified. We'll let you know when payouts are ready."
+        },
+        "verifiedBody": "Your business details were verified. Payouts are enabled."
+      }
+    },
+    "marketing": {
+      "campaignNotFound": "Campaign not found",
+      "onlyDrafts": "Only draft campaigns can be edited",
+      "billingRequired": "Add your payment method and billing details first",
+      "noRecipients": "This audience has no clients who agreed to receive marketing",
+      "useCode": "use code {{code}}",
+      "smsCode": "Code {{code}}.",
+      "greeting": "Hi {{firstName}},",
+      "automationNotFound": "Automation not found",
+      "dealNotFound": "Deal not found"
+    },
+    "online": {
+      "descriptionTooShort": "A venue description of at least 200 characters is required",
+      "description": {
+        "intro": "{{name}} brings {{categories}} together under one roof in {{area}}.",
+        "beautyWellness": "beauty and wellness",
+        "team_one": "From {{featured}} to tailored treatments, our team of {{count}} professionals takes the time to listen and make every visit feel personal.",
+        "team_other": "From {{featured}} to tailored treatments, our team of {{count}} professionals takes the time to listen and make every visit feel personal.",
+        "teamSkilled": "From {{featured}} to tailored treatments, our team of skilled professionals takes the time to listen and make every visit feel personal.",
+        "space": "Expect a calm, welcoming space that is {{extras}}.",
+        "spaceDefault": "Expect a calm, welcoming space and a warm hello every time.",
+        "bookOnline": "Book online in seconds, any time of day, and leave feeling refreshed."
+      },
+      "website": {
+        "eyebrow": "Porto’s friendly neighbourhood studio",
+        "heading": "Look and feel your best, every visit",
+        "text": "Expert care tailored just for you. Book your {{services}} today.",
+        "pages": {
+          "home": "Home",
+          "services": "Services",
+          "servicesHeading": "Our services",
+          "servicesText": "Prices and durations are always up to date with our booking menu.",
+          "about": "About",
+          "aboutHeading": "About {{business}}",
+          "aboutText": "Two salons in Porto with one idea: unhurried, honest beauty care from a team that listens.",
+          "team": "Team",
+          "teamHeading": "Meet the team",
+          "teamText": "Book directly with your favourite professional.",
+          "contact": "Contact",
+          "contactHeading": "Visit us",
+          "contactText": "Find us in Baixa and Foz. We would love to see you."
+        }
+      },
+      "checkCardNumber": "Check your card number",
+      "smartWebsiteInvoiceLine": "Smart Website add-on (first month, pro-rata)"
+    },
+    "panels": {
+      "profile": {
+        "headlineTooLong": "Headline is too long",
+        "aboutTooLong": "About you is too long",
+        "tooManyInterests": "Pick up to 10 interests",
+        "notAnImage": "{{name}} is not an image",
+        "unreadable": "{{name}} could not be read",
+        "imageLimit": "You can add up to {{limit}} images"
+      },
+      "personal": {
+        "nameRequired": "First and last name are required",
+        "emailTaken": "This email address is already used by another login",
+        "noPhone": "Add a mobile number first",
+        "codeSms": "Innoweb Bookings: your verification code is {{code}}. It expires in 10 minutes.",
+        "wrongCode": "That code is not right. Check the latest text message and try again."
+      },
+      "device": {
+        "browser": "Browser",
+        "unknownOs": "Unknown OS"
+      },
+      "requests": {
+        "deleteAccount": {
+          "subject": "Confirm you want to delete your Innoweb account",
+          "body": "Hi {{name}},\n\nWe received a request to delete your Innoweb Bookings account and all your personal info. This can't be undone.\n\nIf this was you, confirm with the button below. If not, you can ignore this email and nothing will change.",
+          "link": "Confirm account deletion"
+        },
+        "deleteWorkspace": {
+          "subject": "Confirm deleting the {{detail}} workspace",
+          "body": "Hi {{name}},\n\nWe received a request to delete the {{detail}} workspace, including its clients, appointments, sales and team. This can't be undone.\n\nConfirm with the button below within 7 days, or ignore this email to keep the workspace.",
+          "link": "Confirm workspace deletion"
+        },
+        "transferOwnership": {
+          "subject": "You've been asked to take over {{detail}}",
+          "body": "Hi {{name}},\n\nYou've been asked to become the owner of {{workspace}}. As the owner you'll manage billing, permissions and the workspace settings.\n\nAccept below to complete the transfer.",
+          "link": "Accept ownership"
+        },
+        "createWorkspace": {
+          "subject": "Finish setting up {{detail}}",
+          "body": "Hi {{name}},\n\nYour new workspace {{detail}} is almost ready. Finish setting it up to add your services, team and opening hours.",
+          "link": "Finish setup"
+        },
+        "joinWorkspace": {
+          "subject": "Your request to join a workspace",
+          "body": "Hi {{name}},\n\nWe've sent your request to join the workspace with invite {{detail}} to its owner. You'll get an email as soon as they accept.",
+          "link": "View request"
+        },
+        "userNotFound": "User not found",
+        "duplicate": "This request is already waiting for confirmation",
+        "businessNameRequired": "Enter a business name",
+        "inviteRequired": "Enter an invite link or code",
+        "chooseOwner": "Choose the new owner"
+      },
+      "memberNotFound": "Team member not found",
+      "writeReplyFirst": "Write a reply first",
+      "newMessageFrom": "New message from {{business}}",
+      "conversationNotFound": "Conversation not found",
+      "referral": {
+        "duplicate": "You already invited this business",
+        "someone": "A friend",
+        "subject": "{{sender}} invited you to try Innoweb Bookings",
+        "body": "{{message}}{{sender}} from {{business}} thinks you'll love Innoweb Bookings. Sign up with this link to get a 7-day free trial, and you'll both get up to {{amount}} off when you start a paid plan.",
+        "link": "Start your free trial"
+      },
+      "support": {
+        "subject": "We've received your request [{{ref}}]",
+        "greeting": "Hi {{name}},",
+        "greetingAnonymous": "Hi there,",
+        "body": "{{greeting}}\n\nThanks for contacting Innoweb Bookings support. Your request {{ref}} ({{reason}}) is with our team and we typically reply within 2 days.\n\n\"{{description}}\"{{attachments}}\n\nThe Innoweb Bookings support team",
+        "attachments": "Attachments: {{files}}"
+      },
+      "chatTranscriptSubject": "Your chat with Innoweb Bookings support"
+    },
+    "salesPages": {
+      "membershipNotFound": "Membership not found",
+      "membership": {
+        "active": {
+          "subject": "Your {{name}} membership is active again",
+          "body": "Hi {{firstName}}, your {{name}} membership has been resumed. Your next payment of {{amount}} is due on {{date}}."
+        },
+        "paused": {
+          "subject": "Your {{name}} membership has been paused",
+          "body": "Hi {{firstName}}, your {{name}} membership is paused. You won't be charged until it is resumed."
+        },
+        "canceled": {
+          "subject": "Your {{name}} membership has been canceled",
+          "body": "Hi {{firstName}}, your {{name}} membership has been canceled. No further payments will be taken. We hope to see you again soon."
+        }
+      },
+      "packageNotFound": "Package not found",
+      "packageCanceled": {
+        "subject": "Your {{name}} package has been canceled",
+        "body": "Hi {{firstName}}, your {{name}} package has been canceled and can no longer be used for bookings. Contact us if you have any questions."
+      },
+      "orderNotFound": "Order not found",
+      "orderClosed": "This order is already closed",
+      "order": {
+        "readyAt": "at {{place}}",
+        "refundIssued": "A refund of {{amount}} has been issued to your original payment method.",
+        "ready": {
+          "subject": "Your order #{{number}} is ready for pickup",
+          "body": "Hi {{firstName}}, good news: your order #{{number}} is ready to collect{{extra}}. Bring your order number with you."
+        },
+        "shipped": {
+          "subject": "Your order #{{number}} has shipped",
+          "body": "Hi {{firstName}}, your order #{{number}} is on its way. It should arrive in 2 to 4 working days."
+        },
+        "completed": {
+          "subject": "Your order #{{number}} is complete",
+          "body": "Hi {{firstName}}, your order #{{number}} is complete. Thank you for shopping with us!"
+        },
+        "cancelled": {
+          "subject": "Your order #{{number}} has been cancelled",
+          "body": "Hi {{firstName}}, your order #{{number}} has been cancelled.{{extra}} We're sorry for any inconvenience."
+        }
+      }
+    },
+    "settings": {
+      "resourceTypeInUse": "This resource type is used by resources",
+      "locationInUse": "This location has appointments and sales history",
+      "roleInUse": "Move the team members in this role to another role first",
+      "resourceNotFound": "Resource not found",
+      "resourceTypeRequired": "Resource type is required"
+    },
+    "team": {
+      "invite": {
+        "subject": "{{name}} invited you to join {{business}} on Innoweb Bookings",
+        "body": "Hi {{firstName}},\n\n{{name}} has invited you to join the {{business}} team on Innoweb Bookings with the permission role {{role}}.\n\nAccept the invitation to set your password and sign in to the workspace."
+      },
+      "timesheet": {
+        "created": "Timesheet created",
+        "clockInAdded": "Clock-in time of {{time}} added",
+        "clockOutAdded": "Clock-out time of {{time}} added",
+        "breakAdded": "{{name}} added from {{start}} to {{end}}",
+        "dateChanged": "Date changed from {{from}} to {{to}}",
+        "clockInChanged": "Clock-in time changed from {{from}} to {{to}}",
+        "clockOutChanged": "Clock-out time changed from {{from}} to {{to}}",
+        "clockOutRemoved": "Clock-out time removed",
+        "breakChanged": "{{name}} changed to {{start}} - {{end}}",
+        "breakRemoved": "{{name}} removed"
+      },
+      "payRunCode": {
+        "subject": "Your verification code is {{code}}",
+        "body": "Use this code to complete your pay run on Innoweb Bookings:\n\n{{code}}\n\nIt expires in 5 minutes. If you didn't request it, you can ignore this email."
+      },
+      "payMethods": {
+        "manual": "Paid manually",
+        "cash_register": "Paid from cash register",
+        "wallet": "Paid from your Innoweb wallet"
+      },
+      "payRunWallet": "Team pay run · {{period}}",
+      "payStatement": {
+        "subject": "Your pay for {{period}} from {{business}}",
+        "body": "Hi {{firstName}},\n\n{{business}} has paid you {{amount}} for the pay period {{period}}.\n\n{{parts}}\nTotal paid: {{amount}}\nPayment method: {{method}}{{note}}\n\nSent by {{name}} on Innoweb Bookings.",
+        "note": "Note: {{note}}"
+      }
+    }
+  },
+  "errorPage": {
+    "title": "Something went wrong on this page",
+    "unknown": "Unknown error",
+    "back": "Go back"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch language",
+    "pt": "Português",
+    "en": "English",
+    "ptShort": "PT",
+    "enShort": "EN"
+  },
+  "dataGate": {
+    "preparing": "Preparing your demo workspace…"
   }
 }

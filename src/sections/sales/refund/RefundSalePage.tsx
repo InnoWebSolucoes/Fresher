@@ -1,17 +1,18 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowLeft, ArrowRight, CircleDollarSign, Receipt } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, EmptyState, Field, FullscreenFrame, IconButton, LearnMore, Segmented, Select, toast } from '@/components/ui'
-import { computeTotals, lineTotal, PAYMENT_LABELS, refundSale } from '@/api/sales'
+import { computeTotals, lineTotal, refundSale } from '@/api/sales'
 import { ApiError } from '@/api/client'
 import { useDb } from '@/store/db'
 import { fmtDateEU, money, round2, taxIncluded } from '@/lib/format'
 import type { PaymentMethod, SaleItem } from '@/types'
 import { AmountInput, parseAmount } from '../shared/ui'
-import { useLookups } from '../shared/data'
+import { methodLabelOf, useLookups } from '../shared/data'
 
 const REASONS = ['accidental', 'incorrectAmount', 'duplicate', 'notAvailable', 'clientRequest', 'fraud', 'other'] as const
 type Mode = 'item' | 'amount'
@@ -81,13 +82,13 @@ export function RefundSalePage() {
   const refundTotal = mode === 'item' ? itemRefund : (parseAmount(amount) ?? 0)
   const methodKey = method || info.originals[0] || 'cash'
   const methodOptions = [...new Set([...info.originals, 'cash', 'other'])]
-  const methodLabel = (key: string) => (key.startsWith('custom:') ? key.slice(7) : PAYMENT_LABELS[key as PaymentMethod])
+  const methodLabel = (key: string) => (key.startsWith('custom:') ? key.slice(7) : methodLabelOf(key as PaymentMethod))
 
   const subtitle = (
     <p className="mt-2 text-body-lg text-muted">
       {t('sales.refund.saleNumber', { number: sale.number })} • {format(parseISO(sale.createdAt), 'EEEE, MMM d, yyyy')} • {location?.name}
       <span className="block">
-        <LearnMore topic="refunds" />
+        <LearnMore topic={t('sales.helpTopics.refunds')}>{t('common.learnMore')}</LearnMore>
       </span>
     </p>
   )
@@ -118,7 +119,8 @@ export function RefundSalePage() {
         itemIds: mode === 'item' ? selectedLines.map((i) => i.item.id) : undefined,
         amount: mode === 'amount' ? (parseAmount(amount) ?? 0) : itemRefund < round2(selectedGross * info.factor) ? itemRefund : undefined,
         method: isCustom ? 'custom' : (methodKey as PaymentMethod),
-        methodLabel: isCustom ? methodLabel(methodKey) : undefined,
+        // Stored with the payment (data), in the language of the moment like checkout payments.
+        methodLabel: methodLabel(methodKey),
         reason: t(`sales.refund.reasons.${reason}`),
       })
       toast(t('sales.refund.issued'))

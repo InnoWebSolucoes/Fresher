@@ -1,12 +1,14 @@
-import { differenceInCalendarDays, endOfMonth, format, parseISO, startOfMonth } from 'date-fns'
+import { differenceInCalendarDays, endOfMonth, parseISO, startOfMonth } from 'date-fns'
+import { format } from '@/lib/dates'
 import { commit, db } from '@/store/db'
 import type { BillingDetails, ID, Invoice, PlanType } from '@/types'
 import { uid } from '@/lib/ids'
 import { now, todayISO } from '@/lib/time'
-import { round2 } from '@/lib/format'
+import { money2, round2 } from '@/lib/format'
 import { ApiError, latency } from './client'
 import { pushNotification, queueMessage } from './messaging'
 import { bookableMembers, readSettingsExtra, writeSettingsExtra } from './settings'
+import { t } from './i18n'
 
 /**
  * Billing (SPEC §7, reference/settings-billing.md): plan, invoices, payment
@@ -63,12 +65,12 @@ export function addInvoice(lines: InvoiceLine[], status: Invoice['status'] = 'pa
   queueMessage({
     clientId: null,
     to: owner?.email ?? 'owner@demo.app',
-    toName: details ? `${details.firstName} ${details.lastName}` : (owner ? `${owner.firstName} ${owner.lastName}` : 'Account owner'),
+    toName: details ? `${details.firstName} ${details.lastName}` : owner ? `${owner.firstName} ${owner.lastName}` : t('api.billing.accountOwner'),
     channel: 'email',
     type: 'other',
-    subject: `Invoice ${invoice.number}`,
-    body: `Your invoice ${invoice.number} for €${invoice.total.toFixed(2)} (IVA included) is available in Settings › Billing › Invoices and fees.`,
-    link: { label: 'View invoice', href: '/setup/billing/invoices-and-fees' },
+    subject: t('settings.bill.invoices.previewTitle', { number: invoice.number }),
+    body: t('api.billing.invoiceEmail.body', { number: invoice.number, total: money2(invoice.total) }),
+    link: { label: t('api.billing.invoiceEmail.link'), href: '/setup/billing/invoices-and-fees' },
   })
   return invoice
 }
@@ -85,6 +87,9 @@ export interface PlanChangeQuote {
   daysInMonth: number
 }
 
+/** "Team plan" / "Independent plan" in the current language. */
+const planName = (type: PlanType) => t(type === 'team' ? 'settings.bill.plans.team.name' : 'settings.bill.plans.independent.name')
+
 /** Pro-rata charge for switching plans today (rest of the current month). */
 export function quotePlanChange(from: PlanType, to: PlanType, bookable: number): PlanChangeQuote {
   const today = now()
@@ -92,13 +97,13 @@ export function quotePlanChange(from: PlanType, to: PlanType, bookable: number):
   const daysLeft = differenceInCalendarDays(endOfMonth(today), today) + 1
   const factor = daysLeft / daysInMonth
   const period = `${format(today, 'd MMM')} – ${format(endOfMonth(today), 'd MMM yyyy')}`
-  const label = (type: PlanType) => (type === 'team' ? 'Team plan' : 'Independent plan')
+  const label = (type: PlanType) => planName(type)
   const newUnit = PLANS[to].price
   const newQty = PLANS[to].perMember ? Math.max(1, bookable) : 1
   const oldQty = PLANS[from].perMember ? Math.max(1, bookable) : 1
   const lines: InvoiceLine[] = [
-    { description: `${label(to)} · ${newQty} bookable team member${newQty === 1 ? '' : 's'} (pro-rata ${period})`, quantity: newQty, unitPrice: round2(newUnit * factor) },
-    { description: `Unused time on ${label(from)} (${period})`, quantity: oldQty, unitPrice: -round2(PLANS[from].price * factor) },
+    { description: t('api.billing.lines.proRata', { plan: label(to), count: newQty, period }), quantity: newQty, unitPrice: round2(newUnit * factor) },
+    { description: t('api.billing.lines.unusedTime', { plan: label(from), period }), quantity: oldQty, unitPrice: -round2(PLANS[from].price * factor) },
   ]
   return { lines, ...invoiceTotals(lines), daysLeft, daysInMonth }
 }
@@ -115,9 +120,9 @@ export async function changePlan(to: PlanType, keepBookableId?: ID): Promise<Inv
   const from = data.workspace.plan.type
   const members = bookableMembers(data)
   const bookable = members.length
-  if (from === to) throw new ApiError('same_plan', 'You are already on this plan')
-  if (!data.workspace.plan.card) throw new ApiError('no_card', 'Add a payment method before changing your plan')
-  if (to === 'independent' && bookable > 1 && !members.some((m) => m.id === keepBookableId)) throw new ApiError('too_many_members', 'Choose the team member who stays bookable on the Independent plan')
+  if (from === to) throw new ApiError('same_plan', t('api.billing.errors.samePlan'))
+  if (!data.workspace.plan.card) throw new ApiError('no_card', t('api.billing.errors.noCardChange'))
+  if (to === 'independent' && bookable > 1 && !members.some((m) => m.id === keepBookableId)) throw new ApiError('too_many_members', t('api.billing.errors.chooseBookable', { plan: planName('independent') }))
   const quote = quotePlanChange(from, to, bookable)
   commit((d) => {
     d.workspace.plan.type = to
@@ -129,7 +134,7 @@ export async function changePlan(to: PlanType, keepBookableId?: ID): Promise<Inv
   })
   writeSettingsExtra(PLAN_CANCEL_KEY, null)
   const invoice = addInvoice(quote.lines)
-  pushNotification({ tab: 'actions', title: 'Plan changed', body: `You're now on the ${to === 'team' ? 'Team' : 'Independent'} plan.`, link: '/setup/billing/subscriptions' })
+  pushNotification({ tab: 'actions', title: t('api.notifications.planChanged.title'), body: t('api.notifications.planChanged.body', { plan: planName(to) }), link: '/setup/billing/subscriptions' })
   return invoice
 }
 
@@ -137,14 +142,14 @@ export async function changePlan(to: PlanType, keepBookableId?: ID): Promise<Inv
 export async function activatePlan(): Promise<Invoice> {
   await latency(600, 1000)
   const data = db()
-  if (!data.workspace.plan.card) throw new ApiError('no_card', 'Add a payment method to activate your plan')
+  if (!data.workspace.plan.card) throw new ApiError('no_card', t('api.billing.errors.noCardActivate'))
   const type = data.workspace.plan.type
   const bookable = bookableCount()
   const qty = PLANS[type].perMember ? Math.max(1, bookable) : 1
   commit((d) => {
     d.workspace.plan.status = 'active'
   })
-  return addInvoice([{ description: `${type === 'team' ? 'Team' : 'Independent'} plan · ${qty} bookable team member${qty === 1 ? '' : 's'} (monthly)`, quantity: qty, unitPrice: PLANS[type].price }])
+  return addInvoice([{ description: t('api.billing.lines.monthly', { plan: planName(type), count: qty }), quantity: qty, unitPrice: PLANS[type].price }])
 }
 
 export const PLAN_CANCEL_KEY = 'billing.planCancellation'
@@ -197,7 +202,7 @@ export function cardBrand(number: string): string {
   if (/^(5[1-5]|2[2-7])/.test(d)) return 'Mastercard'
   if (/^3[47]/.test(d)) return 'American Express'
   if (/^6/.test(d)) return 'Discover'
-  return 'Card'
+  return t('sales.register.lines.card')
 }
 
 /** "MM/YY" in the future (or this month). */
@@ -213,10 +218,10 @@ export function expiryValid(expiry: string): boolean {
 
 export async function updateCard(input: { number: string; expiry: string; cvc: string; name: string }): Promise<void> {
   await latency(700, 1200)
-  if (!luhnValid(input.number)) throw new ApiError('card_invalid', 'Your card number is invalid')
-  if (!expiryValid(input.expiry)) throw new ApiError('card_expired', 'Your card has expired')
+  if (!luhnValid(input.number)) throw new ApiError('card_invalid', t('settings.bill.card.numberInvalid'))
+  if (!expiryValid(input.expiry)) throw new ApiError('card_expired', t('api.billing.errors.cardExpired'))
   const digits = input.number.replace(/\s+/g, '')
-  if (digits.endsWith('0002')) throw new ApiError('card_declined', 'Your card was declined. Try a different card.')
+  if (digits.endsWith('0002')) throw new ApiError('card_declined', t('api.billing.errors.cardDeclined'))
   commit((d) => {
     d.workspace.plan.card = { brand: cardBrand(digits), last4: digits.slice(-4), expiry: input.expiry.replace(/\s+/g, '') }
   })
@@ -241,12 +246,12 @@ export const TOP_UP_AMOUNTS = [10, 25, 50, 100]
 /** Add `amount` to the communication balance, charged to the card on file (invoice + email). */
 export async function topUpCommunicationBalance(amount: number): Promise<Invoice> {
   await latency(600, 1000)
-  if (!(amount > 0)) throw new ApiError('invalid', 'Choose an amount')
-  if (!db().workspace.plan.card) throw new ApiError('no_card', 'Add a payment method to top up')
+  if (!(amount > 0)) throw new ApiError('invalid', t('api.billing.errors.chooseAmount'))
+  if (!db().workspace.plan.card) throw new ApiError('no_card', t('api.billing.errors.noCardTopUp'))
   commit((d) => {
     d.workspace.messageCredits = round2(d.workspace.messageCredits + amount)
   })
-  return addInvoice([{ description: 'Communication balance top-up', quantity: 1, unitPrice: amount }])
+  return addInvoice([{ description: t('api.billing.lines.topUp'), quantity: 1, unitPrice: amount }])
 }
 
 // ─── Bank accounts ────────────────────────────────────────────────────────
@@ -280,7 +285,7 @@ export function ibanValid(iban: string): boolean {
 
 export async function addBankAccount(input: { holder: string; bankName: string; iban: string }): Promise<BankAccount> {
   await latency(700, 1100)
-  if (!ibanValid(input.iban)) throw new ApiError('iban_invalid', 'Enter a valid IBAN')
+  if (!ibanValid(input.iban)) throw new ApiError('iban_invalid', t('settings.bill.bank.ibanInvalid'))
   const iban = input.iban.replace(/\s+/g, '').toUpperCase()
   const accounts = readSettingsExtra(BANK_ACCOUNTS_KEY, DEFAULT_BANK_ACCOUNTS)
   const account: BankAccount = { id: uid('ba'), holder: input.holder.trim(), bankName: input.bankName.trim(), last4: iban.slice(-4), country: iban.startsWith('PT') ? 'Portugal' : iban.slice(0, 2), primary: accounts.length === 0, addedAt: now().toISOString() }
@@ -301,7 +306,7 @@ export async function removeBankAccount(id: ID): Promise<void> {
   await latency()
   const accounts = readSettingsExtra(BANK_ACCOUNTS_KEY, DEFAULT_BANK_ACCOUNTS)
   const target = accounts.find((a) => a.id === id)
-  if (target?.primary) throw new ApiError('primary', 'Set another account as primary before removing this one')
+  if (target?.primary) throw new ApiError('primary', t('api.billing.errors.primaryAccount'))
   writeSettingsExtra(
     BANK_ACCOUNTS_KEY,
     accounts.filter((a) => a.id !== id),
@@ -317,7 +322,6 @@ export async function invoicePdf(invoice: Invoice): Promise<Blob> {
   const data = db()
   const details = data.workspace.plan.billingDetails
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
-  const eur = (n: number) => `${n < 0 ? '-' : ''}€${Math.abs(n).toFixed(2)}`
   doc.setFillColor(14, 110, 106)
   doc.rect(0, 0, 595, 6, 'F')
   doc.setFont('helvetica', 'bold')
@@ -331,19 +335,25 @@ export async function invoicePdf(invoice: Invoice): Promise<Blob> {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
   doc.setTextColor(20)
-  doc.text('Invoice', 555, 56, { align: 'right' })
+  doc.text(t('settings.bill.invoices.invoice'), 555, 56, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
-  doc.text([`Invoice no. ${invoice.number}`, `Date ${format(parseISO(invoice.date), 'd MMM yyyy')}`, `Status ${invoice.status === 'paid' ? 'Paid' : 'Due'}`], 555, 74, { align: 'right' })
+  const status = t(invoice.status === 'paid' ? 'settings.bill.invoices.status.paid' : 'settings.bill.invoices.status.due')
+  doc.text(
+    [t('settings.bill.invoices.number', { number: invoice.number }), t('settings.bill.invoices.dateLine', { date: format(parseISO(invoice.date), 'd MMM yyyy') }), `${t('settings.bill.invoices.statusLabel')} ${status}`],
+    555,
+    74,
+    { align: 'right' },
+  )
   doc.setFont('helvetica', 'bold')
-  doc.text('Billed to', 40, 130)
+  doc.text(t('settings.bill.invoices.billedTo'), 40, 130)
   doc.setFont('helvetica', 'normal')
-  const billed = details ? [details.businessName || `${details.firstName} ${details.lastName}`, `${details.firstName} ${details.lastName}`, details.address, details.vatNumber ? `VAT ${details.vatNumber}` : ''].filter(Boolean) : [data.workspace.name]
+  const billed = details ? [details.businessName || `${details.firstName} ${details.lastName}`, `${details.firstName} ${details.lastName}`, details.address, details.vatNumber ? t('settings.bill.invoices.vat', { vat: details.vatNumber }) : ''].filter(Boolean) : [data.workspace.name]
   doc.text(billed, 40, 146)
   autoTable(doc, {
     startY: 210,
-    head: [['Description', 'Qty', 'Unit price', 'Amount']],
-    body: invoice.lines.map((l) => [l.description, String(l.quantity), eur(l.unitPrice), eur(round2(l.quantity * l.unitPrice))]),
+    head: [[t('settings.bill.invoices.description'), t('settings.bill.invoices.qty'), t('settings.bill.invoices.unitPrice'), t('settings.bill.invoices.amount')]],
+    body: invoice.lines.map((l) => [l.description, String(l.quantity), money2(l.unitPrice), money2(round2(l.quantity * l.unitPrice))]),
     styles: { fontSize: 9, cellPadding: 6 },
     headStyles: { fillColor: [14, 110, 106], textColor: 255 },
     columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' } },
@@ -356,13 +366,14 @@ export async function invoicePdf(invoice: Invoice): Promise<Blob> {
     doc.text(value, 555, y, { align: 'right' })
     y += 18
   }
-  row('Subtotal', eur(invoice.subtotal))
-  row('IVA 23%', eur(invoice.tax))
-  row('Total', eur(invoice.total), true)
+  row(t('settings.bill.invoices.subtotal'), money2(invoice.subtotal))
+  row(t('settings.bill.invoices.iva', { rate: Math.round(IVA_RATE * 100) }), money2(invoice.tax))
+  row(t('settings.bill.invoices.total'), money2(invoice.total), true)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(120)
-  doc.text(`Paid with ${data.workspace.plan.card ? `${data.workspace.plan.card.brand} ending ${data.workspace.plan.card.last4}` : 'card on file'}. Prices exclude IVA unless stated.`, 40, 800)
+  const card = data.workspace.plan.card
+  doc.text(card ? t('settings.bill.invoices.paidWith', { brand: card.brand, last4: card.last4 }) : t('api.billing.pdf.paidWithCardOnFile'), 40, 800)
   return doc.output('blob')
 }
 
@@ -412,7 +423,7 @@ export function defaultTerminals(): CardTerminal[] {
   return [
     {
       id: 'term_front_desk',
-      name: 'Front desk terminal',
+      name: t('api.billing.terminals.frontDesk'),
       model: 'Innoweb Terminal S1',
       serial: 'IBT-S1-204817',
       locationId: 'loc_baixa',
@@ -430,7 +441,7 @@ export function readTerminals(): CardTerminal[] {
 function patchTerminal(id: ID, patch: Partial<CardTerminal>): CardTerminal {
   const list = readTerminals()
   const current = list.find((t) => t.id === id)
-  if (!current) throw new ApiError('not_found', 'Terminal not found')
+  if (!current) throw new ApiError('not_found', t('api.billing.terminals.notFound'))
   const next = { ...current, ...patch }
   writeSettingsExtra(
     TERMINALS_KEY,
@@ -465,7 +476,7 @@ export interface TerminalOrderInput {
 /** Subtotal / IVA / total for a terminal order (prices exclude IVA). */
 export function quoteTerminalOrder(input: Pick<TerminalOrderInput, 'modelId' | 'quantity'>): { lines: InvoiceLine[]; subtotal: number; tax: number; total: number } {
   const model = TERMINAL_MODELS.find((m) => m.id === input.modelId) ?? TERMINAL_MODELS[0]
-  const lines: InvoiceLine[] = [{ description: `${model.name} card terminal`, quantity: input.quantity, unitPrice: model.price }]
+  const lines: InvoiceLine[] = [{ description: t('api.billing.terminals.invoiceLine', { model: model.name }), quantity: input.quantity, unitPrice: model.price }]
   return { lines, ...invoiceTotals(lines) }
 }
 
@@ -477,11 +488,11 @@ export async function orderTerminals(input: TerminalOrderInput): Promise<{ termi
   await latency(900, 1500)
   const data = db()
   const model = TERMINAL_MODELS.find((m) => m.id === input.modelId)
-  if (!model) throw new ApiError('not_found', 'Choose a terminal')
-  if (!Number.isInteger(input.quantity) || input.quantity < 1 || input.quantity > 5) throw new ApiError('quantity', 'You can order between 1 and 5 terminals')
+  if (!model) throw new ApiError('not_found', t('api.billing.terminals.chooseTerminal'))
+  if (!Number.isInteger(input.quantity) || input.quantity < 1 || input.quantity > 5) throw new ApiError('quantity', t('api.billing.terminals.quantity'))
   const location = data.locations.find((l) => l.id === input.locationId)
-  if (!location) throw new ApiError('not_found', 'Choose a delivery location')
-  if (!data.workspace.plan.card) throw new ApiError('no_card', 'Add a payment method to order a terminal')
+  if (!location) throw new ApiError('not_found', t('api.billing.terminals.chooseLocation'))
+  if (!data.workspace.plan.card) throw new ApiError('no_card', t('api.billing.terminals.noCard'))
   const existing = readTerminals()
   const estimatedDelivery = businessDaysFromNow(3)
   const orderedAt = now().toISOString()
@@ -490,7 +501,7 @@ export async function orderTerminals(input: TerminalOrderInput): Promise<{ termi
   const atLocation = existing.filter((t) => t.locationId === location.id).length
   const terminals: CardTerminal[] = Array.from({ length: input.quantity }, (_, i) => ({
     id: uid('term'),
-    name: `${location.name} terminal ${atLocation + i + 1}`,
+    name: t('api.billing.terminals.name', { location: location.name, number: atLocation + i + 1 }),
     model: model.name,
     serial: randomTerminalSerial(model.serialPrefix),
     locationId: location.id,
@@ -502,8 +513,8 @@ export async function orderTerminals(input: TerminalOrderInput): Promise<{ termi
   writeSettingsExtra(TERMINALS_KEY, [...existing, ...terminals])
   pushNotification({
     tab: 'actions',
-    title: 'Terminal order placed',
-    body: `${input.quantity} × ${model.name} on the way to ${location.name}. Estimated delivery ${format(parseISO(estimatedDelivery), 'MMM d')}.`,
+    title: t('settings.more1.terminals.ordered'),
+    body: t('api.billing.terminals.orderedBody', { quantity: input.quantity, model: model.name, location: location.name, date: format(parseISO(estimatedDelivery), 'MMM d') }),
     link: '/setup/payments/terminals',
   })
   return { terminals, invoice, estimatedDelivery }
@@ -521,7 +532,7 @@ export async function markTerminalDelivered(id: ID): Promise<CardTerminal> {
  */
 export async function pairTerminal(input: { terminalId?: ID; code: string; locationId?: ID; name?: string }): Promise<CardTerminal> {
   const code = input.code.replace(/\s+/g, '')
-  if (!/^\d{6}$/.test(code)) throw new ApiError('invalid_code', 'Enter the 6-digit pairing code shown on your terminal')
+  if (!/^\d{6}$/.test(code)) throw new ApiError('invalid_code', t('api.billing.terminals.pairingCode'))
   await latency(1200, 2000)
   const pairedAt = now().toISOString()
   if (input.terminalId) {
@@ -536,7 +547,7 @@ export async function pairTerminal(input: { terminalId?: ID; code: string; locat
   const existing = readTerminals()
   const terminal: CardTerminal = {
     id: uid('term'),
-    name: input.name?.trim() || `${location?.name ?? 'Front desk'} terminal ${existing.filter((t) => t.locationId === location?.id).length + 1}`,
+    name: input.name?.trim() || t('api.billing.terminals.name', { location: location?.name ?? t('api.billing.terminals.frontDeskShort'), number: existing.filter((x) => x.locationId === location?.id).length + 1 }),
     model: TERMINAL_MODELS[0].name,
     serial: randomTerminalSerial(TERMINAL_MODELS[0].serialPrefix),
     locationId: location?.id ?? 'loc_baixa',
@@ -556,13 +567,13 @@ export async function unpairTerminal(id: ID): Promise<CardTerminal> {
 
 export async function renameTerminal(id: ID, name: string): Promise<CardTerminal> {
   await latency()
-  if (!name.trim()) throw new ApiError('required', 'Enter a terminal name')
+  if (!name.trim()) throw new ApiError('required', t('api.billing.terminals.nameRequired'))
   return patchTerminal(id, { name: name.trim() })
 }
 
 export async function assignTerminalLocation(id: ID, locationId: ID): Promise<CardTerminal> {
   await latency()
-  if (!db().locations.some((l) => l.id === locationId)) throw new ApiError('not_found', 'Location not found')
+  if (!db().locations.some((l) => l.id === locationId)) throw new ApiError('not_found', t('settings.biz.location.notFound'))
   return patchTerminal(id, { locationId })
 }
 
@@ -570,7 +581,7 @@ export async function assignTerminalLocation(id: ID, locationId: ID): Promise<Ca
 export async function testTerminalConnection(id: ID): Promise<CardTerminal> {
   await latency(900, 1600)
   const terminal = readTerminals().find((t) => t.id === id)
-  if (!terminal) throw new ApiError('not_found', 'Terminal not found')
-  if (terminal.status === 'shipping' || terminal.status === 'awaiting_pairing') throw new ApiError('not_paired', 'Pair this terminal before testing its connection')
+  if (!terminal) throw new ApiError('not_found', t('api.billing.terminals.notFound'))
+  if (terminal.status === 'shipping' || terminal.status === 'awaiting_pairing') throw new ApiError('not_paired', t('api.billing.terminals.notPaired'))
   return patchTerminal(id, { status: 'online', lastCheckedAt: now().toISOString() })
 }

@@ -32,6 +32,7 @@ export function SettingsPage({
   children: ReactNode
   skeletonRows?: number
 }) {
+  const { t } = useTranslation()
   const loading = usePageLoading()
   return (
     <div className="flex flex-col gap-6">
@@ -44,7 +45,7 @@ export function SettingsPage({
               {learnMore && (
                 <>
                   {description ? ' ' : ''}
-                  <LearnMore topic={learnMore} />.
+                  <LearnMore topic={learnMore}>{t('common.learnMore')}</LearnMore>.
                 </>
               )}
             </p>
@@ -105,7 +106,8 @@ export function EditCard({
                 {learnMore && (
                   <>
                     {' '}
-                    <LearnMore topic={learnMore} />
+                    <LearnMore topic={learnMore}>{t('common.learnMore')}</LearnMore>
+
                   </>
                 )}
               </p>

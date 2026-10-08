@@ -1,9 +1,11 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
 import { useMemo } from 'react'
 import { useDb } from '@/store/db'
-import { computeTotals, PAYMENT_LABELS } from '@/api/sales'
+import { computeTotals } from '@/api/sales'
 import { round2 } from '@/lib/format'
-import type { Client, ISODate, Location, Payment, Sale, TeamMember } from '@/types'
+import type { Client, ISODate, Location, Payment, PaymentMethod, Sale, TeamMember } from '@/types'
 
 /** Local calendar day (yyyy-MM-dd) of an ISO timestamp. */
 export const dayOf = (iso: string): ISODate => format(parseISO(iso), 'yyyy-MM-dd')
@@ -44,11 +46,27 @@ export function paidFor(sale: Sale, paymentsById: Map<string, Payment>): number 
   }, 0))
 }
 
+/** Translation keys of the payment method names (English text as in PAYMENT_LABELS). */
+const METHOD_KEYS: Record<PaymentMethod, string> = {
+  cash: 'checkout.payment.cash',
+  other: 'checkout.payment.other',
+  gift_card: 'checkout.redeem.giftCard',
+  card_terminal: 'checkout.payment.cardTerminal',
+  self_checkout: 'checkout.payment.selfCheckout',
+  qr_code: 'checkout.payment.qrCode',
+  manual_card: 'checkout.payment.manualCard',
+  deposit: 'checkout.sale.depositPayment',
+  online_card: 'sales.register.lines.card',
+  custom: 'checkout.payment.other',
+}
+
+/** Name of a payment method in the current language ("Cash" / "Dinheiro"). */
+export const methodLabelOf = (method: PaymentMethod): string => i18n.t(METHOD_KEYS[method] ?? METHOD_KEYS.other)
+
 /** Display label of a payment method ("Cash", "Card terminal", custom method name). */
 export function methodName(p: Pick<Payment, 'method' | 'methodLabel'>): string {
   if (p.method === 'custom') return p.methodLabel
-  if (p.method === 'gift_card') return PAYMENT_LABELS.gift_card
-  return PAYMENT_LABELS[p.method]
+  return methodLabelOf(p.method)
 }
 
 /** Case-insensitive "contains". */

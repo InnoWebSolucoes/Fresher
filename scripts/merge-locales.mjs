@@ -1,12 +1,13 @@
-// Merges section string files (src/sections/<name>/en*.json) into the single
-// locales/en.json under the section's key, then deletes the section files.
+// Folds string files written during parallel work (locales/parts/<name>.en.json and
+// <name>.pt.json) into locales/en.json and locales/pt.json, keeping en.json's key order
+// in pt.json, then deletes the parts files.
 // Run with: node scripts/merge-locales.mjs
-import { readFileSync, writeFileSync, readdirSync, unlinkSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const localePath = join(root, 'locales', 'en.json')
-const sectionsDir = join(root, 'src', 'sections')
+const localesDir = join(root, 'locales')
+const partsDir = join(localesDir, 'parts')
 
 const isTree = (v) => typeof v === 'object' && v !== null && !Array.isArray(v)
 const merge = (base, extra) => {
@@ -14,23 +15,22 @@ const merge = (base, extra) => {
   for (const [key, value] of Object.entries(extra)) out[key] = isTree(value) && isTree(out[key]) ? merge(out[key], value) : value
   return out
 }
-
-let en = JSON.parse(readFileSync(localePath, 'utf8'))
-const merged = []
-for (const section of readdirSync(sectionsDir)) {
-  const dir = join(sectionsDir, section)
-  let files
-  try {
-    files = readdirSync(dir).filter((f) => /^en(\..+)?\.json$/.test(f)).sort()
-  } catch {
-    continue
-  }
-  for (const file of files) {
-    const content = JSON.parse(readFileSync(join(dir, file), 'utf8'))
-    if (Object.keys(content).length) en = merge(en, { [section]: content })
-    unlinkSync(join(dir, file))
-    merged.push(`${section}/${file}`)
-  }
+/** Same key order as the English tree. */
+const ordered = (shape, tree) => {
+  if (!isTree(shape) || !isTree(tree)) return tree
+  const out = {}
+  for (const key of Object.keys(shape)) if (key in tree) out[key] = ordered(shape[key], tree[key])
+  for (const key of Object.keys(tree)) if (!(key in out)) out[key] = tree[key]
+  return out
 }
-writeFileSync(localePath, `${JSON.stringify(en, null, 2)}\n`)
-console.log(`Merged ${merged.length} files into locales/en.json`)
+
+const files = existsSync(partsDir) ? readdirSync(partsDir).filter((f) => /\.(en|pt)\.json$/.test(f)).sort() : []
+const result = {}
+for (const lang of ['en', 'pt']) {
+  const path = join(localesDir, `${lang}.json`)
+  result[lang] = files.filter((f) => f.endsWith(`.${lang}.json`)).reduce((tree, f) => merge(tree, JSON.parse(readFileSync(join(partsDir, f), 'utf8'))), JSON.parse(readFileSync(path, 'utf8')))
+}
+result.pt = ordered(result.en, result.pt)
+for (const lang of ['en', 'pt']) writeFileSync(join(localesDir, `${lang}.json`), `${JSON.stringify(result[lang], null, 2)}\n`)
+for (const f of files) unlinkSync(join(partsDir, f))
+console.log(`Merged ${files.length} parts files into locales/en.json and locales/pt.json`)

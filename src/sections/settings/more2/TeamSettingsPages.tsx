@@ -1,4 +1,5 @@
-import { addDays, addMonths, differenceInCalendarDays, endOfMonth, format, startOfMonth } from 'date-fns'
+import { addDays, addMonths, differenceInCalendarDays, endOfMonth, startOfMonth } from 'date-fns'
+import { formatRange } from '@/lib/dates'
 import { ExternalLink } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -39,7 +40,7 @@ export function TimesheetsSettingsPage() {
     <SettingsPage
       title={t('settings.more2.timesheets.title')}
       description={t('settings.more2.timesheets.description')}
-      learnMore="Timesheets"
+      learnMore={t('settings.more2.timesheets.title')}
       actions={<ViewButton to="/team/timesheets">{t('settings.more2.timesheets.view')}</ViewButton>}
     >
       <EditCard title={t('settings.more2.settingsCard')} onEdit={() => setOpen(true)} testId="timesheets-settings">
@@ -131,7 +132,7 @@ export function ShiftsSettingsPage() {
     <SettingsPage
       title={t('settings.more2.shifts.title')}
       description={t('settings.more2.shifts.description')}
-      learnMore="Shifts"
+      learnMore={t('settings.more2.shifts.title')}
       actions={<ViewButton to="/team/scheduled-shifts">{t('settings.more2.shifts.view')}</ViewButton>}
     >
       <EditCard title={t('settings.more2.settingsCard')} onEdit={() => setOpen(true)} testId="shifts-settings">
@@ -190,8 +191,7 @@ function periodFrom(date: Date, frequency: PayRuns['frequency'], restartsOn: Wee
 }
 
 function rangeText(start: Date, end: Date): string {
-  const same = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()
-  return same ? `${format(start, 'MMM d')} – ${format(end, 'd, yyyy')}` : `${format(start, 'MMM d')} – ${format(end, 'MMM d, yyyy')}`
+  return formatRange(start, end)
 }
 
 /** Settings › Team › Pay runs (settings-team.md §5). */
@@ -204,7 +204,7 @@ export function PayRunsSettingsPage() {
     <SettingsPage
       title={t('settings.more2.payRuns.title')}
       description={t('settings.more2.payRuns.description')}
-      learnMore="Pay runs"
+      learnMore={t('settings.more2.payRuns.title')}
       actions={<ViewButton to="/team/payrun/overview">{t('settings.more2.payRuns.view')}</ViewButton>}
     >
       <EditCard title={t('settings.more2.settingsCard')} description={t('settings.more2.payRuns.cardDescription')} onEdit={() => setOpen(true)} testId="pay-runs-settings">
@@ -352,7 +352,7 @@ export function CommissionsSettingsPage() {
       ),
     )
   return (
-    <SettingsPage title={t('settings.more2.commissions.title')} description={t('settings.more2.commissions.description')} learnMore="Commissions">
+    <SettingsPage title={t('settings.more2.commissions.title')} description={t('settings.more2.commissions.description')} learnMore={t('settings.more2.commissions.title')}>
       <section className="card flex flex-col gap-5 p-6" data-testid="commissions">
         {COMMISSION_KEYS.map((key) => (
           <Checkbox

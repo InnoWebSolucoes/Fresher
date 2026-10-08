@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { MoreVertical } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDismiss } from '@/lib/useDismiss'
 
 export interface MenuItem {
@@ -29,7 +30,8 @@ interface MenuProps {
 }
 
 /** Dropdown menu (three-dots row actions, Options ▾, Add ▾). */
-export function Menu({ trigger, groups, align = 'right', width = 240, label = 'Actions' }: MenuProps) {
+export function Menu({ trigger, groups, align = 'right', width = 240, label }: MenuProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useDismiss([ref], open, () => setOpen(false))
@@ -39,7 +41,7 @@ export function Menu({ trigger, groups, align = 'right', width = 240, label = 'A
       {trigger ? (
         trigger({ open, toggle })
       ) : (
-        <button type="button" aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="icon-btn h-9 w-9">
+        <button type="button" aria-label={label ?? t('common.actions')} aria-haspopup="menu" aria-expanded={open} onClick={toggle} className="icon-btn h-9 w-9">
           <MoreVertical size={18} aria-hidden />
         </button>
       )}

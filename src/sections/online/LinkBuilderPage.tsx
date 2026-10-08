@@ -60,7 +60,7 @@ export function LinkBuilderPage() {
         title={t('online.links.title')}
         subtitle={
           <>
-            {t('online.links.subtitle')} <LearnMore topic="Link builder" />
+            {t('online.links.subtitle')} <LearnMore topic={t('online.links.title')}>{t('common.learnMore')}</LearnMore>
           </>
         }
       />

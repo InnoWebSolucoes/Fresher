@@ -21,7 +21,7 @@ export function FormTemplatesPage() {
     <SettingsPage
       title={t('settings.frm.templates.title')}
       description={t('settings.frm.templates.description')}
-      learnMore="Form templates"
+      learnMore={t('settings.frm.templates.title')}
       actions={
         <Button variant="primary" onClick={add} data-testid="form-templates-add">
           {t('settings.frm.templates.add')}

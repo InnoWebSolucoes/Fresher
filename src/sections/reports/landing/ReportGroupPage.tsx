@@ -88,7 +88,7 @@ function GroupView({ groupId, folder }: { groupId: string; folder?: ReportFolder
   const title = folder ? folder.name : t(`reports.landing.titles.${key}`)
   const subtitle = key === 'all' ? (
     <>
-      {t('reports.landing.subtitles.all')} <LearnMore topic="Reports">{t('reports.page.learnMore')}</LearnMore>
+      {t('reports.landing.subtitles.all')} <LearnMore topic={t('reports.topics.reports')}>{t('reports.page.learnMore')}</LearnMore>
     </>
   ) : key === 'standard' || key === 'premium' ? (
     t(`reports.landing.subtitles.${key}`)

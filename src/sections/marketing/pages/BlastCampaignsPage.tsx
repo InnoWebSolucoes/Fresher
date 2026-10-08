@@ -6,7 +6,7 @@ import { useDb } from '@/store/db'
 import type { Campaign } from '@/types'
 import { Button, DataTable, EmptyState, IntroPage, LearnMore, Menu, Page, PageHeader, PageSkeleton, PillTabs, SearchInput, Select, Toolbar, confirm, toast, usePageLoading, type Column } from '@/components/ui'
 import { addOnActive, cancelSchedule, deleteCampaign, duplicateCampaign, processDueCampaigns, sendScheduledNow } from '@/api/marketing'
-import { fmtDateTimeUS, money } from '@/lib/format'
+import { fmtDateTimeUS, money, num } from '@/lib/format'
 import { StatCard } from '../components/kit'
 import { CampaignStatusChip, ChannelLabel, pct } from '../helpers'
 
@@ -100,7 +100,7 @@ export function BlastCampaignsPage() {
       cell: (c) =>
         c.status === 'sent' ? (
           <div className="whitespace-nowrap text-body">
-            <p className="text-ink">{t('marketing.campaigns.openedRate', { value: pct(c.stats.opened, c.stats.delivered) })}</p>
+            <p className="text-ink">{t('marketing.campaigns.openedRate', { value: num(pct(c.stats.opened, c.stats.delivered)) })}</p>
             <p className="text-small text-muted">{t('marketing.campaigns.bookingsValue', { count: c.stats.bookings, value: money(c.stats.revenue) })}</p>
           </div>
         ) : (
@@ -181,7 +181,7 @@ export function BlastCampaignsPage() {
         title={t('marketing.campaigns.title')}
         subtitle={
           <>
-            {t('marketing.campaigns.subtitle')} <LearnMore topic="blast campaigns">{t('marketing.common.learnMore')}</LearnMore>
+            {t('marketing.campaigns.subtitle')} <LearnMore topic={t('marketing.common.topics.blastCampaigns')}>{t('marketing.common.learnMore')}</LearnMore>
           </>
         }
         actions={
@@ -192,7 +192,7 @@ export function BlastCampaignsPage() {
       />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={<Send size={16} />} label={t('marketing.campaigns.summary.sent')} value={summary.campaigns} hint={t('marketing.campaigns.summary.messages', { count: summary.messages })} />
-        <StatCard icon={<Megaphone size={16} />} label={t('marketing.campaigns.summary.openRate')} value={`${summary.openRate}%`} hint={t('marketing.campaigns.summary.openRateHint')} />
+        <StatCard icon={<Megaphone size={16} />} label={t('marketing.campaigns.summary.openRate')} value={`${num(summary.openRate)}%`} hint={t('marketing.campaigns.summary.openRateHint')} />
         <StatCard icon={<CalendarClock size={16} />} label={t('marketing.campaigns.summary.bookings')} value={summary.bookings} hint={t('marketing.campaigns.summary.bookingsHint')} />
         <StatCard label={t('marketing.campaigns.summary.revenue')} value={money(summary.revenue)} hint={t('marketing.campaigns.summary.revenueHint')} />
       </div>

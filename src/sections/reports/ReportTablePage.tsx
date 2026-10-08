@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addDays, differenceInMinutes, format, parseISO } from 'date-fns'
+import { addDays, differenceInMinutes, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import {
   ArrowDown,
   ArrowDownAZ,
@@ -592,7 +593,7 @@ function ReportPage({ slug, def, spec, custom }: { slug: string; def: ReportDef;
             <p className="text-body text-muted">{t('reports.page.premiumBody')}</p>
             <div className="mt-3 flex gap-2">
               <Button variant="primary" className="rounded-full" onClick={gate}>{t('reports.page.upgrade')}</Button>
-              <Button className="rounded-full" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: 'Insights' })}>{t('reports.page.learnMore')}</Button>
+              <Button className="rounded-full" onClick={() => drawer.open('resources', { tab: 'help', d_view: 'help-center', d_q: t('reports.topics.insights') })}>{t('reports.page.learnMore')}</Button>
             </div>
           </div>
         )}

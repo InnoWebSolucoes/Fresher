@@ -1,4 +1,5 @@
-import { addDays, endOfMonth, format, parseISO, startOfMonth, subDays, subMonths } from 'date-fns'
+import { addDays, endOfMonth, parseISO, startOfMonth, subDays, subMonths } from 'date-fns'
+import { format } from '@/lib/dates'
 import { BarChart3, CalendarClock, Heart, LineChart as LineIcon, MoreVertical } from 'lucide-react'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'

@@ -24,9 +24,10 @@ const TABS: { value: Tab; db: AppNotification['tab']; icon: LucideIcon }[] = [
 type ActionFilter = 'all' | 'messages' | 'inventory' | 'payouts' | 'other'
 const actionKind = (n: AppNotification): Exclude<ActionFilter, 'all'> => {
   const title = n.title.toLowerCase()
-  if (title.includes('message')) return 'messages'
+  // Titles are stored in the language they were created in (English or Portuguese).
+  if (/message|mensagem/.test(title)) return 'messages'
   if (title.includes('stock')) return 'inventory'
-  if (title.includes('payout')) return 'payouts'
+  if (/payout|transferência/.test(title)) return 'payouts'
   return 'other'
 }
 

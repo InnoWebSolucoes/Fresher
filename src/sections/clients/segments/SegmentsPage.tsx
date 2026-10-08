@@ -154,7 +154,7 @@ export function SegmentsPage() {
         count={segments.length}
         subtitle={
           <>
-            {t('clients.segments.subtitle')} <LearnMore topic="client segments">{t('clients.common.learnMore')}</LearnMore>
+            {t('clients.segments.subtitle')} <LearnMore topic={t('clients.topics.segments')}>{t('clients.common.learnMore')}</LearnMore>
           </>
         }
         actions={

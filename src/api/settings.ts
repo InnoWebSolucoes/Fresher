@@ -4,6 +4,7 @@ import type { DbData, ID, Location, OpeningHours, PermissionLevel, Settings, Tea
 import type { PermissionRole } from '@/lib/permissions'
 import { uid } from '@/lib/ids'
 import { ApiError, crud, latency } from './client'
+import { t } from './i18n'
 
 /**
  * Workspace settings (reference/settings-*.md). Every settings page writes
@@ -164,7 +165,7 @@ export async function deleteClientTag(id: ID): Promise<void> {
 /** Delete a resource type; fails while resources still use it. */
 export async function deleteResourceType(id: ID): Promise<void> {
   await latency()
-  if (db().resources.some((r) => r.typeId === id)) throw new ApiError('in_use', 'This resource type is used by resources')
+  if (db().resources.some((r) => r.typeId === id)) throw new ApiError('in_use', t('api.settings.resourceTypeInUse'))
   commit((d) => {
     d.resourceTypes = d.resourceTypes.filter((t) => t.id !== id)
     d.services.forEach((s) => {
@@ -185,7 +186,7 @@ export async function updateLocation(id: ID, recipe: (location: Draft<Location>)
   await latency()
   commit((d) => {
     const location = d.locations.find((l) => l.id === id)
-    if (!location) throw new ApiError('not_found', 'Location not found')
+    if (!location) throw new ApiError('not_found', t('settings.biz.location.notFound'))
     recipe(location)
   })
 }
@@ -246,9 +247,9 @@ export function locationUsage(id: ID): { appointments: number; sales: number } {
 export async function deleteLocation(id: ID): Promise<void> {
   await latency()
   const data = db()
-  if (data.locations.length <= 1) throw new ApiError('last_location', 'You need at least one location')
+  if (data.locations.length <= 1) throw new ApiError('last_location', t('settings.biz.locations.lastLocation'))
   const usage = locationUsage(id)
-  if (usage.appointments || usage.sales) throw new ApiError('in_use', 'This location has appointments and sales history')
+  if (usage.appointments || usage.sales) throw new ApiError('in_use', t('api.settings.locationInUse'))
   commit((d) => {
     d.locations = d.locations.filter((l) => l.id !== id)
     d.teamMembers.forEach((m) => {
@@ -294,7 +295,7 @@ export async function createPermissionRole(input: Pick<PermissionLevel, 'name' |
 
 export async function deletePermissionRole(id: ID): Promise<void> {
   await latency()
-  if (db().teamMembers.some((m) => m.role === id && !m.archived)) throw new ApiError('in_use', 'Move the team members in this role to another role first')
+  if (db().teamMembers.some((m) => m.role === id && !m.archived)) throw new ApiError('in_use', t('api.settings.roleInUse'))
   commit((d) => {
     d.settings.permissionRoles = d.settings.permissionRoles.filter((r) => r.id !== id)
   })
@@ -427,7 +428,7 @@ export type ResourceRecord = SchedResource & ResourceAvailabilityExtras
 export async function saveResource(id: ID | null, input: Omit<ResourceRecord, 'id'>, newType?: Omit<SchedResourceType, 'id'>): Promise<ResourceRecord> {
   await latency()
   const data = db()
-  if (id && !data.resources.some((r) => r.id === id)) throw new ApiError('not_found', 'Resource not found')
+  if (id && !data.resources.some((r) => r.id === id)) throw new ApiError('not_found', t('api.settings.resourceNotFound'))
   let typeId = input.typeId
   let typeToCreate: SchedResourceType | null = null
   if (newType) {
@@ -438,7 +439,7 @@ export async function saveResource(id: ID | null, input: Omit<ResourceRecord, 'i
       typeId = typeToCreate.id
     }
   }
-  if (!typeId) throw new ApiError('invalid', 'Resource type is required')
+  if (!typeId) throw new ApiError('invalid', t('api.settings.resourceTypeRequired'))
   const record: ResourceRecord = { ...input, typeId, id: id ?? uid('res') }
   const linked = record.linkResources ? (record.linkedIds ?? []).filter((x) => x !== record.id) : []
   record.linkedIds = linked

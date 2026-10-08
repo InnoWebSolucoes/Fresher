@@ -1,5 +1,5 @@
 import { AlignLeft, CircleDot, PenLine, SquareCheck, TextCursorInput, Text, type LucideIcon } from 'lucide-react'
-import type { TFunction } from 'i18next'
+import i18n, { type TFunction } from 'i18next'
 import { Chip } from '@/components/ui'
 import { uid } from '@/lib/ids'
 import type { FormSection, FormTemplate, ID } from '@/types'
@@ -29,7 +29,8 @@ export type TemplateDraft = Pick<FormTemplate, 'name' | 'sections' | 'request' |
 export const EMPTY_DRAFT: TemplateDraft = { name: '', sections: [], request: 'before', frequency: 'every', serviceIds: 'all', signatureRequired: true }
 
 export function newSection(kind: FormSection['kind']): FormSection {
-  return kind === 'client_details' ? { id: uid('fs'), kind, title: 'Personal Information', blocks: [] } : { id: uid('fs'), kind, title: '', blocks: [] }
+  return kind === 'client_details' ? { id: uid('fs'), kind, title: i18n.t('settings.frm.builder.personalInformation'), blocks: []
+ } : { id: uid('fs'), kind, title: '', blocks: [] }
 }
 
 export function newBlock(type: FormBlockType): FormBlock {

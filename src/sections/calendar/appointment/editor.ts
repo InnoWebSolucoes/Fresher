@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import type { TFunction } from 'i18next'
 import type { Appointment, AppointmentItem, Deal, ID, RepeatRule, Service, TeamMember } from '@/types'
 import type { NewAppointmentItem } from '@/api/appointments'

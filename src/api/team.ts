@@ -1,4 +1,5 @@
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
+import { format, formatRange } from '@/lib/dates'
 import { commit, db, useDb } from '@/store/db'
 import type {
   ActivityEntry,
@@ -25,6 +26,7 @@ import { actorName, ApiError, latency } from './client'
 import { readExt, writeExt } from './ext'
 import { queueMessage } from './messaging'
 import { cashMovement, currentSession, expectedCash } from './register'
+import { isoDay, t } from './i18n'
 
 /**
  * Team domain (reference/team.md): team members, invites, scheduled shifts,
@@ -227,9 +229,9 @@ function sendInviteNow(memberId: ID): void {
     toName: `${member.firstName} ${member.lastName}`.trim(),
     channel: 'email',
     type: 'invite',
-    subject: `${by} invited you to join ${data.workspace.name} on Innoweb Bookings`,
-    body: `Hi ${member.firstName},\n\n${by} has invited you to join the ${data.workspace.name} team on Innoweb Bookings with the permission role ${role}.\n\nAccept the invitation to set your password and sign in to the workspace.`,
-    link: { label: 'Accept invitation', href: `/invite/${token}` },
+    subject: t('api.team.invite.subject', { name: by, business: data.workspace.name }),
+    body: t('api.team.invite.body', { firstName: member.firstName, name: by, business: data.workspace.name, role }),
+    link: { label: t('team.invite.submit'), href: `/invite/${token}` },
   })
 }
 
@@ -535,26 +537,26 @@ export interface TimesheetInput {
 }
 
 function breakName(typeId: ID): string {
-  return db().blockedTimeTypes.find((t) => t.id === typeId)?.name ?? 'Break'
+  return db().blockedTimeTypes.find((x) => x.id === typeId)?.name ?? t('team.timesheets.break')
 }
 
 function timesheetChanges(before: Timesheet | undefined, after: TimesheetInput): string[] {
   const lines: string[] = []
   if (!before) {
-    lines.push(`Clock-in time of ${after.clockIn} added`)
-    if (after.clockOut) lines.push(`Clock-out time of ${after.clockOut} added`)
-    after.breaks.forEach((b) => lines.push(`${breakName(b.typeId)} added from ${b.start} to ${b.end ?? '-'}`))
+    lines.push(t('api.team.timesheet.clockInAdded', { time: after.clockIn }))
+    if (after.clockOut) lines.push(t('api.team.timesheet.clockOutAdded', { time: after.clockOut }))
+    after.breaks.forEach((b) => lines.push(t('api.team.timesheet.breakAdded', { name: breakName(b.typeId), start: b.start, end: b.end ?? '-' })))
     return lines
   }
-  if (before.date !== after.date) lines.push(`Date changed from ${before.date} to ${after.date}`)
-  if (before.clockIn !== after.clockIn) lines.push(`Clock-in time changed from ${before.clockIn} to ${after.clockIn}`)
-  if (before.clockOut !== after.clockOut) lines.push(after.clockOut ? `Clock-out time changed from ${before.clockOut ?? '-'} to ${after.clockOut}` : 'Clock-out time removed')
+  if (before.date !== after.date) lines.push(t('api.team.timesheet.dateChanged', { from: isoDay(before.date), to: isoDay(after.date) }))
+  if (before.clockIn !== after.clockIn) lines.push(t('api.team.timesheet.clockInChanged', { from: before.clockIn, to: after.clockIn }))
+  if (before.clockOut !== after.clockOut) lines.push(after.clockOut ? t('api.team.timesheet.clockOutChanged', { from: before.clockOut ?? '-', to: after.clockOut }) : t('api.team.timesheet.clockOutRemoved'))
   after.breaks.forEach((b) => {
     const old = before.breaks.find((x) => x.id === b.id)
-    if (!old) lines.push(`${breakName(b.typeId)} added from ${b.start} to ${b.end ?? '-'}`)
-    else if (old.start !== b.start || old.end !== b.end) lines.push(`${breakName(b.typeId)} changed to ${b.start} - ${b.end ?? '-'}`)
+    if (!old) lines.push(t('api.team.timesheet.breakAdded', { name: breakName(b.typeId), start: b.start, end: b.end ?? '-' }))
+    else if (old.start !== b.start || old.end !== b.end) lines.push(t('api.team.timesheet.breakChanged', { name: breakName(b.typeId), start: b.start, end: b.end ?? '-' }))
   })
-  before.breaks.filter((b) => !after.breaks.some((x) => x.id === b.id)).forEach((b) => lines.push(`${breakName(b.typeId)} removed`))
+  before.breaks.filter((b) => !after.breaks.some((x) => x.id === b.id)).forEach((b) => lines.push(t('api.team.timesheet.breakRemoved', { name: breakName(b.typeId) })))
   return lines
 }
 
@@ -564,7 +566,7 @@ export async function saveTimesheet(input: TimesheetInput, id?: ID): Promise<Tim
   const before = id ? db().timesheets.find((t) => t.id === id) : undefined
   const changes = timesheetChanges(before, input)
   const by = actorName()
-  const entry: ActivityEntry = { id: uid('act'), at: nowISO(), by, title: before ? 'Timesheet updated' : 'Timesheet created', detail: changes.join('\n') }
+  const entry: ActivityEntry = { id: uid('act'), at: nowISO(), by, title: before ? t('team.timesheets.toastUpdated') : t('api.team.timesheet.created'), detail: changes.join('\n') }
   const record: Timesheet = {
     id: id ?? uid('ts'),
     ...input,
@@ -625,11 +627,7 @@ export interface PayRunInput {
 
 /** "Oct 5 – 11, 2026" (same format as the Pay runs page). */
 function periodLabel(from: ISODate, to: ISODate): string {
-  const a = parseISO(from)
-  const b = parseISO(to)
-  if (a.getFullYear() !== b.getFullYear()) return `${format(a, 'MMM d, yyyy')} – ${format(b, 'MMM d, yyyy')}`
-  if (a.getMonth() !== b.getMonth()) return `${format(a, 'MMM d')} – ${format(b, 'MMM d, yyyy')}`
-  return `${format(a, 'MMM d')} – ${format(b, 'd, yyyy')}`
+  return formatRange(parseISO(from), parseISO(to))
 }
 
 const methodOf = (input: Pick<PayRunInput, 'method' | 'meta'>, memberId: ID) => input.meta.memberMethods[memberId] ?? input.method
@@ -686,14 +684,15 @@ export async function requestPayRunCode(): Promise<{ to: string }> {
     toName: `${user.firstName} ${user.lastName}`,
     channel: 'email',
     type: 'pay_run',
-    subject: `Your verification code is ${code}`,
-    body: `Use this code to complete your pay run on Innoweb Bookings:\n\n${code}\n\nIt expires in 5 minutes. If you didn't request it, you can ignore this email.`,
+    subject: t('api.team.payRunCode.subject', { code }),
+    body: t('api.team.payRunCode.body', { code }),
   })
   return { to: user.email }
 }
 
-const KIND_LABELS: Record<PayKindKey, string> = { wages: 'Wages', commissions: 'Commissions', tips: 'Tips', other: 'Other' }
-const METHOD_LABELS: Record<PayRun['method'], string> = { manual: 'Paid manually', cash_register: 'Paid from cash register', wallet: 'Paid from your Innoweb wallet' }
+const PAY_KINDS: PayKindKey[] = ['wages', 'commissions', 'tips', 'other']
+const kindLabel = (kind: PayKindKey) => t(`account.payRuns.cols.${kind}`)
+const methodLabel = (method: PayRun['method']) => t(`api.team.payMethods.${method}`)
 
 /**
  * Complete a pay run after the emailed code is entered: takes cash out of the
@@ -715,7 +714,7 @@ export async function completePayRun(input: PayRunInput & { code: string }, draf
   if (walletTotal > data.wallet.available + 0.004) throw new ApiError('not_enough_wallet', 'team.payRunNew.errors.notEnoughWallet')
   pendingCode = null
 
-  if (session && cashTotal > 0) await cashMovement(session.id, 'cash_out', 'Pay team member tips', cashTotal, input.note)
+  if (session && cashTotal > 0) await cashMovement(session.id, 'cash_out', t('sales.register.cash.reasons.tips'), cashTotal, input.note)
   const at = nowISO()
   const by = actorName()
   const existing = draftId ? data.payRuns.find((p) => p.id === draftId && p.status !== 'completed') : undefined
@@ -730,7 +729,7 @@ export async function completePayRun(input: PayRunInput & { code: string }, draf
     if (walletTotal > 0) {
       d.wallet.balance = round2(d.wallet.balance - walletTotal)
       d.wallet.available = round2(d.wallet.available - walletTotal)
-      d.wallet.transactions.unshift({ id: uid('wt'), at, type: 'payout', description: `Team pay run · ${periodLabel(input.periodStart, input.periodEnd)}`, amount: -walletTotal })
+      d.wallet.transactions.unshift({ id: uid('wt'), at, type: 'payout', description: t('api.team.payRunWallet', { period: periodLabel(input.periodStart, input.periodEnd) }), amount: -walletTotal })
     }
   })
   writePayRunMeta(record.id, { ...meta, review: 'approved', createdBy: readPayRunMeta()[record.id]?.createdBy ?? by, updatedAt: at })
@@ -741,15 +740,24 @@ export async function completePayRun(input: PayRunInput & { code: string }, draf
   for (const line of lines) {
     const member = data.teamMembers.find((m) => m.id === line.teamMemberId)
     if (!member?.email.trim()) continue
-    const parts = (Object.keys(KIND_LABELS) as PayKindKey[]).filter((k) => line[k] !== 0).map((k) => `${KIND_LABELS[k]}: ${money2(line[k])}`)
+    const parts = PAY_KINDS.filter((k) => line[k] !== 0).map((k) => `${kindLabel(k)}: ${money2(line[k])}`)
     queueMessage({
       clientId: null,
       to: member.email,
       toName: `${member.firstName} ${member.lastName}`.trim(),
       channel: 'email',
       type: 'pay_run',
-      subject: `Your pay for ${period} from ${workspace}`,
-      body: `Hi ${member.firstName},\n\n${workspace} has paid you ${money2(line.paid)} for the pay period ${period}.\n\n${parts.join('\n')}\nTotal paid: ${money2(line.paid)}\nPayment method: ${METHOD_LABELS[methodOf(input, line.teamMemberId)]}${input.note ? `\n\nNote: ${input.note}` : ''}\n\nSent by ${by} on Innoweb Bookings.`,
+      subject: t('api.team.payStatement.subject', { period, business: workspace }),
+      body: t('api.team.payStatement.body', {
+        firstName: member.firstName,
+        business: workspace,
+        amount: money2(line.paid),
+        period,
+        parts: parts.join('\n'),
+        method: methodLabel(methodOf(input, line.teamMemberId)),
+        note: input.note ? `\n\n${t('api.team.payStatement.note', { note: input.note })}` : '',
+        name: by,
+      }),
     })
   }
   return record

@@ -12,7 +12,7 @@ import { durationLong } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { Location, PaletteColor, Product, ServiceCategory } from '@/types'
 import { saveCategory } from '@/api/catalog'
-import { CATEGORY_COLORS, DURATIONS, TREATMENT_TYPES } from './lib'
+import { CATEGORY_COLORS, DURATIONS, TREATMENT_TYPES, treatmentGroupLabel, treatmentLabel } from './lib'
 
 // ─── Small pieces ──────────────────────────────────────────────────────────
 
@@ -94,7 +94,7 @@ export function DurationSelect({ id, value, onChange, allowZero, placeholder, cl
       {placeholder !== undefined && <option value={value}>{placeholder}</option>}
       {values.map((v) => (
         <option key={v} value={v}>
-          {v === 0 ? '0 min' : durationLong(v)}
+          {durationLong(v)}
         </option>
       ))}
     </select>
@@ -184,7 +184,7 @@ export function TreatmentCombobox({ id, value, onChange }: { id?: string; value:
   useDismiss(refs, open, close)
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return TREATMENT_TYPES.filter((tt) => !q || tt.name.toLowerCase().includes(q) || tt.group.toLowerCase().includes(q)).slice(0, 40)
+    return TREATMENT_TYPES.filter((tt) => !q || [tt.name, tt.group, treatmentLabel(tt.name), treatmentGroupLabel(tt.group)].some((text) => text.toLowerCase().includes(q))).slice(0, 40)
   }, [query])
   const pick = (v: string) => {
     onChange(v)
@@ -199,8 +199,8 @@ export function TreatmentCombobox({ id, value, onChange }: { id?: string; value:
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
-          value={open ? query : value}
-          placeholder={open ? value || t('catalog.service.treatmentSearch') : t('catalog.service.treatmentPlaceholder')}
+          value={open ? query : treatmentLabel(value)}
+          placeholder={open ? treatmentLabel(value) || t('catalog.service.treatmentSearch') : t('catalog.service.treatmentPlaceholder')}
           onFocus={() => setOpen(true)}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -222,12 +222,12 @@ export function TreatmentCombobox({ id, value, onChange }: { id?: string; value:
           {matches.map((m) => (
             <button key={m.name} type="button" role="option" aria-selected={m.name === value} onClick={() => pick(m.name)} className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-body hover:bg-sunken">
               <span>
-                {m.name} <span className="text-muted">({m.group})</span>
+                {treatmentLabel(m.name)} <span className="text-muted">({treatmentGroupLabel(m.group)})</span>
               </span>
               {m.name === value && <Check size={16} className="text-primary" aria-hidden />}
             </button>
           ))}
-          {query.trim() && !matches.some((m) => m.name.toLowerCase() === query.trim().toLowerCase()) && (
+          {query.trim() && !matches.some((m) => [m.name, treatmentLabel(m.name)].some((text) => text.toLowerCase() === query.trim().toLowerCase())) && (
             <button type="button" onClick={() => pick(query.trim())} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-body-strong text-primary hover:bg-sunken">
               <Plus size={16} aria-hidden />
               {t('catalog.service.useCustomTreatment', { name: query.trim() })}

@@ -73,7 +73,7 @@ export function PaymentsProcessingPage() {
                     <Button variant="primary" size="lg" onClick={() => navigate('/payments/onboarding/overview')}>
                       {t('checkout.payments.startNow')}
                     </Button>
-                    <Button size="lg" onClick={() => navigate('/dashboard?drawer=resources&tab=help&d_q=Payments')}>
+                    <Button size="lg" onClick={() => navigate(`/dashboard?drawer=resources&tab=help&d_q=${encodeURIComponent(t('nav.payments'))}`)}>
                       {t('checkout.payments.learnMore')}
                     </Button>
                   </>
@@ -85,7 +85,7 @@ export function PaymentsProcessingPage() {
               <div className="relative mx-auto w-[200px] rounded-[26px] bg-ink p-4 text-canvas shadow-lg">
                 <div className="rounded-xl bg-canvas/10 px-4 py-6 text-center">
                   <p className="text-small text-canvas/70">{t('checkout.card.terminalName')}</p>
-                  <p className="mt-2 font-display text-[28px] font-bold">€28.75</p>
+                  <p className="mt-2 font-display text-[28px] font-bold">{money(28.75)}</p>
                   <p className="mt-2 text-small">{t('checkout.card.approved')}</p>
                 </div>
               </div>

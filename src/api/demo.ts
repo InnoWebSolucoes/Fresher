@@ -1,4 +1,4 @@
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
 import { commit, db, replaceAll } from '@/store/db'
 import { useSessionStore } from '@/store/session'
 import type { Appointment, BookingChannel, ID, ISODate, Review } from '@/types'
@@ -6,11 +6,12 @@ import { buildSeed } from '@/mock/seed'
 import { getAvailableSlots, type Slot } from '@/lib/availability'
 import { uid } from '@/lib/ids'
 import { now, nowISO, toISODate } from '@/lib/time'
-import { round2 } from '@/lib/format'
+import { money2, round2 } from '@/lib/format'
 import { ApiError, latency } from './client'
 import { cancelAppointment, createAppointment, rescheduleAppointment } from './appointments'
 import { checkout, sellGiftCardOnline } from './sales'
 import { pushNotification, queueMessage } from './messaging'
+import { dateAt, t } from './i18n'
 
 /**
  * Presenter tools (SPEC §5). Client-side activity enters the demo through
@@ -20,7 +21,7 @@ import { pushNotification, queueMessage } from './messaging'
 
 const clientName = (clientId: ID | null) => {
   const c = db().clients.find((x) => x.id === clientId)
-  return c ? `${c.firstName} ${c.lastName}` : 'Walk-In'
+  return c ? `${c.firstName} ${c.lastName}` : t('common.walkIn')
 }
 
 export async function resetDemo(): Promise<void> {
@@ -75,7 +76,7 @@ export function firstOnlineSlotFrom(q: OnlineBookingQuery, days = 21): { date: I
 
 export async function simulateOnlineBooking(input: OnlineBookingQuery & { slot: Slot; channel: BookingChannel; deposit: boolean }): Promise<Appointment> {
   const service = db().services.find((s) => s.id === input.serviceId)
-  if (!service) throw new ApiError('not_found', 'Service not found')
+  if (!service) throw new ApiError('not_found', t('api.errors.serviceNotFound'))
   const assignment = input.slot.assignments[0]
   const variant = service.variants.find((v) => v.id === input.variantId)
   const price = variant?.price ?? service.price
@@ -102,22 +103,27 @@ export function upcomingAppointments(): Appointment[] {
 
 export async function simulateClientReschedule(appointmentId: ID, date: ISODate, slot: Slot): Promise<void> {
   const appt = db().appointments.find((a) => a.id === appointmentId)
-  if (!appt) throw new ApiError('not_found', 'Appointment not found')
+  if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
   const who = clientName(appt.clientId)
   await rescheduleAppointment(appointmentId, { date, start: slot.start, teamMemberId: slot.assignments[0].teamMemberId }, { notify: true, by: who })
-  pushNotification({ tab: 'appointments', title: 'Appointment rescheduled', body: `${who} moved ${appt.items[0].name} to ${format(parseISO(date), 'EEE d MMM')} at ${slot.start}`, link: `/calendar?date=${date}&drawer=appointment&id=${appointmentId}` })
+  pushNotification({ tab: 'appointments', title: t('calendar.toasts.rescheduled'), body: t('api.notifications.clientRescheduled', { name: who, service: appt.items[0].name, when: dateAt(date, slot.start, 'EEE d MMM') }), link: `/calendar?date=${date}&drawer=appointment&id=${appointmentId}` })
 }
 
 export async function simulateClientCancel(appointmentId: ID): Promise<{ late: boolean; fee: number }> {
   const appt = db().appointments.find((a) => a.id === appointmentId)
-  if (!appt) throw new ApiError('not_found', 'Appointment not found')
+  if (!appt) throw new ApiError('not_found', t('calendar.drawer.notFound'))
   const who = clientName(appt.clientId)
   await cancelAppointment(appointmentId, { reasonId: 'cr_unavailable', notify: true, chargeFee: true, by: who })
   const after = db().appointments.find((a) => a.id === appointmentId)!
   pushNotification({
     tab: 'appointments',
-    title: after.cancellation?.late ? 'Late cancellation' : 'Appointment canceled',
-    body: `${who} canceled ${appt.items[0].name} on ${format(parseISO(appt.date), 'EEE d MMM')} at ${appt.items[0].start}${after.cancellation?.fee ? ` · €${after.cancellation.fee.toFixed(2)} fee charged` : ''}`,
+    title: after.cancellation?.late ? t('api.appointments.activity.lateCancellation') : t('api.appointments.activity.canceled'),
+    body: t('api.notifications.clientCanceled', {
+      name: who,
+      service: appt.items[0].name,
+      when: dateAt(appt.date, appt.items[0].start, 'EEE d MMM'),
+      fee: after.cancellation?.fee ? ` · ${t('api.notifications.feeCharged', { amount: money2(after.cancellation.fee) })}` : '',
+    }),
     link: `/calendar?date=${appt.date}&drawer=appointment&id=${appointmentId}`,
   })
   return { late: Boolean(after.cancellation?.late), fee: after.cancellation?.fee ?? 0 }
@@ -138,9 +144,9 @@ export async function simulateStoreOrder(clientId: ID, lines: { productId: ID; q
   const sale = await checkout({
     clientId,
     locationId: data.locations[0].id,
-    items: [...items, ...(shipping ? [{ type: 'shipping' as const, name: 'Shipping', quantity: 1, unitPrice: shipping, teamMemberId: null }] : [])],
+    items: [...items, ...(shipping ? [{ type: 'shipping' as const, name: t('reports.l.opt.typeSingle.shipping'), quantity: 1, unitPrice: shipping, teamMemberId: null }] : [])],
     tips: [],
-    payments: [{ method: 'online_card', amount: total, methodLabel: 'Card (online)' }],
+    payments: [{ method: 'online_card', amount: total, methodLabel: t('reports.l.opt.paymentMethod.online_card') }],
   })
   const number = db().meta.nextOrderNumber
   commit((d) => {
@@ -150,8 +156,8 @@ export async function simulateStoreOrder(clientId: ID, lines: { productId: ID; q
     if (s) s.channel = 'store'
   })
   const client = data.clients.find((c) => c.id === clientId)!
-  pushNotification({ tab: 'online_sales', title: 'New product order', body: `Order #${number} from ${client.firstName} ${client.lastName} • €${total.toFixed(2)}`, link: '/sales/store-orders', initials: `${client.firstName[0]}${client.lastName[0]}` })
-  queueMessage({ clientId, to: client.email, toName: `${client.firstName} ${client.lastName}`, channel: 'email', type: 'receipt', subject: `Order #${number} confirmed`, body: `Thanks ${client.firstName}! We received your order #${number} (${items.map((i) => `${i.quantity} × ${i.name}`).join(', ')}). ${fulfilment === 'pickup' ? "We'll let you know when it's ready to collect." : "We'll email you when it ships."}`, saleId: sale.id })
+  pushNotification({ tab: 'online_sales', title: t('api.notifications.newProductOrder.title'), body: t('api.notifications.newProductOrder.body', { number, name: `${client.firstName} ${client.lastName}`, total: money2(total) }), link: '/sales/store-orders', initials: `${client.firstName[0]}${client.lastName[0]}` })
+  queueMessage({ clientId, to: client.email, toName: `${client.firstName} ${client.lastName}`, channel: 'email', type: 'receipt', subject: t('api.demo.storeOrder.subject', { number }), body: t('api.demo.storeOrder.body', { firstName: client.firstName, number, items: items.map((i) => `${i.quantity} × ${i.name}`).join(', '), next: t(fulfilment === 'pickup' ? 'api.demo.storeOrder.pickup' : 'api.demo.storeOrder.shipping') }), saleId: sale.id })
 }
 
 export async function simulateReview(input: { clientId: ID; appointmentId?: ID; rating: Review['rating']; text: string }): Promise<void> {
@@ -168,7 +174,7 @@ export async function simulateReview(input: { clientId: ID; appointmentId?: ID; 
     }
   })
   const c = db().clients.find((x) => x.id === input.clientId)!
-  pushNotification({ tab: 'reviews', title: `New ${input.rating}-star review`, body: `${c.firstName} ${c.lastName}: "${input.text || 'No comment'}"`, link: '/clients/online-reputation?tab=all', initials: `${c.firstName[0]}${c.lastName[0]}` })
+  pushNotification({ tab: 'reviews', title: t('api.notifications.newReview', { count: input.rating }), body: `${c.firstName} ${c.lastName}: "${input.text || t('api.notifications.noComment')}"`, link: '/clients/online-reputation?tab=all', initials: `${c.firstName[0]}${c.lastName[0]}` })
 }
 
 export async function simulateClientMessage(clientId: ID, text: string): Promise<void> {
@@ -186,7 +192,7 @@ export async function simulateClientMessage(clientId: ID, text: string): Promise
     conv.updatedAt = at
   })
   const c = db().clients.find((x) => x.id === clientId)!
-  pushNotification({ tab: 'actions', title: 'New client message', body: `${c.firstName} ${c.lastName}: ${text}`, link: '/connect', initials: `${c.firstName[0]}${c.lastName[0]}` })
+  pushNotification({ tab: 'actions', title: t('api.notifications.newClientMessage'), body: `${c.firstName} ${c.lastName}: ${text}`, link: '/connect', initials: `${c.firstName[0]}${c.lastName[0]}` })
 }
 
 // ─── Business events ─────────────────────────────────────────────────────
@@ -198,10 +204,10 @@ export async function simulateLowStock(productId: ID): Promise<void> {
   const target = Math.max(0, product.lowStockLevel - 2)
   commit((d) => {
     const p = d.products.find((x) => x.id === productId)!
-    d.stockMovements.push({ id: uid('sm'), productId, locationId: d.locations[0].id, qty: target - p.stock, reason: 'Sale', by: 'Online store', at: nowISO() })
+    d.stockMovements.push({ id: uid('sm'), productId, locationId: d.locations[0].id, qty: target - p.stock, reason: 'Sale', by: t('api.demo.onlineStore'), at: nowISO() })
     p.stock = target
   })
-  pushNotification({ tab: 'actions', title: 'Low stock', body: `${product.name} has ${target} left (low stock level ${product.lowStockLevel}). Reorder ${product.reorderQty}.`, link: `/catalogue/products?drawer=product&id=${productId}` })
+  pushNotification({ tab: 'actions', title: t('api.notifications.lowStock.title'), body: t('api.notifications.lowStock.bodyReorder', { product: product.name, stock: target, level: product.lowStockLevel, reorder: product.reorderQty }), link: `/catalogue/products?drawer=product&id=${productId}` })
 }
 
 /** The next card payment at checkout fails with "Card declined". */
@@ -212,14 +218,14 @@ export function armCardDecline(): void {
 export async function simulatePayout(): Promise<number> {
   await latency()
   const amount = round2(Math.max(0, db().wallet.available))
-  if (amount <= 0) throw new ApiError('empty', 'There is nothing available to pay out')
+  if (amount <= 0) throw new ApiError('empty', t('api.payouts.nothingAvailable'))
   commit((d) => {
     d.payouts.unshift({ id: uid('po'), amount, at: nowISO(), status: 'paid', bankLast4: '4417' })
     d.wallet.balance = round2(d.wallet.balance - amount)
     d.wallet.available = 0
-    d.wallet.transactions.unshift({ id: uid('wt'), at: nowISO(), type: 'payout', description: 'Payout to bank account ending 4417', amount: -amount })
+    d.wallet.transactions.unshift({ id: uid('wt'), at: nowISO(), type: 'payout', description: t('api.payouts.toBank', { last4: '4417' }), amount: -amount })
   })
-  pushNotification({ tab: 'actions', title: 'Payout completed', body: `€${amount.toFixed(2)} was sent to your bank account ending 4417.`, link: '/dashboard?drawer=wallet&tab=accounts' })
+  pushNotification({ tab: 'actions', title: t('api.notifications.payoutCompleted.title'), body: t('api.notifications.payoutCompleted.body', { amount: money2(amount), last4: '4417' }), link: '/dashboard?drawer=wallet&tab=accounts' })
   return amount
 }
 
@@ -228,7 +234,7 @@ const marketingModules = import.meta.glob<{ approvePendingCampaign?: (id: ID) =>
 /** Approves the oldest campaign waiting for review (Marketing owns the transition). */
 export async function simulateCampaignApproval(): Promise<string> {
   const pending = db().campaigns.find((c) => c.status === 'pending')
-  if (!pending) throw new ApiError('none', 'No campaigns are waiting for review')
+  if (!pending) throw new ApiError('none', t('api.demo.noPendingCampaigns'))
   const loader = marketingModules['./marketing.ts']
   const mod = loader ? await loader() : undefined
   if (mod?.approvePendingCampaign) {
@@ -241,6 +247,7 @@ export async function simulateCampaignApproval(): Promise<string> {
       if (c.status === 'sent') c.sentAt = nowISO()
     })
   }
-  pushNotification({ tab: 'actions', title: 'Campaign approved', body: `"${pending.name}" passed review and is ${db().campaigns.find((c) => c.id === pending.id)?.status}.`, link: `/marketing/blast-campaigns/${pending.id}` })
+  const status = db().campaigns.find((c) => c.id === pending.id)?.status
+  pushNotification({ tab: 'actions', title: t('api.notifications.campaignApproved.title'), body: t(status === 'scheduled' ? 'api.notifications.campaignApproved.scheduled' : 'api.notifications.campaignApproved.sent', { name: pending.name }), link: `/marketing/blast-campaigns/${pending.id}` })
   return pending.name
 }

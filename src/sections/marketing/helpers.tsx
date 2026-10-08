@@ -6,7 +6,7 @@ import { useDb } from '@/store/db'
 import type { Campaign, Deal, Service } from '@/types'
 import { Chip } from '@/components/ui'
 import { clientStats } from '@/lib/segments'
-import { fmtDate } from '@/lib/format'
+import { fmtDate, money, num } from '@/lib/format'
 
 /** Slices needed to resolve campaign audiences and segment counts. */
 export function useAudienceData() {
@@ -51,7 +51,7 @@ export const pct = (part: number, whole: number) => (whole > 0 ? Math.round((par
 
 /** "10% off" / "€5 off". */
 export function discountLabel(deal: Pick<Deal, 'discountType' | 'value'>) {
-  return deal.discountType === 'percent' ? `${deal.value}%` : `€${deal.value}`
+  return deal.discountType === 'percent' ? `${num(deal.value)}%` : money(deal.value)
 }
 
 /** Pieces of a deal's scope ("all services", "3 services", "all gift cards"). */

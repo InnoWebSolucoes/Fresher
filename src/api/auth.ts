@@ -4,6 +4,7 @@ import type { User } from '@/types'
 import { ApiError, latency } from './client'
 import { queueMessage } from './messaging'
 import { nowISO } from '@/lib/time'
+import { t } from './i18n'
 
 const normalise = (email: string) => email.trim().toLowerCase()
 
@@ -45,9 +46,9 @@ export async function requestPasswordReset(email: string): Promise<{ token: stri
     toName: `${user.firstName} ${user.lastName}`,
     channel: 'email',
     type: 'password_reset',
-    subject: 'Reset your Innoweb Bookings password',
-    body: `Hi ${user.firstName}, we received a request to reset your password. The link below works once and expires in 1 hour.`,
-    link: { label: 'Choose a new password', href: `/reset-password?token=${token}` },
+    subject: t('api.auth.reset.subject'),
+    body: t('api.auth.reset.body', { firstName: user.firstName }),
+    link: { label: t('auth.resetTitle'), href: `/reset-password?token=${token}` },
   })
   return { token }
 }
@@ -67,7 +68,7 @@ export async function resetPassword(token: string, password: string): Promise<vo
 export async function changePassword(userId: string, current: string, next: string): Promise<void> {
   await latency()
   const user = db().users.find((u) => u.id === userId)
-  if (!user || user.password !== current) throw new ApiError('invalid_password', 'Current password is incorrect')
+  if (!user || user.password !== current) throw new ApiError('invalid_password', t('api.auth.currentPasswordIncorrect'))
   commit((d) => {
     const u = d.users.find((x) => x.id === userId)
     if (u) u.password = next

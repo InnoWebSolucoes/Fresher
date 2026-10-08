@@ -1,4 +1,6 @@
-import { addDays, addMonths, endOfMonth, endOfWeek, format, isSameMonth, isSameYear, parseISO, startOfMonth, startOfWeek, subDays, subHours } from 'date-fns'
+import { addDays, addMonths, endOfMonth, endOfWeek, parseISO, startOfMonth, startOfWeek, subDays, subHours } from 'date-fns'
+import i18n from 'i18next'
+import { format, formatRange } from '@/lib/dates'
 import type { Appointment, AppointmentItem, AppointmentStatus, DbData, ID, ISODate, PaletteColor, Sale, TeamMember } from '@/types'
 import { PALETTE } from '@/styles/palette'
 import { toClock, toISODate } from '@/lib/time'
@@ -36,11 +38,7 @@ export function stepDate(view: CalView, date: ISODate, dir: 1 | -1): ISODate {
   return toISODate(addMonths(parseISO(date), dir))
 }
 
-function rangeText(a: Date, b: Date): string {
-  if (isSameMonth(a, b)) return `${format(a, 'MMM d')} – ${format(b, 'd, yyyy')}`
-  if (isSameYear(a, b)) return `${format(a, 'MMM d')} – ${format(b, 'MMM d, yyyy')}`
-  return `${format(a, 'MMM d, yyyy')} – ${format(b, 'MMM d, yyyy')}`
-}
+const rangeText = (a: Date, b: Date): string => formatRange(a, b)
 
 /** Toolbar label: "Wed, Oct 7", "Oct 8 – 10, 2026", "Oct 5 – 11, 2026", "October 2026". */
 export function rangeLabel(view: CalView, date: ISODate): string {
@@ -76,9 +74,9 @@ export const snap = (minutes: number, step = 5) => Math.round(minutes / step) * 
 export function durationWords(min: number): string {
   const h = Math.floor(min / 60)
   const m = min % 60
-  const hours = h ? `${h} ${h === 1 ? 'hour' : 'hours'}` : ''
-  const minutes = m ? `${m} ${m === 1 ? 'minute' : 'minutes'}` : ''
-  return [hours, minutes].filter(Boolean).join(' ') || '0 minutes'
+  const hours = h ? i18n.t('settings.sched.dur.hours', { count: h }) : ''
+  const minutes = m ? i18n.t('settings.sched.dur.minutes', { count: m }) : ''
+  return [hours, minutes].filter(Boolean).join(' ') || i18n.t('settings.sched.dur.minutes', { count: 0 })
 }
 
 // ─── Colours ───────────────────────────────────────────────────────────

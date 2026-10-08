@@ -36,7 +36,7 @@ export function ClientSourcesPage() {
     <SettingsPage
       title={t(`${CS}.title`)}
       description={t(`${CS}.description`)}
-      learnMore="Client sources"
+      learnMore={t('settings.more1.sources.title')}
       actions={
         <>
           <PillMenu label={t('settings.common.options')} width={200} groups={[{ items: [{ label: t('settings.common.changeOrder'), onSelect: () => setOrdering(true) }] }]} />
@@ -150,7 +150,7 @@ export function ClientTagsPage() {
     <SettingsPage
       title={t(`${CT}.title`)}
       description={t(`${CT}.description`)}
-      learnMore="Client tags"
+      learnMore={t('settings.more1.tags.title')}
       actions={
         <Button variant="primary" onClick={() => setEditing('new')} data-testid="tag-add">
           {t('settings.common.add')}
@@ -272,7 +272,7 @@ export function ClientConnectPage() {
   const [promo, setPromo] = useState(true)
   const vis = (on: boolean) => t(on ? `${CC}.visible` : `${CC}.hidden`)
   return (
-    <SettingsPage title={t(`${CC}.title`)} description={t(`${CC}.description`)} learnMore="Client Connect">
+    <SettingsPage title={t(`${CC}.title`)} description={t(`${CC}.description`)} learnMore={t('settings.more1.connect.title')}>
       {promo && (
         <PromoCard
           art="phone"
@@ -287,7 +287,7 @@ export function ClientConnectPage() {
           }
         />
       )}
-      <EditCard title={t(`${CC}.messagingTitle`)} description={t(`${CC}.messagingDescription`)} learnMore="Messaging settings" onEdit={() => setModal('messaging')} testId="connect-messaging">
+      <EditCard title={t(`${CC}.messagingTitle`)} description={t(`${CC}.messagingDescription`)} learnMore={t('settings.more1.connect.messagingTitle')} onEdit={() => setModal('messaging')} testId="connect-messaging">
         <SummaryList
           items={[
             { key: 'enabled', text: <Trans i18nKey={`${CC}.summary.enabled`} components={b} /> },
@@ -297,7 +297,7 @@ export function ClientConnectPage() {
           ]}
         />
       </EditCard>
-      <EditCard title={t(`${CC}.instantTitle`)} description={t(`${CC}.instantDescription`)} learnMore="Instant replies" onEdit={() => setModal('instant')} testId="connect-instant">
+      <EditCard title={t(`${CC}.instantTitle`)} description={t(`${CC}.instantDescription`)} learnMore={t('settings.more1.connect.instantTitle')} onEdit={() => setModal('instant')} testId="connect-instant">
         {c.instantReply ? (
           <div className="flex flex-col gap-3">
             <SummaryList items={[{ key: 'on', text: t(`${CC}.instantOn`) }]} />
@@ -307,7 +307,7 @@ export function ClientConnectPage() {
           <SummaryList items={[{ key: 'off', text: t(`${CC}.instantOff`) }]} />
         )}
       </EditCard>
-      <EditCard title={t(`${CC}.contactTitle`)} description={t(`${CC}.contactDescription`)} learnMore="Contact page" onEdit={() => setModal('contact')} testId="connect-contact">
+      <EditCard title={t(`${CC}.contactTitle`)} description={t(`${CC}.contactDescription`)} learnMore={t('settings.more1.connect.contactPage')} onEdit={() => setModal('contact')} testId="connect-contact">
         <div className="flex flex-col gap-4">
           <SummaryList items={[{ key: 'state', text: c.contactPage ? <Trans i18nKey={`${CC}.contactEnabled`} values={{ link: link.replace('https://', '') }} components={b} /> : t(`${CC}.contactDisabled`) }]} />
           {c.contactPage && (

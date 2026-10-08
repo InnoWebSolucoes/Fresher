@@ -10,7 +10,7 @@ import { RATES, updateAutomation } from '@/api/marketing'
 import { money2 } from '@/lib/format'
 import { WizardFrame } from '../components/kit'
 import { AutomationPreview } from './AutomationDetailPage'
-import { triggerOptions, triggerValue, useTriggerText } from './automationTriggers'
+import { triggerLabel, triggerOptions, triggerValue, useTriggerText } from './automationTriggers'
 
 type Channel = 'email' | 'sms' | 'whatsapp'
 
@@ -162,7 +162,7 @@ export function AutomationConfigurePage() {
               groups={[{ items: (['and', 'or'] as const).map((op) => ({ label: t(`marketing.configure.operator.${op}`), checked: operator === op, onSelect: () => setOperator(op) })) }]}
             />
             <p className="text-body text-muted">
-              {t(`marketing.configure.operatorHint.${operator}`)} <LearnMore topic="whatsapp and text messages">{t('marketing.common.learnMore')}</LearnMore>
+              {t(`marketing.configure.operatorHint.${operator}`)} <LearnMore topic={t('marketing.common.topics.whatsappSms')}>{t('marketing.common.learnMore')}</LearnMore>
             </p>
           </div>
           {channelCard('sms', <MessageSquare size={22} />)}
@@ -190,7 +190,8 @@ export function AutomationConfigurePage() {
         }
       >
         <Field label={t(automation.key.startsWith('reminder-') ? 'marketing.configure.advanceNotice' : 'marketing.configure.whenToSend')}>
-          {(fid) => <Select id={fid} value={triggerDraft} onChange={(e) => setTriggerDraft(e.target.value)} options={(options ?? []).map((o) => ({ value: o, label: o }))} />}
+          {(fid) => <Select id={fid} value={triggerDraft} onChange={(e) => setTriggerDraft(e.target.value)} options={(options ?? []).map((o) => ({ value: o, label: triggerLabel(t, o) }))}
+ />}
         </Field>
         <p className={clsx('mt-3 text-small text-muted')}>{triggerText(automation, triggerDraft)}</p>
       </Modal>

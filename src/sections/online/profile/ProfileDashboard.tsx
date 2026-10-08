@@ -6,10 +6,10 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, Chip, confirm, DataTable, EmptyState, LearnMore, Menu, Modal, Page, PageSkeleton, toast, usePageLoading, type Column } from '@/components/ui'
 import { useDb } from '@/store/db'
 import { addOnStatus, ensureProfileActivity, saveProfile, setProfileListed, useFacebookConnection, useProfileActivity } from '@/api/online'
-import { fmtDateTimeUS, money } from '@/lib/format'
+import { fmtDateTimeUS, money, num } from '@/lib/format'
 import { now, weekdayOf } from '@/lib/time'
 import type { ActivityEntry, Location } from '@/types'
-import { addressLine, opensAt, sampleImage, WEEKDAYS } from '../shared'
+import { addressLine, featureLabel, opensAt, sampleImage, WEEKDAYS } from '../shared'
 import { InModal, MapArt, patchFor, StepBody, toDraft, validateStep, type Draft, type ProfileStep } from './ProfileWizard'
 import { ProfilePreviewModal } from './ProfilePreview'
 
@@ -96,7 +96,7 @@ function Dashboard({ location, tab }: { location: Location; tab: Tab }) {
             <Chip tone={listed ? 'success' : 'neutral'}>{listed ? t('online.status.listed') : t('online.status.unlisted')}</Chip>
           </h1>
           <p className="mt-1 text-body-lg text-muted">
-            {rating ? t('online.preview.rating', { avg: rating.avg.toFixed(1), count: rating.count }) : t('online.dashboard.noReviews')} • {opens ? t('online.dashboard.opensAt', { time: opens }) : t('online.dashboard.closedToday')} • {[location.address.city, location.address.country].filter(Boolean).join(', ')}
+            {rating ? t('online.preview.rating', { avg: num(rating.avg, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count: rating.count }) : t('online.dashboard.noReviews')} • {opens ? t('online.dashboard.opensAt', { time: opens }) : t('online.dashboard.closedToday')} • {[location.address.city, location.address.country].filter(Boolean).join(', ')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ function Overview({ location }: { location: Location }) {
         <div className="flex flex-col gap-3">
           <PerfRow icon={<UserPlus size={18} aria-hidden />} label={t('online.dashboard.perf.newClients')} hint={t('online.dashboard.perf.newClientsHint')} value={String(perf.newClients)} />
           <PerfRow icon={<Coins size={18} aria-hidden />} label={t('online.dashboard.perf.value')} hint={t('online.dashboard.perf.valueHint')} value={money(perf.total)} />
-          <PerfRow icon={<TrendingUp size={18} aria-hidden />} label={t('online.dashboard.perf.roi')} hint={t('online.dashboard.perf.roiHint')} value={`${perf.roi.toFixed(1)}%`} />
+          <PerfRow icon={<TrendingUp size={18} aria-hidden />} label={t('online.dashboard.perf.roi')} hint={t('online.dashboard.perf.roiHint')} value={`${num(perf.roi, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`} />
         </div>
       </Card>
       <Card
@@ -367,7 +367,7 @@ function ImagesCard({ location, onEdit }: { location: Location; onEdit: () => vo
       action={<Button onClick={onEdit}>{t('online.dashboard.edit')}</Button>}
     >
       <p className="mb-4 text-body text-muted">
-        {t('online.dashboard.images.body')} <LearnMore topic="Venue images" />
+        {t('online.dashboard.images.body')} <LearnMore topic={t('online.dashboard.tabs.images')}>{t('common.learnMore')}</LearnMore>
       </p>
       {images.length ? (
         <ul className="grid grid-cols-2 gap-4">
@@ -432,8 +432,9 @@ function FeaturesCard({ location, onEdit }: { location: Location; onEdit: () => 
             <div className="flex flex-wrap gap-2">
               {list.map((x) => (
                 <Chip key={x} tone="outline">
-                  {x}
+                  {featureLabel(t, x)}
                 </Chip>
+
               ))}
             </div>
           ) : (

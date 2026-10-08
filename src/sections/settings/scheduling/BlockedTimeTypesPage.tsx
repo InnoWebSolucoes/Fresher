@@ -33,7 +33,7 @@ export function BlockedTimeTypesPage() {
     <SettingsPage
       title={t(`${K}.title`)}
       description={t(`${K}.description`)}
-      learnMore="Blocked time types"
+      learnMore={t('settings.sched.btt.title')}
       actions={
         <Button variant="primary" onClick={() => setEditing('new')} data-testid="add-blocked-time-type">
           {t('settings.common.add')}

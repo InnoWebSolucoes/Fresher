@@ -19,6 +19,7 @@ import {
   OpeningHoursEditor,
   PhoneInput,
   addressErrors,
+  businessTypeLabel,
   dayName,
   formatAddress,
   openingHoursErrors,
@@ -166,8 +167,8 @@ function BusinessDetailsTab({ location }: { location: Location }) {
       <EditCard title={t('settings.biz.types.cardTitle')} onEdit={() => setModal('types')} testId="business-types-card">
         <InfoGrid
           rows={[
-            { label: t('settings.biz.types.main'), value: location.businessTypes[0] },
-            { label: t('settings.biz.types.additional'), value: location.businessTypes.slice(1).join(', ') },
+            { label: t('settings.biz.types.main'), value: location.businessTypes[0] ? businessTypeLabel(t, location.businessTypes[0]) : undefined },
+            { label: t('settings.biz.types.additional'), value: location.businessTypes.slice(1).map((name) => businessTypeLabel(t, name)).join(', ') },
           ]}
         />
       </EditCard>
@@ -452,7 +453,8 @@ function EditHoursModal({ location, open, onClose }: { location: Location; open:
       title={t('settings.biz.hours.editTitle')}
       subtitle={
         <>
-          {t('settings.biz.hours.editSubtitle')} <LearnMore topic="Opening hours" />
+          {t('settings.biz.hours.editSubtitle')} <LearnMore topic={t('settings.biz.hours.title')}>{t('common.learnMore')}</LearnMore>
+
         </>
       }
       width="max-w-[860px]"

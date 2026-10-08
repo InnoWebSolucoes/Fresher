@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { endOfMonth, format, parseISO, startOfMonth, startOfWeek, startOfYear, subDays, subMonths } from 'date-fns'
+import { endOfMonth, parseISO, startOfMonth, startOfWeek, startOfYear, subDays, subMonths } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ArrowRight, Minus, Plus, Store, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,7 +9,7 @@ import { Button, Chip, EmptyState, IntroPage, LearnMore, Menu, Page, PageHeader,
 import { useDb } from '@/store/db'
 import { useDrawer } from '@/lib/drawer'
 import { now, toISODate, useNow } from '@/lib/time'
-import { fmtDate, money } from '@/lib/format'
+import { fmtDate, money, money2 } from '@/lib/format'
 import type { CashRegister, RegisterSession } from '@/types'
 import { OptionsMenu, PILL } from '../shared/ui'
 import { dayOf } from '../shared/data'
@@ -48,14 +49,10 @@ function RegisterArt() {
           <p className="text-small text-muted">{t('sales.register.balance', { name: t('sales.register.setup.namePlaceholder') })}</p>
           <Chip tone="success">{t('sales.register.open.status')}</Chip>
         </div>
-        <p className="mt-1 font-display text-title-1 text-ink">€325.50</p>
+        <p className="mt-1 font-display text-title-1 text-ink">{money2(325.5)}</p>
         <div className="mt-4 flex flex-col gap-2">
-          {[
-            ['€160', true],
-            ['-€20', false],
-            ['€30', true],
-          ].map(([amount, plus]) => (
-            <div key={String(amount)} className="flex items-center gap-3 rounded-md bg-sunken px-3 py-2">
+          {[160, -20, 30].map((value) => ({ amount: money(value), plus: value > 0 })).map(({ amount, plus }) => (
+            <div key={amount} className="flex items-center gap-3 rounded-md bg-sunken px-3 py-2">
               <span className={clsx('flex h-7 w-7 items-center justify-center rounded-full', plus ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger')}>{plus ? <Plus size={14} aria-hidden /> : <Minus size={14} aria-hidden />}</span>
               <span className="h-2 flex-1 rounded-full bg-line" />
               <span className="text-small font-semibold text-ink">{amount}</span>
@@ -181,7 +178,7 @@ export function RegisterPage() {
         title={t('sales.register.title')}
         subtitle={
           <>
-            {t('sales.register.subtitle')} <LearnMore topic="registers" />
+            {t('sales.register.subtitle')} <LearnMore topic={t('sales.helpTopics.registers')}>{t('common.learnMore')}</LearnMore>
           </>
         }
         actions={

@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { STATUS_STYLES } from '@/styles/palette'
 import type { Ctx } from './context'
-import { L } from './labels'
+import { L, stockReasonLabel } from './labels'
 
 export interface FilterOption {
   value: string
@@ -128,7 +128,7 @@ const DEFS: FilterDef[] = [
   { key: 'tipChannel', icon: CircleDollarSign, kind: 'list', options: opts('tipChannel', ['pos', 'online', 'terminal']) },
   { key: 'blockedClients', icon: User, kind: 'list', options: opts('blockedClients', ['blocked', 'not_blocked']) },
   { key: 'rebooked', icon: CalendarDays, kind: 'list', options: opts('rebooked', ['yes', 'no']) },
-  { key: 'adjustmentReason', icon: BookOpen, kind: 'list', options: (ctx) => named(uniq([...(ctx.d.stockMovements ?? []).map((m) => m.reason), L('sale')])) },
+  { key: 'adjustmentReason', icon: BookOpen, kind: 'list', options: (ctx) => uniq([...(ctx.d.stockMovements ?? []).map((m) => m.reason), 'Sale']).map((v) => ({ value: v, label: stockReasonLabel(v) })) },
   { key: 'orderedBy', icon: User, kind: 'list', options: (ctx) => named(uniq((ctx.d.stockOrders ?? []).map((o) => o.activity[0]?.by ?? 'Marta Ribeiro'))) },
   { key: 'stockOrderStatus', icon: Truck, kind: 'list', options: opts('stockOrderStatus', ['draft', 'ordered', 'received', 'cancelled']) },
   { key: 'benefitUsageType', icon: Sparkles, kind: 'list', options: opts('benefitUsageType', ['limited', 'unlimited']) },

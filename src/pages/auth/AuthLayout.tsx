@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Wordmark } from '@/components/shell/Wordmark'
 import { Toaster } from '@/components/shell/Toaster'
+import { LanguageToggle } from '@/components/shell/LanguageToggle'
 
 const PREVIEW = [
   { time: '09:30', client: 'Beatriz Sousa', service: 'Corte e brushing', tone: 'bg-info-subtle text-info' },
@@ -16,7 +17,10 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-full lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="flex flex-col px-6 py-8 sm:px-12">
-        <Wordmark />
+        <div className="flex items-center justify-between gap-4">
+          <Wordmark />
+          <LanguageToggle />
+        </div>
         <main className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-10">{children}</main>
       </div>
       <aside className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:justify-center lg:px-16" aria-hidden="true">

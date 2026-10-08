@@ -11,6 +11,7 @@ import { orderTotal } from '@/api/catalog'
 import { InfoCard, PaneTitle, ProductThumb, TwoPaneDrawer } from '../ui'
 import { InventoryStatus, productSku, supplierManager, supplierPhone } from './shared'
 import { confirmDeleteSupplier } from './SuppliersPage'
+import { countryLabel } from '../lib'
 
 type Tab = 'details' | 'orders' | 'products'
 
@@ -114,7 +115,7 @@ export function SupplierDrawer({ id, params, close }: DrawerProps) {
               { label: t('catalog.inventory.supplierDrawer.city'), value: address.city },
               { label: t('catalog.inventory.supplierDrawer.state'), value: address.state },
               { label: t('catalog.inventory.supplierDrawer.postcode'), value: address.postcode },
-              { label: t('catalog.inventory.supplierDrawer.country'), value: address.country },
+              { label: t('catalog.inventory.supplierDrawer.country'), value: countryLabel(address.country) },
             ]}
           />
         </>

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, Field, RadioGroup, Select, Switch, TextArea, TextInput } from '@/components/ui'
 import { updateLocation } from '@/api/settings'
+import { num } from '@/lib/format'
 import type { ID, Location, Settings } from '@/types'
 import { Banner, EditCard, FormCard, FormStack, InfoGrid, ModalForm } from '../components/ui'
 import { FullModal } from '../components/FullModal'
@@ -41,7 +42,7 @@ export function LocationSalesTab({ location }: { location: Location }) {
   const tax = effectiveTaxDefaults(settings, extras)
   const rateLabel = (id: ID | null) => {
     const rate = settings.taxRates.find((r) => r.id === id)
-    return rate ? `${rate.name} (${rate.rate}%)` : t('settings.biz.sales.noTax')
+    return rate ? `${rate.name} (${num(rate.rate)}%)` : t('settings.biz.sales.noTax')
   }
   const tipOptions = [tipping.pos, tipping.terminal, tipping.online]
   const tipOptionsLabel = tipOptions.every(Boolean)
@@ -75,12 +76,13 @@ export function LocationSalesTab({ location }: { location: Location }) {
         />
       </EditCard>
 
-      <EditCard title={t('settings.biz.sales.tipping')} description={t('settings.biz.sales.tippingHint')} learnMore="Tipping" onEdit={() => setModal('tipping')} banner={tipping.mode === 'workspace' ? t('settings.biz.sales.usingDefaults') : undefined} testId="tipping-card">
+      <EditCard title={t('settings.biz.sales.tipping')} description={t('settings.biz.sales.tippingHint')} learnMore={t('settings.biz.sales.tipping')} onEdit={() => setModal('tipping')} banner={tipping.mode === 'workspace' ? t('settings.biz.sales.usingDefaults') : undefined} testId="tipping-card">
         <InfoGrid
           cols={1}
           rows={[
             { label: t('settings.biz.sales.tippingOptions'), value: tipOptionsLabel },
-            { label: t('settings.biz.sales.defaultValues'), value: tipping.values.map((v) => `${v}%`).join(' • ') },
+            { label: t('settings.biz.sales.defaultValues'), value: tipping.values.map((v) => `${num(v)}%`).join(' • ')
+ },
             { label: t('settings.biz.sales.tipCalculation'), value: included === CART_KEYS.length ? t('settings.biz.sales.allItems') : t('settings.biz.sales.someItems', { count: included, total: CART_KEYS.length }) },
           ]}
         />

@@ -7,9 +7,13 @@ import { Button, Checkbox, Field, Modal, MoneyInput, Segmented, TextArea, TextIn
 import { openRegister } from '@/api/register'
 import { useDb } from '@/store/db'
 import { money, round2 } from '@/lib/format'
+import { getLang } from '@/i18n/language'
 import { useCheckout } from './context'
 import { cartTotals } from './model'
 import { useRegisterBlocked } from './PaymentStep'
+
+/** Cash count rows: €5 / 50c in English (as before), 5 € / 0,50 € in Portuguese. */
+const denomination = (d: number) => (d >= 1 || getLang() === 'pt' ? money(d) : `${Math.round(d * 100)}c`)
 
 /** "Add cart discount": € / % with "Total after discount" (calendar.md §10 step 4). */
 export function CartDiscountModal({ onClose }: { onClose: () => void }) {
@@ -242,8 +246,8 @@ export function OpenRegisterModal({ onClose }: { onClose: () => void }) {
             <div className="grid grid-cols-3 gap-3">
               {DENOMINATIONS.map((d) => (
                 <label key={d} className="flex items-center justify-between gap-2 text-body text-ink">
-                  <span className="w-14 tabular">{d >= 1 ? `€${d}` : `${Math.round(d * 100)}c`}</span>
-                  <input type="number" min={0} className="input h-9 w-20 px-2" value={counts[d] ?? ''} onChange={(e) => setCounts((prev) => ({ ...prev, [d]: Math.max(0, Math.floor(Number(e.target.value) || 0)) }))} aria-label={t('checkout.register.countOf', { value: d >= 1 ? `€${d}` : `${Math.round(d * 100)}c` })} />
+                  <span className="w-14 tabular">{denomination(d)}</span>
+                  <input type="number" min={0} className="input h-9 w-20 px-2" value={counts[d] ?? ''} onChange={(e) => setCounts((prev) => ({ ...prev, [d]: Math.max(0, Math.floor(Number(e.target.value) || 0)) }))} aria-label={t('checkout.register.countOf', { value: denomination(d) })} />
                 </label>
               ))}
             </div>

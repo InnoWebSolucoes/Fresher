@@ -9,57 +9,66 @@ import type { ClockTime, Weekday } from '@/types'
 
 const K = 'settings.sched'
 
-/** Time zones offered in "Time and calendar settings" (the seed value is "(GMT +01:00) Lisbon"). */
-export const TIME_ZONES: string[] = [
-  '(GMT -11:00) Pago Pago',
-  '(GMT -10:00) Honolulu',
-  '(GMT -08:00) Anchorage',
-  '(GMT -07:00) Los Angeles',
-  '(GMT -07:00) Vancouver',
-  '(GMT -06:00) Denver',
-  '(GMT -06:00) Mexico City',
-  '(GMT -05:00) Chicago',
-  '(GMT -04:00) New York',
-  '(GMT -04:00) Toronto',
-  '(GMT -04:00) Caracas',
-  '(GMT -03:00) São Paulo',
-  '(GMT -03:00) Buenos Aires',
-  '(GMT -03:00) Santiago',
-  '(GMT -02:00) Fernando de Noronha',
-  '(GMT -01:00) Cape Verde',
-  '(GMT +00:00) Azores',
-  '(GMT +00:00) Reykjavik',
-  '(GMT +01:00) Lisbon',
-  '(GMT +01:00) Madeira',
-  '(GMT +01:00) London',
-  '(GMT +01:00) Dublin',
-  '(GMT +01:00) Casablanca',
-  '(GMT +01:00) Lagos',
-  '(GMT +01:00) Luanda',
-  '(GMT +02:00) Madrid',
-  '(GMT +02:00) Paris',
-  '(GMT +02:00) Brussels',
-  '(GMT +02:00) Amsterdam',
-  '(GMT +02:00) Berlin',
-  '(GMT +02:00) Zurich',
-  '(GMT +02:00) Rome',
-  '(GMT +02:00) Johannesburg',
-  '(GMT +02:00) Maputo',
-  '(GMT +03:00) Athens',
-  '(GMT +03:00) Istanbul',
-  '(GMT +03:00) Moscow',
-  '(GMT +03:00) Nairobi',
-  '(GMT +04:00) Dubai',
-  '(GMT +05:00) Karachi',
-  '(GMT +05:30) Kolkata',
-  '(GMT +07:00) Bangkok',
-  '(GMT +08:00) Singapore',
-  '(GMT +08:00) Hong Kong',
-  '(GMT +09:00) Tokyo',
-  '(GMT +10:00) Brisbane',
-  '(GMT +11:00) Sydney',
-  '(GMT +13:00) Auckland',
+/** Time zones offered in "Time and calendar settings" (the seed value is "(GMT +01:00) Lisbon"). Values are stored; `key` names the city label. */
+const ZONES: { value: string; key: string }[] = [
+  { value: '(GMT -11:00) Pago Pago', key: 'pagoPago' },
+  { value: '(GMT -10:00) Honolulu', key: 'honolulu' },
+  { value: '(GMT -08:00) Anchorage', key: 'anchorage' },
+  { value: '(GMT -07:00) Los Angeles', key: 'losAngeles' },
+  { value: '(GMT -07:00) Vancouver', key: 'vancouver' },
+  { value: '(GMT -06:00) Denver', key: 'denver' },
+  { value: '(GMT -06:00) Mexico City', key: 'mexicoCity' },
+  { value: '(GMT -05:00) Chicago', key: 'chicago' },
+  { value: '(GMT -04:00) New York', key: 'newYork' },
+  { value: '(GMT -04:00) Toronto', key: 'toronto' },
+  { value: '(GMT -04:00) Caracas', key: 'caracas' },
+  { value: '(GMT -03:00) São Paulo', key: 'saoPaulo' },
+  { value: '(GMT -03:00) Buenos Aires', key: 'buenosAires' },
+  { value: '(GMT -03:00) Santiago', key: 'santiago' },
+  { value: '(GMT -02:00) Fernando de Noronha', key: 'noronha' },
+  { value: '(GMT -01:00) Cape Verde', key: 'capeVerde' },
+  { value: '(GMT +00:00) Azores', key: 'azores' },
+  { value: '(GMT +00:00) Reykjavik', key: 'reykjavik' },
+  { value: '(GMT +01:00) Lisbon', key: 'lisbon' },
+  { value: '(GMT +01:00) Madeira', key: 'madeira' },
+  { value: '(GMT +01:00) London', key: 'london' },
+  { value: '(GMT +01:00) Dublin', key: 'dublin' },
+  { value: '(GMT +01:00) Casablanca', key: 'casablanca' },
+  { value: '(GMT +01:00) Lagos', key: 'lagos' },
+  { value: '(GMT +01:00) Luanda', key: 'luanda' },
+  { value: '(GMT +02:00) Madrid', key: 'madrid' },
+  { value: '(GMT +02:00) Paris', key: 'paris' },
+  { value: '(GMT +02:00) Brussels', key: 'brussels' },
+  { value: '(GMT +02:00) Amsterdam', key: 'amsterdam' },
+  { value: '(GMT +02:00) Berlin', key: 'berlin' },
+  { value: '(GMT +02:00) Zurich', key: 'zurich' },
+  { value: '(GMT +02:00) Rome', key: 'rome' },
+  { value: '(GMT +02:00) Johannesburg', key: 'johannesburg' },
+  { value: '(GMT +02:00) Maputo', key: 'maputo' },
+  { value: '(GMT +03:00) Athens', key: 'athens' },
+  { value: '(GMT +03:00) Istanbul', key: 'istanbul' },
+  { value: '(GMT +03:00) Moscow', key: 'moscow' },
+  { value: '(GMT +03:00) Nairobi', key: 'nairobi' },
+  { value: '(GMT +04:00) Dubai', key: 'dubai' },
+  { value: '(GMT +05:00) Karachi', key: 'karachi' },
+  { value: '(GMT +05:30) Kolkata', key: 'kolkata' },
+  { value: '(GMT +07:00) Bangkok', key: 'bangkok' },
+  { value: '(GMT +08:00) Singapore', key: 'singapore' },
+  { value: '(GMT +08:00) Hong Kong', key: 'hongKong' },
+  { value: '(GMT +09:00) Tokyo', key: 'tokyo' },
+  { value: '(GMT +10:00) Brisbane', key: 'brisbane' },
+  { value: '(GMT +11:00) Sydney', key: 'sydney' },
+  { value: '(GMT +13:00) Auckland', key: 'auckland' },
 ]
+
+export const TIME_ZONES: string[] = ZONES.map((z) => z.value)
+
+/** "(GMT +01:00) Lisbon" → "(GMT +01:00) Lisboa" in Portuguese; unknown values are shown as stored. */
+export function timeZoneLabel(t: TFunction, value: string): string {
+  const zone = ZONES.find((z) => z.value === value)
+  if (!zone) return value
+  return `${value.slice(0, value.indexOf(')') + 1)} ${t(`${K}.zones.${zone.key}`)}`
+}
 
 /** Weekdays in the order the reference lists them (Sunday … Saturday); 0 = Monday in our model. */
 export const WEEK_SUNDAY_FIRST: Weekday[] = [6, 0, 1, 2, 3, 4, 5]
@@ -117,19 +126,21 @@ export function withValue(list: number[], value: number): number[] {
   return list.includes(value) ? list : [...list, value].sort((a, b) => a - b)
 }
 
-/** Suggested resource types (reference §4) with the icon used when one is created. */
-export const RESOURCE_SUGGESTIONS: { name: string; icon: string }[] = [
-  { name: 'Bed', icon: 'bed' },
-  { name: 'Chair', icon: 'armchair' },
-  { name: 'Room', icon: 'door-open' },
-  { name: 'Equipment', icon: 'wrench' },
-  { name: 'Manicure station', icon: 'hand' },
-  { name: 'Studio', icon: 'sparkles' },
-  { name: 'Pool', icon: 'waves' },
-  { name: 'Tanning station', icon: 'sun' },
-  { name: 'Table', icon: 'lamp' },
-  { name: 'Sauna', icon: 'flame' },
+/** Suggested resource types (reference §4) with the icon used when one is created. `name` is the English name; the label is translated. */
+export const RESOURCE_SUGGESTIONS: { name: string; key: string; icon: string }[] = [
+  { name: 'Bed', key: 'bed', icon: 'bed' },
+  { name: 'Chair', key: 'chair', icon: 'armchair' },
+  { name: 'Room', key: 'room', icon: 'door-open' },
+  { name: 'Equipment', key: 'equipment', icon: 'wrench' },
+  { name: 'Manicure station', key: 'manicureStation', icon: 'hand' },
+  { name: 'Studio', key: 'studio', icon: 'sparkles' },
+  { name: 'Pool', key: 'pool', icon: 'waves' },
+  { name: 'Tanning station', key: 'tanningStation', icon: 'sun' },
+  { name: 'Table', key: 'table', icon: 'lamp' },
+  { name: 'Sauna', key: 'sauna', icon: 'flame' },
 ]
+
+export const resourceSuggestionLabel = (t: TFunction, suggestion: { key: string }) => t(`${K}.resourceTypes.${suggestion.key}`)
 
 /** Quarter-hour clock times for the resource weekly availability editor. */
 export const CLOCK_TIMES: ClockTime[] = Array.from({ length: 24 * 4 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`).concat('23:59')

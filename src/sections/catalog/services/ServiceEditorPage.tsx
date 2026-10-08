@@ -6,7 +6,8 @@ import { Avatar, Button, Checkbox, Chip, EmptyState, Field, LearnMore, Menu, Mon
 import { useDb } from '@/store/db'
 import { uid } from '@/lib/ids'
 import { durationLong, now, todayISO } from '@/lib/time'
-import { addDays, format } from 'date-fns'
+import { addDays } from 'date-fns'
+import { format } from '@/lib/dates'
 import { money, round2 } from '@/lib/format'
 import { PALETTE } from '@/styles/palette'
 import type { ID, Service, ServiceAddOnGroup, ServiceVariant, TimeRange, Weekday } from '@/types'
@@ -399,7 +400,7 @@ export function ServiceEditorPage() {
             title={t('catalog.addOns.title')}
             body={
               <>
-                {t('catalog.addOns.body')} <LearnMore topic="Service add-ons">{t('catalog.common.learnMore')}</LearnMore>
+                {t('catalog.addOns.body')} <LearnMore topic={t('catalog.addOns.title')}>{t('catalog.common.learnMore')}</LearnMore>
               </>
             }
             action={<Button onClick={() => setGroupEdit({ id: uid('aog'), name: '', required: false, multiple: false, options: [{ id: uid('ao'), name: '', price: 0, durationMin: 0 }] })}>{t('catalog.addOns.addGroup')}</Button>}
@@ -544,7 +545,7 @@ export function ServiceEditorPage() {
         title={t('catalog.service.imagesTitle')}
         subtitle={
           <>
-            {t('catalog.service.imagesSubtitle')} <LearnMore topic="Portfolio images">{t('catalog.common.learnMore')}</LearnMore>
+            {t('catalog.service.imagesSubtitle')} <LearnMore topic={t('catalog.service.imagesTitle')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
       >
@@ -557,7 +558,7 @@ export function ServiceEditorPage() {
         title={t('catalog.forms.title')}
         subtitle={
           <>
-            {t('catalog.forms.subtitle')} <LearnMore topic="Forms">{t('catalog.common.learnMore')}</LearnMore>
+            {t('catalog.forms.subtitle')} <LearnMore topic={t('catalog.forms.title')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
       >

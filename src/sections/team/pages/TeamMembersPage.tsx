@@ -64,7 +64,7 @@ export function TeamMembersPage() {
 
   const exportRows = (fmt: 'csv' | 'xlsx') => {
     const table = {
-      headers: ['First name', 'Last name', 'Email', 'Phone', 'Job title', 'Permission role', 'Calendar bookings', 'Locations', 'Start date', 'Status'],
+      headers: (['firstName', 'lastName', 'email', 'phone', 'jobTitle', 'role', 'bookings', 'locations', 'startDate', 'status'] as const).map((key) => t(`team.export.headers.${key}`)),
       rows: rows.map((m) => [
         m.firstName,
         m.lastName,
@@ -72,10 +72,10 @@ export function TeamMembersPage() {
         m.phone ?? '',
         m.jobTitle,
         roleName(roles, m.role),
-        m.bookable ? 'Enabled' : 'Disabled',
+        m.bookable ? t('team.drawer.enabled') : t('team.drawer.disabled'),
         m.locationIds.map((id) => locations.find((l) => l.id === id)?.name ?? '').join(', '),
         m.startDate,
-        m.archived ? 'Archived' : 'Active',
+        m.archived ? t('team.list.archived') : t('team.filters.active'),
       ]),
     }
     if (fmt === 'csv') exportCsv(exportedFileName(), [table])

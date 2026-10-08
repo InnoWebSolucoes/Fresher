@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import i18next from 'i18next'
 import { downloadBlob, exportCsv, exportXlsx, reportFileName, type ExportTable } from '@/lib/export'
 import { now } from '@/lib/time'

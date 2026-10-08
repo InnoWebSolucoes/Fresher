@@ -11,7 +11,7 @@ import { useAction } from '../components/useAction'
 import { ResourceTypeModal } from '../scheduling/ResourceTypeModal'
 import { FieldError, FormHeading, MultiSelect, OverlayOptions, RadioRow, deleteItem } from '../scheduling/shared'
 import { FormCard, FormStack } from '../components/ui'
-import { CLOCK_TIMES, RESOURCE_SUGGESTIONS, formatClock, orderedWeek, weekdayName } from '../scheduling/options'
+import { CLOCK_TIMES, RESOURCE_SUGGESTIONS, formatClock, orderedWeek, resourceSuggestionLabel, weekdayName } from '../scheduling/options'
 import { M } from './shared'
 
 const R = `${M}.resource`
@@ -65,10 +65,10 @@ function ResourceForm({ resource }: { resource: ResourceRecord | null }) {
   const [saving, run] = useAction()
 
   const back = () => navigate('/setup/scheduling/resources')
-  const missingSuggestions = RESOURCE_SUGGESTIONS.filter((s) => !types.some((x) => x.name.trim().toLowerCase() === s.name.toLowerCase()))
+  const missingSuggestions = RESOURCE_SUGGESTIONS.filter((s) => !types.some((x) => [s.name.toLowerCase(), resourceSuggestionLabel(t, s).toLowerCase()].includes(x.name.trim().toLowerCase())))
   const typeOptions = [
     ...types.map((x) => ({ value: x.id, label: x.name })),
-    ...missingSuggestions.map((s) => ({ value: `new:${s.name}`, label: s.name })),
+    ...missingSuggestions.map((s) => ({ value: `new:${s.name}`, label: resourceSuggestionLabel(t, s) })),
     { value: ADD_TYPE, label: t(`${R}.addNewType`) },
   ]
   const others = useMemo(() => resources.filter((r) => r.id !== resource?.id && r.locationId === locationId).map((r) => ({ value: r.id, label: r.name })), [resources, resource, locationId])
@@ -108,7 +108,8 @@ function ResourceForm({ resource }: { resource: ResourceRecord | null }) {
       linkResources: link,
       linkedIds: link ? linked : [],
     }
-    void run(() => saveResource(resource?.id ?? null, input, suggestion ? { name: suggestion.name, icon: suggestion.icon, description: '' } : undefined), t(resource ? `${R}.updated` : `${R}.created`), back)
+    void run(() => saveResource(resource?.id ?? null, input, suggestion ? { name: resourceSuggestionLabel(t, suggestion), icon: suggestion.icon, description: '' } : undefined
+), t(resource ? `${R}.updated` : `${R}.created`), back)
   }
 
   const remove = async () => {

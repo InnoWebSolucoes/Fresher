@@ -1,20 +1,29 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
+import { getLang, localeTag } from '@/i18n/language'
 
 const toDate = (d: Date | string) => (typeof d === 'string' ? parseISO(d) : d)
 
-/** €25, €28.75 — whole euros drop the cents (as in the reference). */
-export function money(amount: number): string {
-  const negative = amount < 0
-  const abs = Math.abs(Math.round(amount * 100) / 100)
-  const text = Number.isInteger(abs) ? abs.toLocaleString('en-IE') : abs.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return `${negative ? '-' : ''}€${text}`
+/** Thousands separators and decimals in the current language ("1,234.5" / "1234,5"). */
+export function num(n: number, options?: Intl.NumberFormatOptions): string {
+  return n.toLocaleString(localeTag(), options)
 }
 
-/** €25.00 — fixed two decimals for tables and receipts. */
+// Portuguese puts the symbol after the amount with a non-breaking space, so "527,00 €" never wraps.
+const withSymbol = (negative: boolean, text: string) => (getLang() === 'pt' ? `${negative ? '-' : ''}${text}\u00a0€` : `${negative ? '-' : ''}€${text}`)
+
+/** €25, €28.75 (English) / 25 €, 28,75 € (Portuguese). Whole euros drop the cents, as in the reference. */
+export function money(amount: number): string {
+  const abs = Math.abs(Math.round(amount * 100) / 100)
+  const text = Number.isInteger(abs) ? num(abs) : num(abs, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return withSymbol(amount < 0 && abs > 0, text)
+}
+
+/** €25.00 / 25,00 € — fixed two decimals for tables and receipts. */
 export function money2(amount: number): string {
-  const negative = amount < 0
-  const abs = Math.abs(amount).toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return `${negative ? '-' : ''}€${abs}`
+  const abs = Math.abs(amount)
+  return withSymbol(amount < 0 && abs >= 0.005, num(abs, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
 }
 
 /** Round to cents. */
@@ -34,10 +43,9 @@ export const fmtDateTimeUS = (d: Date | string) => format(toDate(d), 'MMM d, yyy
 export const fmtTime = (d: Date | string) => format(toDate(d), 'HH:mm')
 export const fmtFullDay = (d: Date | string) => format(toDate(d), 'EEEE, d MMM yyyy') // Wednesday, 7 Oct 2026
 
-export const fullName = (p: { firstName: string; lastName: string } | null | undefined, fallback = 'Walk-In') =>
+export const fullName = (p: { firstName: string; lastName: string } | null | undefined, fallback = i18n.t('common.walkIn')) =>
   p ? `${p.firstName} ${p.lastName}`.trim() : fallback
 
 export const initialsOf = (p: { firstName: string; lastName: string } | null | undefined) =>
-  p ? `${p.firstName[0] ?? ''}${p.lastName[0] ?? ''}`.toUpperCase() : 'W'
+  p ? `${p.firstName[0] ?? ''}${p.lastName[0] ?? ''}`.toUpperCase() : i18n.t('common.walkIn').charAt(0).toUpperCase()
 
-export const pluralize = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`

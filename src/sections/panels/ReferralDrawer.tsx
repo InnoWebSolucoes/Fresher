@@ -6,7 +6,7 @@ import { useCurrentUser } from '@/store/session'
 import { Button, Field, Menu, Modal, TextArea, TextInput, toast } from '@/components/ui'
 import { referralLink, sendReferralInvite, usePanels } from '@/api/panels'
 import { ApiError } from '@/api/client'
-import { fmtDate } from '@/lib/format'
+import { fmtDate, money } from '@/lib/format'
 
 /** "Earn up to €130" referral drawer (profile-and-personal-settings.md §7). */
 export function ReferralDrawer() {
@@ -82,7 +82,7 @@ export function ReferralDrawer() {
           </div>
           <h2 className="mt-8 font-display text-[40px] font-bold leading-[46px]">{t('panels.referral.title')}</h2>
           <div className="mt-6 flex gap-2" aria-hidden>
-            {['€13', '€13', '€13', '…'].map((x, i) => (
+            {[money(13), money(13), money(13), '…'].map((x, i) => (
               <span key={i} className="rounded-full bg-white/15 px-3 py-1 text-small">
                 {x}
               </span>

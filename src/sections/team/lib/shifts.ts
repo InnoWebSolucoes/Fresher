@@ -1,4 +1,6 @@
-import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from 'date-fns'
+import { addDays, differenceInCalendarDays, parseISO, startOfWeek } from 'date-fns'
+import i18n from 'i18next'
+import { format, formatRange } from '@/lib/dates'
 import type { ClosedPeriod, DbData, ID, ISODate, TimeOff, TimeRange } from '@/types'
 import { closedPeriodOn, rawShifts, subtractRanges, timeOffOn } from '@/lib/schedule'
 import { toClock, toMinutes } from '@/lib/time'
@@ -12,20 +14,16 @@ export const shiftDate = (date: ISODate, days: number): ISODate => format(addDay
 
 /** "Oct 5 – 11, 2026", "Sep 28 – Oct 4, 2026", "Dec 28, 2026 – Jan 3, 2027". */
 export function rangeLabel(from: ISODate, to: ISODate): string {
-  const a = parseISO(from)
-  const b = parseISO(to)
-  if (a.getFullYear() !== b.getFullYear()) return `${format(a, 'MMM d, yyyy')} – ${format(b, 'MMM d, yyyy')}`
-  if (a.getMonth() !== b.getMonth()) return `${format(a, 'MMM d')} – ${format(b, 'MMM d, yyyy')}`
-  return `${format(a, 'MMM d')} – ${format(b, 'd, yyyy')}`
+  return formatRange(parseISO(from), parseISO(to))
 }
 
-/** "9 hr", "8 hr 30 min", "0 min" (roster totals). */
+/** "9 hr", "8 hr 30 min", "0 min" (roster totals); "9 h", "8 h 30 min" in Portuguese. */
 export function hoursLabel(min: number): string {
   const h = Math.floor(min / 60)
   const m = Math.round(min % 60)
-  if (h && m) return `${h} hr ${m} min`
-  if (h) return `${h} hr`
-  return `${m} min`
+  if (h && m) return i18n.t('team.hoursLabel.hoursMinutes', { h, m })
+  if (h) return i18n.t('team.hoursLabel.hours', { h })
+  return i18n.t('team.hoursLabel.minutes', { m })
 }
 
 export const rangeMinutes = (r: TimeRange) => Math.max(0, toMinutes(r.end) - toMinutes(r.start))

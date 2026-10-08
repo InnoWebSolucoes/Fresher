@@ -10,3 +10,7 @@ globalThis.localStorage = {
     return memory.size
   },
 }
+
+// Unit tests run in English (the app defaults to Portuguese), with the real strings loaded.
+localStorage.setItem('ib-lang', 'en')
+await import('@/i18n')

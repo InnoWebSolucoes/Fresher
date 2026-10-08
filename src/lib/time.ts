@@ -1,4 +1,6 @@
-import { addMinutes, format, parseISO } from 'date-fns'
+import { addMinutes, parseISO } from 'date-fns'
+import i18n from 'i18next'
+import { format } from '@/lib/dates'
 import { useDb } from '@/store/db'
 import type { ClockTime, ISODate, Weekday } from '@/types'
 
@@ -69,7 +71,7 @@ export function durationLabel(min: number): string {
 export function durationLong(min: number): string {
   const h = Math.floor(min / 60)
   const m = min % 60
-  if (h && m) return `${h} hr, ${m} min`
-  if (h) return `${h} hr`
-  return `${m} min`
+  if (h && m) return i18n.t('common.duration.hoursMinutes', { h, m })
+  if (h) return i18n.t('common.duration.hours', { h })
+  return i18n.t('common.duration.minutes', { m })
 }

@@ -1,3 +1,4 @@
+import { setLang } from '@/i18n/language'
 import { buildSeed } from './seed'
 
 describe('seed', () => {
@@ -52,5 +53,26 @@ describe('seed', () => {
 
   it('stays small enough to persist', () => {
     expect(JSON.stringify(data).length).toBeLessThan(6_000_000)
+  })
+
+  it('builds the same data in Portuguese, with Portuguese text', () => {
+    // Text becomes a placeholder; ids, numbers, dates and flags must match exactly.
+    const shape = (v: unknown, key = ''): unknown => {
+      if (typeof v === 'string') return /(^id$|Ids?$)/.test(key) || /^[\d\-:.TZ+]+$/.test(v) ? v : 'text'
+      if (Array.isArray(v)) return v.map((x) => shape(x, key))
+      if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, shape(x, k)]))
+      return v
+    }
+    setLang('pt')
+    try {
+      const pt = buildSeed(today)
+      expect(shape(pt)).toEqual(shape(data))
+      expect(pt.services.find((s) => s.id === 'svc_womens-cut')?.name).toBe('Corte de senhora')
+      expect(pt.settings.permissionRoles.find((r) => r.id === 'owner')?.name).toBe('Proprietário do espaço de trabalho')
+      expect(pt.sales.flatMap((s) => s.items).find((i) => i.type === 'gift_card')?.name).toBe('Cartão-oferta')
+      expect(pt.clientSources.find((s) => s.id === 'src_walkin')?.name).toBe('Sem marcação')
+    } finally {
+      setLang('en')
+    }
   })
 })

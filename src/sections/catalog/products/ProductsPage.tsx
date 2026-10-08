@@ -33,7 +33,7 @@ export function ProductsPage() {
   const navigate = useNavigate()
   const drawer = useDrawer()
   const loading = usePageLoading()
-  const intro = useIntroProps('Products')
+  const intro = useIntroProps(t('nav.products'))
   const products = useDb((s) => s.products)
   const brands = useDb((s) => s.brands)
   const categories = useDb((s) => s.productCategories)
@@ -166,7 +166,7 @@ export function ProductsPage() {
           }
           art={
             <div className="mx-auto flex max-w-xs flex-col gap-3 py-8">
-              {['Argan Hair Oil', 'Repair Shampoo', 'Matte Clay'].map((n, i) => (
+              {[t(`${P}.introArt.arganOil`), t(`${P}.introArt.repairShampoo`), t(`${P}.introArt.matteClay`)].map((n, i) => (
                 <div key={n} className="flex items-center gap-3 rounded-lg border border-line bg-surface p-3 shadow-sm">
                   <ProductThumb size={44} />
                   <span className="flex-1 text-body-strong text-ink">{n}</span>
@@ -188,7 +188,7 @@ export function ProductsPage() {
         count={active.length}
         subtitle={
           <>
-            {t(`${P}.subtitle`)} <LearnMore topic="Products">{t('catalog.common.learnMore')}</LearnMore>
+            {t(`${P}.subtitle`)} <LearnMore topic={t('nav.products')}>{t('catalog.common.learnMore')}</LearnMore>
           </>
         }
         actions={

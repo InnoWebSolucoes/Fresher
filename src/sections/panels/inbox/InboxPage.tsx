@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, isToday, parseISO } from 'date-fns'
+import { isToday, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import {
   Check,
   CheckCircle2,

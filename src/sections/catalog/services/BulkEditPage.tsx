@@ -9,7 +9,7 @@ import { durationLabel } from '@/lib/time'
 import { PALETTE } from '@/styles/palette'
 import type { ID, Service } from '@/types'
 import { bulkUpdateServices, isOffMenu } from '@/api/catalog'
-import { TREATMENT_TYPES, serviceTotalDuration, totalExtra } from '../lib'
+import { TREATMENT_TYPES, serviceTotalDuration, totalExtra, treatmentLabel } from '../lib'
 import { DurationSelect, FiltersButton } from '../ui'
 import { usePriceTypeOptions, type PriceType } from './serviceParts'
 
@@ -286,7 +286,7 @@ export function BulkEditPage() {
           </table>
           <datalist id="catalog-treatment-types">
             {TREATMENT_TYPES.map((tt) => (
-              <option key={tt.name} value={tt.name} />
+              <option key={tt.name} value={tt.name} label={treatmentLabel(tt.name)} />
             ))}
           </datalist>
         </div>

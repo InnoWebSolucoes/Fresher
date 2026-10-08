@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { TFunction } from 'i18next'
+import { getLang, localeTag } from '@/i18n/language'
 import { readSettingsExtra, setBuiltInRoleMembers, updateSettingsExtra, useSettingsExtra } from '@/api/settings'
 import { db, useDb } from '@/store/db'
 import type { PermissionRole } from '@/lib/permissions'
@@ -123,12 +124,14 @@ export function copyName(roles: PermissionLevel[], name: string, suffix: string)
   return base
 }
 
-const listFormat = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' })
+/** Created per call so it follows the current language ('en' keeps the serial comma English uses today). */
+const listFormat = () => new Intl.ListFormat(getLang() === 'en' ? 'en' : localeTag(), { style: 'long', type: 'conjunction' })
 
 /** "Full access to Clients. Partial access to Calendar, Sales, and Reports." */
 export function describePermissions(set: PermissionSet, t: TFunction): string {
   const { full, partial } = accessSummary(set)
-  const names = (keys: typeof AREA_KEYS) => listFormat.format(keys.map((k) => t(`settings.tm.perm.${k}.title`)))
+  const names = (keys: typeof AREA_KEYS) => listFormat().format(keys.map((k) => t(`settings.tm.perm.${k}.title`)))
+
   const parts: string[] = []
   if (full.length) parts.push(t('settings.tm.roles.describeFull', { areas: names(full) }))
   if (partial.length) parts.push(t('settings.tm.roles.describePartial', { areas: names(partial) }))

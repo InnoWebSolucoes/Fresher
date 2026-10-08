@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { Apple, ArrowLeft, ArrowRight, Car, Clock, Dog, Flag, Hash, Lightbulb, Pencil, Plus, Search, Smile, Trash2, Volleyball } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,7 +18,7 @@ import { useCalendarParams, useLocationMembers } from '../hooks'
 import { addDaysISO, clockOptions, durationChoices, durationWords, memberName } from '../lib'
 import { NO_REPEAT, useCalendarUi } from '../store'
 import { Dropdown, DropMenu, FullScreen, MonthsPicker, useEscapeFirst } from '../ui'
-import { DEFAULT_FREQUENT, EMOJI, EMOJI_CATEGORIES, emojiName, type EmojiCategory } from './emoji'
+import { DEFAULT_FREQUENT, EMOJI, EMOJI_CATEGORIES, emojiMatches, emojiName, type EmojiCategory } from './emoji'
 import { DrawerShell, RoundButton, SelectButton } from './Shell'
 
 interface Form {
@@ -518,7 +519,7 @@ function EmojiPicker({ onPick, onClose }: { onPick: (char: string) => void; onCl
   const frequent = [...new Set([...recent, ...DEFAULT_FREQUENT])].slice(0, 9)
   const q = query.trim().toLowerCase()
   const sections: { key: 'frequent' | EmojiCategory; chars: string[] }[] = q
-    ? [{ key: 'people', chars: EMOJI_CATEGORIES.flatMap((c) => EMOJI[c].filter((e) => e.name.includes(q)).map((e) => e.char)) }]
+    ? [{ key: 'people', chars: EMOJI_CATEGORIES.flatMap((c) => EMOJI[c].filter((e) => emojiMatches(e, q)).map((e) => e.char)) }]
     : [{ key: 'frequent', chars: frequent }, ...EMOJI_CATEGORIES.map((c) => ({ key: c, chars: EMOJI[c].map((e) => e.char) }))]
   const pick = (char: string) => {
     updateExt<string[]>('calendar', 'recentEmoji', [], (cur) => [char, ...cur.filter((c) => c !== char)].slice(0, 9))

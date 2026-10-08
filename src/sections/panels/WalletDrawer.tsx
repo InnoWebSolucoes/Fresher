@@ -317,7 +317,7 @@ function Credits() {
       <div className="flex items-start gap-3 rounded-lg bg-primary-subtle/60 p-4 text-body text-ink">
         <Lightbulb size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden />
         <p>
-          {credits > 0 ? t('panels.wallet.creditsUsed') : t('panels.wallet.noCredits')} <LearnMore topic="wallet credits fees" />
+          {credits > 0 ? t('panels.wallet.creditsUsed') : t('panels.wallet.noCredits')} <LearnMore topic={t('panels.topics.walletCredits')} />
         </p>
       </div>
       <PillTabs

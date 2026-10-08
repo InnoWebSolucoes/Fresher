@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
+import { format } from '@/lib/dates'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -48,6 +49,9 @@ function exportTables(summary: DailySummary, t: Translate, format: ExportFormat)
   ]
 }
 
+/** Numeric columns sit closer together so Portuguese headers stay on one line. */
+const cellPad = (i: number, count: number) => (i === 0 ? 'pl-6 pr-3' : i === count - 1 ? 'pl-3 pr-6' : 'px-3')
+
 function SummaryCard({ title, headers, children }: { title: string; headers: string[]; children: ReactNode }) {
   return (
     <section className="card overflow-hidden">
@@ -57,7 +61,7 @@ function SummaryCard({ title, headers, children }: { title: string; headers: str
           <thead>
             <tr className="border-b border-line">
               {headers.map((h, i) => (
-                <th key={h} scope="col" className={clsx('px-6 py-4 text-body-strong text-ink', i === 0 ? 'text-left' : 'text-right')}>
+                <th key={h} scope="col" className={clsx('py-4 text-body-strong text-ink', cellPad(i, headers.length), i === 0 ? 'text-left' : 'whitespace-nowrap text-right')}>
                   {h}
                 </th>
               ))}
@@ -74,7 +78,7 @@ function Row({ cells, strong }: { cells: ReactNode[]; strong?: boolean }) {
   return (
     <tr className="border-b border-line last:border-0">
       {cells.map((c, i) => (
-        <td key={i} className={clsx('px-6 py-4', i === 0 ? 'text-left' : 'text-right tabular', strong ? 'font-semibold text-ink' : 'text-ink')}>
+        <td key={i} className={clsx('py-4', cellPad(i, cells.length), i === 0 ? 'text-left' : 'whitespace-nowrap text-right tabular', strong ? 'font-semibold text-ink' : 'text-ink')}>
           {c}
         </td>
       ))}

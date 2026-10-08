@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow'
 import type { AppointmentStatus, SegmentCondition, SegmentRule } from '@/types'
 import { useDb } from '@/store/db'
 import { fullName, money } from '@/lib/format'
-import { COUNTRIES, GENDERS, LANGUAGES, PRONOUNS } from '../lib/constants'
+import { countryOptions, GENDERS, LANGUAGES, pronounOptions } from '../lib/constants'
 import { PRIMARY } from '../lib/segmentEval'
 import { periodLabel } from './model'
 
@@ -85,11 +85,11 @@ export function useRuleOptions() {
           case 'gender':
             return { type: 'select', options: GENDERS.map((g) => ({ value: g, label: t(`clients.gender.${g}`) })) }
           case 'pronouns':
-            return { type: 'select', options: PRONOUNS.map((p) => ({ value: p, label: p })) }
+            return { type: 'select', options: pronounOptions() }
           case 'language':
             return { type: 'select', options: LANGUAGES.map((l) => ({ value: l, label: l })) }
           case 'country':
-            return { type: 'select', options: COUNTRIES.map((c) => ({ value: c, label: c })) }
+            return { type: 'select', options: countryOptions() }
           case 'source':
             return { type: 'select', options: lists.source, asArray: true }
           case 'tags':

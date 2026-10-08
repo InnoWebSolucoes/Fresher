@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { create } from 'zustand'
 import { Modal } from './Modal'
 import { Button } from './Button'
@@ -27,6 +28,7 @@ export function confirm(options: ConfirmOptions): Promise<boolean> {
 
 /** Mounted once in the app root. */
 export function ConfirmHost() {
+  const { t } = useTranslation()
   const current = useConfirmStore((s) => s.current)
   const [busy] = useState(false)
   const close = (ok: boolean) => {
@@ -41,9 +43,9 @@ export function ConfirmHost() {
       size="sm"
       footer={
         <>
-          <Button onClick={() => close(false)}>{current?.cancelLabel ?? 'Cancel'}</Button>
+          <Button onClick={() => close(false)}>{current?.cancelLabel ?? t('common.cancel')}</Button>
           <Button variant={current?.tone === 'primary' ? 'primary' : 'danger'} loading={busy} onClick={() => close(true)} data-testid="confirm-ok">
-            {current?.confirmLabel ?? 'Confirm'}
+            {current?.confirmLabel ?? t('common.confirm')}
           </Button>
         </>
       }

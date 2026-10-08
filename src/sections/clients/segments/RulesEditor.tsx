@@ -64,9 +64,9 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
       return (
         <div className="flex items-center gap-2">
           {lead(t('clients.segments.rules.between'))}
-          <TextInput type="number" min={0} aria-label={`${label} min`} invalid={invalid && !min} className="w-24" value={min} onChange={(e) => onChange({ value: [e.target.value, max] })} />
+          <TextInput type="number" min={0} aria-label={t('clients.segments.rules.minOf', { label })} invalid={invalid && !min} className="w-24" value={min} onChange={(e) => onChange({ value: [e.target.value, max] })} />
           {lead(t('clients.segments.rules.and'))}
-          <TextInput type="number" min={0} aria-label={`${label} max`} invalid={invalid && !max} className="w-24" value={max} onChange={(e) => onChange({ value: [min, e.target.value] })} />
+          <TextInput type="number" min={0} aria-label={t('clients.segments.rules.maxOf', { label })} invalid={invalid && !max} className="w-24" value={max} onChange={(e) => onChange({ value: [min, e.target.value] })} />
         </div>
       )
     }
@@ -101,7 +101,7 @@ function ValueControl({ spec, condition, invalid, label, onChange }: ValueContro
       return (
         <div className="flex items-center gap-2">
           <Select
-            aria-label={`${label} operator`}
+            aria-label={t('clients.segments.rules.operatorOf', { label })}
             className="w-32"
             value={condition.operator === 'not' ? 'not' : 'is'}
             onChange={(e) => onChange({ operator: e.target.value })}

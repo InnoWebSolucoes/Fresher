@@ -1,4 +1,6 @@
+import i18n from 'i18next'
 import type { Bundle, ExtraTime, ID, PaletteColor, Product, Service, ServiceVariant } from '@/types'
+import { getLang, localeTag } from '@/i18n/language'
 import { round2 } from '@/lib/format'
 
 /** Pure helpers shared by the catalog pages. */
@@ -6,13 +8,27 @@ import { round2 } from '@/lib/format'
 export const totalExtra = (extra: ExtraTime[]) => extra.reduce((s, e) => s + e.durationMin, 0)
 export const serviceTotalDuration = (s: Pick<Service, 'durationMin' | 'extraTime'>) => s.durationMin + totalExtra(s.extraTime)
 
-/** "30m", "1h 30m", "3h" (service list export). */
+/** "30m", "1h 30m", "3h" (service list export); "30min", "1h 30min" in Portuguese. */
 export function durationShort(min: number): string {
   const h = Math.floor(min / 60)
   const m = min % 60
-  if (h && m) return `${h}h ${m}m`
-  if (h) return `${h}h`
-  return `${m}m`
+  if (h && m) return i18n.t('catalog.durationShort.hoursMinutes', { h, m })
+  if (h) return i18n.t('catalog.durationShort.hours', { h })
+  return i18n.t('catalog.durationShort.minutes', { m })
+}
+
+/** Supplier countries: stored in English, shown in the current language (Intl region names). */
+const COUNTRY_REGIONS: Record<string, string> = { Portugal: 'PT', Spain: 'ES', France: 'FR', Germany: 'DE', Italy: 'IT', Netherlands: 'NL', Belgium: 'BE', Ireland: 'IE', 'United Kingdom': 'GB', 'United States': 'US', Brazil: 'BR' }
+export const SUPPLIER_COUNTRIES = Object.keys(COUNTRY_REGIONS)
+export function countryLabel(value: string | undefined): string {
+  if (!value) return ''
+  const code = COUNTRY_REGIONS[value]
+  if (!code || getLang() === 'en') return value
+  try {
+    return new Intl.DisplayNames([localeTag()], { type: 'region' }).of(code) ?? value
+  } catch {
+    return value
+  }
 }
 
 export const findService = (services: Service[], id: ID) => services.find((s) => s.id === id)
@@ -117,22 +133,36 @@ export const TREATMENT_TYPES: { name: string; group: string }[] = [
   ...['Body scrub', 'Body wrap', 'Spa package', 'Sauna', 'Tanning', 'Spray tan'].map((name) => ({ name, group: 'Body & spa' })),
 ]
 
-/** Simulated "Generate with AI" copy (≈250 characters, warm salon tone). */
+/** "Women's haircut" → "womensHaircut" (key under catalog.treatments / catalog.treatmentGroups). */
+const treatmentKey = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/'/g, '')
+    .replace(/[^a-z0-9]+(.)/g, (_, c: string) => c.toUpperCase())
+
+/** Treatment types are stored in English; known ones are shown in the current language, custom ones as typed. */
+export const treatmentLabel = (name: string) => (name && TREATMENT_TYPES.some((tt) => tt.name === name) ? i18n.t(`catalog.treatments.${treatmentKey(name)}`) : name)
+export const treatmentGroupLabel = (group: string) => i18n.t(`catalog.treatmentGroups.${treatmentKey(group)}`)
+
+/** Portuguese words that pick the same copy as the English ones (checked only in Portuguese, so English output never changes). */
+const PT_WORDS = { beard: /barba|barbear|bigode/, colour: /madeixa|raiz|descolora|tonaliz/, nails: /unha|manicura|pedicura|acr[ií]lico|verniz/, massage: /massagem|reflexologia|esfolia|corpo/, skin: /pele|sobrancelha|pestana|depila/ }
+
+/** Simulated "Generate with AI" copy (≈250 characters, warm salon tone), written in the current language. */
 export function generateDescription(name: string, categoryName: string | undefined, treatment: string, durationMin: number): string {
-  const subject = (treatment || name || 'service').toLowerCase()
+  const subject = (treatmentLabel(treatment) || name || i18n.t('catalog.ai.fallbackSubject')).toLowerCase()
   const text = `${name} ${categoryName ?? ''} ${treatment}`.toLowerCase()
-  const minutes = durationMin >= 60 ? `${Math.floor(durationMin / 60)} hour${durationMin >= 120 ? 's' : ''}${durationMin % 60 ? ` ${durationMin % 60} minutes` : ''}` : `${durationMin} minutes`
-  if (/beard|shave|barber|fade|mustache/.test(text))
-    return `Experience a fresh take on your facial hair with our expert ${subject} service. Enjoy a polished look that enhances your style while maintaining the perfect balance between neatness and personal expression. Let us help you achieve the beard of your dreams.`
-  if (/colou?r|balayage|highlight|toner|root|bleach/.test(text))
-    return `Refresh your look with our ${subject}. Our colour specialists start with a consultation, choose the right shade for your skin tone and lifestyle, and finish with a gloss for shine that lasts. Expect rich, even colour in about ${minutes}.`
-  if (/nail|manicure|pedicure|acrylic|gel/.test(text))
-    return `Treat your hands and feet to our ${subject}. We shape, tidy cuticles and finish with a flawless, long-lasting polish in the shade you love. Relax in a calm, hygienic space and leave with nails that stay picture-perfect for weeks.`
-  if (/massage|reflexology|scrub|spa|body/.test(text))
-    return `Unwind completely with our ${subject}. Our therapists tailor the pressure to you, easing tension and leaving body and mind deeply relaxed. Take ${minutes} just for yourself and walk out feeling lighter, calmer and restored.`
-  if (/facial|skin|brow|lash|wax|peel/.test(text))
-    return `Reveal your best self with our ${subject}. We tailor each step to your skin and features, using gentle, professional products for a clean, natural finish. In just ${minutes} you'll leave feeling fresh, confident and cared for.`
-  return `Enjoy our ${subject}, delivered by an experienced stylist who listens first and works with your hair type and routine. Finished with a wash and style, it takes about ${minutes} and leaves you with a look that is easy to keep at home.`
+  const pt = getLang() === 'pt'
+  const is = (en: RegExp, kind: keyof typeof PT_WORDS) => en.test(text) || (pt && PT_WORDS[kind].test(text))
+  const hours = i18n.t('catalog.ai.hours', { count: Math.floor(durationMin / 60) })
+  const rest = i18n.t('catalog.ai.minutes', { count: durationMin % 60 })
+  const minutes = durationMin >= 60 ? (durationMin % 60 ? i18n.t('catalog.ai.hoursMinutes', { hours, minutes: rest }) : hours) : i18n.t('catalog.ai.minutes', { count: durationMin })
+  const copy = (kind: string) => i18n.t(`catalog.ai.copy.${kind}`, { subject, minutes })
+  if (is(/beard|shave|barber|fade|mustache/, 'beard')) return copy('beard')
+  if (is(/colou?r|balayage|highlight|toner|root|bleach/, 'colour')) return copy('colour')
+  if (is(/nail|manicure|pedicure|acrylic|gel/, 'nails')) return copy('nails')
+  if (is(/massage|reflexology|scrub|spa|body/, 'massage')) return copy('massage')
+  if (is(/facial|skin|brow|lash|wax|peel/, 'skin')) return copy('skin')
+  return copy('other')
 }
 
 export const variantLabel = (service: Pick<Service, 'name'>, variant: ServiceVariant) => `${service.name} - ${variant.name}`
