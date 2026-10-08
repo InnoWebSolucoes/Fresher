@@ -10,8 +10,9 @@ import type { SectionId } from '@/lib/permissions'
  * - settings: shell + the settings category card on the left
  * - full: full-screen form or wizard with its own header (Close / Save)
  * - account: the "Your account" area
+ * - public: no login required (e.g. accepting a team invite)
  */
-export type PageLayout = 'shell' | 'settings' | 'full' | 'account'
+export type PageLayout = 'shell' | 'settings' | 'full' | 'account' | 'public'
 
 export interface PageDef {
   id: string

@@ -24,7 +24,7 @@ Each `src/sections/<name>/` has four registries, collected automatically:
 | `routes.ts` | `routes: PageDef[]` | Extra routes you need. Layout `'shell' | 'settings' | 'full' | 'account'`. |
 | `en.json` | strings | Available as `t('<name>.…')` (e.g. file `clients/en.json` with `{ "list": { "title": "Clients list" } }` → `t('clients.list.title')`). |
 
-Page ids, paths and layouts are in `src/app/routeRegistry.ts`. Layouts: `shell` (top bar + rail + docked left menu), `settings` (settings category card on the left; render only the right-hand content), `full` (full-screen; render your own header with `FullscreenFrame`), `account` (account area).
+Page ids, paths and layouts are in `src/app/routeRegistry.ts`. Layouts: `public` (no login needed), `shell` (top bar + rail + docked left menu), `settings` (settings category card on the left; render only the right-hand content), `full` (full-screen; render your own header with `FullscreenFrame`), `account` (account area).
 
 ### Drawers
 
@@ -47,7 +47,8 @@ Page ids, paths and layouts are in `src/app/routeRegistry.ts`. Layouts: `shell` 
   - `@/api/sales`: `checkout(CheckoutInput)` (creates/pays sales; issues gift cards, packages, memberships; moves stock; redeems gift cards; applies deposits; completes the appointment), `computeTotals`, `salePaid`, `saleBalance`, `lineTotal`, `findGiftCard`, `refundSale`, `voidSale`, `addSaleNote`, `editSaleDetails`, `sellGiftCardOnline`, `openRegisterSession`, `PAYMENT_LABELS`.
   - `@/api/messaging`: `queueMessage` (outbox/Messages history), `pushNotification`, `markNotificationsRead`, `notifyAppointment`, `sendReceipt`.
   - `@/api/auth`: `login`, `logout`, `switchUser`, `requestPasswordReset`, `resetPassword`, `changePassword`.
-- Helpers: `@/lib/time` (`now()`, `useNow()`, `todayISO()`, `toMinutes`, `toClock`, `weekdayOf`, `durationLabel` "1h 30min", `durationLong` "1 hr, 30 min"), `@/lib/format` (`money` "€25"/"€28.75", `money2` "€25.00", `fmtDayLong` "Wed, 7 Oct 2026", `fmtDate` "Oct 7, 2026", `fmtDateTime`, `fullName`, `round2`), `@/lib/schedule` (`rawShifts`, `workingWindows`, `closedPeriodOn`, `timeOffOn`), `@/lib/availability` (`getAvailableSlots`, `nextAvailableDates`, `findConflicts`, `serviceTiming`, `itemSegments`, `eligibleMembers`), `@/lib/export` (`exportCsv`, `exportXlsx`, `exportPdf`, `buildPdf`, `downloadBlob`, `exportedFileName`, `reportFileName`), `@/lib/ids` (`uid`, `bookingRef`, `giftCode`), `@/styles/palette` (`PALETTE`, `STATUS_STYLES`).
+  - `@/api/register`: `createRegister`, `updateRegister`, `currentSession`, `expectedCash`, `openRegister`, `cashMovement`, `countRegister`, `closeRegister`.
+- Helpers: `@/lib/time` (`now()`, `useNow()`, `todayISO()`, `toMinutes`, `toClock`, `weekdayOf`, `durationLabel` "1h 30min", `durationLong` "1 hr, 30 min"), `@/lib/format` (`money` "€25"/"€28.75", `money2` "€25.00", `fmtDayLong` "Wed, 7 Oct 2026", `fmtDate` "Oct 7, 2026", `fmtDateTime`, `fullName`, `round2`), `@/lib/schedule` (`rawShifts`, `workingWindows`, `closedPeriodOn`, `timeOffOn`), `@/lib/availability` (`getAvailableSlots`, `nextAvailableDates`, `findConflicts`, `serviceTiming`, `itemSegments`, `eligibleMembers`), `@/lib/export` (`exportCsv`, `exportXlsx`, `exportPdf`, `buildPdf`, `downloadBlob`, `exportedFileName`, `reportFileName`), `@/lib/ids` (`uid`, `bookingRef`, `giftCode`), `@/lib/segments` (`clientsInSegment`, `segmentsForClient`, `clientStats`), `@/styles/palette` (`PALETTE`, `STATUS_STYLES`).
 - "Now" is `now()` from `@/lib/time` (supports time travel). Never use `new Date()` for business logic.
 - The current user: `useCurrentUser()` from `@/store/session`; permission checks via `canAccess(role, section)` from `@/lib/permissions`.
 

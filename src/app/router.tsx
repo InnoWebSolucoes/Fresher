@@ -38,6 +38,10 @@ export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
+  ...ALL_PAGES.filter((page) => page.layout === 'public').map((page) => {
+    const Page = SECTION_PAGES[page.id]
+    return { path: page.path, element: Page ? <Page /> : <StubPage page={page} /> }
+  }),
   {
     element: <RequireAuth />,
     children: [
