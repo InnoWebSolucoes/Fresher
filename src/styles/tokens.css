@@ -1,0 +1,104 @@
+/* Innoweb Bookings design tokens. See DESIGN_TOKENS.md.
+   Colours are space-separated RGB so Tailwind can apply opacity. */
+:root {
+  --canvas: 244 247 246;
+  --surface: 255 255 255;
+  --surface-raised: 255 255 255;
+  --surface-sunken: 237 242 241;
+  --border: 220 228 226;
+  --border-strong: 191 203 201;
+  --text: 16 32 31;
+  --text-muted: 88 106 104;
+  --text-subtle: 132 147 143;
+  --primary: 14 110 106;
+  --primary-hover: 11 90 87;
+  --primary-active: 8 71 68;
+  --primary-subtle: 226 241 239;
+  --on-primary: 255 255 255;
+  --accent: 244 178 62;
+  --accent-hover: 225 157 36;
+  --accent-subtle: 254 243 222;
+  --on-accent: 43 29 3;
+  --rail: 15 36 35;
+  --rail-hover: 28 58 56;
+  --rail-icon: 185 204 201;
+  --success: 35 118 58;
+  --success-subtle: 230 244 234;
+  --warning: 154 100 16;
+  --warning-subtle: 254 243 222;
+  --danger: 184 40 58;
+  --danger-subtle: 252 235 237;
+  --info: 39 99 201;
+  --info-subtle: 231 239 252;
+  --focus-ring: 14 110 106;
+
+  --shadow-xs: 0 1px 2px rgb(16 32 31 / 0.06);
+  --shadow-sm: 0 2px 6px rgb(16 32 31 / 0.08);
+  --shadow-md: 0 8px 24px rgb(16 32 31 / 0.12);
+  --shadow-lg: 0 16px 48px rgb(16 32 31 / 0.18);
+
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --topbar-h: 60px;
+  --rail-w: 68px;
+  --panel-w: 224px;
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --canvas: 11 20 19;
+  --surface: 18 30 29;
+  --surface-raised: 24 39 37;
+  --surface-sunken: 14 25 24;
+  --border: 36 54 52;
+  --border-strong: 52 74 71;
+  --text: 228 237 236;
+  --text-muted: 156 174 172;
+  --text-subtle: 108 126 123;
+  --primary: 59 179 172;
+  --primary-hover: 88 196 190;
+  --primary-active: 122 210 205;
+  --primary-subtle: 18 49 46;
+  --on-primary: 3 32 30;
+  --accent: 246 192 99;
+  --accent-hover: 248 205 130;
+  --accent-subtle: 51 40 15;
+  --on-accent: 43 29 3;
+  --rail: 7 15 14;
+  --rail-hover: 20 35 33;
+  --rail-icon: 147 168 165;
+  --success: 111 207 138;
+  --success-subtle: 18 48 27;
+  --warning: 246 192 99;
+  --warning-subtle: 51 40 15;
+  --danger: 240 122 136;
+  --danger-subtle: 58 20 25;
+  --info: 126 168 240;
+  --info-subtle: 20 36 64;
+  --focus-ring: 59 179 172;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 2px 6px rgb(0 0 0 / 0.45);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}

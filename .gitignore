@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+test-results/
+playwright-report/
+.chrome-profile/
+
+# The reference capture stays local: it holds the owner's real contact details
+# and this repository is public.
+reference/

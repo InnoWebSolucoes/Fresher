@@ -1,0 +1,993 @@
+{
+  "brand": {
+    "name": "Innoweb Bookings",
+    "short": "Innoweb",
+    "product": "Bookings"
+  },
+  "common": {
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "add": "Add",
+    "addNew": "Add new",
+    "options": "Options",
+    "export": "Export",
+    "learnMore": "Learn more",
+    "loading": "Loading…",
+    "dismiss": "Dismiss",
+    "openMenu": "Open menu"
+  },
+  "nav": {
+    "mainMenu": "Main menu",
+    "home": "Home",
+    "calendar": "Calendar",
+    "sales": "Sales",
+    "clients": "Clients",
+    "catalog": "Catalog",
+    "onlinePresence": "Online presence",
+    "onlineBookings": "Online bookings",
+    "marketing": "Marketing",
+    "team": "Team",
+    "reports": "Reports",
+    "addons": "Add-ons",
+    "settings": "Settings",
+    "help": "Help and support",
+    "dailySales": "Daily sales summary",
+    "register": "Register",
+    "appointments": "Appointments",
+    "salesList": "Sales",
+    "payments": "Payments",
+    "soldItems": "Sold items",
+    "giftCardsSold": "Gift cards sold",
+    "packagesSold": "Packages sold",
+    "membershipsSold": "Memberships sold",
+    "productOrders": "Product orders",
+    "clientsList": "Clients list",
+    "clientSegments": "Client segments",
+    "engage": "Engage",
+    "clientLoyalty": "Client loyalty",
+    "onlineReputation": "Online reputation",
+    "serviceMenu": "Service menu",
+    "packages": "Packages",
+    "memberships": "Memberships",
+    "products": "Products",
+    "productList": "Product list",
+    "inventory": "Inventory",
+    "stocktakes": "Stocktakes",
+    "stockOrders": "Stock orders",
+    "suppliers": "Suppliers",
+    "marketplaceProfile": "Marketplace profile",
+    "reserveWithGoogle": "Reserve with Google",
+    "facebookInstagram": "Facebook and Instagram bookings",
+    "linkBuilder": "Link builder",
+    "yourWebsites": "Your websites",
+    "smartWebsite": "Smart Website",
+    "productStore": "Product store",
+    "messaging": "Messaging",
+    "blastCampaigns": "Blast campaigns",
+    "automations": "Automations",
+    "messagesHistory": "Messages history",
+    "promotion": "Promotion",
+    "deals": "Deals",
+    "smartPricing": "Smart pricing",
+    "reviews": "Reviews",
+    "teamMembers": "Team members",
+    "scheduledShifts": "Scheduled shifts",
+    "timesheets": "Timesheets",
+    "payRuns": "Pay runs",
+    "paymentSettings": "Payment settings",
+    "salesSettings": "Sales settings",
+    "collapsePanel": "Collapse Navigation Menu",
+    "expandPanel": "Expand Navigation Menu"
+  },
+  "topbar": {
+    "continueSetup": "Continue setup",
+    "search": "Search",
+    "performanceInsights": "Performance insights",
+    "notifications": "Notifications",
+    "inbox": "Client messages",
+    "wallet": "Wallet",
+    "openUserMenu": "Open user menu",
+    "goToCalendar": "Go to calendar",
+    "noReviewsYet": "No reviews yet",
+    "verifyMobile": "Verify your mobile number",
+    "verifyMobileSub": "Secure your account",
+    "myProfile": "My profile",
+    "personalSettings": "Personal settings",
+    "referral": "Earn up to €130",
+    "helpAndSupport": "Help and support",
+    "language": "English (US)",
+    "logOut": "Log out",
+    "loggedOut": "You've been logged out",
+    "activatePlanBanner": "Activate your plan to ensure uninterrupted access after your free trial ends in {{days}} days",
+    "activatePlan": "Activate plan"
+  },
+  "drawers": {
+    "closeDrawer": "Close Drawer",
+    "resources": "Resources",
+    "search": "Search",
+    "performance-insights": "Performance insights",
+    "notifications": "Notifications",
+    "wallet": "Business wallet",
+    "referral": "Refer a business",
+    "phaseNote": "This panel is built in Phase {{phase}}. Its full specification is in reference/{{ref}}.",
+    "tabs": {
+      "news": "News",
+      "help": "Help",
+      "guides": "Guides",
+      "appointments": "Appointments",
+      "reviews": "Reviews",
+      "tips": "Tips",
+      "online-sales": "Online sales",
+      "actions": "Actions",
+      "accounts": "Accounts",
+      "credits": "Credits"
+    }
+  },
+  "auth": {
+    "loginTitle": "Log in to your workspace",
+    "loginSubtitle": "Manage bookings, sales and your team in one place.",
+    "email": "Email",
+    "emailPlaceholder": "you@business.com",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "forgotPassword": "Forgot password?",
+    "logIn": "Log in",
+    "loggingIn": "Logging in…",
+    "welcomeBack": "Welcome back, {{name}}",
+    "demoAccounts": "Demo accounts",
+    "demoAccountsHint": "Both use the password demo1234.",
+    "demoOwner": "Owner",
+    "demoOwnerSub": "Full access",
+    "demoStaff": "Front desk",
+    "demoStaffSub": "Basic permissions",
+    "useAccount": "Use this account",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "Enter the email you log in with and we'll send you a link to choose a new password.",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending…",
+    "checkInbox": "Check your inbox",
+    "checkInboxBody": "If an account exists for {{email}}, a reset link is on its way. In this demo, emails land in the demo outbox (Ctrl+Shift+D).",
+    "openResetLink": "Open the reset link",
+    "backToLogin": "Back to log in",
+    "resetTitle": "Choose a new password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated. You can log in now.",
+    "brandPanelTitle": "Your salon's day, in one view",
+    "brandPanelBody": "Bookings, checkout, clients and team, ready for the front desk and the owner's office at the same time.",
+    "brandPanelToday": "Today at Studio Aliados",
+    "errors": {
+      "emailRequired": "Enter your email",
+      "emailInvalid": "Enter a valid email address",
+      "passwordRequired": "Enter your password",
+      "passwordMin": "Use at least 8 characters",
+      "passwordsMatch": "Passwords don't match",
+      "invalidCredentials": "That email and password don't match an account",
+      "noAccess": "This account has no access to the workspace",
+      "invalidToken": "This reset link has expired or was already used"
+    }
+  },
+  "stub": {
+    "phase": "Phase {{phase}}",
+    "heading": "Scheduled for Phase {{phase}}",
+    "body": "This page is registered and reachable. Its content, actions and flows are built in Phase {{phase}} from the reference below.",
+    "reference": "Reference",
+    "route": "Route",
+    "openSection": "Open"
+  },
+  "fullscreen": {
+    "close": "Close"
+  },
+  "account": {
+    "yourAccount": "Your account"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The address may be mistyped, or the page has moved.",
+    "action": "Go to calendar"
+  },
+  "forbidden": {
+    "title": "You don't have access to this area",
+    "body": "Your permission role doesn't include this section. Ask the workspace owner to change your role.",
+    "action": "Go to calendar"
+  },
+  "settings": {
+    "title": "Workspace settings",
+    "subtitle": "Manage settings for {{business}}.",
+    "breadcrumb": "Workspace settings",
+    "tabs": {
+      "settings": "Settings",
+      "online": "Online presence",
+      "marketing": "Marketing",
+      "other": "Other"
+    },
+    "view": "View",
+    "businessSetup": {
+      "title": "Business setup",
+      "description": "Customize business details and manage locations."
+    },
+    "scheduling": {
+      "title": "Scheduling",
+      "description": "Set your availability, manage bookable resources and online booking preferences.",
+      "onlineBooking": "Online booking"
+    },
+    "sales": {
+      "title": "Sales",
+      "description": "Configure payment methods, taxes, receipts, service charges and gift cards."
+    },
+    "clients": {
+      "title": "Clients",
+      "description": "Customize client sources and manage client tags"
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Manage Innoweb invoices, text messages, add-ons and billing."
+    },
+    "team": {
+      "title": "Team",
+      "description": "Manage permissions, compensation and time-off."
+    },
+    "forms": {
+      "title": "Forms",
+      "description": "Configure templates for client forms."
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "Configure payment methods, terminals and your payment policy."
+    },
+    "rows": {
+      "marketplaceProfile": [
+        "Marketplace profile",
+        "Attract new clients with online bookings."
+      ],
+      "reserveWithGoogle": [
+        "Reserve with Google",
+        "Get online bookings from Google Search and Maps."
+      ],
+      "facebookInstagram": [
+        "Book with Facebook and Instagram",
+        "Get online bookings from your social media pages."
+      ],
+      "productStore": [
+        "Product store",
+        "Set up your digital store so clients can buy your products online."
+      ],
+      "linkBuilder": [
+        "Link builder",
+        "Create shareable booking links and QR codes."
+      ],
+      "blast": [
+        "Blast marketing",
+        "Share special offers and important updates over email and text message."
+      ],
+      "automations": [
+        "Automations",
+        "Engage with your clients and keep them up to date with automations."
+      ],
+      "deals": [
+        "Deals",
+        "Reward and retain clients with discount codes, flash sales and promotion offers."
+      ],
+      "smartPricing": [
+        "Smart pricing",
+        "Adjust your prices to charge different amounts during more or less busy hours."
+      ],
+      "sentMessages": [
+        "Sent messages",
+        "View the list of all email, text and push messages sent to your clients."
+      ],
+      "ratings": [
+        "Ratings and reviews",
+        "View star ratings and reviews left by clients after their visit."
+      ],
+      "addons": [
+        "Add-ons",
+        "Take your business to the next level with Innoweb add-ons."
+      ],
+      "integrations": [
+        "Integrations",
+        "Integrate Innoweb Bookings with third party applications."
+      ]
+    }
+  },
+  "reports": {
+    "title": "Reporting and analytics",
+    "subtitle": "Access all of your reports.",
+    "groups": {
+      "1": "All reports",
+      "2": "Favourites",
+      "6": "Dashboards",
+      "3": "Standard",
+      "4": "Premium",
+      "5": "Custom"
+    },
+    "premium": "Premium",
+    "search": "Search by report name or description",
+    "dataConnector": "Data connector",
+    "addFavourite": "Add to favorites",
+    "removeFavourite": "Remove from favorites",
+    "emptyTitle": "No favorited reports",
+    "emptyBody": "Favorite a report to view here",
+    "categories": {
+      "all": "All reports",
+      "salesPerformance": "Sales",
+      "finances": "Finance",
+      "appointments": "Appointments",
+      "team": "Team",
+      "clients": "Clients",
+      "inventory": "Inventory"
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Home",
+      "subtitle": "Recent sales, upcoming appointments and your top performers."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Day, 3 day, week and month views of every booking."
+    },
+    "calendarPick": {
+      "title": "Select a time to book",
+      "subtitle": "Pick a slot on the calendar."
+    },
+    "calendarBookWaitlist": {
+      "title": "Book from waitlist",
+      "subtitle": "Select a time to book this waitlist entry."
+    },
+    "calendarReschedule": {
+      "title": "Reschedule appointment",
+      "subtitle": "Select a new time for this appointment."
+    },
+    "calendarRebook": {
+      "title": "Rebook appointment",
+      "subtitle": "Select a time to book the same services again."
+    },
+    "calendarGroupNew": {
+      "title": "New group appointment",
+      "subtitle": "Select a time for the first appointment in the group."
+    },
+    "calendarAddToGroup": {
+      "title": "Select appointment to add to group",
+      "subtitle": "Pick an existing appointment."
+    },
+    "calendarBlockedTime": {
+      "title": "Select a time to block",
+      "subtitle": "Pick a slot to add blocked time."
+    },
+    "formSelection": {
+      "title": "Add a form",
+      "subtitle": "Choose a client form for this appointment."
+    },
+    "paymentsProcessing": {
+      "title": "Power your payments with Innoweb",
+      "subtitle": "Payments add-on"
+    },
+    "dailySales": {
+      "title": "Daily sales",
+      "subtitle": "View, filter and export the transactions and cash movement for the day."
+    },
+    "register": {
+      "title": "Register",
+      "subtitle": "View, filter and export payment movements through a register."
+    },
+    "appointmentsList": {
+      "title": "Appointments",
+      "subtitle": "View, filter and export appointments booked by your clients."
+    },
+    "salesList": {
+      "title": "Sales",
+      "subtitle": "View, filter and export the history of your sales."
+    },
+    "refundSale": {
+      "title": "Refund sale",
+      "subtitle": "Refund items or an amount from a completed sale."
+    },
+    "paymentTransactions": {
+      "title": "Payment transactions",
+      "subtitle": "View, filter and export the history of your payments."
+    },
+    "giftCardsSold": {
+      "title": "Gift cards sold",
+      "subtitle": "View, filter and export gift cards purchased by your clients."
+    },
+    "packagesSold": {
+      "title": "Packages sold",
+      "subtitle": "View and filter packages purchased by your clients."
+    },
+    "membershipsSold": {
+      "title": "Memberships sold",
+      "subtitle": "View and filter memberships purchased by your clients."
+    },
+    "productOrders": {
+      "title": "Product orders",
+      "subtitle": "View status of all products ordered via your online store."
+    },
+    "clientsList": {
+      "title": "Clients list",
+      "subtitle": "View, add, edit and delete your client's details."
+    },
+    "clientAdd": {
+      "title": "Add a new client",
+      "subtitle": "Manage your client's personal profile"
+    },
+    "clientEdit": {
+      "title": "Edit client",
+      "subtitle": "Manage your client's personal profile"
+    },
+    "clientMerge": {
+      "title": "Merge duplicates",
+      "subtitle": "Merging combines appointments, sales and profile info of duplicated clients into one client."
+    },
+    "clientImport": {
+      "title": "CSV Customer Import",
+      "subtitle": "Upload a CSV file with your client data, or download and fill the template."
+    },
+    "clientSegments": {
+      "title": "Client segments",
+      "subtitle": "Group clients automatically by their behaviour and activity."
+    },
+    "segmentEdit": {
+      "title": "Edit segment",
+      "subtitle": "Change the rules for this segment."
+    },
+    "segmentCreate": {
+      "title": "Create custom segment",
+      "subtitle": "Set rules to automatically group clients based on their behavior and activity."
+    },
+    "clientLoyalty": {
+      "title": "Client Loyalty add-on",
+      "subtitle": "Turn all clients into regulars"
+    },
+    "onlineReputation": {
+      "title": "Online reputation",
+      "subtitle": "Manage reviews across your marketplace profile and Google in one place."
+    },
+    "serviceMenu": {
+      "title": "Service menu",
+      "subtitle": "View and manage the services offered by your business."
+    },
+    "serviceAdd": {
+      "title": "Add new service",
+      "subtitle": "Basic details, team members, resources and settings."
+    },
+    "serviceEdit": {
+      "title": "Edit service",
+      "subtitle": "Basic details, team members, resources and settings."
+    },
+    "bundleAdd": {
+      "title": "New bundle",
+      "subtitle": "Group services that are booked together."
+    },
+    "bundleEdit": {
+      "title": "Edit bundle",
+      "subtitle": "Group services that are booked together."
+    },
+    "menuOrder": {
+      "title": "Set menu order",
+      "subtitle": "Define the order that services will appear to clients when booking online."
+    },
+    "bookingSequence": {
+      "title": "Set booking sequence",
+      "subtitle": "Set the sequence of the services scheduled when booking an appointment with multiple services online."
+    },
+    "bulkEditServices": {
+      "title": "Bulk edit services",
+      "subtitle": "Make changes to multiple services and services variants at the same time"
+    },
+    "packages": {
+      "title": "Packages",
+      "subtitle": "Create and manage your packages."
+    },
+    "packageAdd": {
+      "title": "Add new package",
+      "subtitle": "Package details, benefits, pricing and settings."
+    },
+    "packageEdit": {
+      "title": "Edit package",
+      "subtitle": "Package details, benefits, pricing and settings."
+    },
+    "memberships": {
+      "title": "Memberships",
+      "subtitle": "Attract and retain clients with exclusive membership benefits"
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Add and manage your products in stock."
+    },
+    "productAdd": {
+      "title": "Add new product",
+      "subtitle": "Basic info, pricing, inventory and photos."
+    },
+    "productEdit": {
+      "title": "Edit product",
+      "subtitle": "Basic info, pricing, inventory and photos."
+    },
+    "stocktakes": {
+      "title": "Stocktakes",
+      "subtitle": "Count and record the amount and value of stock your business holds."
+    },
+    "stocktakeNew": {
+      "title": "Add the stocktake info",
+      "subtitle": "Start a full inventory count to keep accurate stock levels."
+    },
+    "stocktakeCount": {
+      "title": "Count products",
+      "subtitle": "Count each product and review the stocktake."
+    },
+    "stocktakeReview": {
+      "title": "Review stocktake",
+      "subtitle": "Check differences before completing."
+    },
+    "stocktakeSummary": {
+      "title": "Stocktake summary",
+      "subtitle": "Stocktake details and product list summary."
+    },
+    "stockOrders": {
+      "title": "Stock orders",
+      "subtitle": "Add and manage your stock orders."
+    },
+    "stockOrderNew": {
+      "title": "Create stock order",
+      "subtitle": "Select a supplier, then the products to order."
+    },
+    "stockOrderReceive": {
+      "title": "Receive order",
+      "subtitle": "Review and receive products in your stock order."
+    },
+    "suppliers": {
+      "title": "Suppliers",
+      "subtitle": "Add and manage details of your suppliers."
+    },
+    "supplierAdd": {
+      "title": "Add supplier",
+      "subtitle": "Supplier details, contact info and address."
+    },
+    "supplierEdit": {
+      "title": "Edit supplier",
+      "subtitle": "Supplier details, contact info and address."
+    },
+    "marketplaceProfile": {
+      "title": "Attract new clients with online bookings",
+      "subtitle": "Join the largest beauty and wellness marketplace"
+    },
+    "profileWizard": {
+      "title": "Marketplace profile",
+      "subtitle": "Tell us about your business, stand out online, accept online bookings."
+    },
+    "profileDashboard": {
+      "title": "Online profile",
+      "subtitle": "Performance, latest activity and profile sections."
+    },
+    "facebookSetup": {
+      "title": "Get booked on Facebook and Instagram",
+      "subtitle": "Add online booking to your social media pages."
+    },
+    "linkBuilder": {
+      "title": "Link builder",
+      "subtitle": "Create shareable links and QR codes for anything that your clients can book or buy online."
+    },
+    "smartWebsite": {
+      "title": "Your standout website, always up to date",
+      "subtitle": "Your own professional website that updates itself as your business evolves."
+    },
+    "smartWebsiteWizard": {
+      "title": "Smart Website",
+      "subtitle": "Choose a design, styling and your domain."
+    },
+    "productStore": {
+      "title": "Get clients buying your products online",
+      "subtitle": "Set up your online store in minutes."
+    },
+    "blastCampaigns": {
+      "title": "Promote your business with blast campaigns",
+      "subtitle": "Increase bookings and engage with your clients by sharing special offers and important updates over email and text message."
+    },
+    "blastBillingWizard": {
+      "title": "Blast marketing setup",
+      "subtitle": "Overview of fees, payment method and billing details."
+    },
+    "blastNew": {
+      "title": "New blast campaign",
+      "subtitle": "Audience, message, schedule and review."
+    },
+    "blastDetail": {
+      "title": "Blast campaign",
+      "subtitle": "Status, audience and performance."
+    },
+    "automations": {
+      "title": "Automations",
+      "subtitle": "View and manage all automated messages sent to your clients."
+    },
+    "automationDetail": {
+      "title": "Automation",
+      "subtitle": "Performance, preview and details."
+    },
+    "automationConfigure": {
+      "title": "Edit automation",
+      "subtitle": "Trigger, email and message steps."
+    },
+    "automationEmail": {
+      "title": "Edit email content",
+      "subtitle": "Email details and live preview."
+    },
+    "messagesHistory": {
+      "title": "Messages history",
+      "subtitle": "View all the automated messages sent to your clients."
+    },
+    "deals": {
+      "title": "Reward and retain clients with deals",
+      "subtitle": "Discount codes, flash sales and last-minute offers."
+    },
+    "dealsList": {
+      "title": "Deals",
+      "subtitle": "Set up and manage the deals you offer to your clients."
+    },
+    "dealNew": {
+      "title": "Create deal",
+      "subtitle": "Deal type, details, limits and team members."
+    },
+    "smartPricing": {
+      "title": "Get more sales with surge and off-peak pricing",
+      "subtitle": "Automatically adjust your service prices during more or less busy hours."
+    },
+    "smartPricingSetup": {
+      "title": "Set up smart pricing",
+      "subtitle": "Team members, services and pricing rules."
+    },
+    "smartPricingDetails": {
+      "title": "Smart pricing",
+      "subtitle": "Smart pricing appointments and sales value."
+    },
+    "teamMembers": {
+      "title": "Team members",
+      "subtitle": "Manage your team, their services, settings and pay."
+    },
+    "teamMemberAdd": {
+      "title": "Add team member",
+      "subtitle": "Profile, services, locations, settings and pay."
+    },
+    "teamMemberEdit": {
+      "title": "Edit team member",
+      "subtitle": "Profile, services, locations, settings and pay."
+    },
+    "teamReorder": {
+      "title": "Change the team members order",
+      "subtitle": "Drag and drop team members to change the order."
+    },
+    "calendarSync": {
+      "title": "Link a calendar",
+      "subtitle": "Calendar Sync"
+    },
+    "scheduledShifts": {
+      "title": "Scheduled shifts",
+      "subtitle": "Your team's weekly roster."
+    },
+    "repeatingShifts": {
+      "title": "Set repeating shifts",
+      "subtitle": "Set weekly, biweekly or custom shifts."
+    },
+    "timesheets": {
+      "title": "Timesheets",
+      "subtitle": "Manage your team members' timesheets"
+    },
+    "payRuns": {
+      "title": "Pay runs",
+      "subtitle": "Calculate and settle the amount owed to your team for tips, commissions, and wages."
+    },
+    "settlements": {
+      "title": "Pay runs",
+      "subtitle": "Settled payments to your team."
+    },
+    "payRunNew": {
+      "title": "Pay team",
+      "subtitle": "Choose compensation types, review and complete the pay run."
+    },
+    "connect": {
+      "title": "Client messages",
+      "subtitle": "Two-way messaging with your clients."
+    },
+    "connectConversation": {
+      "title": "Conversation",
+      "subtitle": "Client messages"
+    },
+    "reportGroup": {
+      "title": "Reporting and analytics",
+      "subtitle": "Access all of your reports."
+    },
+    "dataConnector": {
+      "title": "Connect your data to your own data warehouse and BI tools",
+      "subtitle": "Data Connector add-on"
+    },
+    "reportTable": {
+      "title": "Report",
+      "subtitle": "Group, filter and export."
+    },
+    "addons": {
+      "title": "Innoweb add-ons",
+      "subtitle": "Take your business to the next level with Innoweb add-ons."
+    },
+    "addonIntro": {
+      "title": "Add-on",
+      "subtitle": "What it does and what it costs."
+    },
+    "addonSetup": {
+      "title": "Enable add-on",
+      "subtitle": "Select your payment method and confirm your order."
+    },
+    "addonManage": {
+      "title": "Manage add-on",
+      "subtitle": "Included features and details."
+    },
+    "integrationIntro": {
+      "title": "Integration",
+      "subtitle": "Included in your plan"
+    },
+    "paymentsOnboarding": {
+      "title": "Payments setup",
+      "subtitle": "Accept payments quickly, easily and securely."
+    },
+    "setup": {
+      "title": "Workspace settings",
+      "subtitle": "Manage settings for your business."
+    },
+    "settingsBusinessDetails": {
+      "title": "Business details",
+      "subtitle": "Set your business name, tax and language preferences, and manage external links."
+    },
+    "settingsBusinessDetailsEdit": {
+      "title": "Edit business details",
+      "subtitle": "Business info, tax calculation, language and external links."
+    },
+    "settingsLocations": {
+      "title": "Locations",
+      "subtitle": "Manage info and preferences of locations within your business."
+    },
+    "settingsLocationNew": {
+      "title": "Add new location",
+      "subtitle": "Add your business details"
+    },
+    "settingsLocation": {
+      "title": "Location",
+      "subtitle": "Business details, location, opening hours and sales settings."
+    },
+    "settingsTimeCalendar": {
+      "title": "Time and calendar",
+      "subtitle": "Choose the time and date format for your business."
+    },
+    "settingsWaitlist": {
+      "title": "Waitlist appointments",
+      "subtitle": "Enable a waitlist online and choose how waitlisted clients are offered a time slot."
+    },
+    "settingsBlockedTimeTypes": {
+      "title": "Blocked time types",
+      "subtitle": "Create and customize blocked times that can be scheduled in the calendar."
+    },
+    "settingsResources": {
+      "title": "Resources",
+      "subtitle": "Add resources, rooms and other resources needed for your services."
+    },
+    "settingsResourceEdit": {
+      "title": "New resource",
+      "subtitle": "Basic details and availability."
+    },
+    "settingsCancellationReasons": {
+      "title": "Cancellation reasons",
+      "subtitle": "Manage reasons for your team members to choose when cancelling client appointments."
+    },
+    "settingsAppointmentStatuses": {
+      "title": "Appointment statuses",
+      "subtitle": "Create and manage custom appointment statuses."
+    },
+    "settingsClosedPeriods": {
+      "title": "Closed periods",
+      "subtitle": "Set closed periods for specific locations or your entire business."
+    },
+    "settingsDynamicAssignment": {
+      "title": "Dynamic assignment",
+      "subtitle": "Choose how appointments are assigned or reassigned when clients book online."
+    },
+    "settingsAvailability": {
+      "title": "Availability",
+      "subtitle": "Choose when clients can book and change appointments online."
+    },
+    "settingsBookingOptions": {
+      "title": "Booking options",
+      "subtitle": "Customize the experience for clients booking online."
+    },
+    "settingsPayNow": {
+      "title": "Pay now",
+      "subtitle": "Collect payment in one tap from the appointment panel, skipping the checkout flow entirely."
+    },
+    "settingsTaxRates": {
+      "title": "Tax rates",
+      "subtitle": "Set the tax defaults to automatically apply them in appointments and sales."
+    },
+    "settingsReceipts": {
+      "title": "Receipts",
+      "subtitle": "Customize the content displayed on sales receipts issued to your clients."
+    },
+    "settingsRegisters": {
+      "title": "Registers",
+      "subtitle": "Set up and manage cash registers for your cash transactions."
+    },
+    "settingsTipping": {
+      "title": "Tipping",
+      "subtitle": "Choose when to ask clients to tip and customize default tipping values."
+    },
+    "settingsServiceCharges": {
+      "title": "Service charges",
+      "subtitle": "Manage extra charges that you can automatically or manually add during checkout."
+    },
+    "settingsGiftCards": {
+      "title": "Gift cards",
+      "subtitle": "Choose how you would like to sell your gift cards, and customize their settings."
+    },
+    "settingsCheckoutMethods": {
+      "title": "Custom checkout methods",
+      "subtitle": "Manage custom payment methods displayed at checkout."
+    },
+    "settingsClientSources": {
+      "title": "Client sources",
+      "subtitle": "Manage sources to track how clients found your business."
+    },
+    "settingsClientTags": {
+      "title": "Client tags",
+      "subtitle": "Manually tag clients for easier management."
+    },
+    "settingsClientConnect": {
+      "title": "Client Connect",
+      "subtitle": "Manage how clients can contact and interact with your business through Client Connect."
+    },
+    "settingsPermissions": {
+      "title": "Permission roles",
+      "subtitle": "Choose what areas are accessible to each permission role."
+    },
+    "settingsPermissionEdit": {
+      "title": "Edit permission role",
+      "subtitle": "Select the areas of your workspace that team members in this role can access and manage"
+    },
+    "settingsPermissionAdd": {
+      "title": "Add permission role",
+      "subtitle": "Enter a name for the permission role you're creating"
+    },
+    "settingsTimeOff": {
+      "title": "Time off types",
+      "subtitle": "Set up custom reasons that can be selected when adding a time off."
+    },
+    "settingsTimesheets": {
+      "title": "Timesheets",
+      "subtitle": "Choose which timesheet actions are automated and how proximity controls apply to manual clock-ins."
+    },
+    "settingsShifts": {
+      "title": "Shifts",
+      "subtitle": "Choose whether shifts should be automatically created for team members or created manually."
+    },
+    "settingsPayRuns": {
+      "title": "Pay runs",
+      "subtitle": "Set pay periods and pay run automations."
+    },
+    "settingsCommissions": {
+      "title": "Commissions",
+      "subtitle": "Manage default global commission settings to be applied to new team members."
+    },
+    "settingsPinSwitching": {
+      "title": "PIN switching",
+      "subtitle": "Quickly switch between users, without the need for emails and passwords."
+    },
+    "settingsPinSwitchingSetup": {
+      "title": "Configure lock screen",
+      "subtitle": "Auto-lock and lock screen style."
+    },
+    "settingsFormTemplates": {
+      "title": "Form templates",
+      "subtitle": "Create and manage form templates to be added to clients or appointments."
+    },
+    "settingsFormCreate": {
+      "title": "Add sections to your form",
+      "subtitle": "Step 1 of 2"
+    },
+    "settingsFormEdit": {
+      "title": "Edit form",
+      "subtitle": "Step 1 of 2"
+    },
+    "settingsFormDetails": {
+      "title": "Form overview",
+      "subtitle": "Stats and consultation form details."
+    },
+    "settingsFormPreview": {
+      "title": "Form preview",
+      "subtitle": "Step 1 of 2"
+    },
+    "settingsPaymentPolicy": {
+      "title": "Payment policy",
+      "subtitle": "Choose if clients prepay for appointments and manage no-show and late cancellation fees."
+    },
+    "settingsPaymentMethods": {
+      "title": "Payment methods",
+      "subtitle": "Manage payment methods shown to clients when paying online or at point of sale"
+    },
+    "settingsCardTerminals": {
+      "title": "Card terminals",
+      "subtitle": "Manage your card terminals for your workspace."
+    },
+    "billingDetails": {
+      "title": "Billing",
+      "subtitle": "These details are used for invoices issued to you from Innoweb, and for collecting payments."
+    },
+    "billingBankAccounts": {
+      "title": "Bank accounts",
+      "subtitle": "Receive payments from clients directly into your bank account."
+    },
+    "billingPaymentMethods": {
+      "title": "Payment methods",
+      "subtitle": "Used to pay Innoweb fees and purchases."
+    },
+    "billingCommunication": {
+      "title": "Communication balance",
+      "subtitle": "Manage your balance for client communication, like messages and calls."
+    },
+    "billingInvoices": {
+      "title": "Invoices and fees",
+      "subtitle": "View previous charges, download invoices and fee activities."
+    },
+    "billingSubscriptions": {
+      "title": "Subscriptions",
+      "subtitle": "View and manage active plan and add-on subscriptions."
+    },
+    "billingChangePlan": {
+      "title": "Change your plan",
+      "subtitle": "Independent or Team, billed monthly, excluding IVA."
+    },
+    "myProfile": {
+      "title": "My profile",
+      "subtitle": "Edit and manage the content of your online profile"
+    },
+    "myProfileEdit": {
+      "title": "Edit your online profile",
+      "subtitle": "Personal details, languages, interests and social links."
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "subtitle": "Showcase your unique skills with your own portfolio"
+    },
+    "accountReviews": {
+      "title": "Reviews",
+      "subtitle": "See star ratings and reviews left by clients after their visit."
+    },
+    "accountPayRuns": {
+      "title": "Pay runs",
+      "subtitle": "Manage pay runs from your workspaces."
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "subtitle": "Create, join or leave businesses."
+    },
+    "workspaceSettings": {
+      "title": "Workspace settings",
+      "subtitle": "Manage your workspace settings."
+    },
+    "personalSettings": {
+      "title": "Personal settings",
+      "subtitle": "Manage settings for your personal area."
+    },
+    "personalInfo": {
+      "title": "Personal info",
+      "subtitle": "Customize your personal details and how we can contact you"
+    },
+    "loginSecurity": {
+      "title": "Login & security",
+      "subtitle": "Update your password and secure your account"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Select the look and feel of your platform"
+    }
+  }
+}

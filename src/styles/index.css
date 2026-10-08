@@ -1,0 +1,67 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-canvas font-sans text-body text-ink antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid rgb(var(--focus-ring) / 0.45);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-body-strong transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active;
+  }
+  .btn-secondary {
+    @apply btn border border-line-strong bg-surface text-ink hover:bg-sunken;
+  }
+  .btn-ghost {
+    @apply btn text-ink hover:bg-sunken;
+  }
+  .btn-accent {
+    @apply btn bg-accent text-on-accent hover:bg-accent-hover;
+  }
+  .icon-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-md text-ink transition-colors duration-fast hover:bg-sunken;
+  }
+  .card {
+    @apply rounded-lg border border-line bg-surface shadow-xs;
+  }
+  .input {
+    @apply h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-body text-ink placeholder:text-subtle focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
+  .label {
+    @apply mb-1.5 block text-body-strong text-ink;
+  }
+  .chip {
+    @apply inline-flex h-6 items-center rounded-full px-2.5 text-small;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
